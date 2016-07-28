@@ -26,7 +26,10 @@ if (!isset($response['validity'])) die(NULL);
 if (!isset($response['uid'])) die(NULL);
 if (date('U') > $response['validity']) die(NULL);
 
-if ($response['uid'] == 1) die('user.add');
-die(NULL);
+$permissions = array();
+if ($response['uid'] == 1) {
+	$permissions[] = 'user.add';
+}
+die(json_encode($permissions));
 
 ?>
