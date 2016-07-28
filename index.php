@@ -13,7 +13,7 @@ if ($token == null){
 }
 
 function getMenuEntries($service){
-	globel $token;
+	global $token;
 	$response = request($service,'menu?token='.$token);
 }
 $menu_entries = array();
