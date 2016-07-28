@@ -2,9 +2,9 @@
 
 include 'config.php';
 
-function getUrl($script,$path){
-	global $scripts;
-	return $scripts[$script].$path;  
+function getUrl($service,$path){
+	global $services;
+	return $services[$service].$path;  
 }
 
 function request($script,$path){
