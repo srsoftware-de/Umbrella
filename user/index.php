@@ -1,1 +1,2 @@
-login(username,password)
+login(username,password)<br/>
+checkValidity(token)
