@@ -7,9 +7,9 @@ function getUrl($service,$path){
 	return $services[$service].$path;
 }
 
-function request($service,$path){
+function request($service,$path,$show_request = false){
 	$url = getUrl($service,$path);
-	echo $url.'<br/>';
+	if ($show_request) echo $url.'<br/>';
 	$response = file_get_contents($url);
 	return json_decode($response,true);
 }
