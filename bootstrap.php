@@ -12,3 +12,7 @@ function request($service,$path){
 	echo $url.'<br/>';
 	return file_get_contents($url);
 }
+
+$token = null;
+if (isset($_GET['token'])) $token = $_GET['token'];
+

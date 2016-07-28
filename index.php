@@ -2,8 +2,6 @@
 
 include 'bootstrap.php';
 
-$token = null;
-if (isset($_GET['token'])) $token = $_GET['token'];
 
 if (isset($_GET['username']) && isset($_GET['password'])){
 	$token = request('user','login?username='.$_GET['username'].'&password='.$_GET['password']);
