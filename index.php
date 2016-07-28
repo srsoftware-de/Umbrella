@@ -2,8 +2,6 @@
 
 include 'config.php';
 
-$services = array('user','permission');
-
 function getUrl($service,$path){
 	global $services;
 	return $services[$service].$path;
@@ -30,9 +28,8 @@ if ($token == null){
 function getMenuEntries($service){
 	$response = request($service,'menu');
 }
-
 $menu_entries = array();
-foreach ($services as $service){
+foreach ($services as $service => $path){
 	$menu_entries[$service] = getMenuEntries($service);
 }
-die(print_r($menu_entries);
+die(print_r($menu_entries));
