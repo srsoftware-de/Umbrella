@@ -12,7 +12,7 @@ if (date('U') > $response['validity']) die(NULL);
 
 $permissions = array();
 if ($response['uid'] == 1) {
-	$permissions['user'] = 'add';
+	$permissions['user'] = array('add','list');
 }
 die(json_encode($permissions));
 
