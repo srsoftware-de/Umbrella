@@ -12,12 +12,13 @@ if ($token == null){
 	die();
 }
 
-function getMenuEntries($service){
-	global $token;
-	$response = request($service,'menu?token='.$token);
-}
 $menu_entries = array();
 foreach ($services as $service => $path){
-	$menu_entries[$service] = getMenuEntries($service);
+	$menu_entries[$service] = request($service,'menu?token='.$token,true);
 }
-die(print_r($menu_entries));
+print_r($menu_entries);
+foreach ($menu_entries as $service => $menu){
+	foreach ($menu as $action => $text){
+		print '<a href="'.$service.'/'.$action.'">'.$text.'</a> ';
+	}
+}
