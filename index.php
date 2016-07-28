@@ -11,22 +11,21 @@ function getUrl($path){
 	return $proto.$host.$script.'/'.$path;
 }
 
-session_start();
-	
-if (isset($_GET['username']) && isset($_GET['password'])){
-	$url = getUrl('user/login?username='.$_GET['username'].'&password='.$_GET['password']);
-	$token = file_get_contents($url);
-	if ($token == null) {
-		unset($_SESSION['token']);
-	} else {
-		$_SESSION['token'] = $token;
-	}
+function request($path){
+	$url = getUrl($path);
+	echo $url.'<br/>';
+	return file_get_contents($url);
 }
 
-if (!isset($_SESSION['token'])){
+$token = null;
+if (isset($_GET['token'])) $token = $_GET['token'];
+
+if (isset($_GET['username']) && isset($_GET['password'])){
+	$token = request('user/login?username='.$_GET['username'].'&password='.$_GET['password']);
+}
+
+if ($token == null){
 	include('user/form/login.php');
 	die();
 }
-
-$url = getUrl('permission/get?token='.$_SESSION['token']);
-die(file_get_contents($url));
+die(request('permission/get?token='.$token));
