@@ -13,7 +13,8 @@ if ($token == null){
 }
 
 function getMenuEntries($service){
-	$response = request($service,'menu');
+	globel $token;
+	$response = request($service,'menu?token='.$token);
 }
 $menu_entries = array();
 foreach ($services as $service => $path){
