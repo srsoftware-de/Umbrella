@@ -17,6 +17,16 @@ if (!isset($_GET['token'])) die(NULL);
 $token = $_GET['token'];
 if ($token == null) die(NULL);
 
-die(request('user','validate?token='.$token));
+$response = request('user','validate?token='.$token);
+if ($response == null) die(NULL);
+
+$response = json_decode($response,true);
+
+if (!isset($response['validity'])) die(NULL);
+if (!isset($response['uid'])) die(NULL);
+if (date('U') > $response['validity']) die(NULL);
+
+if ($response['uid'] == 1) die('user.add');
+die(NULL);
 
 ?>
