@@ -1,11 +1,9 @@
 <?php
 
-$scripts[]=array();
-$scripts['user']='https://eldorado.keawe.de:816/microservices/user/';
+include 'config.php';
 
 function getUrl($script,$path){
 	global $scripts;
-		
 	return $scripts[$script].$path;  
 }
 
