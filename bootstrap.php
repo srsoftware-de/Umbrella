@@ -10,7 +10,8 @@ function getUrl($service,$path){
 function request($service,$path){
 	$url = getUrl($service,$path);
 	echo $url.'<br/>';
-	return file_get_contents($url);
+	$response = file_get_contents($url);
+	return json_decode($response,true);
 }
 
 $token = null;
