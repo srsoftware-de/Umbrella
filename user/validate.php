@@ -1,7 +1,8 @@
 <?php
 
-if (!isset($_GET['token'])) die(NULL);
-$token = $_GET['token'];
+include 'bootstrap.php';
+
+if ($token == null) die(NULL);
 
 if ($token == 'asdfghjkl'){
 	$validity = date('U')+3600;

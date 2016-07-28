@@ -4,7 +4,7 @@ if (!isset($_GET['password'])) die(NULL);
 $username = $_GET['username'];
 $password = $_GET['password'];
 if ($username == 'srichter'){
-	$token = 'asdfghjkl';
+	$token = '"asdfghjkl"';
 	die($token);
 }
 die(NULL);
