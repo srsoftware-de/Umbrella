@@ -1,5 +1,7 @@
 <?php
 
+session_start();
+
 if (!isset($_GET['token'])) die(NULL);
 $token = $_GET['token'];
 
