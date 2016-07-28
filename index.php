@@ -11,19 +11,15 @@ function getUrl($path){
 	return $proto.$host.$script.'/'.$path;
 }
 
-session_start();
-	
+$token = null;
+if (isset($_GET['token'])) $token = $_GET['token'];
+
 if (isset($_GET['username']) && isset($_GET['password'])){
 	$url = getUrl('user/login?username='.$_GET['username'].'&password='.$_GET['password']);
 	$token = file_get_contents($url);
-	if ($token == null) {
-		unset($_SESSION['token']);
-	} else {
-		$_SESSION['token'] = $token;
-	}
 }
 
-if (!isset($_SESSION['token'])){
+if ($token == null){
 	include('user/form/login.php');
 	die();
 }
