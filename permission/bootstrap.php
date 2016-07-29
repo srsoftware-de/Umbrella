@@ -16,4 +16,3 @@ function request($service,$path,$show_request = false){
 
 $token = null;
 if (isset($_GET['token'])) $token = $_GET['token'];
-
