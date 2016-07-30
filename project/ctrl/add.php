@@ -1,6 +1,6 @@
 <?php
 
-include 'bootstrap.php';
+include '../bootstrap.php';
 
 $perms = request('permission','get?token='.$token);
 if (!is_array($perms)) die('no permission');
@@ -22,5 +22,5 @@ $project_list[$name] = $description;
 
 file_put_contents('.projects', json_encode($project_list));
 print_r($project_list);
-header('Location: ..?token='.$token);
+header('Location: ../..?token='.$token);
 ?>

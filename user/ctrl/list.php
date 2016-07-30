@@ -1,6 +1,6 @@
 <?php
 
-include 'bootstrap.php';
+include '../bootstrap.php';
 
 $perms = request('permission','get?token='.$token);
 if (!is_array($perms)) die(NULL);

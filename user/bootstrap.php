@@ -4,7 +4,7 @@ include 'config.php';
 
 function getUrl($service,$path){
 	global $services;
-	return $services[$service].$path;
+	return $services[$service].'ctrl/'.$path;
 }
 
 function request($service,$path,$show_request = false){

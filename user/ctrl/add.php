@@ -1,6 +1,6 @@
 <?php
 
-include 'bootstrap.php';
+include '../bootstrap.php';
 
 $perms = request('permission','get?token='.$token);
 if (!is_array($perms)) die(NULL);
@@ -20,5 +20,5 @@ $userlist[$username] = $password;
 
 file_put_contents('.userlist', json_encode($userlist));
 
-header('Location: ..?token='.$token);
+header('Location: ../..?token='.$token);
 ?>
