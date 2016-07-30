@@ -1,3 +1,4 @@
+<?php include 'menu.php'; ?>
 <form action="../ctrl/add" method="GET">
 	<input type="text" name="name"/>Project Name<br/>
 	<input type="text" name="description"/>Description<br/>

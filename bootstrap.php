@@ -3,8 +3,8 @@
 include 'config.php';
 
 function getUrl($service,$path){
-	global $services;
-	return $services[$service].'ctrl/'.$path;
+	global $services,$token;
+	return $services[$service].$path.'?token='.$token;
 }
 
 function request($service,$path,$show_request = false){

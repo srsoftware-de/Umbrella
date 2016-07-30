@@ -14,10 +14,5 @@ if ($token == null){
 
 $menu_entries = array();
 foreach ($services as $service => $path){
-	$menu_entries[$service] = request($service,'menu?token='.$token);
-}
-foreach ($menu_entries as $service => $menu){
-	foreach ($menu as $action => $text){
-		print '<a href="'.$service.'/form/'.$action.'?token='.$token.'">'.$text.'</a> ';
-	}
+	echo file_get_contents(getUrl($service, 'form/menu'));	
 }

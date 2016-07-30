@@ -2,7 +2,8 @@
 
 include "../../bootstrap.php";
 
-$projects = request('project', 'list?token='.$token);
+$projects = request('project', 'ctrl/list');
+include 'menu.php';
 ?>
 <table>
 	<tr>

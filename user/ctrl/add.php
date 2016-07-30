@@ -2,7 +2,7 @@
 
 include '../bootstrap.php';
 
-$perms = request('permission','get?token='.$token);
+$perms = request('permission','ctrl/get');
 if (!is_array($perms)) die(NULL);
 
 if (!is_array($perms['user'])) die(NULL);

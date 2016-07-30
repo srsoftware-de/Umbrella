@@ -2,8 +2,9 @@
 
 include "../../bootstrap.php";
 
-$users = request('user', 'list?token='.$token);
+$users = request('user', 'ctrl/list');
 ?>
+<?php include 'menu.php'?>
 <table>
 	<tr>
 		<th>Username</th><th>Password</th>

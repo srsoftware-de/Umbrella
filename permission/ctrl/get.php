@@ -1,10 +1,10 @@
 <?php
 
-include 'bootstrap.php';
+include '../bootstrap.php';
 
 if ($token == null) die(NULL);
 
-$response = request('user','validate?token='.$token);
+$response = request('user','ctrl/validate');
 
 if (!isset($response['validity'])) die(NULL);
 if (!isset($response['uid'])) die(NULL);
