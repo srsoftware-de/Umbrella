@@ -2,6 +2,7 @@
 
 include '../bootstrap.php';
 include 'controller.php';
+
 if ($email = post('email')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
 		perform_login($email,$pass); // defined in controller.php

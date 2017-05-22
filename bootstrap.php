@@ -53,3 +53,21 @@ function debug($object,$die = false){
 
 $token = null;
 if (isset($_COOKIE['UmbrellaToken'])) $token = $_COOKIE['UmbrellaToken'];
+
+function current_user(){
+	global $token,$services;
+	if ($token === null){
+		header('Location: ../user/login');
+		die();
+	}
+	assert(isset($services['user']),'No user service configured!');
+	$url = $services['user'].'validateToken';
+
+	$post_data = http_build_query(array('token'=>$token));
+	$options = array('http'=>array('method'=>'POST','header'=>'Content-type: application/x-www-form-urlencoded','content'=>$post_data));
+	$context = stream_context_create($options);
+
+	$json = file_get_contents($url,false,$context);
+	$user = json_decode($json);
+	return $user;
+}
