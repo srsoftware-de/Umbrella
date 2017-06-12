@@ -8,6 +8,9 @@ $user = current_user();
 if ($user->id != 1) error('Currently, only admin can view the user list!');
 
 include '../common_templates/head.php'; 
+
+include '../common_templates/main_menu.php';
+include 'menu.php';
 include '../common_templates/messages.php';
 
 if ($user->id == 1){
@@ -23,7 +26,7 @@ if ($user->id == 1){
 	<tr>
 		<td><?= $user['id'] ?></td>
 		<td><?= $user['login'] ?></td>
-		<td>Edit</td>
+		<td><a href="edit?id=<?= $user['id']?>">Edit</a></td>
 	</tr>
 <?php endforeach; ?>
 

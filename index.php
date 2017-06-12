@@ -2,17 +2,11 @@
 
 include 'bootstrap.php';
 
+$title = 'Umbrella';
 
-if (isset($_GET['username']) && isset($_GET['password'])){
-	$token = request('user','login?username='.$_GET['username'].'&password='.$_GET['password']);
-}
+require_login();
 
-if ($token == null){
-	include('user/form/login.php');
-	die();
-}
+include 'common_templates/head.php';
 
-$menu_entries = array();
-foreach ($services as $service => $path){
-	echo file_get_contents(getUrl($service, 'form/menu'));	
-}
+include 'common_templates/main_menu.php';
+include 'common_templates/closure.php';

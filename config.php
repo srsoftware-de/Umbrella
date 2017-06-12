@@ -1,6 +1,6 @@
 <?php
 $services=array();
-$services['user']='https://eldorado.keawe.de:816/microservices/user/';
-$services['permission']='https://eldorado.keawe.de:816/microservices/permission/';
-$services['project']='https://eldorado.keawe.de:816/microservices/project/';
+$services['user']=array('name'=>'Users','path'=>'https://eldorado.keawe.de:816/microservices/user/');
+$services['permission']=array('name'=>'Permissions','path'=>'https://eldorado.keawe.de:816/microservices/permission/');
+$services['project']=array('name'=>'Projects','path'=>'https://eldorado.keawe.de:816/microservices/project/');
 ?>
