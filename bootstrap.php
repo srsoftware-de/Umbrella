@@ -43,11 +43,15 @@ function debug($object,$die = false){
 	}
 }
 
+/**
+ * contacts the user service, sends the current token and recieves the user data.
+ * if no token is given, redirects to the login page
+ */
 function current_user(){
 	global $token,$services;
 	assert(isset($services['user']['path']),'No user service configured!');
 	if ($token === null){
-		header('Location: '.$services['user']['path'].'/login');
+		header('Location: '.$services['user']['path'].'login');
 		die();
 	}
 	$url = $services['user']['path'].'validateToken';
@@ -61,6 +65,9 @@ function current_user(){
 	return $user;
 }
 
+/**
+ * checks if a user is logged in and forces a login of not. 
+ */
 function require_login(){
 	global $user;
 	$user = current_user();	
@@ -72,6 +79,7 @@ function postLink($url,$caption,$data = array(),$title = null){
 
 	echo '<form method="POST" action="'.$url.'">';
 	foreach ($data as $name => $value) echo '<input type="hidden" name="'.$name.'" value="'.$value.'" />';
+	echo '<button type="submit">'.$caption.'</button>';
 	echo '</form>';
 	
 }

@@ -4,7 +4,7 @@ include 'bootstrap.php';
 
 $title = 'Umbrella';
 
-require_login();
+require_login();  // defined in bootstrap.php
 
 include 'common_templates/head.php';
 
