@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella login';
+<?php $title = 'Umbrella User Management';
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -15,7 +15,7 @@ if ($email = post('email')){ // defined in bootstrap.php
 include '../common_templates/head.php'; 
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Login</legend>
+	<fieldset><legend>Create new User</legend>
 		<fieldset><legend>Email</legend>
 		<input type="text" name="email" />
 		</fieldset>

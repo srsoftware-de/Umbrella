@@ -42,6 +42,11 @@
 
 	function add_user($db,$login,$pass){
 		$hash = sha1($pass); // TODO: better hashing
+
+		$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
+		assert($query->execute(array(':login'=>$login)),'Was not able to assure non-existance of user!');
+		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		assert($results[0]['count'] == 0,'User with this login name already existing!');
 		$query = $db->prepare('INSERT INTO users (login, pass) VALUES (:login, :pass);');
 		assert ($query->execute(array(':login'=>$login,':pass'=>$hash)),'Was not able to add user '.$login);
 	}
