@@ -23,4 +23,15 @@
 
 		return $results;
 	}
+
+	function add_project($name,$description = null){
+		global $user;
+		$db = get_or_create_db();
+		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
+		$query = $db->prepare('INSERT INTO projects (name, description) VALUES (:name, :desc);');		
+		assert($query->execute(array(':name'=>$name,':desc'=>$description)),'Was not able to create new project entry in  database');
+		$project_id = $db->lastInsertId();
+		$query = $db->prepare('INSERT INTO projects_users (project_id, user_id) VALUES (:pid, :uid);');
+		assert($query->execute(array(':pid'=>$project_id,':uid'=>$user->id)),'Was not able to assign project to user!');
+	}
 ?>

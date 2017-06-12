@@ -3,6 +3,8 @@
 include '../bootstrap.php';
 include 'controller.php';
 
+require_login();
+
 if ($email = post('email')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
 		$db = get_or_create_db();
