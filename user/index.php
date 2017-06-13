@@ -26,7 +26,7 @@ if ($user->id == 1){
 	<tr>
 		<td><?= $user['id'] ?></td>
 		<td><?= $user['login'] ?></td>
-		<td><a href="edit?id=<?= $user['id']?>">Edit</a></td>
+		<td><a href="<?= $user['id']?>/edit">Edit</a></td>
 	</tr>
 <?php endforeach; ?>
 
