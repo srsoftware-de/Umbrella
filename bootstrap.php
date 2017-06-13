@@ -26,6 +26,11 @@ function post($name){
 	return null;
 }
 
+function param($name){
+	if (isset($_GET[$name])) return $_GET[$name];
+	return post($name);
+}
+
 function info($message){
 	global $infos;
 	$infos[] = $message;

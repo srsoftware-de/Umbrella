@@ -39,6 +39,17 @@
 	function generateRandomString(){
 		return bin2hex(openssl_random_pseudo_bytes(40));
 	}
+	
+	function load_user($id = null){
+		assert($id !== null,'No user id passed to load_user!');
+		assert(is_numeric($id),'Invalid user id passed to load_user!');
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM users WHERE id = :id');
+		assert($query->execute(array(':id'=>$id)));
+		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		return $results[0];
+		
+	}
 
 	function add_user($db,$login,$pass){
 		$hash = sha1($pass); // TODO: better hashing
@@ -74,5 +85,13 @@
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		
 		return $results;
+	}
+	
+	function alter_password($user,$new_pass){
+		$db = get_or_create_db();
+		$hash = sha1($new_pass); // TODO: better hashing
+		$query = $db->prepare('UPDATE users SET pass = :pass WHERE id = :id;');
+		assert ($query->execute(array(':pass'=>$hash,':id'=>$user['id'])),'Was not able to update user '.$user['login']);
+		
 	}
 ?>
