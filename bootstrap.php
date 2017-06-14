@@ -11,13 +11,14 @@ function assert_failure($script, $line, $message){
 
 function getUrl($service,$path){
 	global $services,$token;
-	return $services[$service].$path.'?token='.$token;
+	return $services[$service]['path'].$path.'?token='.$token;
 }
 
-function request($service,$path,$show_request = false){
+function request($service,$path,$debug = false){
 	$url = getUrl($service,$path);
-	if ($show_request) echo $url.'<br/>';
+	if ($debug) echo $url.'<br/>';
 	$response = file_get_contents($url);
+	if ($debug) debug($response);
 	return json_decode($response,true);
 }
 
@@ -97,8 +98,8 @@ assert_options(ASSERT_CALLBACK, 'assert_failure');
 
 $errors = array();
 $infos = array();
-$token = null;
 $user = null;
 
+$token = param('token');
 if (isset($_COOKIE['UmbrellaToken'])) $token = $_COOKIE['UmbrellaToken'];
 	

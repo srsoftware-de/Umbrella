@@ -77,9 +77,11 @@
 		return $db;
 	}
 
-	function get_userlist(){
+	function get_userlist($include_passwords = false){
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM users');
+		$columns = array('id', 'login');
+		if ($include_passwords) $columns[]='pass';
+		$query = $db->prepare('SELECT '.implode(', ', $columns).' FROM users');
 		assert($query->execute(),'Was not able to request user list!');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		
