@@ -8,6 +8,12 @@
 		foreach ($results as $user){
 			if (sha1($pass) == $user['pass']){
 				set_token_cookie($user);
+				if ($user['id'] == 1){
+					header('Location: index');
+				} else {
+					header('Location: '.$user['id'].'/view');
+				}
+				die();				
 			}
 		}
 		error('The provided username/password combination is not valid!');
@@ -28,12 +34,6 @@
 		$query = $db->prepare('INSERT OR REPLACE INTO tokens (user_id, token, expiration) VALUES (:uid, :token, :expiration);');
 		assert($query->execute(array(':uid'=>$user['id'],':token'=>$token,':expiration'=>$expiration)),'Was not able to update token expiration date!');
 		setcookie('UmbrellaToken',$token,time()+3600,'/');
-		if ($user['id'] == 1){
-			header('Location: index');
-		} else {
-			header('Location: ../..');
-		} 
-		die();
 	}
 
 	function generateRandomString(){

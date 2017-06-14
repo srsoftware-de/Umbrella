@@ -4,16 +4,13 @@ include '../bootstrap.php';
 include 'controller.php';
 
 $user = current_user();
-
-if ($user->id != 1) error('Currently, only admin can view the user list!');
+$projects = get_project_list();
 
 include '../common_templates/head.php'; 
 
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php';
-
-	$projects = get_project_list(); ?>
+include '../common_templates/messages.php'; ?>
 
 <table>
 	<tr>
