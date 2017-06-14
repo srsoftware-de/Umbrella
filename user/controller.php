@@ -47,8 +47,7 @@
 		$query = $db->prepare('SELECT * FROM users WHERE id = :id');
 		assert($query->execute(array(':id'=>$id)));
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		return $results[0];
-		
+		return $results[0];		
 	}
 
 	function add_user($db,$login,$pass){

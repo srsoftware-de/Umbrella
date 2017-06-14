@@ -4,12 +4,11 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login();
-
 if ($name = post('name')){
 	add_project($name,post('description'));
-        header('Location: index');
-        die();
-} else error('No project name given!');
+    header('Location: index');
+    die();
+}
 
 
 include '../common_templates/head.php'; 

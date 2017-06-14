@@ -4,27 +4,25 @@ include '../bootstrap.php';
 include 'controller.php';
 
 $user = current_user();
-$user_id = param('id');
+$project_id = param('id');
 
-if ($user->id != 1) {
-	if ($user_id != $user_id) error('Currently, only admin can view other users!');
-}
+if (!$project_id) error('No project id passed to view!');
 
-$u = load_user($user_id);
-$title = $u['login'].' - Umbrella';
+$p = load_project($project_id);
+$title = $p['name'].' - Umbrella';
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 ?>
-<h1><?= $u['login'] ?></h1>
+<h1><?= $p['login'] ?></h1>
 <table class="vertical">
 	<tr>
-		<th>Username</th><td><?= $u['login'];?></td>
+		<th>Project</th><td><?= $p['name'];?></td>
 	</tr>
 	<tr>
-		<th>Password (hashed)</th><td><?= $u['pass']; ?></td>
+		<th>Description</th><td><?= $p['description']; ?></td>
 	</tr>	
 </table>
 <?php include '../common_templates/closure.php'; ?>

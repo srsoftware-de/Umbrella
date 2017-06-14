@@ -19,9 +19,9 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 <?php foreach ($projects as $project): ?>
 	<tr>
-		<td><?= $project['name'] ?></td>
+		<td><a href="<?= $project['id']?>/view"><?= $project['name'] ?></a></td>
 		<td><?= $project['status'] ?></td>
-		<td><a href="edit?id=<?= $project['id']?>">Edit</a></td>
+		<td><a href="<?= $project['id']?>/edit">Edit</a></td>
 	</tr>
 <?php endforeach; ?>
 
