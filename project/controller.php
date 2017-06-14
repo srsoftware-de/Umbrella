@@ -26,9 +26,9 @@
 	function get_project_list(){
 		global $user;
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM projects LEFT JOIN projects_users ON projects.id = projects_users.project_id WHERE user_id = :uid');
+		$query = $db->prepare('SELECT * FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = :uid)');
 		assert($query->execute(array(':uid'=>$user->id)),'Was not able to request project list!');
-                $results = $query->fetchAll(PDO::FETCH_ASSOC);
+                $results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 
 		return $results;
 	}

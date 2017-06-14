@@ -25,10 +25,9 @@
 	function get_task_list(){
 		global $user;
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM tasks LEFT JOIN tasks_users ON tasks.id = tasks_users.task_id WHERE user_id = :uid');
+		$query = $db->prepare('SELECT * FROM tasks WHERE id IN (SELECT task_id FROM tasks_users WHERE user_id = :uid)');
 		assert($query->execute(array(':uid'=>$user->id)),'Was not able to request project list!');
-        $results = $query->fetchAll(PDO::FETCH_ASSOC);
-
+		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		return $results;
 	}
 

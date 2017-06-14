@@ -16,11 +16,11 @@ include '../common_templates/messages.php'; ?>
 		<th>Name</th>
 		<th>Status</th>
 	</tr>
-<?php foreach ($projects as $project): ?>
+<?php foreach ($projects as $id => $project): ?>
 	<tr>
-		<td><a href="<?= $project['id']?>/view"><?= $project['name'] ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $project['name'] ?></a></td>
 		<td><?= $project['status'] ?></td>
-		<td><a href="<?= $project['id']?>/edit">Edit</a></td>
+		<td><a href="<?= $id ?>/edit">Edit</a></td>
 	</tr>
 <?php endforeach; ?>
 
