@@ -16,7 +16,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 ?>
-<h1><?= $p['login'] ?></h1>
+<h1><?= $p['name'] ?></h1>
 <table class="vertical">
 	<tr>
 		<th>Project</th><td><?= $p['name'];?></td>

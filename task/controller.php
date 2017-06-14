@@ -38,7 +38,7 @@
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
 		assert(is_numeric($project_id),'Task must reference project!');
 		$query = $db->prepare('INSERT INTO tasks (name, project_id, description, status) VALUES (:name, :pid, :desc, :state);');		
-		assert($query->execute(array(':name'=>$name,':pid'=>$project_id,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new task entry in database');
+		assert($query->execute(array(':name'=>$name,':pid'=>$project_id,':desc'=>$description,':state'=>TASK_STATUS_OPEN)),'Was not able to create new task entry in database');
 		$task_id = $db->lastInsertId();
 		add_user_to_task($task_id,$user->id,TASK_PERMISSION_OWNER);
 	}
@@ -63,7 +63,7 @@
 	}
 	
 	function add_user_to_task($task_id = null,$user_id = null,$permission = null){
-		assert(is_numeric($task_id),'task id must be numeric, is '.$project_id);
+		assert(is_numeric($task_id),'task id must be numeric, is '.$task_id);
 		assert(is_numeric($user_id),'user id must be numeric, is '.$user_id);
 		assert(is_numeric($permission),'permission must be numeric, is '.$permission);
 		$db = get_or_create_db();

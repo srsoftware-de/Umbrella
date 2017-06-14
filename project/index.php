@@ -3,7 +3,8 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-$user = current_user();
+require_login();
+debug($user);
 $projects = get_project_list();
 
 include '../common_templates/head.php'; 
