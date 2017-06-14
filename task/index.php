@@ -14,11 +14,14 @@ include '../common_templates/messages.php'; ?>
 <table>
 	<tr>
 		<th>Name</th>
+		<th>Project</th>
 		<th>Status</th>
+		<th>Actions</th>
 	</tr>
 <?php foreach ($tasks as $task): ?>
 	<tr>
 		<td><a href="<?= $task['id']?>/view"><?= $task['name'] ?></a></td>
+		<td><a href="../project/<?= $task['project_id']?>/view"><?= $task['project_id'] ?></a></td>
 		<td><?= $task['status'] ?></td>
 		<td><a href="<?= $task['id']?>/edit">Edit</a></td>
 	</tr>
