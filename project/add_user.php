@@ -5,24 +5,32 @@ include 'controller.php';
 
 require_login();
 
-$user = current_user();
 $project_id = param('id');
 
 if (!$project_id) error('No project id passed to view!');
 
 $p = load_project($project_id);
 $title = $p['name'].' - Umbrella';
-
-$ul = request('user','list');
-if ($project_user = post('project_user')){
-	debug($_POST);
-	add_user_to_project($project_id,$project_user,post('permissions'));
-	header('Location: user_list'); die();
+$ul = load_users($project_id);
+$allowed = false;
+foreach ($ul as $u){
+	if ($u['user_id'] == $user->id && ($u['permissions'] & PROJECT_PERMISSION_OWNER)) $allowed = true;
 }
 
-include '../common_templates/head.php'; 
-include '../common_templates/messages.php'; ?>
+if ($allowed){
+	$ul = request('user','list');
+	if ($project_user = post('project_user')){
+		add_user_to_project($project_id,$project_user,post('permissions'));
+		header('Location: user_list'); die();
+	}
+} else error('You are not allowed to edit the user list of this project!');
 
+include '../common_templates/head.php';
+include '../common_templates/main_menu.php';
+include 'menu.php';
+include '../common_templates/messages.php'; 
+
+if ($allowed){ ?>
 <h1>Add user to <?= $p['name']?></h1>
 <form method="POST">
 	<fieldset><legend>Add user to Project</legend>
@@ -40,5 +48,5 @@ include '../common_templates/messages.php'; ?>
 		<input type="submit" />
 	</fieldset>
 </form>
-
-<?php include '../common_templates/closure.php'; ?>
+<?php }
+include '../common_templates/closure.php'; ?>
