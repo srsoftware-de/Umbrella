@@ -1,8 +1,12 @@
 <?php
 
 	const PROJECT_PERMISSION_OWNER = 1;
+	const PROJECT_PERMISSION_PARTICIPANT = 2;
 	
+	const PROJECT_STATUS_CANCELED = 0;
 	const PROJECT_STATUS_OPEN = 1;
+	const PROJECT_STATUS_CLOSE = 2;
+	
 
 	function get_or_create_db(){
 		if (!file_exists('db')){

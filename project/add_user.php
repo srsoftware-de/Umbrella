@@ -42,7 +42,7 @@ if ($allowed){ ?>
 				<?php }?>
 			</select>
 			<label>
-			<input type="checkbox" name="permissions" value="2" checked="true">Participant
+			<input type="checkbox" name="permissions" value="<?= PROJECT_PERMISSION_PARTICIPANT ?>" checked="true">Participant
 			</label>	
 		</fieldset>
 		<input type="submit" />
