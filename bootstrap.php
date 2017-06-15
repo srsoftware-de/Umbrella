@@ -51,6 +51,11 @@ function debug($object,$die = false){
 	}
 }
 
+function redirect($url){
+	header('Location: '.$url);
+	die();
+}
+
 /**
  * contacts the user service, sends the current token and recieves the user data.
  * if no token is given, redirects to the login page
@@ -59,8 +64,7 @@ function current_user(){
 	global $token,$services;
 	assert(isset($services['user']['path']),'No user service configured!');
 	if ($token === null){
-		header('Location: '.$services['user']['path'].'login');
-		die();
+		redirect($services['user']['path'].'login');
 	}
 	$url = $services['user']['path'].'validateToken';
 

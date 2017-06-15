@@ -57,6 +57,7 @@
 	
 	function update_task($id,$name,$description = null,$project_id = null,$parent_task_id = null){
 		global $user;
+		debug($parent_task_id);
 		$db = get_or_create_db();
 		assert(is_numeric($id),'invalid task id passed!');
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
