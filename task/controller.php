@@ -22,20 +22,20 @@
 		return $db;
 	}
 
-	function get_task_list($order = null){
+	function get_task_list($order = 'name'){
 		global $user;
-		debug($order);
 		$db = get_or_create_db();
 		$sql = 'SELECT * FROM tasks WHERE id IN (SELECT task_id FROM tasks_users WHERE user_id = :uid)';
-		$args = array(':uid'=>$user->id);		
-		if ($order !== null) {
-			$sql.= ' ORDER BY name';
-			//$args[':order'] = $order;
+		switch ($order){
+			case 'project_id':
+			case 'parent_task_id':
+			case 'name':
+			case 'status':
+				$sql .= ' ORDER BY '.$order.' COLLATE NOCASE';
 		}
-		debug($sql);
 		$query = $db->prepare($sql);		
-		assert($query->execute($args),'Was not able to request project list!');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		assert($query->execute(array(':uid'=>$user->id)),'Was not able to request project list!');
+		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		return $results;
 	}
 

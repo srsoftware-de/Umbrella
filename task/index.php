@@ -21,18 +21,18 @@ include '../common_templates/messages.php'; ?>
 		<th>Actions</th>
 	</tr>
 	
-<?php foreach ($tasks as $task):
+<?php foreach ($tasks as $id => $task):
 	$project = $projects[$task['project_id']];
 	$parent_id = $task['parent_task_id'];
 	?>
 	<tr>
-		<td><a href="<?= $task['id'] ?>/view"><?= $task['name'] ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
 		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
 		<td><?php if ($parent_id !== null) { ?><a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a><?php } ?></td>
 		<td><?= $task['status'] ?></td>
 		<td>
-			<a href="<?= $task['id'] ?>/edit">Edit</a>
-			<a href="<?= $task['id'] ?>/add_subtask">Add subtask</a>
+			<a href="<?= $id ?>/edit">Edit</a>
+			<a href="<?= $id ?>/add_subtask">Add subtask</a>
 		</td>
 	</tr>
 <?php endforeach; ?>
