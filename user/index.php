@@ -22,11 +22,11 @@ if ($user->id == 1){
 		<th>Username</th>
 		<th>Actions</th>
 	</tr>
-<?php foreach ($users as $user): ?>
+<?php foreach ($users as $id => $u): ?>
 	<tr>
-		<td><?= $user['id'] ?></td>
-		<td><?= $user['login'] ?></td>
-		<td><a href="<?= $user['id']?>/edit">Edit</a></td>
+		<td><?= $id ?></td>
+		<td><?= $u['login'] ?></td>
+		<td><a href="<?= $id?>/edit">Edit</a></td>
 	</tr>
 <?php endforeach; ?>
 
