@@ -22,14 +22,14 @@ function request($service,$path,$debug = false){
 	return json_decode($response,true);
 }
 
-function post($name){
+function post($name,$default = null){
 	if (isset($_POST[$name])) return $_POST[$name];
-	return null;
+	return $default;
 }
 
-function param($name){
+function param($name,$default = null){
 	if (isset($_GET[$name])) return $_GET[$name];
-	return post($name);
+	return post($name,$default);
 }
 
 function info($message){

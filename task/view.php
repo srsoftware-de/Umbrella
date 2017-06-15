@@ -19,10 +19,12 @@ include '../common_templates/messages.php';
 <h1><?= $task['name'] ?></h1>
 <table class="vertical">
 	<tr>
-		<th>Task</th><td><?= $task['name'];?></td>
+		<th>Task</th>
+		<td><?= $task['name'];?></td>
 	</tr>
 	<tr>
-		<th>Description</th><td><pre><?= $task['description']; ?></pre></td>
+		<th>Description</th>
+		<td><pre><?= $task['description']; ?></pre></td>
 	</tr>	
 </table>
 <?php include '../common_templates/closure.php'; ?>
