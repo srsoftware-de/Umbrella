@@ -2,6 +2,8 @@
 
 include 'config.php';
 
+define(INDEX_FETCH,PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
+
 function assert_failure($script, $line, $message){
 	error('Assertion failed in '.$script.', line '.$line.': '.$message);
 	include 'common_templates/messages.php';
@@ -44,7 +46,9 @@ function error($message){
 }
 
 function debug($object,$die = false){
-	echo '<pre>'.print_r($object,true).'</pre>';
+	if ($object === null) {
+		echo 'null';
+	} else echo '<pre>'.print_r($object,true).'</pre>';
 	if ($die){
 		include 'common_templates/closure.php';
 		die();

@@ -58,7 +58,7 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT user_id, permissions FROM projects_users WHERE project_id = :id');
 		assert($query->execute(array(':id'=>$id)));
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		$results = $query->fetchAll(INDEX_FETCH);
 		return $results;		
 	}
 	

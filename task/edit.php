@@ -53,6 +53,7 @@ include '../common_templates/messages.php'; ?>
 			<legend>Description</legend>
 			<textarea name="description"><?= $task['description']?></textarea>
 		</fieldset>
+		<?php if (isset($task['requirements'])) {?>
 		<fieldset class="requirements">
 			<legend>Requires completion of</legend>
 			<?php foreach ($project_tasks as $id => $project_task){ ?>
@@ -62,6 +63,7 @@ include '../common_templates/messages.php'; ?>
 			</label>
 			<?php }?>
 		</fieldset>
+		<?php } ?>
 		<input type="submit" />
 	</fieldset>
 </form>

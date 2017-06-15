@@ -11,18 +11,18 @@ if (!$project_id) error('No project id passed to view!');
 
 $p = load_project($project_id);
 $title = $p['name'].' - Umbrella';
-$ul = load_users($project_id);
+$current_users = load_users($project_id);
 $allowed = false;
-foreach ($ul as $u){
-	if ($u['user_id'] == $user->id && ($u['permissions'] & PROJECT_PERMISSION_OWNER)) $allowed = true;
+foreach ($current_users as $id => $u){
+	if ($id == $user->id && ($u['permissions'] & PROJECT_PERMISSION_OWNER)) $allowed = true;
 }
 
 if ($allowed){
-	$ul = request('user','list');
 	if ($project_user = post('project_user')){
 		add_user_to_project($project_id,$project_user,post('permissions'));
-		header('Location: user_list'); die();
+		redirect('view');
 	}
+	$user_list = request('user','list');
 } else error('You are not allowed to edit the user list of this project!');
 
 include '../common_templates/head.php';
@@ -37,8 +37,8 @@ if ($allowed){ ?>
 		<fieldset>
 			<select name="project_user">
 				<option value="" selected="true">= Select a user =</option>
-				<?php foreach ($ul as $u){ ?>
-				<option value="<?= $u['id']?>"><?= $u['login']?></option>
+				<?php foreach ($user_list as $id => $u){ ?>
+				<option value="<?= $id ?>"><?= $u['login']?></option>
 				<?php }?>
 			</select>
 			<label>

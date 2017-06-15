@@ -123,12 +123,27 @@
 		return $results[0];
 	}
 	
-	function load_users($id = null){
+	function load_users(&$task){
+		$id = $task['id'];
 		assert(is_numeric($id),'Invalid task id passed to load_users!');
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
 		assert($query->execute(array(':id'=>$id)));
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		debug($results,true);
+		$users = array();
+		foreach ($results as $result){
+			$user_id = $result['user_id'];
+			if (array_key_exists($user_id, $users)){
+				$user['permissions'][] = $result['permission'];
+			} else {
+				$user  = request('user','json?id='.$user_id);
+				debug($user);
+				$users[$user_id] = $user;
+				$users['permissions'] = array($result['permission']);
+			}
+		}
+		debug($users,true);
 		return $results;		
 	}
 	

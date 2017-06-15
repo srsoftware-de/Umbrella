@@ -12,6 +12,7 @@ $task = load_task($task_id,true);
 if ($task['parent_task_id']) $task['parent'] = load_task($task['parent_task_id']);
 load_children($task,99); // up to 99 levels deep
 load_requirements($task);
+//load_users($task);
 $title = $task['name'].' - Umbrella';
 function display_children($task){
 	if (!isset($task['children'])) return; ?>
