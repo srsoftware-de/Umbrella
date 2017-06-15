@@ -14,7 +14,7 @@
 						 TASK_STATUS_COMPLETE => 'completed',
 						 TASK_STATUS_STARTED => 'started'
 						);
-	
+	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owener',TASK_PERMISSION_PARTICIPANT=>'participant');
 
 	function get_or_create_db(){
 		if (!file_exists('db')){

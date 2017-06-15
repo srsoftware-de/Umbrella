@@ -13,10 +13,10 @@ if ($task['parent_task_id']) $task['parent'] = load_task($task['parent_task_id']
 load_children($task,99); // up to 99 levels deep
 load_requirements($task);
 
-$project_users_ids = request('project','user_list?id='.$task['project_id']); // needed to load project users
-$project_users = request('user','list?ids='.implode(',', array_keys($project_users_ids))); // needed to load task users
+$project_users_permissions = request('project','user_list?id='.$task['project_id']); // needed to load project users
+$project_users = request('user','list?ids='.implode(',', array_keys($project_users_permissions))); // needed to load task users
 load_users($task,$project_users);
-
+//debug($task);
 $title = $task['name'].' - Umbrella';
 function display_children($task){
 	if (!isset($task['children'])) return; ?>
@@ -81,7 +81,7 @@ include '../common_templates/messages.php';
 		<td>
 			<ul>
 			<?php foreach ($task['users'] as $uid => $u) { ?>
-				<li><?= $u['login'].' ('.$project_users_permissions[$uid].')'; ?></li>
+				<li><?= $u['login'].' ('.$TASK_PERMISSIONS[$u['permissions']].')'; ?></li>
 			<?php } ?>
 			</ul>
 		</td>
