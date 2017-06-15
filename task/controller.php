@@ -3,15 +3,17 @@
 	const TASK_PERMISSION_OWNER = 1;
 	const TASK_PERMISSION_PARTICIPANT = 2;
 	
-	const TASK_STATUS_CANCELED = 0;
-	const TASK_STATUS_PENDING = 1;
-	const TASK_STATUS_OPEN = 2;
-	const TASK_STATUS_COMPLETE = 3;
-	
+	const TASK_STATUS_CANCELED = 100;
+	const TASK_STATUS_PENDING = 40;
+	const TASK_STATUS_OPEN = 10;
+	const TASK_STATUS_COMPLETE = 60;
+	const TASK_STATUS_STARTED = 20;
 	$task_states = array(TASK_STATUS_CANCELED => 'canceled',
 						 TASK_STATUS_PENDING => 'pending',
 						 TASK_STATUS_OPEN => 'open',
-						 TASK_STATUS_COMPLETE => 'completed');
+						 TASK_STATUS_COMPLETE => 'completed',
+						 TASK_STATUS_STARTED => 'started'
+						);
 	
 
 	function get_or_create_db(){
@@ -23,10 +25,19 @@
 			$db = new PDO('sqlite:db/tasks.db');
 			$db->query('CREATE TABLE tasks (id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL, parent_task_id INTEGER DEFAULT NULL, name VARCHAR(255) NOT NULL, description TEXT, status INT DEFAULT '.TASK_STATUS_OPEN.');');
 			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT 1, PRIMARY KEY(task_id, user_id));');
+			$db->query('CREATE TABLE task_dependencies (task_id INT NOT NULL, required_task_id INT NOT NULL, PRIMARY KEY(task_id, required_task_id));');
 		} else {
 			$db = new PDO('sqlite:db/tasks.db');
 		}
 		return $db;
+	}
+	
+	function update_task_requirements($id,$required_task_ids){
+		$db = get_or_create_db();
+		$query = $db->prepare('INSERT INTO task_dependencies (task_id, required_task_id) VALUES (:id, :req);');
+		foreach ($required_task_ids as $rid => $dummy){
+			$query->execute(array(':id'=>$id,':req'=>$rid));
+		}
 	}
 
 	function get_task_list($order = null, $project_id = null){
@@ -77,15 +88,23 @@
 		assert(is_numeric($task_id),'invalid task id passed!');
 		assert(is_numeric($state),'invalid state passed!');
 		$query = $db->prepare('UPDATE tasks SET status = :state WHERE id = :id;');
-		assert($query->execute(array(':state' => $state,':id'=>$task_id)),'Was not able to alter task state in database');
-		
+		assert($query->execute(array(':state' => $state,':id'=>$task_id)),'Was not able to alter task state in database');		
+	}
+	
+	function load_requirements(&$task){
+		$id = $task['id'];
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM tasks WHERE id IN (SELECT required_task_id FROM task_dependencies WHERE task_id = :id) ORDER BY status,name');
+		assert($query->execute(array(':id'=>$id)),'Was not able to query requirements of '.$task['name']);
+		$required_tasks = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
+		if (!empty($required_tasks)) $task['requirements'] = $required_tasks;
 	}
 	
 	function load_children(&$task,$levels = 0){
 		$id = $task['id'];
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tasks WHERE parent_task_id = :id');
-		assert($query->execute(array(':id'=>$id)),'Was not able to query children of '.$task);
+		assert($query->execute(array(':id'=>$id)),'Was not able to query children of '.$task['name']);
 		$child_tasks = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		foreach ($child_tasks as $id => &$child_task){
 			$child_task['id'] = $id;

@@ -7,11 +7,12 @@ require_login();
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
 $task = load_task($task_id);
-
+load_requirements($task);
 $project_id = $task['project_id'];
 
-if ($name = post('name')){
+if ($name = post('name')){	
 	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'));
+	update_task_requirements($task_id,post('required_tasks'));
 	redirect('../index');
 }
 
@@ -48,8 +49,18 @@ include '../common_templates/messages.php'; ?>
 			<legend>Task</legend>
 			<input type="text" name="name" value="<?= $task['name'] ?>" />
 		</fieldset>
-		<fieldset><legend>Description</legend>
-		<textarea name="description"><?= $task['description']?></textarea>
+		<fieldset>
+			<legend>Description</legend>
+			<textarea name="description"><?= $task['description']?></textarea>
+		</fieldset>
+		<fieldset class="requirements">
+			<legend>Requires completion of</legend>
+			<?php foreach ($project_tasks as $id => $project_task){ ?>
+			<label>
+				<input type="checkbox" name="required_tasks[<?= $id?>]" <?= array_key_exists($id, $task['requirements'])?'checked="true"':'' ?>/>
+				<?= $project_task['name']?>
+			</label>
+			<?php }?>
 		</fieldset>
 		<input type="submit" />
 	</fieldset>

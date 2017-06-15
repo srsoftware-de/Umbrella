@@ -11,12 +11,13 @@ if (!$task_id) error('No task id passed to view!');
 $task = load_task($task_id,true);
 if ($task['parent_task_id']) $task['parent'] = load_task($task['parent_task_id']);
 load_children($task,99); // up to 99 levels deep
+load_requirements($task);
 $title = $task['name'].' - Umbrella';
 function display_children($task){
 	if (!isset($task['children'])) return; ?>
 	<ul>
 	<?php foreach ($task['children'] as $id => $child_task) {?>
-		<li><a href="../<?= $id ?>/view"><?= $child_task['name']?></a>
+		<li <?= in_array($child_task['status'],array(TASK_STATUS_CANCELED,TASK_STATUS_COMPLETE))?'class="inactive"':''?>><a href="../<?= $id ?>/view"><?= $child_task['name']?></a>
 			<?php display_children($child_task);?>
 		</li>
 	<?php }?>
@@ -35,6 +36,7 @@ include '../common_templates/messages.php';
 		<th>Task</th>
 		<td><?= $task['name'];?> (
 			<a href="open"     <?= $task['status'] == TASK_STATUS_OPEN     ? 'class="emphasized"':''?>>open</a> |
+			<a href="start"    <?= $task['status'] == TASK_STATUS_STARTED  ? 'class="emphasized"':''?>>started</a> |
 			<a href="complete" <?= $task['status'] == TASK_STATUS_COMPLETE ? 'class="emphasized"':''?>>completed</a> |
 			<a href="cancel"   <?= $task['status'] == TASK_STATUS_CANCELED ? 'class="emphasized"':''?>>canceled</a> |
 			<a href="wait"	   <?= $task['status'] == TASK_STATUS_PENDING  ? 'class="emphasized"':''?>>pending</a>
@@ -46,13 +48,27 @@ include '../common_templates/messages.php';
 		<td><a href="../<?= $task['parent_task_id'] ?>/view"><?= $task['parent']['name'];?></a></td>
 	</tr>
 	<?php }?>
+	<?php if ($task['description']){ ?>
 	<tr>
 		<th>Description</th>
 		<td><pre><?= $task['description']; ?></pre></td>
 	</tr>
+	<?php } ?>
+	<?php if (isset($task['requirements'])) { ?>
+	<tr>
+		<th>Prerequisites</th>
+		<td class="requirements">
+			<ul>
+			<?php foreach ($task['requirements'] as $id => $required_task) {?>
+				<li <?= in_array($required_task['status'],array(TASK_STATUS_CANCELED,TASK_STATUS_COMPLETE))?'class="inactive"':''?>><a href="../<?= $id ?>/view"><?= $required_task['name']?></a></li>
+			<?php } ?>
+			</ul>
+		</td>
+	</tr>
+	<?php } ?>
 	<tr>
 		<th>Child tasks</th>
-		<td><?php display_children($task); ?></td>
+		<td class="children"><?php display_children($task); ?></td>
 	</tr>	
 </table>
 <?php include '../common_templates/closure.php'; ?>
