@@ -15,8 +15,8 @@ if (!empty($project_users_permissions)){
 	$user_ids = implode(',',array_keys($project_users_permissions));
 	$project_users = request('user', 'list?ids='.$user_ids);
 }
+$tasks = request('task','list?order=status');
 $title = $project['name'].' - Umbrella';
-
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -30,13 +30,26 @@ include '../common_templates/messages.php';
 	<tr>
 		<th>Description</th><td><?= $project['description']; ?></td>
 	</tr>
+	<?php if ($tasks) {?>
+	<tr>
+		<th>Tasks</th>
+		<td class="tasks">
+			<ul>
+			<?php foreach ($tasks as $tid => $task) {
+				if ($task['status']>=60) continue; ?>
+				<li <?= $task['status']>=40?'class="pending"':'' ?>><a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a></li>
+			<?php } ?>
+			</ul>
+		</td>
+	</tr>
+	<?php } ?>
 	<?php if ($project_users){ ?>
 	<tr>
 		<th>Users</th>
 		<td>
 			<ul>
 			<?php foreach ($project_users as $uid => $u) { ?>
-				<li><?= $u['login'].' ('.$project_users_permissions[$uid].')'; ?></li>
+				<li><?= $u['login'].' ('.$PROJECT_PERMISSIONS[$project_users_permissions[$uid]['permissions']].')'; ?></li>
 			<?php } ?>
 			</ul>
 		</td>

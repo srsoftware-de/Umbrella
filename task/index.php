@@ -5,8 +5,8 @@ include 'controller.php';
 
 $user = current_user();
 $tasks = get_task_list(param('order'));
-
 $projects = request('project','list');
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';

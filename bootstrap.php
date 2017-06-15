@@ -11,15 +11,16 @@ function assert_failure($script, $line, $message){
         die();
 }
 
-function getUrl($service,$path){
+function getUrl($service,$path,$add_token = false){
 	global $services,$token;
 	$url = $services[$service]['path'].$path;
-	if (strpos($url, '?'))	return $url.'&token='.$token;
+	if (!$add_token) return $url; 
+	if (strpos($url, '?')) return $url.'&token='.$token;
 	return $url.'?token='.$token;
 }
 
 function request($service,$path,$debug = false){
-	$url = getUrl($service,$path);
+	$url = getUrl($service,$path,true);
 	if ($debug) echo $url.'<br/>';
 	$response = file_get_contents($url);
 	if ($debug) debug($response);

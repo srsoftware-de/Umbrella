@@ -7,6 +7,7 @@
 	const PROJECT_STATUS_OPEN = 1;
 	const PROJECT_STATUS_CLOSE = 2;
 	
+	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');	
 
 	function get_or_create_db(){
 		if (!file_exists('db')){

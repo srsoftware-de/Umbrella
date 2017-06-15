@@ -11,8 +11,13 @@
 }
 
 .children .inactive,
-.requirements .inactive{
+.requirements .inactive,
+.tasks .inactive{
 	text-decoration: line-through;
+}
+
+.tasks .pending a{
+	color: gray;
 }
 
 table.vertical {
