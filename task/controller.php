@@ -22,10 +22,15 @@
 		return $db;
 	}
 
-	function get_task_list($order = 'name'){
+	function get_task_list($order = 'name', $project_id = null){
 		global $user;
 		$db = get_or_create_db();
 		$sql = 'SELECT * FROM tasks WHERE id IN (SELECT task_id FROM tasks_users WHERE user_id = :uid)';
+		$args = array(':uid'=>$user->id);
+		if (is_numeric($project_id)){
+			$sql .= ' AND project_id = :pid';
+			$args[':pid'] = $project_id;
+		}
 		switch ($order){
 			case 'project_id':
 			case 'parent_task_id':
@@ -34,7 +39,7 @@
 				$sql .= ' ORDER BY '.$order.' COLLATE NOCASE';
 		}
 		$query = $db->prepare($sql);		
-		assert($query->execute(array(':uid'=>$user->id)),'Was not able to request project list!');
+		assert($query->execute($args),'Was not able to request project list!');
 		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		return $results;
 	}
@@ -48,6 +53,16 @@
 		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>TASK_STATUS_OPEN)),'Was not able to create new task entry in database');
 		$task_id = $db->lastInsertId();
 		add_user_to_task($task_id,$user->id,TASK_PERMISSION_OWNER);
+	}
+	
+	function update_task($id,$name,$description = null,$project_id = null,$parent_task_id = null){
+		global $user;
+		$db = get_or_create_db();
+		assert(is_numeric($id),'invalid task id passed!');
+		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
+		assert(is_numeric($project_id),'Task must reference project!');
+		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, status = :state WHERE id = :id;');
+		assert($query->execute(array(':id' => $id, ':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>TASK_STATUS_OPEN)),'Was not able to create new task entry in database');
 	}
 	
 	function load_task($id = null){

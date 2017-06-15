@@ -11,7 +11,9 @@ function assert_failure($script, $line, $message){
 
 function getUrl($service,$path){
 	global $services,$token;
-	return $services[$service]['path'].$path.'?token='.$token;
+	$url = $services[$service]['path'].$path;
+	if (strpos($url, '?'))	return $url.'&token='.$token;
+	return $url.'?token='.$token;
 }
 
 function request($service,$path,$debug = false){
