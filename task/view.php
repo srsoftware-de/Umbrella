@@ -71,10 +71,12 @@ include '../common_templates/messages.php';
 		</td>
 	</tr>
 	<?php } ?>
+	<?php if ($task['children']){?>
 	<tr>
 		<th>Child tasks</th>
 		<td class="children"><?php display_children($task); ?></td>
 	</tr>
+	<?php } ?>
 	<?php if (isset($task['users']) && !empty($task['users'])){ ?>
 	<tr>
 		<th>Users</th>
