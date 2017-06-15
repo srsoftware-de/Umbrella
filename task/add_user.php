@@ -10,20 +10,27 @@ $task_id = param('id');
 if (!$task_id) error('No task id passed to view!');
 
 $task = load_task($task_id);
-$title = $task['name'].' - Umbrella';
+
 $project_users_ids = request('project','user_list?id='.$task['project_id']);
-$project_users = request('user','list?ids='.implode(',', array_keys($project_users_ids)),true);
-debug($project_users,true);
+$project_users = request('user','list?ids='.implode(',', array_keys($project_users_ids)));
+
+load_users($task,$project_users);
+
+$title = $task['name'].' - Umbrella';
+
 $allowed = false;
-foreach ($ul as $u){
-	if ($u['user_id'] == $user->id && ($u['permissions'] & task_PERMISSION_OWNER)) $allowed = true;
+foreach ($task['users'] as $id => $u){
+	if ($id == $user->id){
+		if ($u['permissions'] & TASK_PERMISSION_OWNER) {
+			$allowed = true;
+		} elseif ($u['permissions'] & TASK_PERMISSION_PARTICIPANT) $allowed = true;
+	}
 }
 
 if ($allowed){
-	$ul = request('user','list');
 	if ($task_user = post('task_user')){
 		add_user_to_task($task_id,$task_user,post('permissions'));
-		header('Location: user_list'); die();
+		redirect('view');
 	}
 } else error('You are not allowed to edit the user list of this task!');
 
@@ -39,12 +46,12 @@ if ($allowed){ ?>
 		<fieldset>
 			<select name="task_user">
 				<option value="" selected="true">= Select a user =</option>
-				<?php foreach ($ul as $u){ ?>
-				<option value="<?= $u['id']?>"><?= $u['login']?></option>
+				<?php foreach ($project_users as $id => $u){ ?>
+				<option value="<?= $id ?>"><?= $u['login']?></option>
 				<?php }?>
 			</select>
 			<label>
-			<input type="checkbox" name="permissions" value="<?= task_PERMISSION_PARTICIPANT ?>" checked="true">Participant
+			<input type="checkbox" name="permissions" value="<?= TASK_PERMISSION_PARTICIPANT ?>" checked="true">Participant
 			</label>	
 		</fieldset>
 		<input type="submit" />
