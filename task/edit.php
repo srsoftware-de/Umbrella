@@ -34,10 +34,11 @@ include '../common_templates/messages.php'; ?>
 			<legend>Project</legend>
 			<?= $task['project']['name']?>
 		</fieldset>
-		<?php if ($task['parent_task_id']){?>
+		<?php if ($project_tasks){?>
 		<fieldset>
 			<legend>Parent task</legend>
 			<select name="parent_task_id">
+			<option value="">= select parent task =</option>
 			<?php foreach ($project_tasks as $id => $project_task) {?>
 				<option value="<?= $id ?>" <?= ($id == $task['parent_task_id'])?'selected="selected"':''?>><?= $project_task['name']?></option>
 			<?php }?>

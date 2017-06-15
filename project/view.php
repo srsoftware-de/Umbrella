@@ -15,7 +15,7 @@ if (!empty($project_users_permissions)){
 	$user_ids = implode(',',array_keys($project_users_permissions));
 	$project_users = request('user', 'list?ids='.$user_ids);
 }
-$tasks = request('task','list?order=status');
+$tasks = request('task','list?order=status&project='.$project_id);
 $title = $project['name'].' - Umbrella';
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

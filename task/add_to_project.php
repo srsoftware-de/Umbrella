@@ -9,8 +9,7 @@ if (!$project_id) error('No project id passed!');
 
 if ($name = post('name')){
 	add_task($name,post('description'),$project_id);
-    header('Location: ../index');
-    die();
+    redirect(getUrl('project', $project_id.'/view'));
 }
 
 include '../common_templates/head.php'; 

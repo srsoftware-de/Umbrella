@@ -13,8 +13,7 @@ if (!$project_id) error('Was not able to determine project for this task!');
 
 if ($name = post('name')){
 	add_task($name,post('description'),$project_id,$parent_task_id);
-    header('Location: ../index');
-    die();
+	redirect('../'.$parent_task_id.'/view');
 }
 
 include '../common_templates/head.php'; 

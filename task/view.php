@@ -71,7 +71,7 @@ include '../common_templates/messages.php';
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if ($task['children']){?>
+	<?php if (isset($task['children'])){?>
 	<tr>
 		<th>Child tasks</th>
 		<td class="children"><?php display_children($task); ?></td>
