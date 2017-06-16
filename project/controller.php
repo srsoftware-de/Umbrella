@@ -3,9 +3,18 @@
 	const PROJECT_PERMISSION_OWNER = 1;
 	const PROJECT_PERMISSION_PARTICIPANT = 2;
 	
-	const PROJECT_STATUS_CANCELED = 0;
-	const PROJECT_STATUS_OPEN = 1;
-	const PROJECT_STATUS_CLOSE = 2;
+	const PROJECT_STATUS_OPEN = 10;
+	const PROJECT_STATUS_STARTED = 20;
+	const PROJECT_STATUS_PENDING = 40;
+	const PROJECT_STATUS_COMPLETE = 60;
+	const PROJECT_STATUS_CANCELED = 100;
+	
+	$PROJECT_STATES = array(PROJECT_STATUS_CANCELED => 'canceled',
+			PROJECT_STATUS_PENDING => 'pending',
+			PROJECT_STATUS_OPEN => 'open',
+			PROJECT_STATUS_COMPLETE => 'completed',
+			PROJECT_STATUS_STARTED => 'started'
+	);
 	
 	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');	
 
@@ -16,7 +25,7 @@
 		assert(is_writable('db'),'Directory project/db not writable!');
 		if (!file_exists('db/projects.db')){
 			$db = new PDO('sqlite:db/projects.db');
-			$db->query('CREATE TABLE projects (id INTEGER PRIMARY KEY, name VARCHAR(255) NOT NULL, description TEXT, status INT DEFAULT 1);');
+			$db->query('CREATE TABLE projects (id INTEGER PRIMARY KEY, name VARCHAR(255) NOT NULL, description TEXT, status INT DEFAULT '.PROJECT_STATUS_OPEN.');');
 			$db->query('CREATE TABLE projects_users (project_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT 1, PRIMARY KEY(project_id, user_id));');
 		} else {
 			$db = new PDO('sqlite:db/projects.db');
@@ -24,11 +33,22 @@
 		return $db;
 	}
 
-	function get_project_list(){
+	function get_project_list($order = null){
 		global $user;
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = :uid)');
-		assert($query->execute(array(':uid'=>$user->id)),'Was not able to request project list!');
+		$sql = 'SELECT * FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = :uid)';
+		$args = array(':uid'=>$user->id);
+		
+		if ($order === null) $order = 'name';
+		switch ($order){
+			case 'name':
+			case 'status':
+				$sql .= ' ORDER BY '.$order.' COLLATE NOCASE';
+		}
+		
+		
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to request project list!');
 		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		return $results;
 	}
@@ -41,6 +61,22 @@
 		assert($query->execute(array(':name'=>$name,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new project entry in  database');
 		$project_id = $db->lastInsertId();
 		add_user_to_project($project_id,$user->id,PROJECT_PERMISSION_OWNER);
+	}
+	
+	function update_project($id,$name,$description = null){
+		$db = get_or_create_db();
+		assert(is_numeric($id),'invalid project id passed!');
+		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
+		$query = $db->prepare('UPDATE projects SET name = :name, description = :desc WHERE id = :id;');
+		assert($query->execute(array(':id' => $id, ':name'=>$name,':desc'=>$description)),'Was not able to alter project entry in database');
+	}
+	
+	function set_project_state($project_id, $state){
+		$db = get_or_create_db();
+		assert(is_numeric($project_id),'invalid project id passed!');
+		assert(is_numeric($state),'invalid state passed!');
+		$query = $db->prepare('UPDATE projects SET status = :state WHERE id = :id;');
+		assert($query->execute(array(':state' => $state,':id'=>$project_id)),'Was not able to alter project state in database');
 	}
 	
 	function load_project($id = null){

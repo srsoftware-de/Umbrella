@@ -8,6 +8,7 @@
 	const TASK_STATUS_PENDING = 40;
 	const TASK_STATUS_COMPLETE = 60;
 	const TASK_STATUS_CANCELED = 100;
+	
 	$task_states = array(TASK_STATUS_CANCELED => 'canceled',
 						 TASK_STATUS_PENDING => 'pending',
 						 TASK_STATUS_OPEN => 'open',
