@@ -28,12 +28,12 @@ function request($service,$path,$debug = false){
 }
 
 function post($name,$default = null){
-	if (isset($_POST[$name])) return $_POST[$name];
+	if (isset($_POST[$name])) return trim($_POST[$name]);
 	return $default;
 }
 
 function param($name,$default = null){
-	if (isset($_GET[$name])) return $_GET[$name];
+	if (isset($_GET[$name])) return trim($_GET[$name]);
 	return post($name,$default);
 }
 
