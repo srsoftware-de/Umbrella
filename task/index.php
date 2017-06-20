@@ -38,8 +38,8 @@ include '../common_templates/messages.php'; ?>
 		<td>
 			<a href="<?= $id ?>/edit">Edit</a>
 			<a href="<?= $id ?>/add_subtask">Add subtask</a>
-			<a href="<?= $id ?>/complete">Complete</a>
-			<a href="<?= $id ?>/cancel">Cancel</a>
+			<a href="<?= $id ?>/complete?returnto=..">Complete</a>
+			<a href="<?= $id ?>/cancel?returnto=..">Cancel</a>
 		</td>
 	</tr>
 <?php endforeach; ?>
