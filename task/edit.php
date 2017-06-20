@@ -62,7 +62,7 @@ include '../common_templates/messages.php'; ?>
 			<legend>Due date</legend>
 			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" />
 		</fieldset>
-		<?php if (isset($task['requirements'])) {?>
+		<?php if (!empty($project_tasks)) {?>
 		<fieldset class="requirements">
 			<legend>Requires completion of</legend>
 			<?php foreach ($project_tasks as $id => $project_task){ ?>

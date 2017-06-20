@@ -103,11 +103,11 @@
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
 		assert(is_numeric($project_id),'Task must reference project!');
 		$start_stamp = null;
-		if ($start_date !== null){
+		if ($start_date !== null && $start_date != ''){
 			$start_stamp = strtotime($start_date);
 			assert($start_stamp !== false,'Start date is not a valid date!');
 		}
-		if ($due_date !== null){
+		if ($due_date !== null && $due_date != ''){
 			$due_stamp = strtotime($due_date);
 			assert($due_stamp !== false,'Due date is not a valid date!');
 			if ($start_stamp && $start_stamp > $due_stamp){
