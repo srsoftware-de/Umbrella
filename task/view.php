@@ -18,6 +18,7 @@ $project_users = request('user','list?ids='.implode(',', array_keys($project_use
 load_users($task,$project_users);
 //debug($task);
 $title = $task['name'].' - Umbrella';
+$task['project'] = request('project','json?id='.$task['project_id']);
 function display_children($task){
 	if (!isset($task['children'])) return; ?>
 	<ul>
@@ -46,6 +47,10 @@ include '../common_templates/messages.php';
 			<a href="cancel"   <?= $task['status'] == TASK_STATUS_CANCELED ? 'class="emphasized"':''?>>canceled</a> |
 			<a href="wait"	   <?= $task['status'] == TASK_STATUS_PENDING  ? 'class="emphasized"':''?>>pending</a>
 		)</td>
+	</tr>
+	<tr>
+		<th>Project</th>
+		<td><a href="<?= getUrl('project','view?id='.$task['project_id']); ?>"><?= $task['project']['name']?></a></td>
 	</tr>
 	<?php if ($task['parent_task_id']) {?>
 	<tr>
