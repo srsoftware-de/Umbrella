@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Users';
+<?php $title = 'Umbrella Task Management';
 
 include '../bootstrap.php';
 include 'controller.php';
