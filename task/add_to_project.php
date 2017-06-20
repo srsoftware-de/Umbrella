@@ -8,7 +8,7 @@ $project_id = param('id');
 if (!$project_id) error('No project id passed!');
 
 if ($name = post('name')){
-	add_task($name,post('description'),$project_id);
+	add_task($name,post('description'),$project_id, null, post('start_date'), post('due_date'));
     redirect(getUrl('project', $project_id.'/view'));
 }
 
@@ -23,6 +23,14 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset><legend>Description</legend>
 		<textarea name="description"></textarea>
+		</fieldset>
+		<fieldset>
+			<legend>Start date</legend>
+			<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+		</fieldset>
+		<fieldset>
+			<legend>Due date</legend>
+			<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
 		</fieldset>
 		<input type="submit" />
 	</fieldset>

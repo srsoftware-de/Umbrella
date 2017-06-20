@@ -11,7 +11,7 @@ load_requirements($task);
 $project_id = $task['project_id'];
 
 if ($name = post('name')){	
-	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'));
+	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'),post('start_date'),post('due_date'));
 	update_task_requirements($task_id,post('required_tasks'));
 	redirect('../index');
 }
@@ -53,6 +53,14 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend>Description</legend>
 			<textarea name="description"><?= $task['description']?></textarea>
+		</fieldset>
+		<fieldset>
+			<legend>Start date</legend>
+			<input name="start_date" type="date" value="<?= $task['start_date'] ?>" />
+		</fieldset>
+		<fieldset>
+			<legend>Due date</legend>
+			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" />
 		</fieldset>
 		<?php if (isset($task['requirements'])) {?>
 		<fieldset class="requirements">

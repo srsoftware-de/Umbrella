@@ -5,6 +5,7 @@ include 'controller.php';
 
 $user = current_user();
 $tasks = get_task_list(param('order'));
+//debug($tasks,true);
 $projects = request('project','list');
 
 include '../common_templates/head.php'; 
@@ -18,6 +19,8 @@ include '../common_templates/messages.php'; ?>
 		<th><a href="?order=project_id">Project</a></th>
 		<th><a href="?order=parent_task_id">Parent Task</a></th>
 		<th><a href="?order=status">Status</a></th>
+		<th><a href="?order=start_date">Start</a></th>
+		<th><a href="?order=due_date">Due</a></th>
 		<th>Actions</th>
 	</tr>
 	
@@ -30,6 +33,8 @@ include '../common_templates/messages.php'; ?>
 		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
 		<td><?php if ($parent_id !== null) { ?><a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a><?php } ?></td>
 		<td><?= $task_states[$task['status']] ?></td>
+		<td><?= $task['start_date'] ?></td>
+		<td><?= $task['due_date'] ?></td>
 		<td>
 			<a href="<?= $id ?>/edit">Edit</a>
 			<a href="<?= $id ?>/add_subtask">Add subtask</a>

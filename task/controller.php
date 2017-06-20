@@ -24,7 +24,14 @@
 		assert(is_writable('db'),'Directory task/db not writable!');
 		if (!file_exists('db/tasks.db')){
 			$db = new PDO('sqlite:db/tasks.db');
-			$db->query('CREATE TABLE tasks (id INTEGER PRIMARY KEY, project_id INTEGER NOT NULL, parent_task_id INTEGER DEFAULT NULL, name VARCHAR(255) NOT NULL, description TEXT, status INT DEFAULT '.TASK_STATUS_OPEN.');');
+			$db->query('CREATE TABLE tasks (id INTEGER PRIMARY KEY,
+							project_id INTEGER NOT NULL, 
+							parent_task_id INTEGER DEFAULT NULL, 
+							name VARCHAR(255) NOT NULL, 
+							description TEXT, 
+							status INT DEFAULT '.TASK_STATUS_OPEN.',
+							start_date DATE,
+							due_date DATE);');
 			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT 1, PRIMARY KEY(task_id, user_id));');
 			$db->query('CREATE TABLE task_dependencies (task_id INT NOT NULL, required_task_id INT NOT NULL, PRIMARY KEY(task_id, required_task_id));');
 		} else {
@@ -64,24 +71,52 @@
 		return $results;
 	}
 
-	function add_task($name,$description = null,$project_id = null,$parent_task_id = null){
+	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null){
 		global $user;
 		$db = get_or_create_db();
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
 		assert(is_numeric($project_id),'Task must reference project!');
-		$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status) VALUES (:name, :pid, :parent, :desc, :state);');		
-		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>TASK_STATUS_OPEN)),'Was not able to create new task entry in database');
+		$start_stamp = null;
+		$status = TASK_STATUS_OPEN;
+		if ($start_date !== null && $start_date != ''){
+			$start_stamp = strtotime($start_date);
+			assert($start_stamp !== false,'Start date is not a valid date!');
+			if ($start_stamp > time()) $status = TASK_STATUS_PENDING;
+		}
+		if ($due_date !== null && $due_date != ''){
+			$due_stamp = strtotime($due_date);
+			assert($due_stamp !== false,'Due date is not a valid date!');
+			if ($start_stamp && $start_stamp > $due_stamp){
+				$start_date = $due_date;
+				info('Start date adjusted to match due date!');
+			}
+		}
+		$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, start_date, due_date) VALUES (:name, :pid, :parent, :desc, :state, :start, :due);');
+		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>$status, 'start'=>$start_date, ':due'=>$due_date)),'Was not able to create new task entry in database');
 		$task_id = $db->lastInsertId();
 		add_user_to_task($task_id,$user->id,TASK_PERMISSION_OWNER);
 	}
 	
-	function update_task($id,$name,$description = null,$project_id = null,$parent_task_id = null){
+	function update_task($id,$name,$description = null,$project_id = null,$parent_task_id = null,$start_date = null, $due_date = null){
 		$db = get_or_create_db();
 		assert(is_numeric($id),'invalid task id passed!');
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
 		assert(is_numeric($project_id),'Task must reference project!');
-		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc WHERE id = :id;');
-		assert($query->execute(array(':id' => $id, ':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description)),'Was not able to alter task entry in database');
+		$start_stamp = null;
+		if ($start_date !== null){
+			$start_stamp = strtotime($start_date);
+			assert($start_stamp !== false,'Start date is not a valid date!');
+		}
+		if ($due_date !== null){
+			$due_stamp = strtotime($due_date);
+			assert($due_stamp !== false,'Due date is not a valid date!');
+			if ($start_stamp && $start_stamp > $due_stamp){
+				$start_date = $due_date;
+				info('Start date adjusted to match due date!');
+			}
+		}
+		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, start_date = :start, due_date = :due WHERE id = :id;');
+		assert($query->execute(array(':id' => $id, ':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':start'=>$start_date,':due'=>$due_date)),'Was not able to alter task entry in database');
 	}
 	
 	function set_task_state($task_id, $state){
