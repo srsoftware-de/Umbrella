@@ -43,6 +43,14 @@
 		$query = $db->prepare('INSERT INTO times (user_id, subject, start_time) VALUES (:uid, :subj, :start)');
 		assert($query->execute(array(':uid'=>$user_id,':subj'=>'new time',':start'=>time())),'Was not able to create new time entry!');
 	}
+
+	function drop_time($time_id = null){
+		assert(is_numeric($time_id),'No valid time id passed to drop_time');
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM times WHERE id = :tid');
+		assert($query->execute(array(':tid'=>$time_id)),'Was not able to drop time entry!');
+	}
+
 	function load_time($id = null){
 		assert($id !== null,'No time id passed to load_time!');
 		assert(is_numeric($id),'Invalid time id passed to load_time!');

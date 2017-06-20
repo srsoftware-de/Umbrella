@@ -31,7 +31,7 @@ include '../common_templates/messages.php'; ?>
 			<?php if ($time['end_time']) { ?>
 			<a href="<?= $id ?>/edit">Edit</a>
 			<?php } else { ?>
-			<a href="<?= $id ?>/stop">Stop</a>
+			<a href="<?= $id ?>/drop">Drop</a>
 			<?php } ?>
 			<a href="<?= $id ?>/add_subtime">Add subtime</a>
 			<a href="<?= $id ?>/complete?returnto=..">Complete</a>
