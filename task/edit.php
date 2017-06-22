@@ -34,6 +34,10 @@ include '../common_templates/messages.php'; ?>
 			<legend>Project</legend>
 			<?= $task['project']['name']?>
 		</fieldset>
+		<fieldset>
+			<legend>Task</legend>
+			<input type="text" name="name" value="<?= $task['name'] ?>" autofocus="true"/>
+		</fieldset>
 		<?php if ($project_tasks){?>
 		<fieldset>
 			<legend>Parent task</legend>
@@ -46,10 +50,6 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		
 		<?php }?>
-		<fieldset>
-			<legend>Task</legend>
-			<input type="text" name="name" value="<?= $task['name'] ?>" />
-		</fieldset>
 		<fieldset>
 			<legend>Description</legend>
 			<textarea name="description"><?= $task['description']?></textarea>

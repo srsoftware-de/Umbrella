@@ -23,7 +23,7 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset><legend>Add subtask to <?= $task['name']?></legend>
 		<fieldset><legend>Name</legend>
-		<input type="text" name="name" />
+		<input type="text" name="name" autofocus="true"/>
 		</fieldset>
 		<fieldset><legend>Description</legend>
 		<textarea name="description"></textarea>

@@ -15,7 +15,7 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset><legend>Login</legend>
 		<fieldset><legend>Email</legend>
-		<input type="text" name="email" />
+		<input type="text" autofocus="true" name="email" />
 		</fieldset>
 		<fieldset><legend>Password</legend>
 		<input type="password" name="pass" />
