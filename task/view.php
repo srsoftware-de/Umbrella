@@ -69,6 +69,18 @@ include '../common_templates/messages.php';
 		<td><pre><?= $task['description']; ?></pre></td>
 	</tr>
 	<?php } ?>
+	<?php if ($task['start_date']) { ?>
+	<tr>
+		<th>Start</th>
+		<td><?= $task['start_date'] ?></td>
+	</tr>
+	<?php } ?>
+	<?php if ($task['due_date']) { ?>
+	<tr>
+		<th>Due</th>
+		<td><?= $task['due_date'] ?></td>
+	</tr>
+	<?php } ?>
 	<?php if (isset($task['requirements'])) { ?>
 	<tr>
 		<th>Prerequisites</th>
