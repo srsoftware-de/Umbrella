@@ -50,9 +50,14 @@ include '../common_templates/messages.php';
 	</tr>
 	<tr>
 		<th>Project</th>
-		<td><a href="<?= getUrl('project','view?id='.$task['project_id']); ?>"><?= $task['project']['name']?></a></td>
+		<td>
+			<a href="<?= getUrl('project','view?id='.$task['project_id']); ?>"><?= $task['project']['name']?></a>
+			<?php if (isset($services['time'])) { ?>
+			<a href="<?= getUrl('time','add_task?id='.$task_id); ?>">Add to timetrack</a>
+			<?php } ?>
+		</td>
 	</tr>
-	<?php if ($task['parent_task_id']) {?>
+	<?php if ($task['parent_task_id']) { ?>
 	<tr>
 		<th>Parent</th>
 		<td><a href="../<?= $task['parent_task_id'] ?>/view"><?= $task['parent']['name'];?></a></td>

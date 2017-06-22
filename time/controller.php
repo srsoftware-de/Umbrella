@@ -37,6 +37,14 @@
 		return $db;
 	}
 
+	function assign_task($task_id = null,$time_id = null){
+		assert(is_numeric($task_id),'No valid task id passed to assign_task.');
+		assert(is_numeric($time_id),'No valid time id passed to assign_task.');
+		$db = get_or_create_db();
+		$query = $db->prepare('INSERT OR IGNORE INTO task_times (task_id, time_id) VALUES (:task, :time)');
+		assert($query->execute(array(':task'=>$task_id,':time'=>$time_id)),'Was not able to assign task to timetrack.');
+	}
+
 	function start_time($user_id = null){
 		assert(is_numeric($user_id),'No valid user id passed to start_time');
 		$db = get_or_create_db();
@@ -82,5 +90,29 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('UPDATE times SET subject = :sub, description = :desc, start_time = :start, end_time = :end WHERE id = :tid');		
 		assert($query->execute(array(':tid'=>$time_id,':sub'=>$subject,':desc'=>$description,':start'=>$start_time,':end'=>$end_time)),'Was not able to update time entry');
+	}
+
+	function get_open_tracks($user_id = null){
+		assert(is_numeric($user_id),'No valid user id passed to get_open_tasks!');
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM times WHERE end_time IS NULL AND user_id = :uid');
+		assert($query->execute(array(':uid'=>$user_id)),'Was not able to read open time tracks.');
+		$tracks = $query->fetchAll(INDEX_FETCH);
+		return $tracks;
+	}
+
+	function load_tasks(&$time = null){
+		assert($time !== null,'Time passed to load_tasks must not be null');
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM task_times WHERE time_id = :time');
+		assert($query->execute(array(':time'=>$time['id'])),'Was not able to read tasks for timetrack.');
+		$tasks = $query->fetchAll(INDEX_FETCH);
+		$task_ids = array_keys($tasks);
+	        $tasks = request('task', 'list');
+		$selection = array();
+		foreach ($task_ids as $key){
+			$selection[$key] = $tasks[$key];
+		}
+		$time['tasks'] = $selection;
 	}
 ?>
