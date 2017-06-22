@@ -34,3 +34,9 @@ table.vertical th{
 	text-align: right;
 	padding-right: 10px;
 }
+
+tr:nth-child(4n-2) td {
+    border-color: black;
+    border-style: solid;
+    border-width: 1px 0 0;
+}
