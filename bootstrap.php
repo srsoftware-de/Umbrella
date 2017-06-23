@@ -28,7 +28,11 @@ function request($service,$path,$debug = false){
 }
 
 function post($name,$default = null){
-	if (isset($_POST[$name])) return trim($_POST[$name]);
+	if (isset($_POST[$name])){
+		$result = $_POST[$name];
+		if (is_array($result) || is_object($result)) return $result;
+		return trim($_POST[$name]);
+	}
 	return $default;
 }
 
