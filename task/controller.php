@@ -47,10 +47,15 @@
 			$query->execute(array(':id'=>$id,':req'=>$rid));
 		}
 	}
+	
+	function update_task_states($db){
+		$db->exec('UPDATE tasks SET status = '.TASK_STATUS_OPEN.' WHERE status = '.TASK_STATUS_PENDING.' AND start_date != "" AND start_date <= "2017-06-24"');
+	}
 
 	function get_task_list($order = null, $project_id = null){
 		global $user,$TASK_STATES;
 		$db = get_or_create_db();
+		update_task_states($db);
 		$sql = 'SELECT * FROM tasks WHERE id IN (SELECT task_id FROM tasks_users WHERE user_id = :uid)';
 		$args = array(':uid'=>$user->id);
 		if (is_numeric($project_id)){
