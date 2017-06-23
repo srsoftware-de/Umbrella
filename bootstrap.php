@@ -31,13 +31,17 @@ function post($name,$default = null){
 	if (isset($_POST[$name])){
 		$result = $_POST[$name];
 		if (is_array($result) || is_object($result)) return $result;
-		return trim($_POST[$name]);
+		return trim($result);
 	}
 	return $default;
 }
 
 function param($name,$default = null){
-	if (isset($_GET[$name])) return trim($_GET[$name]);
+	if (isset($_GET[$name])) {
+		$result = $_GET[$name];
+		if (is_array($result) || is_object($result)) return $result;
+		return trim($result);
+	}
 	return post($name,$default);
 }
 
