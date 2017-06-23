@@ -33,8 +33,12 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<td><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
 		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
-		<td><?php if ($parent_id !== null) { ?><a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a><?php } ?></td>
-		<td><?= $task_states[$task['status']] ?></td>
+		<td>
+			<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
+			<a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a>
+			<?php } ?>
+		</td>
+		<td><?= $TASK_STATES[$task['status']] ?></td>
 		<td><?= $task['start_date'] ?></td>
 		<td><?= $task['due_date'] ?></td>
 		<td>
