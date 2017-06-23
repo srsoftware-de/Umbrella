@@ -140,6 +140,7 @@
 	}
 	
 	function load_children(&$task,$levels = 0){
+		global $TASK_STATES;
 		$id = $task['id'];
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tasks WHERE parent_task_id = :id');
@@ -147,6 +148,7 @@
 		$child_tasks = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		foreach ($child_tasks as $id => &$child_task){
 			$child_task['id'] = $id;
+			$child_task['status_string'] = $TASK_STATES[$child_task['status']];
 			if ($levels) load_children($child_task,$levels -1);
 		}
 		if (!empty($child_tasks)) $task['children'] = $child_tasks;

@@ -19,11 +19,15 @@ load_users($task,$project_users);
 //debug($task);
 $title = $task['name'].' - Umbrella';
 $task['project'] = request('project','json?id='.$task['project_id']);
+$show_closed_children = param('closed') == 'show';
 function display_children($task){
+	global $show_closed_children;
 	if (!isset($task['children'])) return; ?>
 	<ul>
-	<?php foreach ($task['children'] as $id => $child_task) {?>
-		<li <?= in_array($child_task['status'],array(TASK_STATUS_CANCELED,TASK_STATUS_COMPLETE))?'class="inactive"':''?>><a href="../<?= $id ?>/view"><?= $child_task['name']?></a>
+	<?php foreach ($task['children'] as $id => $child_task) {
+			if (!$show_closed_children && $child_task['status'] >= 60) continue;
+		?>
+		<li class="<?= $child_task['status_string'] ?>"><a href="../<?= $id ?>/view"><?= $child_task['name']?></a>
 			<?php display_children($child_task);?>
 		</li>
 	<?php }?>
@@ -37,7 +41,7 @@ include 'menu.php';
 include '../common_templates/messages.php';
 ?>
 <h1><?= $task['name'] ?></h1>
-<table class="vertical">
+<table class="vertical tasks">
 	<tr>
 		<th>Task</th>
 		<td><?= $task['name'];?> (
@@ -96,7 +100,12 @@ include '../common_templates/messages.php';
 	<?php if (isset($task['children'])){?>
 	<tr>
 		<th>Child tasks</th>
-		<td class="children"><?php display_children($task); ?></td>
+		<td class="children">
+			<?php if (!$show_closed_children) {?>
+			<a href="?closed=show">show closed child tasks</a>
+			<?php } ?>
+			<?php display_children($task); ?>
+		</td>
 	</tr>
 	<?php } ?>
 	<?php if (isset($task['users']) && !empty($task['users'])){ ?>

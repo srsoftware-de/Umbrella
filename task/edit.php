@@ -80,7 +80,9 @@ include '../common_templates/messages.php'; ?>
 		<?php if (!empty($project_tasks)) {?>
 		<fieldset class="requirements">
 			<legend>Requires completion of</legend>
-			<?php foreach ($project_tasks as $id => $project_task){ ?>
+			<?php foreach ($project_tasks as $id => $project_task){
+				if ($id == $task_id) continue; 
+			?>
 			<label>
 				<input type="checkbox" name="required_tasks[<?= $id?>]" <?= array_key_exists($id, $task['requirements'])?'checked="true"':'' ?>/>
 				<?= $project_task['name']?>
