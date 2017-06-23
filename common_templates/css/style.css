@@ -10,6 +10,8 @@
 	display: block;
 }
 
+.tasks .completed a,
+.tasks .canceled a,
 .children .inactive,
 .requirements .inactive,
 .tasks .inactive{

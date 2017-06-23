@@ -51,7 +51,7 @@ include '../common_templates/messages.php';
 	<tr>
 		<th>Project</th>
 		<td>
-			<a href="<?= getUrl('project','view?id='.$task['project_id']); ?>"><?= $task['project']['name']?></a>
+			<a href="<?= getUrl('project',$task['project_id'].'/view'); ?>"><?= $task['project']['name']?></a>
 			<?php if (isset($services['time'])) { ?>
 			<a href="<?= getUrl('time','add_task?id='.$task_id); ?>">Add to timetrack</a>
 			<?php } ?>

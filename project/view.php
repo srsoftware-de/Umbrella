@@ -16,6 +16,7 @@ if (!empty($project_users_permissions)){
 }
 $tasks = request('task','list?order=status&project='.$project_id);
 $title = $project['name'].' - Umbrella';
+$show_closed_tasks = param('closed') == 'show';
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -33,10 +34,13 @@ include '../common_templates/messages.php';
 	<tr>
 		<th>Tasks</th>
 		<td class="tasks">
+			<?php if (!$show_closed_tasks) { ?>
+			<a href="?closed=show">show closed tasks</a>
+			<?php }?>
 			<ul>
 			<?php foreach ($tasks as $tid => $task) {
-				if ($task['status']>=60) continue; ?>
-				<li <?= $task['status']>=40?'class="pending"':'' ?>><a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a></li>
+				if (!$show_closed_tasks && ($task['status']>=60)) continue; ?>
+				<li class="<?= $task['status_string']?>"><a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a></li>
 			<?php } ?>
 			</ul>
 		</td>

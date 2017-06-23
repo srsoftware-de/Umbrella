@@ -9,7 +9,7 @@
 	const TASK_STATUS_COMPLETE = 60;
 	const TASK_STATUS_CANCELED = 100;
 	
-	$task_states = array(TASK_STATUS_CANCELED => 'canceled',
+	$TASK_STATES = array(TASK_STATUS_CANCELED => 'canceled',
 						 TASK_STATUS_PENDING => 'pending',
 						 TASK_STATUS_OPEN => 'open',
 						 TASK_STATUS_COMPLETE => 'completed',
@@ -49,7 +49,7 @@
 	}
 
 	function get_task_list($order = null, $project_id = null){
-		global $user;
+		global $user,$TASK_STATES;
 		$db = get_or_create_db();
 		$sql = 'SELECT * FROM tasks WHERE id IN (SELECT task_id FROM tasks_users WHERE user_id = :uid)';
 		$args = array(':uid'=>$user->id);
@@ -70,6 +70,7 @@
 		$query = $db->prepare($sql);		
 		assert($query->execute($args),'Was not able to request project list!');
 		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
+		foreach ($results as &$task) $task['status_string'] = $TASK_STATES[$task['status']];
 		return $results;
 	}
 
