@@ -7,6 +7,7 @@ $user = current_user();
 $tasks = get_task_list(param('order'));
 //debug($tasks,true);
 $projects = request('project','list');
+$show_closed = param('closed') == 'show';
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -25,6 +26,7 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	
 <?php foreach ($tasks as $id => $task):
+	if ($task['status'] >= 60 && !$show_closed) continue;
 	$project = $projects[$task['project_id']];
 	$parent_id = $task['parent_task_id'];
 	?>

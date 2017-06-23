@@ -59,9 +59,11 @@
 		}
 		if ($order === null) $order = 'status';
 		switch ($order){
+			case 'due_date':
+			case 'name':
 			case 'project_id':
 			case 'parent_task_id':
-			case 'name':
+			case 'start_date':
 			case 'status':
 				$sql .= ' ORDER BY '.$order.' COLLATE NOCASE';
 		}
