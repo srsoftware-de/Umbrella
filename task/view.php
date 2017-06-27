@@ -20,6 +20,7 @@ load_users($task,$project_users);
 $title = $task['name'].' - Umbrella';
 $task['project'] = request('project','json?id='.$task['project_id']);
 $show_closed_children = param('closed') == 'show';
+
 function display_children($task){
 	global $show_closed_children;
 	if (!isset($task['children'])) return; ?>

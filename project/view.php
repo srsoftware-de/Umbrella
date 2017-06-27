@@ -15,8 +15,31 @@ if (!empty($project_users_permissions)){
 	$project_users = request('user', 'list?ids='.$user_ids);
 }
 $tasks = request('task','list?order=status&project='.$project_id);
+//debug($tasks,true);
 $title = $project['name'].' - Umbrella';
 $show_closed_tasks = param('closed') == 'show';
+
+function display_children($task_list,$parent_task_id){
+	global $show_closed_tasks;
+	$first = true;
+	foreach ($task_list as $tid => $task){		
+		if ($task['parent_task_id'] != $parent_task_id) continue;
+		if (!$show_closed_tasks && ($task['status']>=60)) continue;
+		if ($first){
+			$first = false; ?><ul><?php
+		} ?>
+		<li class="<?= $task['status_string']?>">
+			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
+			<?php display_children($task_list,$tid)?>
+		</li>
+		<?php		
+	}
+	if (!$first){
+		?></ul><?php 
+	}
+}
+
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -39,8 +62,12 @@ include '../common_templates/messages.php';
 			<?php }?>
 			<ul>
 			<?php foreach ($tasks as $tid => $task) {
-				if (!$show_closed_tasks && ($task['status']>=60)) continue; ?>
-				<li class="<?= $task['status_string']?>"><a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a></li>
+				if (!$show_closed_tasks && ($task['status']>=60)) continue; 
+				if ($task['parent_task_id']) continue; ?>
+				<li class="<?= $task['status_string']?>">
+					<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
+					<?php display_children($tasks,$tid)?>
+				</li>
 			<?php } ?>
 			</ul>
 		</td>
