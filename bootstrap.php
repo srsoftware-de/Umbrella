@@ -19,12 +19,14 @@ function getUrl($service,$path,$add_token = false){
 	return $url.'?token='.$token;
 }
 
-function request($service,$path,$debug = false){
+function request($service,$path,$debug = false,$decode = true){
 	$url = getUrl($service,$path,true);
+		
 	if ($debug) echo $url.'<br/>';
 	$response = file_get_contents($url);
 	if ($debug) debug($response);
-	return json_decode($response,true);
+	if ($decode) return json_decode($response,true);
+	return $response;
 }
 
 function post($name,$default = null){
