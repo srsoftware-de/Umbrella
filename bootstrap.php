@@ -109,6 +109,14 @@ function postLink($url,$caption,$data = array(),$title = null){
 	
 }
 
+function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index')){
+	$result = '<fieldset class="dialog">'.$question.'</br>';
+	foreach ($options as $text => $link){
+		$result .= '<a href="'.$link.'">'.$text.'</a>&nbsp';
+	}
+	return $result.'</fieldset>';
+}
+
 
 assert_options(ASSERT_ACTIVE,   true);
 assert_options(ASSERT_BAIL,     false);

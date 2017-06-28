@@ -18,6 +18,7 @@ include '../common_templates/messages.php'; ?>
 		<th>Directory</th>
 		<th>Name</th>
 		<th>Users</th>
+		<th>Actions</th>
 	</tr>
 	<?php foreach ($files as $hash => $file){ ?>
 	<tr>
@@ -27,7 +28,10 @@ include '../common_templates/messages.php'; ?>
 			<?php foreach ($file['users'] as $uid => $user){ ?>
 			<?= $user['login']?> (<?= $FILE_PERMISSIONS[$user['permissions']]?>)<br/>
 			<?php }?>
+		</td>
+		<td>
 			<a href="add_user_to?file=<?= $hash ?>">add user</a>
+			<a href="delete?file=<?= $hash ?>">delete</a>
 		</td>
 	</tr>
 	<?php }?>

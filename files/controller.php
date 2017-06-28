@@ -116,4 +116,20 @@
 		$query = $db->prepare('INSERT OR IGNORE INTO files_users (hash, user_id, permissions) VALUES (:hash, :user, :perm)');
 		assert($query->execute(array('hash'=>$file_hash,':user'=>$uid,':perm'=>FILE_PERMISSION_READ)),'Was not able to assign file to user');
 	}
+	
+	function delete_file($file_hash = null){
+		assert($file_hash !== null,'No valid file hash passed to assign_user_to_file!');
+		
+		$file = load_file($file_hash);
+		$handle = getcwd().STORAGE.$file['path'];
+		
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM files WHERE hash = :hash');
+		assert($query->execute(array('hash'=>$file_hash)),'Was not able to delete file "'.$file['path'].'"');
+
+		$query = $db->prepare('DELETE FROM files_users WHERE hash = :hash');
+		assert($query->execute(array('hash'=>$file_hash)),'Was not able to delete user associations of file "'.$file['path'].'"');
+		
+		assert(unlink($handle),'Was not able to physically unlink file "'.$file['path'].'"');	
+	}
 ?>
