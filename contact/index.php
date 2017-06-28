@@ -14,6 +14,10 @@ include '../common_templates/messages.php'; ?>
 	$file = request('files','download?file='.$hash,false,false); ?>
 	<fieldset>
 		<legend><?= basename($info['path'])?></legend>
+		<span>
+			<a href="<?= getUrl('files','download?file='.$hash) ?>">Download</a>
+			<a href="<?= getUrl('files','add_user_to?file='.$hash) ?>">Share</a>
+		</span>
 		<?php debug ($file)?>
 	</fieldset>
 <?php } ?>
