@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Users';
+<?php $title = 'Umbrella Files';
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -37,3 +37,5 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php }?>
 </table>
+
+<?php include '../common_templates/closure.php'; ?>

@@ -23,11 +23,18 @@
 		return $db;
 	}
 	
-	function list_files($user_id){
+	function list_files($user_id,$folder){
 		assert(is_numeric($user_id),'No valid user id passed to list files!');
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM files WHERE hash IN (SELECT hash FROM files_users WHERE user_id = :uid) ORDER BY path');
-		assert($query->execute(array(':uid'=>$user_id)),'Was not able to read users files');
+		$sql = 'SELECT * FROM files WHERE hash IN (SELECT hash FROM files_users WHERE user_id = :uid)';
+		$args = array(':uid'=>$user_id);
+		if ($folder) {
+			$sql .= ' AND path LIKE :prefix';
+			$args[':prefix']='/'.$folder.'%';
+		}
+		$sql .= ' ORDER BY path';
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to read users files');
 		$files = $query->fetchAll(INDEX_FETCH);
 		return $files;		
 	}
@@ -43,7 +50,20 @@
 		return $file;		
 	}
 	
-	function add_file($file_data,$folder='',$user_id){
+	function store_text($filename = '',$content = '',$user_id){
+		assert(is_numeric($user_id),'No valid user id passed to add_file!');
+		assert(trim($filename)!='','No valid filename passed to store_text');
+		assert(trim($content)!='','No content passed to store_text');
+	
+		$temp_file = tempnam(sys_get_temp_dir(),null).'.vcf';
+		file_put_contents($temp_file, $content);
+	
+		$file_data = array('tmp_name'=>$temp_file, 'name'=>basename($filename),'type'=>null);
+		return add_file($file_data, dirname($filename),$user_id);		
+	}
+	
+	
+	function add_file($file_data, $folder='', $user_id,$check_upload = true){
 		assert(is_numeric($user_id),'No valid user id passed to add_file!');
 		
 		$hash = sha1_file($file_data['tmp_name']);
@@ -69,7 +89,7 @@
 		}
 		
 		
-		if (!move_uploaded_file($file_data['tmp_name'], $storage.$filename)) return 'Was not able to move file to '.$folder.'!';
+		if (!rename($file_data['tmp_name'], $storage.$filename)) return 'Was not able to move file to '.$folder.'!';
 		
 		$query = $db->prepare('INSERT INTO files (hash, type, path) VALUES (:hash, :type, :path)');
 		assert($query->execute(array(':hash'=>$hash,':type'=>$file_data['type'],':path'=>$filename)),'Was not able to store file '.$filename);
@@ -133,5 +153,5 @@
 		assert($query->execute(array('hash'=>$file_hash)),'Was not able to delete user associations of file "'.$file['path'].'"');
 		
 		assert(unlink($handle),'Was not able to physically unlink file "'.$file['path'].'"');	
-	}
+	}	
 ?>
