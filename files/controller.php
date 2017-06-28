@@ -38,7 +38,9 @@
 		assert($query->execute(array(':hash'=>$hash)),'Was not able to read file');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		if (empty($results)) return null;
-		return $results[0];		
+		$file = $results[0];
+		$file['absolute'] = getcwd().STORAGE.$file['path'];
+		return $file;		
 	}
 	
 	function add_file($file_data,$folder='',$user_id){

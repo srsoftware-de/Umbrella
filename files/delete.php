@@ -22,7 +22,7 @@ if ($file === null){
 }
 
 if (!$allowed){
-	error('You are not allowed to add users to this file!');
+	error('You are not allowed to delete this file!');
 } else {
 	if (param('confirm') == 'yes'){
 		delete_file($hash);
