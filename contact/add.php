@@ -40,6 +40,10 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="EMAIL"<?= ($email = post('EMAIL'))?'value="'.$email.'"':''?>  />									
 		</fieldset>
 		<fieldset>
+			<legend>Organization</legend>
+			<textarea name="ORG"><?= ($org = post('ORG'))?$org:'' ?></textarea>
+		</fieldset>
+		<fieldset>
 			<legend>(primary) Address</legend>
 			<label class="street">Street
 				<input type="text" name="ADR[3]" <?= ($adr = post('ADR'))?'value="'.$adr['3'].'"':''?> />

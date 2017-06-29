@@ -52,3 +52,9 @@ label.location::after {
 .contacts fieldset{
 	float: left;
 }
+
+
+.invoice .customer, .invoice .sender {
+    float: left;
+    width: 45%;
+}

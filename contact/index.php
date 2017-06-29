@@ -4,21 +4,20 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login();
-$contact_files = list_contact_files($user->id);
+$contacts = read_contacts();
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <div class="contacts">
-<?php foreach ($contact_files as $hash => $info){
-	$file = request('files','download?file='.$hash,false,false); ?>
+<?php foreach ($contacts as $file_hash => $get){ ?>
 	<fieldset>
-		<legend><?= basename($info['path'])?></legend>
+		<legend><?= $get['filename'] ?></legend>
 		<span>
-			<a href="<?= getUrl('files','download?file='.$hash) ?>">Download</a>
-			<a href="<?= getUrl('files','add_user_to?file='.$hash) ?>">Share</a>
+			<a href="<?= getUrl('files','download?file='.$file_hash) ?>">Download</a>
+			<a href="<?= getUrl('files','add_user_to?file='.$file_hash) ?>">Share</a>
 		</span>
-		<?php debug ($file)?>
+		<?php debug (serialize_vcard($get['vcard']))?>
 	</fieldset>
 <?php } ?>
 </div>
