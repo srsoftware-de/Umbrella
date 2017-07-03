@@ -6,16 +6,8 @@ include 'controller.php';
 require_login();
 if (post('EMAIL')){
 	$vcard = create_vcard($_POST);
-	$name = $vcard['N'];	
-	sort($name);
-	$name[]=date('Y-m-d H.i.s');
-	$filename = 'contacts/'.implode(' ',$name).'.VCF';
-	$query = http_build_query(array('filename'=>$filename,'content'=>serialize_vcard($vcard)));	
-	$response = request('files','store_text?'.$query);
-	if ($response == 1){
-		redirect('index');
-	}
-	error($response);
+	debug($vcard);
+	store_vcard($vcard);
 }
 
 include '../common_templates/head.php'; 

@@ -10,14 +10,15 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <div class="contacts">
-<?php foreach ($contacts as $file_hash => $get){ ?>
+<?php foreach ($contacts as $id => $contact){ ?>
 	<fieldset>
-		<legend><?= $get['filename'] ?></legend>
+		<legend>Contact <?= $id ?></legend>
 		<span>
-			<a href="<?= getUrl('files','download?file='.$file_hash) ?>">Download</a>
+			<a href="<?= $id?>/download">Download</a>
 			<a href="<?= getUrl('files','add_user_to?file='.$file_hash) ?>">Share</a>
+			<a href="<?= $id?>/edit">Edit</a>
 		</span>
-		<?php debug (serialize_vcard($get['vcard']))?>
+		<?php debug ($contact)?>
 	</fieldset>
 <?php } ?>
 </div>
