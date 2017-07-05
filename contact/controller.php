@@ -10,7 +10,7 @@ function get_or_create_db(){
 	if (!file_exists('db/contacts.db')){
 		$db = new PDO('sqlite:db/contacts.db');
 		$db->query('CREATE TABLE contacts (id INTEGER PRIMARY KEY, DATA TEXT);');
-		$db->query('CREATE TABLE contacts_users (contact_id INT NOT NULL, user_id INT NOT NULL, PRIMARY KEY(contact_id, user_id));');
+		$db->query('CREATE TABLE contacts_users (contact_id INT NOT NULL, user_id INT NOT NULL, assigned BOOLEAN DEFAULT 0, PRIMARY KEY(contact_id, user_id));');
 	} else {
 		$db = new PDO('sqlite:db/contacts.db');
 	}
@@ -105,5 +105,28 @@ function read_contacts($ids = null){
 		$contacts[$id] = unserialize_vcard($columns['DATA']);
 	}
 	return $contacts;	
+}
+
+function read_assigned_contact(){
+	global $user;
+	$db = get_or_create_db();
+	$query = $db->prepare('SELECT * FROM contacts WHERE id IN (SELECT contact_id FROM contacts_users WHERE user_id = :uid AND assigned = 1)');
+	assert($query->execute(array(':uid'=>$user->id)),'Was not able to query contact for you!');
+	$contacts = $query->fetchAll(INDEX_FETCH);
+	$contact=reset($contacts);	
+	$vcard= unserialize_vcard($contact['DATA']); 
+	return $vcard;
+}
+
+function assign_contact($id){
+	global $user;
+	$contact = read_contacts($id);
+	assert(!empty($contact),'No such contact or access to contact denied!');
+	$contact = $contact[$id];
+	$db = get_or_create_db();
+	$query = $db->prepare('UPDATE contacts_users SET assigned = 0 WHERE user_id = :uid');
+	assert($query->execute(array(':uid'=>$user->id)),'Was not able to un-assign contacts with user');
+	$query = $db->prepare('UPDATE contacts_users SET assigned = 1 WHERE contact_id = :cid AND user_id = :uid');
+	assert($query->execute(array(':cid'=>$id,':uid'=>$user->id)),'Was not able to assign contact with user');
 }
 ?>

@@ -6,8 +6,8 @@ include 'controller.php';
 require_login();
 if (post('EMAIL')){
 	$vcard = create_vcard($_POST);
-	debug($vcard);
 	store_vcard($vcard);
+	redirect('index');
 }
 
 include '../common_templates/head.php'; 

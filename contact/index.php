@@ -17,6 +17,7 @@ include '../common_templates/messages.php'; ?>
 			<a href="<?= $id?>/download">Download</a>
 			<a href="<?= getUrl('files','add_user_to?file='.$file_hash) ?>">Share</a>
 			<a href="<?= $id?>/edit">Edit</a>
+			<a href="<?= $id?>/assign_with_me">Assign with me</a>
 		</span>
 		<?php debug ($contact)?>
 	</fieldset>
