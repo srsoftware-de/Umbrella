@@ -18,6 +18,7 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><a href="?order=name">Name</a></th>
 		<th><a href="?order=status">Status</a></th>
+		<th>Actions</th>
 	</tr>
 <?php foreach ($projects as $id => $project){
 	if (!$show_closed && $project['status']>50) continue; 
