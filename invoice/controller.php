@@ -55,11 +55,17 @@ function vcard_address($vcard){
 }
 
 
-function list_invoices(){
+function list_invoices($id = null){
 		global $user;
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM invoices WHERE user_id = :uid');
-		assert($query->execute(array(':uid'=>$user->id)),'was not able to fetch invoices for you!');
+		$sql = 'SELECT * FROM invoices WHERE user_id = :uid';
+		$args = array(':uid'=>$user->id);
+		if ($id){
+			$sql .= ' AND id = :id';
+			$args[':id'] = $id;
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'was not able to fetch invoices for you!');
 		return $query->fetchAll(INDEX_FETCH);
 }
 
@@ -72,13 +78,14 @@ function create_invoice($sender = null, $tax_num = null, $customer_contact_id = 
 	
 	$contacts = request('contact', 'json_list?id='.$customer_contact_id);
 	$vcard = $contacts[$customer_contact_id];
+	if ($customer_number === null) $customer_number=$vcard['X-CUSTOMER-NUMBER'];
 	$customer = vcard_address($vcard);
 	
 	$date = time();
 	
 	$db = get_or_create_db();
-	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, customer, invoice_date) VALUES (:uid, :sender, :tax, :cust, :date)');
-	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':cust'=>$customer,':date'=>$date)),'Was not able to create invoice!');
+	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, customer, customer_num, invoice_date) VALUES (:uid, :sender, :tax, :cust, :cnum, :date)');
+	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
 	return $db->lastInsertId();
 }
 ?>

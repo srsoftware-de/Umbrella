@@ -4,11 +4,19 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login();
+
+$id = param('id');
+
+assert(is_numeric($id),'No valid invoice id passed to edit!');
+$invoice = list_invoices($id);
+assert(isset($invoice[$id]),'No invoice found or accessible for id = '.$id);
+$invoice = $invoice[$id];
+
 if ($customer = post('customer')){
-	create_invoice(post('sender'), post('tax_number'), $customer, post('customer_number'), post('invoice_date'), post('delivery_date'), post('head'), post('foot'));
+	debug($_POST,true);
 }
 
-$contacts = request('contact','json_list');
+
 function conclude_vcard($vcard){
 	$short = '';
 	if (isset($vcard['N'])){
@@ -39,24 +47,19 @@ include '../common_templates/messages.php'; ?>
 		<legend>Edit invoice</legend>
 		<fieldset class="customer">
 			<legend>Customer</legend>
-			<select name="customer">
-				<option value="">== select a customer ==</option>
-				<?php foreach ($contacts as $contact_id => $contact) { ?>
-				<option value="<?= $contact_id ?>" <?= (post('customer')==$contact_id)?'selected="true"':''?>><?= conclude_vcard($contact)?></option>
-				<?php }?>				
-			</select>
+			<textarea name="customer"><?= $invoice['customer'] ?></textarea>
 			<fieldset>
 				<legend>Customer number</legend>
-				<input name="customer_number" value="<?= $customer_number ?>" />
+				<input name="customer_number" value="<?= $invoice['customer_num'] ?>" />
 			</fieldset>		
 			
 		</fieldset>
 		<fieldset class="sender">
 			<legend>Sender</legend>
-			<textarea name="sender"><?= $sender ?></textarea>			
+			<textarea name="sender"><?= $invoice['sender'] ?></textarea>			
 			<fieldset>
 				<legend>Tax number</legend>
-				<input name="tax_number" value="<?= $tax_number ?>" />
+				<input name="tax_number" value="<?= $invoice['tax_num'] ?>" />
 			</fieldset>		
 		</fieldset>
 		
