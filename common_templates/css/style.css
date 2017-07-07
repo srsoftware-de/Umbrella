@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "awesome";
+    src: url("fontawesome-webfont.woff");
+}
+
 body{
 	color: red;
 	font-family: sans-serif;
@@ -74,4 +79,9 @@ button {
     font-weight: bold;
     margin: 2px;
     padding: 5px;
+}
+
+.symbol{
+	font-family: awesome;
+	font-size: 22px;
 }

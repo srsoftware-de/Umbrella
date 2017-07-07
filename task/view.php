@@ -22,13 +22,20 @@ $task['project'] = request('project','json?id='.$task['project_id']);
 $show_closed_children = param('closed') == 'show';
 
 function display_children($task){
-	global $show_closed_children;
+	global $show_closed_children,$task_id;
 	if (!isset($task['children'])) return; ?>
 	<ul>
 	<?php foreach ($task['children'] as $id => $child_task) {
 			if (!$show_closed_children && $child_task['status'] >= 60) continue;
 		?>
-		<li class="<?= $child_task['status_string'] ?>"><a href="../<?= $id ?>/view"><?= $child_task['name']?></a>
+		<li class="<?= $child_task['status_string'] ?>">
+			<a href="../<?= $id ?>/view"><?= $child_task['name']?></a>
+			<a class="symbol" title="open"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     <?= $task['status'] == TASK_STATUS_OPEN     ? 'class="emphasized"':''?>></a>
+			<a class="symbol" title="started"  href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    <?= $task['status'] == TASK_STATUS_STARTED  ? 'class="emphasized"':''?>></a> 
+			<a class="symbol" title="complete" href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" <?= $task['status'] == TASK_STATUS_COMPLETE ? 'class="emphasized"':''?>></a>
+			<a class="symbol" title="cancel"   href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   <?= $task['status'] == TASK_STATUS_CANCELED ? 'class="emphasized"':''?>></a>
+			<a class="symbol" title="wait"     href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	 <?= $task['status'] == TASK_STATUS_PENDING  ? 'class="emphasized"':''?>></a>
+			
 			<?php display_children($child_task);?>
 		</li>
 	<?php }?>
@@ -45,13 +52,13 @@ include '../common_templates/messages.php';
 <table class="vertical tasks">
 	<tr>
 		<th>Task</th>
-		<td><?= $task['name'];?> (
-			<a href="open"     <?= $task['status'] == TASK_STATUS_OPEN     ? 'class="emphasized"':''?>>open</a> |
-			<a href="start"    <?= $task['status'] == TASK_STATUS_STARTED  ? 'class="emphasized"':''?>>started</a> |
-			<a href="complete" <?= $task['status'] == TASK_STATUS_COMPLETE ? 'class="emphasized"':''?>>completed</a> |
-			<a href="cancel"   <?= $task['status'] == TASK_STATUS_CANCELED ? 'class="emphasized"':''?>>canceled</a> |
-			<a href="wait"	   <?= $task['status'] == TASK_STATUS_PENDING  ? 'class="emphasized"':''?>>pending</a>
-		)</td>
+		<td><?= $task['name'];?>
+			<a class="symbol" title="open"     href="open"     <?= $task['status'] == TASK_STATUS_OPEN     ? 'class="emphasized"':''?>></a>
+			<a class="symbol" title="started"  href="start"    <?= $task['status'] == TASK_STATUS_STARTED  ? 'class="emphasized"':''?>></a> 
+			<a class="symbol" title="complete" href="complete" <?= $task['status'] == TASK_STATUS_COMPLETE ? 'class="emphasized"':''?>></a>
+			<a class="symbol" title="cancel"   href="cancel"   <?= $task['status'] == TASK_STATUS_CANCELED ? 'class="emphasized"':''?>></a>
+			<a class="symbol" title="wait"     href="wait"	   <?= $task['status'] == TASK_STATUS_PENDING  ? 'class="emphasized"':''?>></a>
+		</td>
 	</tr>
 	<tr>
 		<th>Project</th>
