@@ -6,14 +6,17 @@ include 'controller.php';
 require_login();
 
 $id = param('id');
-
 assert(is_numeric($id),'No valid invoice id passed to edit!');
 $invoice = list_invoices($id);
 assert(isset($invoice[$id]),'No invoice found or accessible for id = '.$id);
 $invoice = $invoice[$id];
 
 if ($customer = post('customer')){
-	debug($_POST,true);
+	$keys = ['customer','customer_num','sender','tax_num','invoice_date','delivery_date','head','footer'];
+	foreach ($keys as $key) {
+		if ($value = post($key)) $invoice[$key] = $value;
+	}
+	save_invoice($id,$invoice);	
 }
 
 
@@ -50,7 +53,7 @@ include '../common_templates/messages.php'; ?>
 			<textarea name="customer"><?= $invoice['customer'] ?></textarea>
 			<fieldset>
 				<legend>Customer number</legend>
-				<input name="customer_number" value="<?= $invoice['customer_num'] ?>" />
+				<input name="customer_num" value="<?= $invoice['customer_num'] ?>" />
 			</fieldset>		
 			
 		</fieldset>
@@ -86,7 +89,7 @@ include '../common_templates/messages.php'; ?>
 			<legend>
 				Footer text
 			</legend>
-			<textarea name="foot"><?= $foot_text ?></textarea>
+			<textarea name="footer"><?= $foot_text ?></textarea>
 		</fieldset>
 		<button type="submit">Save</button>		
 	</fieldset>

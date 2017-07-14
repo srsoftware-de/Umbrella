@@ -21,7 +21,9 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<td><pre><?= $invoice['sender']?></pre></td>
 		<td><pre><?= $invoice['customer']?></pre></td>
-		<td><a href="<?= $id?>/edit">Edit</a></td>
+		<td>
+			<a title="edit"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
+		</td>
 	</tr>
 	<?php } ?>
 </table>

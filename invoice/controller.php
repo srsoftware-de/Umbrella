@@ -37,6 +37,26 @@ function get_or_create_db(){
 	return $db;
 }
 
+function save_invoice($id = null, $invoice = null){
+	assert(is_numeric($id),'No valid invoice id passed to save_invoice!');
+	assert(is_array($invoice),'No invoice passed to save_invoice');
+
+	$invoice_date = strtotime($invoice['invoice_date']);	
+	$delivery_date = strtotime($invoice['delivery_date']);
+	
+	$db = get_or_create_db();
+	$query = $db->prepare('UPDATE invoices SET sender = :sender, tax_num = :tax, customer = :cust, customer_num = :cnum, invoice_date = :idate, delivery_date = :ddate, head = :head, footer = :foot WHERE id = :id');
+	assert($query->execute(array(':sender'=>$invoice['sender'],
+								 ':tax'=>$invoice['tax_num'],
+								 ':cust'=>$invoice['customer'],
+								 ':cnum'=>$invoice['customer_num'],
+								 ':idate'=>$invoice_date,
+								 ':ddate'=>$delivery_date,
+								 ':head'=>$invoice['head'],
+								 ':foot'=>$invoice['footer'],
+								 ':id'=>$id)),'Was not able to update invoice!');
+}
+
 function vcard_address($vcard){
 	$adr = '';
 	if (isset($vcard['N'])){
@@ -88,4 +108,6 @@ function create_invoice($sender = null, $tax_num = null, $customer_contact_id = 
 	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
 	return $db->lastInsertId();
 }
+
+
 ?>

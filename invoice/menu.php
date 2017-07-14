@@ -1,12 +1,10 @@
 <div>
 <?php if ($pid = param('id')){ ?>
-<a href="edit">Edit</a>
-<a href="add_user">Add user</a>
-<a href="add_subtime">Add subtime</a>
-<a href="../index">Index</a>
-<a href="times">Times</a>
+<a title="edit"     href="edit"     class="symbol"></a>
+<a title="index"    href="../index" class="symbol"></a>
+<a title="add"      href="../add" class="symbol"></a>
 <?php } else { ?>
-<a href="index">List</a>
-<a href="add">Add</a>
+<a title="index"    href="index" class="symbol"></a>
+<a title="add" href="add" class="symbol"></a>
 <?php } ?>
 </div>
