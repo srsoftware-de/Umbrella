@@ -168,6 +168,22 @@
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		return $results[0];
 	}
+
+	function delete_task($id = null){
+		$task = load_task($id);
+		$db = get_or_create_db();
+		$args = array(':id'=>$id,':ptid'=>$task['parent_task_id']);
+		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');
+	        assert($query->execute($args));
+		
+		$query = $db->prepare('DELETE FROM tasks WHERE id = :id');
+		assert($query->execute(array(':id'=>$id)));
+		$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :id');
+		assert($query->execute(array(':id'=>$id)));
+		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :id');
+		assert($query->execute(array(':id'=>$id)));
+		
+	}
 	
 	function load_users(&$task,$project_users){
 		$id = $task['id'];
