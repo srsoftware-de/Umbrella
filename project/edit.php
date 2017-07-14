@@ -9,7 +9,11 @@ if (!$project_id) error('No project id passed to view!');
 
 if ($name = post('name')){
 	update_project($project_id,$name,post('description'));
-    redirect('view');
+	if ($redirect=param('redirect')){
+		redirect($redirect);
+	} else {
+		redirect('view');
+	}
 }
 
 $project = load_project($project_id);
