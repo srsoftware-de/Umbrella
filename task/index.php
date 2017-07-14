@@ -16,7 +16,7 @@ include '../common_templates/messages.php'; ?>
 
 <table class="right">
 	<tr><th>
-		Hide/Show
+		Hide/Show <a href="#" onclick="return toggle('[class^=project_]');">(all)</a>
 	</th></tr>
 	<?php foreach ($projects as $pid => $project){ ?>
 	<tr><td>
