@@ -16,6 +16,10 @@ a{
 	display: inline;
 }
 
+.hidden{
+	display: none;
+}
+
 .emphasized{
 	font-weight: bold;
 }
@@ -48,6 +52,12 @@ tr > *{
 tr:nth-child(5n+1){
 	background-color: #303030;
 }
+
+
+td:last-child {
+    white-space: nowrap;
+}
+
 label.street:after,
 label.location::after {
     content: "\a ";
@@ -84,4 +94,13 @@ button {
 .symbol{
 	font-family: awesome;
 	font-size: 22px;
+}
+
+.right{
+	float: right;
+	margin-left: 5px;
+}
+
+.tasks .project {
+    font-weight: bold;
 }

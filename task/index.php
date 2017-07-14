@@ -14,6 +14,17 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
+<table class="right">
+	<tr><th>
+		Hide/Show
+	</th></tr>
+	<?php foreach ($projects as $pid => $project){ ?>
+	<tr><td>
+		<a href="#" onclick="return toggle('.project_<?= $pid ?>');"><?= $project['name']; ?></a>
+	</td></tr>
+	<?php } ?>
+</table>
+
 <table>
 	<tr>
 		<th><a href="?order=name">Name</a></th>
@@ -30,7 +41,7 @@ include '../common_templates/messages.php'; ?>
 	$project = $projects[$task['project_id']];
 	$parent_id = $task['parent_task_id'];
 	?>
-	<tr>
+	<tr class="project_<?= $task['project_id']?>">
 		<td><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
 		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
 		<td>
@@ -42,10 +53,13 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $task['start_date'] ?></td>
 		<td><?= $task['due_date'] ?></td>
 		<td>
-			<a href="<?= $id ?>/edit">Edit</a>
-			<a href="<?= $id ?>/add_subtask">Add subtask</a>
-			<a href="<?= $id ?>/complete?returnto=..">Complete</a>
-			<a href="<?= $id ?>/cancel?returnto=..">Cancel</a>
+			<a title="edit"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
+			<a title="start  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
+			<a title="complete" href="<?= $id ?>/complete?redirect=../index" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="cancel"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="open"     href="<?= $id ?>/open?redirect=../index"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+			<a title="wait"     href="<?= $id ?>/wait?redirect=../index"	  class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+			
 		</td>
 	</tr>
 <?php endforeach; ?>
