@@ -27,10 +27,10 @@ include '../common_templates/messages.php'; ?>
 		<td><a href="<?= $id ?>/view"><?= $project['name'] ?></a></td>
 		<td><?= $PROJECT_STATES[$project['status']] ?></td>
 		<td>
-			<a href="<?= $id ?>/edit">Edit</a>
-			<a href="<?= $id ?>/open">Open</a>
-			<a href="<?= $id ?>/complete">Complete</a>
-			<a href="<?= $id ?>/cancel">Cancel</a>
+			<a title="edit"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
+			<a title="complete" href="<?= $id ?>/complete?redirect=../index" class="<?= $project['status'] == PROJECT_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="cancel"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $project['status'] == PROJECT_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="open"     href="<?= $id ?>/open?redirect=../index"     class="<?= $project['status'] == PROJECT_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 		</td>
 	</tr>
 <?php } ?>

@@ -30,11 +30,13 @@ function display_children($task_list,$parent_task_id){
 		} ?>
 		<li class="<?= $task['status_string']?>">
 			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
-			<a class="symbol" title="open"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"     <?= $task['status'] == TASK_STATUS_OPEN     ? 'class="emphasized"':''?>></a>
-			<a class="symbol" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"    <?= $task['status'] == TASK_STATUS_STARTED  ? 'class="emphasized"':''?>></a> 
-			<a class="symbol" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view" <?= $task['status'] == TASK_STATUS_COMPLETE ? 'class="emphasized"':''?>></a>
-			<a class="symbol" title="cancel"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"   <?= $task['status'] == TASK_STATUS_CANCELED ? 'class="emphasized"':''?>></a>
-			<a class="symbol" title="wait"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"	 <?= $task['status'] == TASK_STATUS_PENDING  ? 'class="emphasized"':''?>></a>
+			<a class="<?= $task['status'] == TASK_STATUS_STARTED?'hidden':'symbol'?>" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a> 
+			<a class="<?= $task['status'] == TASK_STATUS_COMPLETE?'hidden':'symbol'?>" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a class="<?= $task['status'] == TASK_STATUS_CANCELED?'hidden':'symbol'?>" title="cancel"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a class="<?= $task['status'] == TASK_STATUS_OPEN?'hidden':'symbol'?>" title="open"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a class="<?= $task['status'] == TASK_STATUS_PENDING?'hidden':'symbol'?>" title="wait"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a class="symbol" title="add subtask" href="../../task/<?= $tid ?>/add_subtask"></a>
+			<a class="symbol" title="delete" href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php display_children($task_list,$tid)?>
 		</li>
 		<?php		
@@ -53,7 +55,15 @@ include '../common_templates/messages.php';
 <h1><?= $project['name'] ?></h1>
 <table class="vertical">
 	<tr>
-		<th>Project</th><td><?= $project['name'];?></td>
+		<th>Project</th>
+		<td>
+			<span class="right">
+				<a class="symbol" href="complete?redirect=../index"></a>
+				<a class="symbol" href="cancel?redirect=../index"></a>
+			</span>
+			<?= $project['name'];?>
+			
+		</td>
 	</tr>
 	<tr>
 		<th>Description</th><td><?= $project['description']; ?></td>
@@ -71,11 +81,14 @@ include '../common_templates/messages.php';
 				if ($task['parent_task_id']) continue; ?>
 				<li class="<?= $task['status_string']?>">
 					<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
-					<a class="symbol" title="open"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"     <?= $task['status'] == TASK_STATUS_OPEN     ? 'class="emphasized"':''?>></a>
-					<a class="symbol" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"    <?= $task['status'] == TASK_STATUS_STARTED  ? 'class="emphasized"':''?>></a> 
-					<a class="symbol" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view" <?= $task['status'] == TASK_STATUS_COMPLETE ? 'class="emphasized"':''?>></a>
-					<a class="symbol" title="cancel"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"   <?= $task['status'] == TASK_STATUS_CANCELED ? 'class="emphasized"':''?>></a>
-					<a class="symbol" title="wait"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"	 <?= $task['status'] == TASK_STATUS_PENDING  ? 'class="emphasized"':''?>></a>
+					<a class="<?= $task['status'] == TASK_STATUS_STARTED?'hidden':'symbol'?>"  title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a> 
+					<a class="<?= $task['status'] == TASK_STATUS_COMPLETE?'hidden':'symbol'?>" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
+					<a class="<?= $task['status'] == TASK_STATUS_CANCELED?'hidden':'symbol'?>" title="cancel"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
+					<a class="<?= $task['status'] == TASK_STATUS_OPEN?'hidden':'symbol'?>"     title="open"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
+					<a class="<?= $task['status'] == TASK_STATUS_PENDING?'hidden':'symbol'?>"  title="wait"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
+					<a class="symbol" title="add subtask" href="../../task/<?= $tid ?>/add_subtask"></a>
+					<a class="symbol" title="delete" href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
+
 					<?php display_children($tasks,$tid)?>
 				</li>
 			<?php } ?>
