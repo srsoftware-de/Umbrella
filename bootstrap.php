@@ -23,7 +23,8 @@ function request($service,$path,$debug = false,$decode = true){
 	$url = getUrl($service,$path,true);
 		
 	if ($debug) echo $url.'<br/>';
-	$response = file_get_contents($url);
+	$context = stream_context_create(array('ssl'=>array('verify_peer'=>false)));
+	$response = file_get_contents($url,false,$context);
 	if ($debug) debug($response);
 	if ($decode) return json_decode($response,true);
 	return $response;
@@ -84,7 +85,9 @@ function current_user(){
 	$url = $services['user']['path'].'validateToken';
 
 	$post_data = http_build_query(array('token'=>$token));
-	$options = array('http'=>array('method'=>'POST','header'=>'Content-type: application/x-www-form-urlencoded','content'=>$post_data));
+	$options = array(
+		'http'=>array('method'=>'POST','header'=>'Content-type: application/x-www-form-urlencoded','content'=>$post_data),
+		'ssl'=>array('verify_peer'=>false)); // TODO: this is rather bad. we need to sort this out!!!
 	$context = stream_context_create($options);
 
 	$json = file_get_contents($url,false,$context);
