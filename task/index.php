@@ -14,17 +14,20 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<table class="right">
-	<tr><th>
-		Hide/Show <a href="#" onclick="return toggle('[class^=project_]');">(all)</a>
-	</th></tr>
-	<?php foreach ($projects as $pid => $project){ ?>
-	<tr><td>
-		<a href="#" onclick="return toggle('.project_<?= $pid ?>');"><?= $project['name']; ?></a>
-	</td></tr>
-	<?php } ?>
-</table>
-
+<div class="hover right-abs">
+	<table>
+		<tr><th>
+			Hide/Show (<a href="#" onclick="return toggle('[class^=project_]');">all</a>)
+		</th></tr>
+		<?php foreach ($projects as $pid => $project){ ?>
+		<tr class="plist">
+			<td>
+			<a href="#" onclick="return toggle('.project_<?= $pid ?>');"><?= $project['name']; ?></a>
+			</td>
+		</tr>
+		<?php } ?>
+	</table>
+</div>
 <table>
 	<tr>
 		<th><a href="?order=name">Name</a></th>
