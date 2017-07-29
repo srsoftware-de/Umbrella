@@ -62,7 +62,7 @@
 			$sql .= ' AND project_id = :pid';
 			$args[':pid'] = $project_id;
 		}
-		if ($order === null) $order = 'status';
+		if ($order === null) $order = 'due_date';
 		$MAX_DATE = "'9999-99-99'";
 		switch ($order){
 			case 'due_date':
