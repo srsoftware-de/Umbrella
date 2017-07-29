@@ -26,7 +26,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend>Start date</legend>
-			<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+			<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" value="<?= date('Y-m-d');?>"/>
 		</fieldset>
 		<fieldset>
 			<legend>Due date</legend>

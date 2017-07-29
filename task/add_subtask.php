@@ -30,7 +30,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
                         <legend>Start date</legend>
-                        <input name="start_date" type="date" value="<?= $task['start_date'] ?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+                        <input name="start_date" type="date" value="<?= date('Y-m-d');?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
                 </fieldset>
                 <fieldset>
                         <legend>Due date</legend>
