@@ -69,6 +69,8 @@
 				$sql .= ' ORDER BY (CASE due_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(due_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
 				break;
 			case 'name':
+				$sql .= ' ORDER BY name COLLATE NOCASE';
+				break;
 			case 'project_id':
 				$sql .= ' ORDER BY project_id, status, due_date COLLATE NOCASE';
 				break;
