@@ -1,5 +1,5 @@
 <?php
-	function perform_login($login = null, $pass = null){
+	function perform_login($login = null, $pass = null){		
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM users WHERE login = :login;');
@@ -11,7 +11,9 @@
 				if ($user['id'] == 1){
 					header('Location: index');
 				} else {
-					header('Location: '.$user['id'].'/view');
+					$url = getUrl('task');
+					if (!$url) $url = $user['id'].'/view';
+					redirect($url);
 				}
 				die();				
 			}

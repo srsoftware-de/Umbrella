@@ -11,7 +11,7 @@ function assert_failure($script, $line, $message){
         die();
 }
 
-function getUrl($service,$path,$add_token = false){
+function getUrl($service,$path='',$add_token = false){
 	global $services,$token;
 	$url = $services[$service]['path'].$path;
 	if (!$add_token) return $url; 
