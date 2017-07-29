@@ -35,7 +35,7 @@ function display_children($task){
 			<a title="cancel"   href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 			<a title="open"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 			<a title="wait"     href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
-			
+			<a title="edit"     href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
 			<?php display_children($child_task);?>
 		</li>
 	<?php }?>

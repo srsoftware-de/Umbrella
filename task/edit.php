@@ -12,9 +12,14 @@ $project_id = $task['project_id'];
 
 if ($name = post('name')){
 	$due_date = post('due_date');
-	$modifier = post('extension');
-	if ($due_date && $modifier) $due_date = date('Y-m-d',strtotime($due_date.' '.$modifier));		
-	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'),post('start_date'),$due_date);
+	$modifier = post('due_extension');
+	if ($due_date && $modifier) $due_date = date('Y-m-d',strtotime($due_date.' '.$modifier));
+
+	$start_date = post('start_date');
+	$modifier = post('start_extension');
+	if ($start_date && $modifier) $start_date = date('Y-m-d',strtotime($start_date.' '.$modifier));
+	
+	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'),$start_date,$due_date);
 	update_task_requirements($task_id,post('required_tasks'));
 	if ($target = param('redirect')){
 		redirect($target);
@@ -64,12 +69,20 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend>Start date</legend>
 			<input name="start_date" type="date" value="<?= $task['start_date'] ?>" />
-		</fieldset>
+			<?php if ($task['start_date']) { ?>
+			<select name="start_extension">
+				<option value="">No extension</option>
+				<option value="+1 week">+1 Week</option>
+				<option value="+1 month">+1 Month</option>
+				<option value="+1 year">+1 Year</option>
+			</select>			
+			<?php } ?>
+			</fieldset>
 		<fieldset>
 			<legend>Due date</legend>
 			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" />
 			<?php if ($task['due_date']) { ?>
-			<select name="extension">
+			<select name="due_extension">
 				<option value="">No extension</option>
 				<option value="+1 week">+1 Week</option>
 				<option value="+1 month">+1 Month</option>
