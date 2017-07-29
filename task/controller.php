@@ -63,14 +63,24 @@
 			$args[':pid'] = $project_id;
 		}
 		if ($order === null) $order = 'status';
+		$MAX_DATE = "'9999-99-99'";
 		switch ($order){
 			case 'due_date':
+				$sql .= ' ORDER BY (CASE due_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(due_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
+				break;
 			case 'name':
 			case 'project_id':
+				$sql .= ' ORDER BY project_id, status, due_date COLLATE NOCASE';
+				break;
 			case 'parent_task_id':
+				$sql .= ' ORDER BY project_id, parent_task_id, status, due_date COLLATE NOCASE';
+				break;				
 			case 'start_date':
+				$sql .= ' ORDER BY (CASE start_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(start_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
+				break;
 			case 'status':
-				$sql .= ' ORDER BY '.$order.' COLLATE NOCASE';
+				$sql .= ' ORDER BY status, due_date COLLATE NOCASE';
+				break;
 		}
 		$query = $db->prepare($sql);		
 		assert($query->execute($args),'Was not able to request project list!');
