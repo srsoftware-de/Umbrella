@@ -23,11 +23,11 @@ function get_or_create_db(){
 		$db->query('CREATE TABLE invoice_positions(
 						invoice_id INT NOT NULL,
 						pos INT NOT NULL,
+						item_code VARCHAR(30) NOT NULL,
 						amount DOUBLE NOT NULL DEFAULT 1,
 						unit VARCHAR(30),
-						short VARCHAR(30),
 						title TEXT NOT NULL,
-						explanation TEXT,
+						description TEXT,
 						single_price DOUBLE NOT NULL DEFAULT 0,
 						tax DOUBLE,
 						PRIMARY KEY(invoice_id, pos));');

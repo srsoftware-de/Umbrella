@@ -40,6 +40,38 @@ $tax_number = post('tax_number','XXX');
 $customer_number = post('customer_number','XXX');
 $sender = post('sender','XXX');
 
+if ($services['time']){
+	$times = request('time', 'json_list');
+	
+	$tasks = array();
+	foreach ($times as $time_id => $time){
+		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
+	}		
+	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
+	
+	
+	$projects = array();
+	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;	
+	$projects = request('project', 'json?ids='.implode(',', array_keys($projects)));
+	
+	
+	foreach ($times as $time_id => &$time){
+		foreach ($time['tasks'] as $task_id => $task){
+			$task = &$tasks[$task_id];			
+			$project_id = $task['project_id'];
+			$project = &$projects[$project_id];
+			if (!isset($project['times'])) $project['times'] = array();
+			
+			$time['tasks'][$task_id] = $task;
+			
+			$project['times'][$time_id] = $time;
+			
+										
+		} 
+	}
+	debug($projects);
+}
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -83,7 +115,26 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend>Positions</legend>
-			You will be able to add positions to the invoice in the next step.
+			<ul>
+			<?php foreach ($projects as $project_id => $project) {?>
+				<li>
+					<?= $project['name']?>
+					<ul>
+					<?php foreach ($project['times'] as $time_id => $time) { ?>
+						<li>
+							<span class="subject"><?= $time['subject']?></span>
+							<span class="description"><?= $time['description']?></span>
+							<ul>
+							<?php foreach ($time['tasks'] as $task_id => $task) { ?>
+								<li><?= $task['name']?></li>
+							<?php } ?>
+							</ul>
+						</li>
+					<?php }?>
+					</ul>
+				</li>
+			<?php }?>
+			</ul>
 		</fieldset>
 		<fieldset>
 			<legend>

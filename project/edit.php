@@ -16,7 +16,7 @@ if ($name = post('name')){
 	}
 }
 
-$project = load_project($project_id);
+$project = load_projects($project_id);
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';

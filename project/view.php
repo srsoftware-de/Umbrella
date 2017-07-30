@@ -7,7 +7,7 @@ require_login();
 $project_id = param('id');
 if (!$project_id) error('No project id passed to view!');
 
-$project = load_project($project_id);
+$project = load_projects($project_id);
 $project_users_permissions = load_users($project_id);
 $project_users = null;
 if (!empty($project_users_permissions)){

@@ -174,18 +174,26 @@
 		if (!empty($child_tasks)) $task['children'] = $child_tasks;
 	}
 	
-	function load_task($id = null){
-		assert($id !== null,'No task id passed to load_task!');
-		assert(is_numeric($id),'Invalid task id passed to load_task!');
+	function load_tasks($ids = null){
+		assert($ids !== null,'No task id passed to load_tasks!');
+		$reset = is_numeric($ids); // if we get only one id, we will return a single element instad of an array
+		if ($reset) $ids = array($ids);
+		assert(is_array($ids),'Invalid task id passed to load_tasks!');
+		assert(!empty($ids),'No task id passed to load_tasks!');
+		
+		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
+		$sql = 'SELECT * FROM tasks WHERE id IN ('.$qMarks.')';
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM tasks WHERE id = :id');
-		assert($query->execute(array(':id'=>$id)));
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		return $results[0];
+		$query = $db->prepare($sql);
+		assert($query->execute($ids),'Was not able to load tasks!');
+		$tasks = $query->fetchAll(INDEX_FETCH);
+		foreach ($tasks as $id => &$task) $task['id'] = $id;
+		if ($reset) return reset($tasks);
+		return $tasks;
 	}
 
 	function delete_task($id = null){
-		$task = load_task($id);
+		$task = load_tasks($id);
 		$db = get_or_create_db();
 		$args = array(':id'=>$id,':ptid'=>$task['parent_task_id']);
 		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');

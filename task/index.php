@@ -28,7 +28,7 @@ include '../common_templates/messages.php'; ?>
 		<?php } ?>
 	</table>
 </div>
-<table>
+<table class="tasklist">
 	<tr>
 		<th><a href="?order=name">Name</a></th>
 		<th><a href="?order=project_id">Project</a></th>

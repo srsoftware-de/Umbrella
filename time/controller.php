@@ -77,6 +77,28 @@
 		$result = $query->fetchAll(INDEX_FETCH);
 		return $result;
 	}
+	
+	function get_time_assignments($ids = array()){
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM task_times';
+		$args=array();
+		if (is_array($ids) && !empty($ids)){
+			$qMarks = str_repeat('?,', count($ids) - 1) . '?';
+			$sql .= ' WHERE time_id IN ('.$qMarks.')';
+			$args = $ids;
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load time assignments!');
+		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		$assignments = array();
+		foreach ($results as $assignent){
+			$time_id = $assignent['time_id'];
+			$task_id = $assignent['task_id'];
+			if (!isset($assignments[$time_id])) $assignent[$time_id]= array();
+			$assignments[$time_id][$task_id] = null;
+		}
+		return $assignments;
+	}
 
 	function update_time($time_id = null,$subject = null,$description = null,$start = null,$end = null){
 		assert(is_numeric($time_id),'Invalid time id passed to update_time!');

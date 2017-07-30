@@ -85,14 +85,22 @@
 		assert($query->execute(array(':state' => $state,':id'=>$project_id)),'Was not able to alter project state in database');
 	}
 	
-	function load_project($id = null){
-		assert($id !== null,'No project id passed to load_project!');
-		assert(is_numeric($id),'Invalid project id passed to load_project!');
+	function load_projects($ids = null){
+		assert($ids !== null,'No project id passed to load_projects!');
+		$reset = is_numeric($ids); // if we get only one id, we will return a single element instad of an array
+		if ($reset) $ids = array($ids);
+		assert(is_array($ids),'Invalid project id passed to load_projects!');
+		assert(!empty($ids),'No project id passed to load_projects!');
+	
+		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
+		$sql = 'SELECT * FROM projects WHERE id IN ('.$qMarks.')';
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM projects WHERE id = :id');
-		assert($query->execute(array(':id'=>$id)));
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		return $results[0];
+		$query = $db->prepare($sql);
+		assert($query->execute($ids),'Was not able to load projects!');
+		$projects = $query->fetchAll(INDEX_FETCH);
+		foreach ($projects as $id => &$project) $project['id'] = $id;
+		if ($reset) return reset($projects);
+		return $projects;
 	}
 	
 	function load_users($id = null){

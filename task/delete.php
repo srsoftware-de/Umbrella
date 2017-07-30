@@ -6,7 +6,7 @@ require_login();
 
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
-$task = load_task($task_id);
+$task = load_tasks($task_id);
 $target = param('redirect');
 if (param('confirm')=='yes'){
 	delete_task($task_id);
