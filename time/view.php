@@ -37,8 +37,7 @@ include '../common_templates/messages.php';
 		<th>Tasks</th>
 		<td class="tasks">
 			<ul>
-			<?php foreach ($time['tasks'] as $tid => $task) {
-				if ($task['status']>=60) continue; ?>
+			<?php foreach ($time['tasks'] as $tid => $task) { ?>
 				<li <?= $task['status']>=40?'class="pending"':'' ?>><a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a></li>
 			<?php } ?>
 			</ul>

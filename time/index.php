@@ -32,12 +32,8 @@ include '../common_templates/messages.php'; ?>
 		<td>
 			<?php if ($time['end_time']) { ?>
 			<a href="<?= $id ?>/edit">Edit</a>
-			<?php } else { ?>
-			<a href="<?= $id ?>/drop">Drop</a>
 			<?php } ?>
-			<a href="<?= $id ?>/add_subtime">Add subtime</a>
-			<a href="<?= $id ?>/complete?returnto=..">Complete</a>
-			<a href="<?= $id ?>/cancel?returnto=..">Cancel</a>
+			<a href="<?= $id ?>/drop">Drop</a>
 		</td>
 	</tr>
 <?php endforeach; ?>

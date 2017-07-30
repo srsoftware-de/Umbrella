@@ -6,7 +6,6 @@ require_login();
 
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
-debug($_POST);
 if ($selected = post('timetrack')){
 	assign_task($task_id,$selected);
 	redirect($selected.'/view');

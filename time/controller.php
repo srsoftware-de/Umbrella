@@ -129,12 +129,7 @@
 		$query = $db->prepare('SELECT * FROM task_times WHERE time_id = :time');
 		assert($query->execute(array(':time'=>$time['id'])),'Was not able to read tasks for timetrack.');
 		$tasks = $query->fetchAll(INDEX_FETCH);
-		$task_ids = array_keys($tasks);
-	        $tasks = request('task', 'list');
-		$selection = array();
-		foreach ($task_ids as $key){
-			$selection[$key] = $tasks[$key];
-		}
-		$time['tasks'] = $selection;
+	    $tasks = request('task', 'json?ids='.implode(',',array_keys($tasks)));
+		$time['tasks'] = $tasks;
 	}
 ?>

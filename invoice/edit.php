@@ -85,6 +85,8 @@ if ($services['time']){
 
 load_positions($invoice);
 
+debug($projects);
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
