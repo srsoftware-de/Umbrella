@@ -37,6 +37,19 @@ function get_or_create_db(){
 	return $db;
 }
 
+function add_invoice_position($invoice_id,$code,$title,$description,$amount,$unit,$price,$tax){
+	$db = get_or_create_db();
+
+	$query = $db->prepare('SELECT MAX(pos) FROM invoice_positions WHERE invoice_id = :id');
+	assert($query->execute(array(':id'=>$invoice_id)),'Was not able to get last invoice position!');
+	$row = $query->fetch(PDO::FETCH_COLUMN);
+	$pos = ($row === null)?1:$row+1;
+	
+	$query = $db->prepare('INSERT INTO invoice_positions (invoice_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
+	$args = array(':id'=>$invoice_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
+	assert($query->execute($args),'Was not able to store new postion for invoice '.$invoice_id.'!');
+}
+
 function save_invoice($id = null, $invoice = null){
 	assert(is_numeric($id),'No valid invoice id passed to save_invoice!');
 	assert(is_array($invoice),'No invoice passed to save_invoice');
@@ -45,7 +58,7 @@ function save_invoice($id = null, $invoice = null){
 	$delivery_date = strtotime($invoice['delivery_date']);
 	
 	$db = get_or_create_db();
-	$query = $db->prepare('UPDATE invoices SET sender = :sender, tax_num = :tax, customer = :cust, customer_num = :cnum, invoice_date = :idate, delivery_date = :ddate, head = :head, footer = :foot WHERE id = :id');
+	$query = $db->prepare('UPDATE invoices SET sender = :sender, tax_num = :tax, customer = :cust, customer_num = :cnum, invoice_date = :idate, delivery_date = :ddate, head = :head, footer = :foot WHERE id = :id');	
 	assert($query->execute(array(':sender'=>$invoice['sender'],
 								 ':tax'=>$invoice['tax_num'],
 								 ':cust'=>$invoice['customer'],
@@ -108,6 +121,5 @@ function create_invoice($sender = null, $tax_num = null, $customer_contact_id = 
 	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
 	return $db->lastInsertId();
 }
-
 
 ?>

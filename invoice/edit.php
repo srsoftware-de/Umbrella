@@ -16,7 +16,7 @@ if ($customer = post('customer')){
 	foreach ($keys as $key) {
 		if ($value = post($key)) $invoice[$key] = $value;
 	}
-	save_invoice($id,$invoice);	
+	save_invoice($id,$invoice);
 }
 
 
@@ -39,9 +39,21 @@ $foot_text = post('foot',"Zahlbar innerhalb von 14 Tagen ohne Abzug.\n\nUnberech
 $tax_number = post('tax_number','XXX');
 $customer_number = post('customer_number','XXX');
 $sender = post('sender','XXX');
-
+$projects = null;
 if ($services['time']){
 	$times = request('time', 'json_list');
+	
+	if ($selected_times = post('times')){
+		$customer_price = 50*100; // TODO: get customer price
+		$timetrack_tax = 19.0; // TODO: make adjustable
+		foreach ($selected_times as $time_id => $dummy){
+			$time = $times[$time_id];
+			$duration = ($time['end_time']-$time['start_time'])/3600;
+			
+			add_invoice_position($id,'timetrack',$time['subject'],$time['description'],$duration,'hours',$customer_price,$timetrack_tax);
+		}		
+	}
+	
 	
 	$tasks = array();
 	foreach ($times as $time_id => $time){
@@ -69,7 +81,7 @@ if ($services['time']){
 										
 		} 
 	}
-	debug($projects);
+	//debug($projects);
 }
 
 include '../common_templates/head.php'; 
@@ -114,21 +126,25 @@ include '../common_templates/messages.php'; ?>
 			<textarea name="head"><?= $head_text ?></textarea>
 		</fieldset>
 		<fieldset>
-			<legend>Positions</legend>
-			<ul>
-			<?php foreach ($projects as $project_id => $project) {?>
+			<legend>Add Positions</legend>
+			<ul>			
+			<?php if ($projects) foreach ($projects as $project_id => $project) {?>
 				<li>
 					<?= $project['name']?>
 					<ul>
 					<?php foreach ($project['times'] as $time_id => $time) { ?>
 						<li>
+							<label>
+							<input type="checkbox" name="times[<?= $time_id?>]" />							
 							<span class="subject"><?= $time['subject']?></span>
 							<span class="description"><?= $time['description']?></span>
+							<span class="duration">(<?= ($time['end_time']-$time['start_time'])/3600?>&nbsp;hours)</span>
 							<ul>
 							<?php foreach ($time['tasks'] as $task_id => $task) { ?>
 								<li><?= $task['name']?></li>
 							<?php } ?>
 							</ul>
+							</label>
 						</li>
 					<?php }?>
 					</ul>
