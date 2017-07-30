@@ -182,12 +182,11 @@
 		assert(!empty($ids),'No task id passed to load_tasks!');
 		
 		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-		$sql = 'SELECT * FROM tasks WHERE id IN ('.$qMarks.')';
+		$sql = 'SELECT id,* FROM tasks WHERE id IN ('.$qMarks.')';
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		assert($query->execute($ids),'Was not able to load tasks!');
 		$tasks = $query->fetchAll(INDEX_FETCH);
-		foreach ($tasks as $id => &$task) $task['id'] = $id;
 		if ($reset) return reset($tasks);
 		return $tasks;
 	}

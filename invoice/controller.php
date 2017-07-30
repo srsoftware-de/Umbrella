@@ -88,18 +88,21 @@ function vcard_address($vcard){
 }
 
 
-function list_invoices($id = null){
-		global $user;
-		$db = get_or_create_db();
-		$sql = 'SELECT * FROM invoices WHERE user_id = :uid';
-		$args = array(':uid'=>$user->id);
-		if ($id){
-			$sql .= ' AND id = :id';
-			$args[':id'] = $id;
-		}
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'was not able to fetch invoices for you!');
-		return $query->fetchAll(INDEX_FETCH);
+function load_invoices($ids = array()){
+	$reset = is_numeric($ids); // if we get only one id, we will return a single element instad of an array
+	if ($reset) $ids = array($ids);
+	assert(is_array($ids),'Invalid invoice id passed to load_tasks!');
+	$sql = 'SELECT id,* FROM invoices';
+	if (!empty($ids)){
+		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
+		$sql .=  ' WHERE id IN ('.$qMarks.')';
+	}
+	$db = get_or_create_db();
+	$query = $db->prepare($sql);
+	assert($query->execute($ids),'Was not able to load invoice!');
+	$invoices = $query->fetchAll(INDEX_FETCH);
+	if ($reset) return reset($invoices);
+	return $invoices;
 }
 
 function create_invoice($sender = null, $tax_num = null, $customer_contact_id = null, $customer_number = null, $invoice_date = null, $delivery_date = null, $head = null, $footer = null){
@@ -120,6 +123,13 @@ function create_invoice($sender = null, $tax_num = null, $customer_contact_id = 
 	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, customer, customer_num, invoice_date) VALUES (:uid, :sender, :tax, :cust, :cnum, :date)');
 	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
 	return $db->lastInsertId();
+}
+
+function load_positions(&$invoice){
+	$db = get_or_create_db();
+	$query = $db->prepare('SELECT pos,* FROM invoice_positions WHERE invoice_id = :id');
+	assert($query->execute(array(':id'=>$invoice['id'])),'Was not able to load invoice positions!');
+	$invoice['positions'] = $query->fetchAll(INDEX_FETCH);	
 }
 
 ?>

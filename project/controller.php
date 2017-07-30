@@ -93,12 +93,11 @@
 		assert(!empty($ids),'No project id passed to load_projects!');
 	
 		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-		$sql = 'SELECT * FROM projects WHERE id IN ('.$qMarks.')';
+		$sql = 'SELECT id,* FROM projects WHERE id IN ('.$qMarks.')';
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		assert($query->execute($ids),'Was not able to load projects!');
 		$projects = $query->fetchAll(INDEX_FETCH);
-		foreach ($projects as $id => &$project) $project['id'] = $id;
 		if ($reset) return reset($projects);
 		return $projects;
 	}

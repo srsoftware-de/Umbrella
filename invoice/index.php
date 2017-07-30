@@ -4,7 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login();
-$invoices = list_invoices();
+$invoices = load_invoices();
 //debug($invoices);
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';

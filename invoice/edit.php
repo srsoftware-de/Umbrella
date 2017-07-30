@@ -7,9 +7,8 @@ require_login();
 
 $id = param('id');
 assert(is_numeric($id),'No valid invoice id passed to edit!');
-$invoice = list_invoices($id);
-assert(isset($invoice[$id]),'No invoice found or accessible for id = '.$id);
-$invoice = $invoice[$id];
+$invoice = load_invoices($id);
+assert($invoice !== null,'No invoice found or accessible for id = '.$id);
 
 if ($customer = post('customer')){
 	$keys = ['customer','customer_num','sender','tax_num','invoice_date','delivery_date','head','footer'];
@@ -84,6 +83,8 @@ if ($services['time']){
 	//debug($projects);
 }
 
+load_positions($invoice);
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -125,6 +126,42 @@ include '../common_templates/messages.php'; ?>
 			</legend>
 			<textarea name="head"><?= $head_text ?></textarea>
 		</fieldset>
+		<fieldset>
+			<legend>Positions</legend>
+			<table>
+				<tr>
+					<th>Pos</th>
+					<th>Code</th>
+					<th>
+						<span class="title">Title</span>/
+						<span class="description">Description</span>
+					</th>
+					<th>Amount</th>
+					<th>Unit</th>
+					<th>Price</th>
+					<th>Price</th>
+					<th>Actions</th>
+				</tr>
+
+				<?php $first = true; 
+					foreach ($invoice['positions'] as $pos => $position) { ?>
+				<tr>
+					<td><?= $position['pos']?></td>
+					<td><input name="position[<?= $pos ?>][code]" value="<?= $position['item_code']?>" /></td>
+					<td>
+						<input name="position[<?= $pos?>][title]" value="<?= $position['title']?>" />
+						<textarea name="position[<?= $pos?>][description]"><?= $position['description']?></textarea>
+					</td>
+					<td><input name="position[<?= $pos?>][amount]" value="<?= $position['amount']?>" /></td>
+					<td><?= $position['unit']?></td>
+					<td><input name="position[<?= $pos?>][price]" value="<?= $position['single_price']/100?>" /></td>
+					<td><?= $position['single_price']*$position['amount']/100?></td>
+					<td><?= $first?'':'Up'?></td>
+				</tr>				
+				<?php $first = false; }?>
+			</table>
+		</fieldset>
+		
 		<fieldset>
 			<legend>Add Positions</legend>
 			<ul>			
