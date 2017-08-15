@@ -42,6 +42,7 @@ $projects = null;
 if ($services['time']){
 	$times = request('time', 'json_list');
 	
+	// add times selected by user to invoice
 	if ($selected_times = post('times')){
 		$customer_price = 50*100; // TODO: get customer price
 		$timetrack_tax = 19.0; // TODO: make adjustable
@@ -53,22 +54,20 @@ if ($services['time']){
 		}		
 	}
 	
-	
 	$tasks = array();
 	foreach ($times as $time_id => $time){
 		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
-	}		
+	}
 	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
-	
-	
+		
 	$projects = array();
-	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;	
+	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;
+
 	$projects = request('project', 'json?ids='.implode(',', array_keys($projects)));
-	
-	
+
 	foreach ($times as $time_id => &$time){
 		foreach ($time['tasks'] as $task_id => $task){
-			$task = &$tasks[$task_id];			
+			$task = $tasks[$task_id];			
 			$project_id = $task['project_id'];
 			$project = &$projects[$project_id];
 			if (!isset($project['times'])) $project['times'] = array();
@@ -78,14 +77,14 @@ if ($services['time']){
 			$project['times'][$time_id] = $time;
 			
 										
-		} 
+		}
+		
 	}
-	//debug($projects);
 }
 
 load_positions($invoice);
 
-debug($projects);
+//debug($projects,1);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
