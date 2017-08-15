@@ -169,4 +169,19 @@ function load_positions(&$invoice){
 	$invoice['positions'] = $query->fetchAll(INDEX_FETCH);	
 }
 
+function elevate($invoice_id = null, $position = null){
+	assert(is_numeric($invoice_id),'No valid invoice id passed to elevate!');
+	assert(is_numeric($position),'No valid invoice id passed to elevate!');
+	$pos_minus_1 = $position -1;
+	$db = get_or_create_db();
+	$query = $db->prepare('UPDATE invoice_positions SET pos = -1 WHERE pos = :pm1 AND invoice_id = :id');
+	assert($query->execute(array(':pm1'=>$pos_minus_1,':id'=>$invoice_id)),'Was not able to alter pos field of invoice position '.$pos_minus_1);
+	
+	$query = $db->prepare('UPDATE invoice_positions SET pos = :pm1 WHERE pos = :pos AND invoice_id = :id');
+	assert($query->execute(array(':pos'=>$position,':pm1'=>$pos_minus_1,':id'=>$invoice_id)),'Was not able to alter pos field of invoice position '.$position);
+		
+	$query = $db->prepare('UPDATE invoice_positions SET pos = :pos WHERE pos = -1 AND invoice_id = :id');
+	assert($query->execute(array(':pos'=>$position,':id'=>$invoice_id)),'Was not able to alter pos field of invoice position '.$position);	
+}
+
 ?>

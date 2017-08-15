@@ -104,8 +104,6 @@ if ($positions = post('position')){
 	if ($redirect = param('redirect')) redirect($redirect);
 }
 
-//if (!empty($invoice['positions'])) debug($invoice,1);
-
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -177,12 +175,16 @@ include '../common_templates/messages.php'; ?>
 					<td><?= $position['unit']?></td>
 					<td><input class="price" name="position[<?= $pos?>][single_price]" value="<?= $position['single_price']/100?>" /></td>
 					<td><?= round($position['single_price']*$position['amount']/100,2) ?></td>
-					<td><?= $first?'':'Up'?></td>
+					<td>
+					<?php if (!$first) { ?>
+						<a href="elevate?pos=<?= $pos ?>">UP</a>
+					<?php }?>
+					</td>
 				</tr>				
 				<?php $first = false; }?>
 			</table>
 		</fieldset>
-		
+
 		<fieldset>
 			<legend>Add Positions</legend>
 			<ul>			
