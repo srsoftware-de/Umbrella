@@ -77,16 +77,11 @@ if ($services['time']){
 
 	foreach ($times as $time_id => &$time){
 		foreach ($time['tasks'] as $task_id => $task){
-			$task = $tasks[$task_id];			
-			$project_id = $task['project_id'];
+			$project_id = $tasks[$task_id]['project_id'];
 			$project = &$projects[$project_id];
 			if (!isset($project['times'])) $project['times'] = array();
 			
-			$time['tasks'][$task_id] = $task;
-			
 			$project['times'][$time_id] = $time;
-			
-										
 		}
 		
 	}
@@ -189,7 +184,7 @@ include '../common_templates/messages.php'; ?>
 							<span class="duration">(<?= ($time['end_time']-$time['start_time'])/3600?>&nbsp;hours)</span>
 							<ul>
 							<?php foreach ($time['tasks'] as $task_id => $task) { ?>
-								<li><?= $task['name']?></li>
+								<li><?= $tasks[$task_id]['name']?></li>
 							<?php } ?>
 							</ul>
 							</label>
