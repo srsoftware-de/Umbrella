@@ -42,6 +42,14 @@ $projects = null;
 if ($services['time']){
 	$times = request('time', 'json_list');
 	
+	$tasks = array();
+	foreach ($times as $time_id => $time){
+		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
+	}
+	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
+	
+	
+	
 	// add times selected by user to invoice
 	if ($selected_times = post('times')){
 		$customer_price = 50*100; // TODO: get customer price
@@ -49,16 +57,18 @@ if ($services['time']){
 		foreach ($selected_times as $time_id => $dummy){
 			$time = $times[$time_id];
 			$duration = ($time['end_time']-$time['start_time'])/3600;
-			
-			add_invoice_position($id,'timetrack',$time['subject'],$time['description'],$duration,'hours',$customer_price,$timetrack_tax);
-		}		
+			$description = $time['description'];
+			if ($description === null || trim($description) == ''){
+				$description = '';
+				foreach ($time['tasks'] as $tid => $dummy){
+					$description .= '- '.$tasks[$tid]['name']."\n";
+				}
+			}
+			add_invoice_position($id,'timetrack',$time['subject'],$description,$duration,'hours',$customer_price,$timetrack_tax);
+		}
 	}
 	
-	$tasks = array();
-	foreach ($times as $time_id => $time){
-		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
-	}
-	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
+	
 		
 	$projects = array();
 	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;
@@ -84,7 +94,7 @@ if ($services['time']){
 
 load_positions($invoice);
 
-//debug($projects,1);
+//if (!empty($invoice['positions'])) debug($invoice,1);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -139,8 +149,8 @@ include '../common_templates/messages.php'; ?>
 					</th>
 					<th>Amount</th>
 					<th>Unit</th>
-					<th>Price</th>
-					<th>Price</th>
+					<th>Price (€)</th>
+					<th>Price (€)</th>
 					<th>Actions</th>
 				</tr>
 
@@ -155,8 +165,8 @@ include '../common_templates/messages.php'; ?>
 					</td>
 					<td><input name="position[<?= $pos?>][amount]" value="<?= $position['amount']?>" /></td>
 					<td><?= $position['unit']?></td>
-					<td><input name="position[<?= $pos?>][price]" value="<?= $position['single_price']/100?>" /></td>
-					<td><?= $position['single_price']*$position['amount']/100?></td>
+					<td><input class="price" name="position[<?= $pos?>][price]" value="<?= $position['single_price']/100?>" /></td>
+					<td><?= round($position['single_price']*$position['amount']/100,2) ?></td>
 					<td><?= $first?'':'Up'?></td>
 				</tr>				
 				<?php $first = false; }?>

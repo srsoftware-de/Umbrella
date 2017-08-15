@@ -138,6 +138,11 @@ input[type="submit"] {
     max-height: unset;
 }
 
+input.price{
+	max-width: 60px;
+	text-align: right;
+}
+
 @media (max-width:1199px) {
 	.tasklist tr>*:nth-child(3){
 		display: none;
