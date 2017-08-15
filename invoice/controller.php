@@ -50,6 +50,25 @@ function add_invoice_position($invoice_id,$code,$title,$description,$amount,$uni
 	assert($query->execute($args),'Was not able to store new postion for invoice '.$invoice_id.'!');
 }
 
+function save_invoice_position($position){
+	$db = get_or_create_db();
+	
+	$invoice_id = $position['invoice_id'];
+	$pos = $position['pos'];
+	
+	$args = array();
+	$keys = array_keys($position);	
+	$sql = 'UPDATE invoice_positions SET ';
+	foreach ($keys as $key){
+		$args[':'.$key] = $position[$key];
+		if ($key == 'invoice_id' || $key == 'pos') continue;
+		$sql .= $key.' = :'.$key.', ';
+	}
+	$sql = substr($sql, 0,-2).' WHERE invoice_id = :invoice_id AND pos = :pos';
+	$query = $db->prepare($sql);
+	assert($query->execute($args),'Was not able to update invoice position '.$pos.' of invoice '.$invoice_id.'!');
+}
+
 function save_invoice($id = null, $invoice = null){
 	assert(is_numeric($id),'No valid invoice id passed to save_invoice!');
 	assert(is_array($invoice),'No invoice passed to save_invoice');
@@ -123,6 +142,24 @@ function create_invoice($sender = null, $tax_num = null, $customer_contact_id = 
 	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, customer, customer_num, invoice_date) VALUES (:uid, :sender, :tax, :cust, :cnum, :date)');
 	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
 	return $db->lastInsertId();
+}
+
+function update_invoice($invoice){
+	if (!isset($_POST['customer'])) return;
+	$fields = array('customer');
+	$changed = array();	
+	foreach ($fields as $field){
+		if ($invoice[$field] != $_POST[$field]){
+			debug($_POST,1);
+			
+			$invoice[$field] = $_POST[$field];
+			$changed[] = $field;
+		}
+	}
+	if (!empty($changed)){
+		debug($invoice);
+		debug($changed,1);
+	}
 }
 
 function load_positions(&$invoice){

@@ -87,6 +87,23 @@ if ($services['time']){
 
 load_positions($invoice);
 
+if ($positions = post('position')){
+	$keys = array('item_code','title','description','amount','single_price');
+	
+	foreach ($positions as $pos => $position){
+		foreach ($keys as $key){
+			if ($invoice['positions'][$pos][$key] != $position[$key]){
+				$changed[$pos] = true;
+				$invoice['positions'][$pos][$key] = $position[$key];
+			}
+		}	
+	}
+	foreach ($changed as $pos => $dummy){
+		save_invoice_position($invoice['positions'][$pos]);
+	}
+	if ($redirect = param('redirect')) redirect($redirect);
+}
+
 //if (!empty($invoice['positions'])) debug($invoice,1);
 
 include '../common_templates/head.php'; 
@@ -151,14 +168,14 @@ include '../common_templates/messages.php'; ?>
 					foreach ($invoice['positions'] as $pos => $position) { ?>
 				<tr>
 					<td><?= $position['pos']?></td>
-					<td><input name="position[<?= $pos ?>][code]" value="<?= $position['item_code']?>" /></td>
+					<td><input name="position[<?= $pos ?>][item_code]" value="<?= $position['item_code']?>" /></td>
 					<td>
 						<input name="position[<?= $pos?>][title]" value="<?= $position['title']?>" />
 						<textarea name="position[<?= $pos?>][description]"><?= $position['description']?></textarea>
 					</td>
 					<td><input name="position[<?= $pos?>][amount]" value="<?= $position['amount']?>" /></td>
 					<td><?= $position['unit']?></td>
-					<td><input class="price" name="position[<?= $pos?>][price]" value="<?= $position['single_price']/100?>" /></td>
+					<td><input class="price" name="position[<?= $pos?>][single_price]" value="<?= $position['single_price']/100?>" /></td>
 					<td><?= round($position['single_price']*$position['amount']/100,2) ?></td>
 					<td><?= $first?'':'Up'?></td>
 				</tr>				
