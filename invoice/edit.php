@@ -48,8 +48,6 @@ if ($services['time']){
 	}
 	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
 	
-	
-	
 	// add times selected by user to invoice
 	if ($selected_times = post('times')){
 		$customer_price = 50*100; // TODO: get customer price

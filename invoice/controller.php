@@ -7,7 +7,7 @@ function get_or_create_db(){
 		assert(mkdir('db'),'Failed to create time/db directory!');
 	}
 	assert(is_writable('db'),'Directory invoice/db not writable!');
-	if (!file_exists('db/times.db')){
+	if (!file_exists('db/invoices.db')){
 		$db = new PDO('sqlite:db/invoices.db');
 		$db->query('CREATE TABLE invoices (
 							id INTEGER PRIMARY KEY,
