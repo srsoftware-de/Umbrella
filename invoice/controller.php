@@ -183,15 +183,4 @@ function elevate($invoice_id = null, $position = null){
 	$query = $db->prepare('UPDATE invoice_positions SET pos = :pos WHERE pos = -1 AND invoice_id = :id');
 	assert($query->execute(array(':pos'=>$position,':id'=>$invoice_id)),'Was not able to alter pos field of invoice position '.$position);	
 }
-
-function t($text,$replacements=null){
-	global $lang;
-	$lang_file ='lang.'.$lang.'.php';
-	if (file_exists($lang_file)){
-		include $lang_file;
-		if (isset($translations[$text])) $text=$translations[$text];
-	}
-	return replace_text($text,$replacements);
-}
-
 ?>

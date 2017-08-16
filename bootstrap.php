@@ -77,7 +77,6 @@ function replace_text($text,$replacements = null){
 		if (!is_array($replacements)) $replacements = array($replacements);
 		while ($rep = array_shift($replacements)){
 			$text = preg_replace('/\?/', $rep, $text,1);
-			debug($text);
 		}
 	}	
 	return $text;
@@ -131,6 +130,16 @@ function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index'))
 		$result .= '<a href="'.$link.'">'.$text.'</a>&nbsp';
 	}
 	return $result.'</fieldset>';
+}
+
+function t($text,$replacements=null){
+	global $lang;
+	$lang_file ='lang.'.$lang.'.php';
+	if (file_exists($lang_file)){
+		include $lang_file;
+		if (isset($translations[$text])) $text=$translations[$text];
+	}
+	return replace_text($text,$replacements);
 }
 
 assert_options(ASSERT_ACTIVE,   true);

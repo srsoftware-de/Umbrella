@@ -65,7 +65,7 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<tr>
-		<td>Project</td>
+		<th>Project</th>
 		<td class="project">
 			<a href="<?= getUrl('project',$task['project_id'].'/view'); ?>"><?= $task['project']['name']?></a>
 			<?php if (isset($services['time'])) { ?>
