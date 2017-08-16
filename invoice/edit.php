@@ -165,7 +165,7 @@ include '../common_templates/messages.php'; ?>
 					<td><?= round($position['single_price']*$position['amount']/100,2) ?></td>
 					<td>
 					<?php if (!$first) { ?>
-						<a href="elevate?pos=<?= $pos ?>">UP</a>
+						<a class="symbol" title="move up" href="elevate?pos=<?= $pos ?>"></a>
 					<?php }?>
 					</td>
 				</tr>				
