@@ -53,6 +53,7 @@ include '../common_templates/messages.php'; ?>
 		<th>Task</th>
 		<td>
 			<span class="right">
+				<a title="edit"		href="edit"		class="symbol"></a>
 				<a title="started"  href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
 				<a title="complete" href="complete" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 				<a title="cancel"   href="cancel"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>

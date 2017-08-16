@@ -29,8 +29,8 @@ function display_tasks($task_list,$parent_task_id){
 			$first = false; ?><ul><?php
 		} ?>
 		<li class="<?= $task['status_string']?>">
-			<a class="symbol" title="edit" 			href="../../task/<?= $tid ?>/edit"></a>
 			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
+			<a class="symbol" title="edit" 			href="../../task/<?= $tid ?>/edit"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_STARTED?'hidden':'symbol'?>" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a> 
 			<a class="<?= $task['status'] == TASK_STATUS_COMPLETE?'hidden':'symbol'?>" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_CANCELED?'hidden':'symbol'?>" title="cancel"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
