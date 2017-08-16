@@ -8,6 +8,7 @@ $translations = array(
 		'completed'=>'abgeschlossen',
 		'Description'=>'Beschreibung',
 		'edit'=>'bearbeiten',
+		'Log out ?'=>'? ausloggen',
 		'open'=>'offen',
 		'Project'=>'Projekt',
 		'show closed projects' => 'geschlossene Projekte anzeigen',
