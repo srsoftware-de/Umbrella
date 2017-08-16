@@ -29,13 +29,13 @@ function display_children($task){
 			if (!$show_closed_children && $child_task['status'] >= 60) continue;
 		?>
 		<li class="<?= $child_task['status_string'] ?>">
-			<a href="../<?= $id ?>/view"><?= $child_task['name']?></a>
-			<a title="started"  href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
-			<a title="complete" href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-			<a title="cancel"   href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="open"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
-			<a title="wait"     href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+			<a title="view"		href="../<?= $id ?>/view"><?= $child_task['name']?></a>
+			<a title="complete" href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $child_task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="cancel"   href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 			<a title="edit"     href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
+			<a title="started"  href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
+			<a title="open"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+			<a title="wait"     href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $child_task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 			<?php display_children($child_task);?>
 		</li>
 	<?php }?>
@@ -46,13 +46,12 @@ function display_children($task){
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php';
-?>
-<h1><?= $task['name'] ?></h1>
+include '../common_templates/messages.php'; ?>
+
 <table class="vertical tasks">
 	<tr>
-		<th>Project</th>
-		<td class="project">
+		<th>Task</th>
+		<td>
 			<span class="right">
 				<a title="started"  href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
 				<a title="complete" href="complete" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
@@ -60,8 +59,13 @@ include '../common_templates/messages.php';
 				<a title="open"     href="open"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 				<a title="wait"     href="wait"     class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 				<a title="delete"   href="delete"   class="symbol"></a>
-
 			</span>
+			<h1><?= $task['name'] ?></h1>
+		</td>
+	</tr>
+	<tr>
+		<td>Project</td>
+		<td class="project">
 			<a href="<?= getUrl('project',$task['project_id'].'/view'); ?>"><?= $task['project']['name']?></a>
 			<?php if (isset($services['time'])) { ?>
 			<a class="symbol" href="<?= getUrl('time','add_task?id='.$task_id); ?>"></a>

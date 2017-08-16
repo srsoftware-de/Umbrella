@@ -1,4 +1,1 @@
-<div>
-<a href="index">Index</a>
-<a href="add">Add</a>
-</div>
+<a class="symbol" title="add new file" href="<?= param('id')?'../':''?>add"></a>

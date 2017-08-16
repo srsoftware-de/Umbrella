@@ -30,9 +30,9 @@ include '../common_templates/messages.php'; ?>
 			<?php }?>
 		</td>
 		<td>
-			<a href="add_user_to?file=<?= $hash ?>">add user</a>
-			<a href="delete?file=<?= $hash ?>">delete</a>
-			<a href="download?file=<?= $hash ?>">download</a>
+			<a class="symbol" title="download" href="download?file=<?= $hash ?>"></a>
+			<a class="symbol" title="add user" href="add_user_to?file=<?= $hash ?>"></a>
+			<a class="symbol" title="delete" href="delete?file=<?= $hash ?>"></a>
 		</td>
 	</tr>
 	<?php }?>

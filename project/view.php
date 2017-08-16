@@ -29,13 +29,13 @@ function display_tasks($task_list,$parent_task_id){
 			$first = false; ?><ul><?php
 		} ?>
 		<li class="<?= $task['status_string']?>">
+			<a class="symbol" title="edit" 			href="../../task/<?= $tid ?>/edit"></a>
 			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
 			<a class="<?= $task['status'] == TASK_STATUS_STARTED?'hidden':'symbol'?>" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a> 
 			<a class="<?= $task['status'] == TASK_STATUS_COMPLETE?'hidden':'symbol'?>" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_CANCELED?'hidden':'symbol'?>" title="cancel"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_OPEN?'hidden':'symbol'?>" title="open"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_PENDING?'hidden':'symbol'?>" title="wait"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
-			<a class="symbol" title="edit" 			href="../../task/<?= $tid ?>/edit"></a>
 			<a class="symbol" title="add subtask" 	href="../../task/<?= $tid ?>/add_subtask"></a>
 			<a class="symbol" title="delete" 		href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php display_tasks($task_list,$tid)?>
@@ -53,7 +53,6 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 ?>
-<h1><?= $project['name'] ?></h1>
 <table class="vertical">
 	<tr>
 		<th>Project</th>
@@ -61,9 +60,11 @@ include '../common_templates/messages.php';
 			<span class="right">
 				<a class="symbol" href="complete?redirect=../index"></a>
 				<a class="symbol" href="cancel?redirect=../index"></a>
+				<a class="symbol" title="edit" href="edit"></a>
+				<a class="symbol" title="add subtask" href="../../task/<?= $tid ?>/add_to_project/<?= $project_id ?>"></a>
+				<a class="symbol" title="add user" href="add_user"></a>
 			</span>
-			<?= $project['name'];?>
-			
+			<h1><?= $project['name'] ?></h1>
 		</td>
 	</tr>
 	<tr>

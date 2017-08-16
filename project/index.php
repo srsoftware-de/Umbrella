@@ -12,7 +12,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <?php if (!$show_closed){ ?>
-<a href="?closed=show">show closed projects</a>
+<a class="symbol" title="show closed projects" href="?closed=show"></a>
 <?php }?>
 <table>
 	<tr>

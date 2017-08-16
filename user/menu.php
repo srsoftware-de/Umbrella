@@ -1,5 +1,1 @@
-<div>
-<a href="index">Index</a>
-<a href="add">Add</a>
-<a href="logout">Logout</a>
-</div>
+<a class="symbol" title="add new project" href="add"></a>

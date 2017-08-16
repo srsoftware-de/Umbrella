@@ -12,6 +12,9 @@ a{
 	color: red;
 	text-decoration: none;
 }
+#main_menu{
+	display: inline;
+}
 #main_menu form{
 	display: inline;
 }
