@@ -1,0 +1,25 @@
+<?php
+
+$translations = array(
+		'Actions'=>'Aktionen',
+		'Add Positions'=>'Posten hinzufügen',
+		'Amount'=>'Menge',
+		'Customer' => 'Kunde',
+		'Customer number'=>'Kundennummer',
+		'Dates'=>'Daten',
+		'Delivery Date'=>'Lieferdatum',
+		'Description'=>'Beschreibung',
+		'edit'=>'bearbeiten',
+		'Edit invoice'=>'Rechnung bearbeiten',
+		'Footer text'=>'Fußtext',
+		'hours'=>'Stunden',
+		'Greeter/Head text'=>'Begrüßung/Kopftext',
+		'Invoice Date'=>'Rechnungsdatum',
+		'move up'=>'nach oben verschieben',
+		'Positions' => 'Posten',
+		'Price'=>'Preis (€)',
+		'Save'=>'Speichern',
+		'Tax number'=>'Steuernummer',
+		'Title'=>'Titel',
+		'Unit'=>'Einheit',
+);

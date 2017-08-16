@@ -99,55 +99,55 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST" class="invoice">
 	<fieldset>
-		<legend>Edit invoice</legend>
+		<legend><?= t('Edit invoice')?></legend>
 		<fieldset class="customer">
-			<legend>Customer</legend>
+			<legend><?= t('Customer')?></legend>
 			<textarea name="customer"><?= $invoice['customer'] ?></textarea>
 			<fieldset>
-				<legend>Customer number</legend>
+				<legend><?= t('Customer number')?></legend>
 				<input name="customer_num" value="<?= $invoice['customer_num'] ?>" />
 			</fieldset>		
 			
 		</fieldset>
 		<fieldset class="sender">
-			<legend>Sender</legend>
+			<legend><?= t('Sender')?></legend>
 			<textarea name="sender"><?= $invoice['sender'] ?></textarea>			
 			<fieldset>
-				<legend>Tax number</legend>
+				<legend><?= t('Tax number')?></legend>
 				<input name="tax_number" value="<?= $invoice['tax_num'] ?>" />
 			</fieldset>		
 		</fieldset>
 		
 		<fieldset>
-			<legend>Dates</legend>
-			<label>Invoice Date
+			<legend><?= t('Dates')?></legend>
+			<label><?= t('Invoice Date')?>
 				<input name="invoice_date" value="<?= ($invoice_date = post('invoice_date'))?$invoice_date:date('Y-m-d')?>" />
 			</label>
-			<label>Delivery Date
+			<label><?= t('Delivery Date')?>
 				<input name="delivery_date" value="<?= ($delivery_date = post('delivery_date'))?$delivery_date:date('Y-m-d')?>" />
 			</label>			
 		</fieldset>
 		<fieldset>
 			<legend>
-				Greeter/Head text
+				<?= t('Greeter/Head text')?>
 			</legend>
 			<textarea name="head"><?= $head_text ?></textarea>
 		</fieldset>
 		<fieldset>
-			<legend>Positions</legend>
+			<legend><?= t('Positions')?></legend>
 			<table>
 				<tr>
-					<th>Pos</th>
-					<th>Code</th>
+					<th><?= t('Pos')?></th>
+					<th><?= t('Code')?></th>
 					<th>
-						<span class="title">Title</span>/
-						<span class="description">Description</span>
+						<span class="title"><?= t('Title')?></span>/
+						<span class="description"><?= t('Description')?></span>
 					</th>
-					<th>Amount</th>
-					<th>Unit</th>
-					<th>Price (€)</th>
-					<th>Price (€)</th>
-					<th>Actions</th>
+					<th><?= t('Amount')?></th>
+					<th><?= t('Unit')?></th>
+					<th><?= t('Price')?></th>
+					<th><?= t('Price')?></th>
+					<th><?= t('Actions')?></th>
 				</tr>
 
 				<?php $first = true; 
@@ -160,12 +160,12 @@ include '../common_templates/messages.php'; ?>
 						<textarea name="position[<?= $pos?>][description]"><?= $position['description']?></textarea>
 					</td>
 					<td><input name="position[<?= $pos?>][amount]" value="<?= $position['amount']?>" /></td>
-					<td><?= $position['unit']?></td>
+					<td><?= t($position['unit'])?></td>
 					<td><input class="price" name="position[<?= $pos?>][single_price]" value="<?= $position['single_price']/100?>" /></td>
 					<td><?= round($position['single_price']*$position['amount']/100,2) ?></td>
 					<td>
 					<?php if (!$first) { ?>
-						<a class="symbol" title="move up" href="elevate?pos=<?= $pos ?>"></a>
+						<a class="symbol" title="<?= t('move up')?>" href="elevate?pos=<?= $pos ?>"></a>
 					<?php }?>
 					</td>
 				</tr>				
@@ -174,7 +174,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 
 		<fieldset class="add_positions">
-			<legend>Add Positions</legend>
+			<legend><?= t('Add Positions')?></legend>
 			<ul>			
 			<?php if ($projects) foreach ($projects as $project_id => $project) {?>
 				<li>
@@ -186,7 +186,7 @@ include '../common_templates/messages.php'; ?>
 							<input type="checkbox" name="times[<?= $time_id?>]" />							
 							<span class="subject"><?= $time['subject']?></span>
 							<span class="description"><?= $time['description']?></span>
-							<span class="duration">(<?= ($time['end_time']-$time['start_time'])/3600?>&nbsp;hours)</span>
+							<span class="duration">(<?= round(($time['end_time']-$time['start_time'])/3600,2)?>&nbsp;<?= t('hours')?>)</span>
 							<ul>
 							<?php foreach ($time['tasks'] as $task_id => $task) { ?>
 								<li><?= $tasks[$task_id]['name']?></li>
@@ -202,11 +202,11 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend>
-				Footer text
+				<?= t('Footer text')?>
 			</legend>
 			<textarea name="footer"><?= $foot_text ?></textarea>
 		</fieldset>
-		<button type="submit">Save</button>		
+		<button type="submit"><?= t('Save')?></button>		
 	</fieldset>
 </form>
 

@@ -55,7 +55,7 @@ include '../common_templates/messages.php';
 ?>
 <table class="vertical">
 	<tr>
-		<th>Project</th>
+		<th><?= t('Project')?></th>
 		<td>
 			<span class="right">
 				<a class="symbol" href="complete?redirect=../index"></a>
@@ -68,14 +68,14 @@ include '../common_templates/messages.php';
 		</td>
 	</tr>
 	<tr>
-		<th>Description</th><td><?= $project['description']; ?></td>
+		<th><?= t('Description')?></th><td><?= $project['description']; ?></td>
 	</tr>
 	<?php if ($tasks) {?>
 	<tr>
-		<th>Tasks</th>
+		<th><?= t('Tasks')?></th>
 		<td class="tasks">
 			<?php if (!$show_closed_tasks) { ?>
-			<a href="?closed=show">show closed tasks</a>
+			<a href="?closed=show"><?= t('show closed tasks')?></a>
 			<?php } ?>
 			<?php display_tasks($tasks, null); ?>			
 		</td>
@@ -83,7 +83,7 @@ include '../common_templates/messages.php';
 	<?php } ?>
 	<?php if ($project_users){ ?>
 	<tr>
-		<th>Users</th>
+		<th><?= t('Users')?></th>
 		<td>
 			<ul>
 			<?php foreach ($project_users as $uid => $u) { ?>

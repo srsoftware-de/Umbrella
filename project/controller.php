@@ -120,4 +120,14 @@
 		$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
 		assert($query->execute(array(':pid'=>$project_id,':uid'=>$user_id, ':perm'=>$permission)),'Was not able to assign project to user!');
 	}
+	
+	function t($text,$replacements=null){
+		global $lang;
+		$lang_file ='lang.'.$lang.'.php';
+		if (file_exists($lang_file)){
+			include $lang_file;
+			if (isset($translations[$text])) $text=$translations[$text];
+		}
+		return replace_text($text,$replacements);
+	}
 ?>

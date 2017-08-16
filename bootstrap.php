@@ -72,6 +72,17 @@ function redirect($url){
 	die();
 }
 
+function replace_text($text,$replacements = null){
+	if ($replacements !== null){
+		if (!is_array($replacements)) $replacements = array($replacements);
+		while ($rep = array_shift($replacements)){
+			$text = preg_replace('/\?/', $rep, $text,1);
+			debug($text);
+		}
+	}	
+	return $text;
+}
+
 /**
  * contacts the user service, sends the current token and recieves the user data.
  * if no token is given, redirects to the login page
@@ -121,7 +132,6 @@ function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index'))
 	}
 	return $result.'</fieldset>';
 }
-
 
 assert_options(ASSERT_ACTIVE,   true);
 assert_options(ASSERT_BAIL,     false);

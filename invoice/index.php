@@ -13,16 +13,16 @@ include '../common_templates/messages.php'; ?>
 
 <table class="invoices">
 	<tr>
-		<th>Sender</th>
-		<th>Customer</th>
-		<th>Actions</th>
+		<th><?= t('Sender')?></th>
+		<th><?= t('Customer')?></th>
+		<th><?= t('Actions')?></th>
 	</tr>
 	<?php foreach ($invoices as $id => $invoice){ ?>
 	<tr>
 		<td><pre><?= $invoice['sender']?></pre></td>
 		<td><pre><?= $invoice['customer']?></pre></td>
 		<td>
-			<a title="edit"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
+			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
 		</td>
 	</tr>
 	<?php } ?>
