@@ -31,9 +31,9 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $time['end_time']?(($time['end_time']-$time['start_time'])/3600).' hours':'' ?></td>
 		<td>
 			<?php if ($time['end_time']) { ?>
-			<a href="<?= $id ?>/edit">Edit</a>
+			<a class="symbol" title="edit" href="<?= $id ?>/edit"></a>
 			<?php } ?>
-			<a href="<?= $id ?>/drop">Drop</a>
+			<a class="symbol" title="drop" href="<?= $id ?>/drop">	</a>
 		</td>
 	</tr>
 <?php endforeach; ?>

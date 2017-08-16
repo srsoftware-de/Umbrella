@@ -27,12 +27,13 @@ a{
 	font-weight: bold;
 }
 
+.add_positions,
 .requirements{
 	max-height: 50px;
 	max-width: 200px;
 	overflow: hidden;
 }
-
+.add_positions:hover,
 .requirements:hover{
 	max-height: 9999px;
 	max-width: 9999px;
@@ -139,6 +140,15 @@ input[type="submit"] {
 
 .hover:hover {
     max-height: unset;
+}
+
+
+form.invoice textarea {
+   background-color: red;
+    color: black;
+    font-weight: bold;
+    min-height: 90px;
+    width: 100%;
 }
 
 input.price{

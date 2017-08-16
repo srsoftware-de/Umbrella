@@ -18,21 +18,6 @@ if ($customer = post('customer')){
 	save_invoice($id,$invoice);
 }
 
-
-function conclude_vcard($vcard){
-	$short = '';
-	if (isset($vcard['N'])){
-		$names = explode(';',$vcard['N']);
-		$short = $names[2].' '.$names[1];
-	}
-	if (isset($vcard['ORG'])){		
-		$org = str_replace(';', ', ', $vcard['ORG']);
-		if ($short != '') $short.=', ';
-		$short .= $org;		
-	}
-	debug($short);
-}
-
 $head_text = post('head','Wir erlauben uns, Ihnen die folgenden Positionen in Rechnung zu stellen:');
 $foot_text = post('foot',"Zahlbar innerhalb von 14 Tagen ohne Abzug.\n\nUnberechtigt abgezogene Skontobeträge werden nachgefordert.\nLieferung frei Haus.\nGeben Sie bei Rückfragen und bei Überweisung bitte ihre Kundennummer und Rechnungsnummern an!\n\n Wir danken für Ihren Auftrag.");
 $tax_number = post('tax_number','XXX');
@@ -92,6 +77,7 @@ if ($positions = post('position')){
 	
 	foreach ($positions as $pos => $position){
 		foreach ($keys as $key){
+			if ($key == 'single_price') $position[$key] = $position[$key]*100;
 			if ($invoice['positions'][$pos][$key] != $position[$key]){
 				$changed[$pos] = true;
 				$invoice['positions'][$pos][$key] = $position[$key];
@@ -101,13 +87,15 @@ if ($positions = post('position')){
 	foreach ($changed as $pos => $dummy){
 		save_invoice_position($invoice['positions'][$pos]);
 	}
-	if ($redirect = param('redirect')) redirect($redirect);
+	//if ($redirect = param('redirect')) redirect($redirect);
 }
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
+
+
 
 <form method="POST" class="invoice">
 	<fieldset>
@@ -185,7 +173,7 @@ include '../common_templates/messages.php'; ?>
 			</table>
 		</fieldset>
 
-		<fieldset>
+		<fieldset class="add_positions">
 			<legend>Add Positions</legend>
 			<ul>			
 			<?php if ($projects) foreach ($projects as $project_id => $project) {?>
