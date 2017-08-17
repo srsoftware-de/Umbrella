@@ -207,6 +207,7 @@ include '../common_templates/messages.php'; ?>
 			<textarea name="footer"><?= $foot_text ?></textarea>
 		</fieldset>
 		<button type="submit"><?= t('Save')?></button>		
+		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Donwload PDF') ?></a>
 	</fieldset>
 </form>
 

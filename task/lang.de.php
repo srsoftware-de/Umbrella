@@ -1,11 +1,23 @@
 <?php
 $translations = array(
+		'add to timetrack'=>'Zur Zeiterfassung hinzufügen',
+		'cancel'=>'abbrechen',
+		'Child tasks'=>'Unteraufgaben',
+		'complete'=>'abschließen',
 		'Contacts'=>'Kontakte',
+		'delete'=>'entfernen',
+		'edit'=>'bearbeiten',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
 		'Log out ?'=>'? ausloggen',
+		'open'=>'öffnen',
+		'Project'=>'Projekt',
 		'Projects'=>'Projekte',
+		'start'=>'anfangen',
+		'Task'=>'Aufgabe',
 		'Tasks'=>'Aufgaben',
 		'Timetrack'=>'Zeiterfassung',
-		'Users'=>'Benutzer'
+		'Users'=>'Benutzer',
+		'view'=>'ansehen',
+		'wait'=>'abwarten',
 );
