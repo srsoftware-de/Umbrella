@@ -1,1 +1,1 @@
-<a class="symbol" title="start" href="<?= param('id')?'../':''?>start"></a>
+<a class="symbol" title="<?= t('start tracking')?>" href="<?= param('id')?'../':''?>start"></a>

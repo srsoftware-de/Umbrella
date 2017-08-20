@@ -4,7 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 require_login();
 
-$task_id = param('id');
+$task_id = param('tid');
 if (!$task_id) error('No task id passed!');
 if ($selected = post('timetrack')){
 	assign_task($task_id,$selected);
@@ -12,7 +12,7 @@ if ($selected = post('timetrack')){
 }
 $tracks = get_open_tracks($user->id);
 $count = count($tracks);
-if ($count < 1) error('No open time track existing!');
+if ($count < 1) error(t('No open time track existing!'));
 if ($count == 1) {
 	assign_task($task_id,key($tracks));
 	redirect(key($tracks).'/view');
@@ -25,10 +25,10 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Add Task "<?= $task['name'] ?>" to Timetrack</legend>
-		<fieldset><legend>Open timetracks</legend>
+	<fieldset><legend><?= t('Add Task "?" to Timetrack',$task['name']) ?></legend>
+		<fieldset><legend><?= t('Open timetracks') ?></legend>
 			<select name="timetrack">
-				<option value="">== Select a timetrack ==</option>
+				<option value=""><?= t('== Select a timetrack ==')?></option>
 			<?php foreach ($tracks as $id => $track){ ?>
 				<option value="<?= $id ?>"><?= $track['subject'] ?></option>
 			<?php } ?>
