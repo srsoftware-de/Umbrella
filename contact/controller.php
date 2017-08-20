@@ -84,6 +84,17 @@ function store_vcard($vcard = null, $id = null){
 	}
 }
 
+function break_lines($value){
+	$value = str_replace(["\r\n","\r","\n"], '\n', $value);
+	$result = '';
+	$l=80;
+	while (strlen($value)>$l){
+		$result.=substr($value, 0,$l)."\n ";
+		$value = substr($value,$l);
+	}
+	return $result.$value;  
+}
+
 function serialize_vcard($vcard){
 	$result = '';
 	foreach ($vcard as $key => $value){
@@ -91,19 +102,20 @@ function serialize_vcard($vcard){
 			foreach ($value as $k => $val){
 				if (!is_numeric($k)) {
 					if (is_array($val)){
-						foreach ($val as $v) $result .= $key.';'.$k.':'.$v."\r\n";
-					} else $result .= $key.';'.$k.':'.$val."\r\n";
-				} else $result .= $key.':'.$val."\r\n";
+						foreach ($val as $v) $result .= $key.';'.$k.':'.break_lines($v)."\r\n";
+					} else $result .= $key.';'.$k.':'.break_lines($val)."\r\n";
+				} else $result .= $key.':'.break_lines($val)."\r\n";
 			}
 			continue;
 		}
 		if (trim($value) == '') continue;
-		$result .= $key.':'.$value."\r\n";
+		$result .= $key.':'.break_lines($value)."\r\n";
 	}
 	return $result;	
 }
 
 function unserialize_vcard($raw){
+	$raw = str_replace("\n ",'',$raw);
 	$raw = str_replace("\r\n","\n",$raw);
 	$lines = explode("\n", $raw);
 	$vcard = array();	
@@ -115,6 +127,7 @@ function unserialize_vcard($raw){
 		$val = $map[1];
 		
 		if ($val == null || trim(str_replace(";", '', $val))=='') continue;
+		$val = str_replace('\n', "\n", $val);
 		
 		$params = null;
 		if (strpos($key, ';') !== false){ // key contains parameter
