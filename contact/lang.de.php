@@ -1,0 +1,25 @@
+<?php
+
+$translations = array(
+		'Address'=>'Adresse',
+		'BDAY'=>'Geburtstag',
+		'City'=>'Ort',
+		'Contacts'=>'Kontakte',
+		'Country'=>'Land',
+		'Edit Contact'=>'Kontakt bearbeiten',
+		'EMAIL'=>'Email',
+		'Files'=>'Dateien',
+		'FN'=>'formatierter Name',
+		'First Name'=>'Vorame',
+		'Invoices'=>'Rechnungen',
+		'Last Name'=>'Nachname',
+		'Log out ?'=>'? ausloggen',
+		'Post Code'=>'Postleitzahl',
+		'Projects'=>'Projekte',
+		'Street'=>'Straße/Nummer',
+		'Tasks'=>'Aufgaben',
+		'TEL'=>'Telefon',
+		'Timetrack'=>'Zeiterfassung',
+		'Users'=>'Benutzer',
+		'X-TAX-NUMBER'=>'Steuernummer',
+);
