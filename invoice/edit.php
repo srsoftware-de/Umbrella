@@ -26,13 +26,16 @@ $sender = post('sender','XXX');
 $projects = null;
 if ($services['time']){
 	$times = request('time', 'json_list');
-	
 	$tasks = array();
 	foreach ($times as $time_id => $time){
+		if ($time['end_time']===null) {
+			unset($times[$time_id]);
+			continue;
+		}		
 		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
 	}
-	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
 	
+	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
 	// add times selected by user to invoice
 	if ($selected_times = post('times')){
 		$customer_price = 50*100; // TODO: get customer price

@@ -28,12 +28,14 @@ a{
 }
 
 .add_positions,
+.invoice_positions,
 .requirements{
 	max-height: 50px;
 	max-width: 200px;
 	overflow: hidden;
 }
 .add_positions:hover,
+.invoice_positions:hover,
 .requirements:hover{
 	max-height: 9999px;
 	max-width: 9999px;
@@ -84,7 +86,9 @@ label.location::after {
 }
 
 
-.invoice .customer, .invoice .sender {
+.invoice .customer,
+.invoice .sender,
+.invoice .court {
     float: left;
     width: 45%;
 }
