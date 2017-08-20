@@ -19,6 +19,8 @@ if (!isset($vcard['ADR'])) $vcard['ADR'] = ['street','locality','region','pcode'
 if (!isset($vcard['X-BANK-ACCOUNT'])) $vcard['X-BANK-ACCOUNT'] = '';
 if (!isset($vcard['X-CUSTOMER-NUMBER'])) $vcard['X-CUSTOMER-NUMBER'] = '';
 if (!isset($vcard['X-TAX-NUMBER'])) $vcard['X-TAX-NUMBER'] = '';
+if (!isset($vcard['ORG'])) $vcard['ORG'] = '';
+if (!isset($vcard['X-COURT'])) $vcard['X-COURT'] = '';
 
 
 function createAddressField($value,$param = null,$index = null){
@@ -108,9 +110,10 @@ function createField($key,$value,$param = null,$index = null){
 	}
 	if ($key == 'N') return createNameField($value);
 	if ($key == 'ADR') return createAddressField($value,$param,$index);
-	if ($key == 'X-TAX-NUMBER') return createOtherField($key,$value,$param,$index);
-	if ($key == 'X-CUSTOMER-NUMBER') return createOtherField($key,$value,$param,$index);
 	if ($key == 'X-BANK-ACCOUNT') return createOtherField($key,$value,$param,$index,MULTILINE);
+	if ($key == 'X-COURT') return createOtherField($key,$value,$param,$index);
+	if ($key == 'X-CUSTOMER-NUMBER') return createOtherField($key,$value,$param,$index);
+	if ($key == 'X-TAX-NUMBER') return createOtherField($key,$value,$param,$index);
 	if (strpos($key,'X-')===0) return '';
 	return createOtherField($key,$value,$param,$index);
 }

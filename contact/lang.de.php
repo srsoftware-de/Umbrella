@@ -14,6 +14,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Last Name'=>'Nachname',
 		'Log out ?'=>'? ausloggen',
+		'ORG'=>'Organisation',
 		'Post Code'=>'Postleitzahl',
 		'Projects'=>'Projekte',
 		'Street'=>'Straße/Nummer',
@@ -23,5 +24,6 @@ $translations = array(
 		'Users'=>'Benutzer',
 		'X-BANK-ACCOUNT'=>'Bankverbindung',
 		'X-CUSTOMER-NUMBER'=>'Kundennummer',
+		'X-COURT'=>'Amtsgericht',
 		'X-TAX-NUMBER'=>'Steuernummer',
 );

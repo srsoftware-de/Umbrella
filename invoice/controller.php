@@ -20,7 +20,8 @@ function get_or_create_db(){
 							delivery_date DATE,
 							bank_account TEXT,
 							head TEXT,
-							footer TEXT);');
+							footer TEXT,
+							court TEXT);');
 		$db->query('CREATE TABLE invoice_positions(
 						invoice_id INT NOT NULL,
 						pos INT NOT NULL,
@@ -91,21 +92,37 @@ function save_invoice($id = null, $invoice = null){
 								 ':id'=>$id)),'Was not able to update invoice!');
 }
 
-function vcard_address($vcard){
-	$adr = '';
+function conclude_vcard($vcard){
+	$short = '';
+	if (isset($vcard['FN'])) return $vcard['FN'];
 	if (isset($vcard['N'])){
 		$names = explode(';',$vcard['N']);
-		$adr .= $names[2].' '.$names[1]."\n";
+		return $names[1].' '.$names[0];
+	}
+	debug('error in conclude_vcard',1);
+}
+
+function vcard_address($vcard){
+	$result = '';
+	if (isset($vcard['N'])){
+		$names = explode(';',$vcard['N']);
+		$result .= $names[1].' '.$names[0]."\n";
 	}
 	if (isset($vcard['ORG'])){
 		$org = str_replace(';', ', ', $vcard['ORG']);
-		$adr .= $org."\n";
+		$result .= $org."\n";
 	}
 	if (isset($vcard['ADR'])){
-		$parts = explode(';', $vcard['ADR']);
-		$adr .= $parts[3]."\n".$parts[6].' '.$parts[4]."\n".$parts[5].' '.$parts[7];
+		$adr=$vcard['ADR'];
+		if (is_array($adr)){
+			if (isset($adr['TYPE=WORK'])) {
+				$adr = $adr['TYPE=WORK'];
+			} else $adr=reset($adr);
+		}	
+		$adr=explode(';', $adr);
+		$result .= $adr[2]."\n".$adr[5].' '.$adr[3]."\n".$adr[4].' '.$adr[6];
 	}
-	return $adr;
+	return $result;
 }
 
 
@@ -126,7 +143,7 @@ function load_invoices($ids = array()){
 	return $invoices;
 }
 
-function create_invoice($sender = null, $tax_num = null, $bank_account = null, $customer_contact_id = null, $customer_number = null, $invoice_date = null, $delivery_date = null, $head = null, $footer = null){
+function create_invoice($sender = null, $tax_num = null, $bank_account = null, $court = null, $customer_contact_id = null, $customer_number = null, $invoice_date = null, $delivery_date = null, $head = null, $footer = null){
 	global $user;
 	assert($sender !== null && trim($sender) != '','Invalid sender passed to create_invoice!');
 	assert($tax_num !== null && trim($tax_num) != '','Invalid tax number passed to create_invoice!');
@@ -139,8 +156,8 @@ function create_invoice($sender = null, $tax_num = null, $bank_account = null, $
 	$date = time();
 	
 	$db = get_or_create_db();
-	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, bank_account, customer, customer_num, invoice_date) VALUES (:uid, :sender, :tax, :bank, :cust, :cnum, :date)');
-	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':bank'=>$bank_account,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
+	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, bank_account, customer, customer_num, invoice_date, court) VALUES (:uid, :sender, :tax, :bank, :cust, :cnum, :date, :court)');
+	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':bank'=>$bank_account,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date,':court'=>$court)),'Was not able to create invoice!');
 	return $db->lastInsertId();
 }
 

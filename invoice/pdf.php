@@ -7,7 +7,7 @@ const RIGHT=0;
 const NEWLINE=1;
 const DOWN=2;
 const FRAME=1;
-const NO_FRAME=0;
+const NO_FRAME=0; // set this to 1 to enable debugging frames
 
 require_login();
 
@@ -88,7 +88,7 @@ class PDF extends FPDF{
 		$date = date(t('Y-m-d'),$this->invoice['delivery_date']);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Customer number'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,10,$this->invoice['customer_num'],NO_FRAME,NEWLINE,'R');
+		$this->Cell(20,4,$this->invoice['customer_num'],NO_FRAME,NEWLINE,'R');
 		
 		if ($this->inTable){
 			$this->tableHead();
@@ -110,11 +110,16 @@ class PDF extends FPDF{
 	// Page footer
 	function Footer(){
 	    // Position at 1.5 cm from bottom
-	    $this->SetY(-15);
 	    // Arial italic 8
-	    $this->SetFont('Arial','I',8);
-	    // Page number
-	    $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',0,0,'C');
+	    $this->SetFont('Arial','',8);
+
+	    $bank_account = str_replace("\n", ", ", $this->invoice['bank_account']);
+	    $this->SetY(-15);
+	    $this->Cell(0,5,utf8_decode(t('Bank account: ?',$bank_account)),NO_FRAME,NEWLINE,'L');
+	    $this->Cell(0,5,utf8_decode(t('Local court: ?',$this->invoice['court'])),NO_FRAME,NEWLINE,'L');
+	    
+	    $this->SetY(-15);
+	    $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',NO_FRAME,0,'R');
 	}
 	
 	function firstPage(){
@@ -227,6 +232,7 @@ class PDF extends FPDF{
 		$this->price_cell($sum);
 		$this->inTable=false;
 	}
+	
 }
 
 // Instanciation of inherited class

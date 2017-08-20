@@ -8,7 +8,7 @@ require_login();
 if ($sender = post('sender')){
 	$customer_contact_id = post('customer');
 	if ($customer_contact_id) {
-		$id = create_invoice($sender,post('tax_number'),post('bank_account'),post('customer'));
+		$id = create_invoice($sender,post('tax_number'),post('bank_account'),post('court'),post('customer'));
 		redirect($id.'/edit');
 	} else {
 		error('No customer selected!');		
@@ -18,23 +18,9 @@ if ($sender = post('sender')){
 $contacts = request('contact','json_list');
 $vcard = request('contact','json_assigned');
 
-
-function conclude_vcard($vcard){
-	$short = '';
-	if (isset($vcard['N'])){
-		$names = explode(';',$vcard['N']);
-		$short = $names[2].' '.$names[1];
-	}
-	if (isset($vcard['ORG'])){		
-		$org = str_replace(';', ', ', $vcard['ORG']);
-		if ($short != '') $short.=', ';
-		$short .= $org;		
-	}
-	return $short;
-}
-debug($vcard);
 $tax_number = post('tax_number',$vcard['X-TAX-NUMBER']);
 $bank_account = str_replace(";", "\n", post('bank_account',$vcard['X-BANK-ACCOUNT']));
+$local_court = post('court',$vcard['X-COURT']);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -64,7 +50,10 @@ include '../common_templates/messages.php'; ?>
 				<legend><?= t('Bank account')?></legend>
 				<textarea name="bank_account"><?= $bank_account ?></textarea>
 			</fieldset>		
-					
+			<fieldset>
+				<legend><?= t('Local cout')?></legend>
+				<input type="text" name="court" value="<?= $local_court ?>"/>
+			</fieldset>
 		</fieldset>
 		
 		<button type="submit">Save</button>		

@@ -11,7 +11,7 @@ $invoice = load_invoices($id);
 assert($invoice !== null,'No invoice found or accessible for id = '.$id);
 
 if ($customer = post('customer')){
-	$keys = ['customer','customer_num','sender','tax_num','invoice_date','delivery_date','head','footer','bank_account'];
+	$keys = ['customer','customer_num','sender','tax_num','invoice_date','delivery_date','head','footer','bank_account','court'];
 	foreach ($keys as $key) {
 		if ($value = post($key)) $invoice[$key] = $value;
 	}
@@ -133,7 +133,7 @@ include '../common_templates/messages.php'; ?>
 			</legend>
 			<textarea name="head"><?= $head_text ?></textarea>
 		</fieldset>
-		<fieldset>
+		<fieldset class="invoice_positions">
 			<legend><?= t('Positions')?></legend>
 			<table>
 				<tr>
@@ -206,11 +206,17 @@ include '../common_templates/messages.php'; ?>
 			</legend>
 			<textarea name="footer"><?= $foot_text ?></textarea>
 		</fieldset>
-		<fieldset>
+		<fieldset class="court">
 			<legend>
 				<?= t('Bank account')?>
 			</legend>
 			<textarea name="bank_account"><?= $invoice['bank_account'] ?></textarea>
+		</fieldset>
+		<fieldset>
+			<legend>
+				<?= t('Local court')?>
+			</legend>
+			<input type="text" name="court" value="<?= $invoice['court'] ?>"/>
 		</fieldset>
 		
 		<button type="submit"><?= t('Save')?></button>		
