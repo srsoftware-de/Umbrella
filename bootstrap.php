@@ -52,9 +52,9 @@ function info($message){
 	global $infos;
 	$infos[] = $message;
 }
-function error($message){
+function error($message,$args = null){
 	global $errors;
-	$errors[] = $message;
+	$errors[] = t($message,$args);
 }
 
 function debug($object,$die = false){

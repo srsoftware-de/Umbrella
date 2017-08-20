@@ -18,6 +18,7 @@ function get_or_create_db(){
 							customer_num TEXT,
 							invoice_date DATE NOT NULL,
 							delivery_date DATE,
+							bank_account TEXT,
 							head TEXT,
 							footer TEXT);');
 		$db->query('CREATE TABLE invoice_positions(
@@ -77,9 +78,10 @@ function save_invoice($id = null, $invoice = null){
 	$delivery_date = strtotime($invoice['delivery_date']);
 	
 	$db = get_or_create_db();
-	$query = $db->prepare('UPDATE invoices SET sender = :sender, tax_num = :tax, customer = :cust, customer_num = :cnum, invoice_date = :idate, delivery_date = :ddate, head = :head, footer = :foot WHERE id = :id');	
+	$query = $db->prepare('UPDATE invoices SET sender = :sender, tax_num = :tax, bank_account = :bank, customer = :cust, customer_num = :cnum, invoice_date = :idate, delivery_date = :ddate, head = :head, footer = :foot WHERE id = :id');	
 	assert($query->execute(array(':sender'=>$invoice['sender'],
 								 ':tax'=>$invoice['tax_num'],
+								 ':bank'=>$invoice['bank_account'],
 								 ':cust'=>$invoice['customer'],
 								 ':cnum'=>$invoice['customer_num'],
 								 ':idate'=>$invoice_date,
@@ -124,13 +126,11 @@ function load_invoices($ids = array()){
 	return $invoices;
 }
 
-function create_invoice($sender = null, $tax_num = null, $customer_contact_id = null, $customer_number = null, $invoice_date = null, $delivery_date = null, $head = null, $footer = null){
+function create_invoice($sender = null, $tax_num = null, $bank_account = null, $customer_contact_id = null, $customer_number = null, $invoice_date = null, $delivery_date = null, $head = null, $footer = null){
 	global $user;
-	
 	assert($sender !== null && trim($sender) != '','Invalid sender passed to create_invoice!');
 	assert($tax_num !== null && trim($tax_num) != '','Invalid tax number passed to create_invoice!');
 	assert(is_numeric($customer_contact_id),'Invalid customer contact id supplied to create_invoice!');
-	
 	$contacts = request('contact', 'json_list?id='.$customer_contact_id);
 	$vcard = $contacts[$customer_contact_id];
 	if ($customer_number === null) $customer_number=$vcard['X-CUSTOMER-NUMBER'];
@@ -139,8 +139,8 @@ function create_invoice($sender = null, $tax_num = null, $customer_contact_id = 
 	$date = time();
 	
 	$db = get_or_create_db();
-	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, customer, customer_num, invoice_date) VALUES (:uid, :sender, :tax, :cust, :cnum, :date)');
-	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
+	$query = $db->prepare('INSERT INTO invoices (user_id, sender, tax_num, bank_account, customer, customer_num, invoice_date) VALUES (:uid, :sender, :tax, :bank, :cust, :cnum, :date)');
+	assert($query->execute(array(':uid'=>$user->id,':sender'=>$sender,':tax'=>$tax_num,':bank'=>$bank_account,':cust'=>$customer,':cnum'=>$customer_number,':date'=>$date)),'Was not able to create invoice!');
 	return $db->lastInsertId();
 }
 

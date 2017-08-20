@@ -17,16 +17,60 @@ function get_or_create_db(){
 	return $db;
 }
 
-function create_vcard($data){
-	$vcard = array();
-	$vcard['BEGIN'] = 'VCARD';
-	$vcard['VERSION'] = '4.0';
-	
-	foreach ($data as $key => $value) {
-		$value = str_replace(array("\r\n","\r","\n"), ';', $value);
-		$vcard[$key] = $value;
+function convert_val($key,$value){
+	if ($key == 'N') return $value['surname'].';'.$value['given'].';'.$value['additional'].';'.$value['prefix'].';'.$value['suffix'];
+	if ($key == 'ADR') return ';;'.$value['street'].';'.$value['locality'].';'.$value['region'].';'.$value['pcode'].';'.$value['country'];
+	if (is_array($value)) debug('Multi-part entry could not be processed!',true);	
+	return $value;
+}
+
+function update_vcard($vcard,$data=null){
+	if ($data === null) $data = $_POST;
+	//debug($vcard);
+	//debug($data);	
+	foreach ($data as $entry_type => $value) {
+		if (is_array($value)){ // either multipart-value, params given, or multiple entries
+			//debug('Entry "'.$entry_type.'" contains ARRAY.');
+			
+			foreach ($value as $first_key => $dummy) break;
+			
+			if (strpos($first_key, '=') !== false){ // parametric entry!
+				//debug('The array contains entry type parameters (first key is "'.$first_key.'").');
+				foreach ($value as $k => $v){
+					$typed_key = $entry_type.';'.$k;
+					$vcard[$typed_key] = array();
+					//debug('Precessing data for '.$typed_key);
+					
+					if (is_array($v)){
+						//debug('Multiple entries found!');
+						foreach ($v as $entry){
+							$vcard[$typed_key][]=convert_val($entry_type, $entry);
+						}
+						continue;
+					} 
+					//debug('Processing single entry');
+					$vcard[$typed_key]=convert_val($entry_type, $v);
+				}
+				continue;
+			}
+			
+			
+			
+			if (is_numeric($first_key)){ // Multiple entries!
+				//debug('That\'s just multiple entries. Passing data.');
+				$vcard[$entry_type] = $value;
+				continue;
+			}
+			
+			
+			// neither parametric nor multiple entries, must be multi-part			
+			//debug('This is a multipart entry (first key is "'.$first_key.'")! Processing.');
+			$vcard[$entry_type]=convert_val($entry_type, $value);
+		} else {			
+			$vcard[$entry_type] = convert_val($entry_type,$value);	
+		}
 	}
-	$vcard['END'] = 'VCARD';
+	//debug($vcard,1);
 	return $vcard;
 }
 
@@ -52,20 +96,10 @@ function serialize_vcard($vcard){
 	$result = '';
 	foreach ($vcard as $key => $value){
 		if (is_array($value)){
-			$index = 0;
-			$val = '';
-			while (!empty($value)){
-				if (isset($value[$index])){
-					$val.=$value[$index];
-					unset($value[$index]);
-				}
-	
-				if (!empty($value)){
-					$val.=';';
-					$index++;
-				}
+			foreach ($value as $val){
+				$result .= $key.':'.$val."\r\n";
 			}
-			$value = $val;
+			continue;
 		}
 		if (trim($value) == '') continue;
 		$result .= $key.':'.$value."\r\n";
@@ -74,14 +108,44 @@ function serialize_vcard($vcard){
 }
 
 function unserialize_vcard($raw){
-	$lines = explode("\r\n", $raw);
+	$raw = str_replace("\r\n","\n",$raw);
+	$lines = explode("\n", $raw);
 	$vcard = array();	
 	foreach ($lines as $line){
-		if (empty($line)) continue;		
+		if (empty($line)) continue;	
+		
 		$map = explode(':', $line,2);
 		$key = $map[0];
 		$val = $map[1];
-		$vcard[$key]=$val; 
+		
+		$params = null;
+		if (strpos($key, ';') !== false){ // key contains parameter
+			$params = explode(';', $key);
+			$key = array_shift($params);
+			$params = implode(';', $params);
+		}
+		
+		if ($params){			
+			if (!isset($vcard[$key])) $vcard[$key]=array();
+			if (!is_array($vcard[$key])) $vcard[$key] = array($vcard[$key]);
+			if (isset($vcard[$key][$params])){
+				$vcard[$key][$params] = array($vcard[$key][$params]);
+				$vcard[$key][$params][] = $val;
+			} else {			
+				$vcard[$key][$params] = $val;
+			}				
+		} else {
+			if (isset($vcard[$key])){
+				if (is_array($vcard[$key])) {
+					$vcard[$key][] = $val;
+				} else {
+					$vcard[$key] = array($vcard[$key],$val);
+				}
+			} else {
+				$vcard[$key] = $val;
+			}
+		}
+		
 	}
 	return $vcard;
 }

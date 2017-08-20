@@ -6,8 +6,13 @@ include 'controller.php';
 require_login();
 
 if ($sender = post('sender')){
-	$id = create_invoice($sender,post('tax_number'),post('customer'));
-	redirect($id.'/edit');
+	$customer_contact_id = post('customer');
+	if ($customer_contact_id) {
+		$id = create_invoice($sender,post('tax_number'),post('bank_account'),post('customer'));
+		redirect($id.'/edit');
+	} else {
+		error('No customer selected!');		
+	}
 }
 
 $contacts = request('contact','json_list');
@@ -27,8 +32,9 @@ function conclude_vcard($vcard){
 	}
 	return $short;
 }
-
+debug($vcard);
 $tax_number = post('tax_number',$vcard['X-TAX-NUMBER']);
+$bank_account = str_replace(";", "\n", post('bank_account',$vcard['X-BANK-ACCOUNT']));
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -53,7 +59,12 @@ include '../common_templates/messages.php'; ?>
 			<fieldset>
 				<legend>Tax number</legend>
 				<input name="tax_number" value="<?= $tax_number ?>" />
+			</fieldset>
+			<fieldset>
+				<legend><?= t('Bank account')?></legend>
+				<textarea name="bank_account"><?= $bank_account ?></textarea>
 			</fieldset>		
+					
 		</fieldset>
 		
 		<button type="submit">Save</button>		

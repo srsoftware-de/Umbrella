@@ -11,7 +11,7 @@ $invoice = load_invoices($id);
 assert($invoice !== null,'No invoice found or accessible for id = '.$id);
 
 if ($customer = post('customer')){
-	$keys = ['customer','customer_num','sender','tax_num','invoice_date','delivery_date','head','footer'];
+	$keys = ['customer','customer_num','sender','tax_num','invoice_date','delivery_date','head','footer','bank_account'];
 	foreach ($keys as $key) {
 		if ($value = post($key)) $invoice[$key] = $value;
 	}
@@ -206,6 +206,13 @@ include '../common_templates/messages.php'; ?>
 			</legend>
 			<textarea name="footer"><?= $foot_text ?></textarea>
 		</fieldset>
+		<fieldset>
+			<legend>
+				<?= t('Bank account')?>
+			</legend>
+			<textarea name="bank_account"><?= $invoice['bank_account'] ?></textarea>
+		</fieldset>
+		
 		<button type="submit"><?= t('Save')?></button>		
 		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Donwload PDF') ?></a>
 	</fieldset>
