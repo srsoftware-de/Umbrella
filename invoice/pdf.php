@@ -136,11 +136,18 @@ class PDF extends FPDF{
 		
 	}
 	
+	function foot(){
+		$this->SetFont('Arial','',10);
+		$this->Ln();		
+		$this->MultiCell(0, 10, utf8_decode($this->invoice['footer']));
+	}
+	
 	function generate(){
 		$this->AliasNbPages();
 		$this->firstPage();
 		$this->tableHead();
 		$this->positions();
+		$this->foot();
 		$this->Output();		
 	}
 	
