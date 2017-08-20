@@ -1,4 +1,6 @@
-<?php 
+<?php
+
+const MULTILINE=true;
 
 if (!isset($services['files'])) die('Contact service requres file service to be active!');
 	

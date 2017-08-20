@@ -10,13 +10,14 @@ $contact = read_contacts($id);
 assert($contact !== null,'Was not able to lod this vcard from the database');
 $vcard = $contact[$id];
 if (post('N')){
-	$vcard = update_vcard($vcard);
+	$vcard = update_vcard($vcard);	
 	store_vcard($vcard,(int)$id);
 	redirect('../index');
 }
 
 if (!isset($vcard['ADR'])) $vcard['ADR'] = ['street','locality','region','pcode','country'];
 if (!isset($vcard['X-TAX-NUMBER'])) $vcard['X-TAX-NUMBER'] = '';
+if (!isset($vcard['X-BANK-ACCOUNT'])) $vcard['X-BANK-ACCOUNT'] = '';
 
 function createAddressField($value,$param = null,$index = null){
 	$name = 'ADR';
@@ -71,14 +72,22 @@ function createNameField($name){
 			</fieldset>';
 }
 
-function createOtherField($key,$value,$param,$index = null){
+function createOtherField($key,$value,$param,$index = null,$multiline=false){
 	$result= '<fieldset>
-				<legend>'.t($key).($param?' ('.$param.')':'').'</legend>
-				<input type="text" name="'.$key;
-	if ($param) $result.='['.$param.']';
-	if ($index !== null) $result.='['.$index.']';
-	$result.='" value="'.$value.'"/>				
-			</fieldset>';
+				<legend>'.t($key).($param?' ('.$param.')':'').'</legend>';
+	
+	if ($multiline){
+		$result.='<textarea name="'.$key;
+		if ($param) $result.='['.$param.']';
+		if ($index !== null) $result.='['.$index.']';
+		$result.='" />'.$value.'</textarea>';
+	} else {
+		$result.='<input type="text" name="'.$key;
+		if ($param) $result.='['.$param.']';
+		if ($index !== null) $result.='['.$index.']';
+		$result.='" value="'.$value.'"/>';
+	}
+	$result.='</fieldset>';
 	return $result;
 }
 
@@ -98,6 +107,7 @@ function createField($key,$value,$param = null,$index = null){
 	if ($key == 'N') return createNameField($value);
 	if ($key == 'ADR') return createAddressField($value,$param,$index);
 	if ($key == 'X-TAX-NUMBER') return createOtherField($key,$value,$param,$index);
+	if ($key == 'X-BANK-ACCOUNT') return createOtherField($key,$value,$param,$index,MULTILINE);
 	if (strpos($key,'X-')===0) return '';
 	return createOtherField($key,$value,$param,$index);
 }
