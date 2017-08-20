@@ -27,7 +27,7 @@ class PDF extends FPDF{
 	}
 	
 	function recipient(){
-		$this->SetY(80);
+		$this->SetY(45);
 		$this->SetX(10);
 		$this->SetFont('Arial','U',7);
 		
@@ -44,7 +44,7 @@ class PDF extends FPDF{
 	function sender(){
 		$this->SetFont('Arial','',8);
 		
-		$this->SetY(60);
+		$this->SetY(30);
 		$this->SetX(130);
 		
 	    // Title
@@ -56,7 +56,7 @@ class PDF extends FPDF{
 	
 	function dates(){
 		$x = 150;
-		$y = 80;
+		$y = 50;
 		$dy = 5;
 		
 		$this->SetFont('Arial','B',8);
@@ -107,11 +107,11 @@ class PDF extends FPDF{
 		$this->sender();
 		
 		$this->dates();
-		$this->setY(120,1);
+		$this->setY(95,1);
 		$this->SetFont('Arial','',10);
 		$head = explode("\n", $this->invoice['head']);
 		foreach ($head as $line){
-			$this->Cell(0,8,utf8_decode($line),NO_FRAME,DOWN,'L');
+			$this->Cell(0,10,utf8_decode($line),NO_FRAME,DOWN,'L');
 		}
 		
 	}
@@ -119,50 +119,87 @@ class PDF extends FPDF{
 	function generate(){
 		$this->AliasNbPages();
 		$this->firstPage();
-		$this->SetFont('Arial','',9);
 		$this->positions();
 		$this->Output();		
 	}
 	
 	function pos_n_cell($i){
-		if ($i===null) $i=t('Pos');
-		//$this->Ln();
-		$this->Cell(10,7,$i,NO_FRAME,RIGTH,'R');
+		if ($i===null) $i = t('Pos');
+		$this->Cell(10,7,utf8_decode($i),NO_FRAME,RIGHT,'R');
 	}
 	
 	function amount_cell($i){
 		$i = ($i===null)?t('Amount'):round($i,2);
-		$this->Cell(12,7,$i,NO_FRAME,RIGTH,'R');
+		$this->Cell(12,7,utf8_decode($i),NO_FRAME,RIGHT,'R');
 	}
 	
 	function unit_cell($i){
 		if ($i===null) $i=t('Unit');
-		$this->Cell(15,7,$i,NO_FRAME,RIGTH,'L');
+		$this->Cell(15,7,utf8_decode(t($i)),NO_FRAME,RIGHT,'L');
 	}
 	
 	function code_cell($i){
 		if ($i===null) $i=t('Code');
-		$this->Cell(15,7,$i,NO_FRAME,RIGTH,'C');
+		$this->Cell(15,7,utf8_decode($i),NO_FRAME,RIGHT,'C');
 	}
 	
-	function desc_cell($i){
-		if ($i===null) $i=t('Description');
-		$this->MultiCell(70,7,$i,NO_FRAME,'L');
+	function desc_cell($t,$d){
+		if ($t===null) {
+			$this->Cell(98,7,utf8_decode(t('Description')),NO_FRAME,'L');
+		} else {
+			$x = $this->GetX();
+			$this->MultiCell(98,7,utf8_decode($t),NO_FRAME,'L');
+			$this->SetX($x);
+			$this->MultiCell(98,4,utf8_decode($d),NO_FRAME,'L');
+		}
+	}
+	
+	function s_pr_cell($i){
+		$i=($i===null)?t('Single price'):round(($i/100),2);
+		$this->Cell(20,7,utf8_decode($i),NO_FRAME,RIGHT,'R');
+	}
+	
+	function price_cell($i){
+		$i=($i===null)?t('Price'):round(($i/100),2);
+		$this->Cell(20,7,utf8_decode($i),NO_FRAME,NEWLINE,'R');
+		//$this->Ln();
 	}
 	
 	function positions(){
+		$this->SetFont('Arial','B',9);		
 		$this->pos_n_cell(null);
 		$this->amount_cell(null);
 		$this->unit_cell(null);
 		$this->code_cell(null);
 		$this->desc_cell(null);
+		$this->s_pr_cell(null);
+		$this->price_cell(null);
+		
+		
+		$this->SetFont('Arial','',9);
+		$sum = 0;
 		foreach ($this->invoice['positions'] as $pos => $position){
 			$this->pos_n_cell($pos);
 			$this->amount_cell($position['amount']);			
-			$this->unit_cell($position['unit']);
+			$this->unit_cell($position['unit']);							
 			$this->code_cell($position['item_code']);
-			$this->desc_cell($position['title']);
+			$x = $this->GetX();				
+			$y = $this->GetY();
+			$this->setX($x+98);
+			
+			$this->s_pr_cell($position['single_price']);
+			$tot = $position['amount']*$position['single_price'];
+			$sum += $tot;
+			$this->price_cell($tot);
+			$this->setY($y);
+			$this->setX($x);
+			$this->desc_cell($position['title'],$position['description']);
 		}
+		
+		
+		$this->SetFont('Arial','B',9);		
+		$this->Cell(40+93+25+12,7,utf8_decode(t('Sum')),NO_FRAME,RIGHT,'R');
+		$this->price_cell($sum);
 	}
 }
 
