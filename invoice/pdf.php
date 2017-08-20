@@ -24,6 +24,7 @@ class PDF extends FPDF{
 	function __construct($invoice){
 		parent::__construct('P','mm','A4');
 		$this->invoice = $invoice;
+		$this->inTable=false;
 	}
 	
 	function recipient(){
@@ -89,7 +90,7 @@ class PDF extends FPDF{
 		$this->Cell(30,4,t('Customer number'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,10,$this->invoice['customer_num'],NO_FRAME,NEWLINE,'R');
 		
-		if ($this->PageNo() > 1){
+		if ($this->inTable){
 			$this->tableHead();
 		}
 	}
@@ -181,7 +182,7 @@ class PDF extends FPDF{
 	
 	function positions(){
 
-		
+		$this->inTable=true;
 		
 		$this->SetFont('Arial','',9);
 		$sum = 0;
@@ -224,7 +225,7 @@ class PDF extends FPDF{
 		
 		$this->Cell(40+93+25+12,7,utf8_decode(t('Gross sum')),NO_FRAME,RIGHT,'R');
 		$this->price_cell($sum);
-		
+		$this->inTable=false;
 	}
 }
 
