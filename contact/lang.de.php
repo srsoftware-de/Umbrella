@@ -21,5 +21,7 @@ $translations = array(
 		'TEL'=>'Telefon',
 		'Timetrack'=>'Zeiterfassung',
 		'Users'=>'Benutzer',
+		'X-BANK-ACCOUNT'=>'Bankverbindung',
+		'X-CUSTOMER-NUMBER'=>'Kundennummer',
 		'X-TAX-NUMBER'=>'Steuernummer',
 );
