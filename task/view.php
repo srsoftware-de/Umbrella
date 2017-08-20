@@ -79,25 +79,25 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php if ($task['parent_task_id']) { ?>
 	<tr>
-		<th>Parent</th>
+		<th><?= t('Parent')?></th>
 		<td><a href="../<?= $task['parent_task_id'] ?>/view"><?= $task['parent']['name'];?></a></td>
 	</tr>
 	<?php }?>
 	<?php if ($task['description']){ ?>
 	<tr>
-		<th>Description</th>
+		<th><?= t('Description')?></th>
 		<td><pre><?= $task['description']; ?></pre></td>
 	</tr>
 	<?php } ?>
 	<?php if ($task['start_date']) { ?>
 	<tr>
-		<th>Start</th>
+		<th><?= t('Start date')?></th>
 		<td><?= $task['start_date'] ?></td>
 	</tr>
 	<?php } ?>
 	<?php if ($task['due_date']) { ?>
 	<tr>
-		<th>Due</th>
+		<th><?= t('Due date')?></th>
 		<td><?= $task['due_date'] ?></td>
 	</tr>
 	<?php } ?>
@@ -118,7 +118,7 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Child tasks')?></th>
 		<td class="children">
 			<?php if (!$show_closed_children) {?>
-			<a href="?closed=show">show closed child tasks</a>
+			<a href="?closed=show"><?= t('show closed child tasks'); ?></a>
 			<?php } ?>
 			<?php display_children($task); ?>
 		</td>

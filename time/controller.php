@@ -57,6 +57,8 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM times WHERE id = :tid');
 		assert($query->execute(array(':tid'=>$time_id)),'Was not able to drop time entry!');
+		$query = $db->prepare('DELETE FROM task_times WHERE time_id = :tid');
+		assert($query->execute(array(':tid'=>$time_id)),'Was not able to drop task_time entry!');		
 	}
 
 	function load_time($id = null){
