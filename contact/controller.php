@@ -27,47 +27,38 @@ function convert_val($key,$value){
 function update_vcard($vcard,$data=null){
 	if ($data === null) $data = $_POST;
 	//debug($vcard);
-	//debug($data);	
-	foreach ($data as $entry_type => $value) {
-		if (is_array($value)){ // either multipart-value, params given, or multiple entries
-			//debug('Entry "'.$entry_type.'" contains ARRAY.');
-			
-			foreach ($value as $first_key => $dummy) break;
-			
-			if (strpos($first_key, '=') !== false){ // parametric entry!
-				//debug('The array contains entry type parameters (first key is "'.$first_key.'").');
-				foreach ($value as $k => $v){
-					$typed_key = $entry_type.';'.$k;
-					$vcard[$typed_key] = array();
-					//debug('Precessing data for '.$typed_key);
-					
+	//debug($data);
+	foreach ($data as $key => $value) {
+		if (is_array($value)){
+			foreach ($value as $k => $v){
+				if (is_numeric($k) || strpos($k, '=')){
 					if (is_array($v)){
-						//debug('Multiple entries found!');
-						foreach ($v as $entry){
-							$vcard[$typed_key][]=convert_val($entry_type, $entry);
+						foreach ($v as $a => $b){
+							if (is_numeric($a) || strpos($a, '=')){
+								if (is_array($b)) {
+									debug('data['.$key.']['.$k.']['.$a.'] is array:');
+									debug($b,1);
+								}
+								$vcard[$key][$k][$a] = $b;
+							} else {
+								$mp = convert_val($key, $v);
+								//debug('Multipart: '.$mp);
+								$vcard[$key][$k] = $mp;
+								break;								
+							}
 						}
-						continue;
-					} 
-					//debug('Processing single entry');
-					$vcard[$typed_key]=convert_val($entry_type, $v);
+					} else {
+						$vcard[$key][$k] = $v;
+					}
+				} else { // multipart!
+					$mp = convert_val($key, $value);
+					//debug('Multipart: '.$mp);
+					$vcard[$key] = $mp;
+					break;					
 				}
-				continue;
 			}
-			
-			
-			
-			if (is_numeric($first_key)){ // Multiple entries!
-				//debug('That\'s just multiple entries. Passing data.');
-				$vcard[$entry_type] = $value;
-				continue;
-			}
-			
-			
-			// neither parametric nor multiple entries, must be multi-part			
-			//debug('This is a multipart entry (first key is "'.$first_key.'")! Processing.');
-			$vcard[$entry_type]=convert_val($entry_type, $value);
-		} else {			
-			$vcard[$entry_type] = convert_val($entry_type,$value);	
+		} else {
+			$vcard[$key] = $value;
 		}
 	}
 	//debug($vcard,1);
@@ -77,8 +68,9 @@ function update_vcard($vcard,$data=null){
 function store_vcard($vcard = null, $id = null){
 	global $user;
 	assert(is_array($vcard),'No vcard data passsed to store_vcard');
+	//debug($vcard);
 	$data = serialize_vcard($vcard);
-	debug($data);
+	//debug($data,1);
 	$db = get_or_create_db();
 	if (is_int($id)){
 		$query  = $db->prepare('UPDATE contacts SET data=:data WHERE id = :id');
@@ -96,8 +88,12 @@ function serialize_vcard($vcard){
 	$result = '';
 	foreach ($vcard as $key => $value){
 		if (is_array($value)){
-			foreach ($value as $val){
-				$result .= $key.':'.$val."\r\n";
+			foreach ($value as $k => $val){
+				if (!is_numeric($k)) {
+					if (is_array($val)){
+						foreach ($val as $v) $result .= $key.';'.$k.':'.$v."\r\n";
+					} else $result .= $key.';'.$k.':'.$val."\r\n";
+				} else $result .= $key.':'.$val."\r\n";
 			}
 			continue;
 		}
@@ -115,8 +111,10 @@ function unserialize_vcard($raw){
 		if (empty($line)) continue;	
 		
 		$map = explode(':', $line,2);
-		$key = $map[0];
+		$key = $map[0];		
 		$val = $map[1];
+		
+		if ($val == null || trim(str_replace(";", '', $val))=='') continue;
 		
 		$params = null;
 		if (strpos($key, ';') !== false){ // key contains parameter
