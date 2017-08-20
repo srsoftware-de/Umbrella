@@ -54,10 +54,11 @@ class PDF extends FPDF{
 	    }
 	}
 	
-	function dates(){
+	function Header(){
 		$x = 150;
-		$y = 50;
 		$dy = 5;
+		
+		$y = ($this->PageNo() == 1)?50:10;
 		
 		$this->SetFont('Arial','B',8);
 		
@@ -86,10 +87,24 @@ class PDF extends FPDF{
 		$date = date(t('Y-m-d'),$this->invoice['delivery_date']);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Customer number'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,$this->invoice['customer_num'],NO_FRAME,RIGHT,'R');
+		$this->Cell(20,10,$this->invoice['customer_num'],NO_FRAME,NEWLINE,'R');
 		
+		if ($this->PageNo() > 1){
+			$this->tableHead();
+		}
 	}
 	
+	
+	function tableHead(){
+		$this->SetFont('Arial','B',9);
+		$this->pos_n_cell(null);
+		$this->amount_cell(null);
+		$this->unit_cell(null);
+		$this->code_cell(null);
+		$this->desc_cell(null);
+		$this->s_pr_cell(null);
+		$this->price_cell(null);
+	}
 	
 	// Page footer
 	function Footer(){
@@ -106,7 +121,6 @@ class PDF extends FPDF{
 		$this->recipient();
 		$this->sender();
 		
-		$this->dates();
 		$this->setY(95,1);
 		$this->SetFont('Arial','',10);
 		$head = explode("\n", $this->invoice['head']);
@@ -119,6 +133,7 @@ class PDF extends FPDF{
 	function generate(){
 		$this->AliasNbPages();
 		$this->firstPage();
+		$this->tableHead();
 		$this->positions();
 		$this->Output();		
 	}
@@ -162,22 +177,15 @@ class PDF extends FPDF{
 	function price_cell($i){
 		$i=($i===null)?t('Price'):round(($i/100),2);
 		$this->Cell(20,7,utf8_decode($i),NO_FRAME,NEWLINE,'R');
-		//$this->Ln();
 	}
 	
 	function positions(){
-		$this->SetFont('Arial','B',9);		
-		$this->pos_n_cell(null);
-		$this->amount_cell(null);
-		$this->unit_cell(null);
-		$this->code_cell(null);
-		$this->desc_cell(null);
-		$this->s_pr_cell(null);
-		$this->price_cell(null);
+
 		
 		
 		$this->SetFont('Arial','',9);
 		$sum = 0;
+		$taxes = array();
 		foreach ($this->invoice['positions'] as $pos => $position){
 			$this->pos_n_cell($pos);
 			$this->amount_cell($position['amount']);			
@@ -194,12 +202,29 @@ class PDF extends FPDF{
 			$this->setY($y);
 			$this->setX($x);
 			$this->desc_cell($position['title'],$position['description']);
+			
+			$tax = $position['tax'];
+			if ($tax){
+				if (!isset($taxes[$tax])) $taxes[$tax]=0;
+				$taxes[$tax] += $tot*$tax/100;
+			}			
 		}
 		
 		
-		$this->SetFont('Arial','B',9);		
-		$this->Cell(40+93+25+12,7,utf8_decode(t('Sum')),NO_FRAME,RIGHT,'R');
+		$this->Cell(40+93+25+12,5,utf8_decode(t('Net sum')),NO_FRAME,RIGHT,'R');
 		$this->price_cell($sum);
+		
+		foreach ($taxes as $percent => $tax){
+			$this->Cell(40+93+25+12,5,utf8_decode(t('Tax ?%',$percent)),NO_FRAME,RIGHT,'R');
+			$this->price_cell($tax);
+			$sum += $tax;
+		}
+		
+		$this->SetFont('Arial','B',9);		
+		
+		$this->Cell(40+93+25+12,7,utf8_decode(t('Gross sum')),NO_FRAME,RIGHT,'R');
+		$this->price_cell($sum);
+		
 	}
 }
 
