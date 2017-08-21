@@ -13,8 +13,6 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 
-debug($user);
-
 if ($user->id == 1){
 	$users = get_userlist(); ?>
 

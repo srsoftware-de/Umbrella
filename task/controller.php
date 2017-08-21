@@ -87,7 +87,7 @@
 				$sql .= ' ORDER BY status, due_date COLLATE NOCASE';
 				break;
 		}
-		$query = $db->prepare($sql);		
+		$query = $db->prepare($sql);	
 		assert($query->execute($args),'Was not able to request project list!');
 		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		foreach ($results as &$task) $task['status_string'] = $TASK_STATES[$task['status']];

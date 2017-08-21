@@ -131,7 +131,7 @@ function current_user(){
  */
 function require_login(){
 	global $user;
-	$user = current_user();	
+	$user = current_user();
 }
 
 function postLink($url,$caption,$data = array(),$title = null){
