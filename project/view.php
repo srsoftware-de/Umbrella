@@ -8,13 +8,16 @@ $project_id = param('id');
 if (!$project_id) error('No project id passed to view!');
 
 $project = load_projects($project_id);
+//debug($project);
 $project_users_permissions = load_users($project_id);
+//debug($project_users_permissions);
 $project_users = null;
 if (!empty($project_users_permissions)){
 	$user_ids = implode(',',array_keys($project_users_permissions));
-	$project_users = request('user', 'list?ids='.$user_ids);
+	$project_users = request('user', 'list',['ids'=>$user_ids]);
 }
-$tasks = request('task','list?order=status&project='.$project_id);
+//debug($project_users);
+$tasks = request('task','list',['order'=>'status','project'=>$project_id]);
 //debug($tasks,true);
 $title = $project['name'].' - Umbrella';
 $show_closed_tasks = param('closed') == 'show';

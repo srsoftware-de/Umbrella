@@ -11,8 +11,8 @@ if (!$task_id) error('No task id passed to view!');
 
 $task = load_tasks($task_id);
 
-$project_users_ids = request('project','user_list?id='.$task['project_id']);
-$project_users = request('user','list?ids='.implode(',', array_keys($project_users_ids)));
+$project_users_ids = request('project','user_list',['id'=>$task['project_id']]);
+$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_ids))]);
 
 load_users($task,$project_users);
 

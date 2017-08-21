@@ -116,7 +116,7 @@
 		foreach ($permissions as $permission){
 			$user_ids[$permission['user_id']]=null;
 		}
-		$users = request('user', 'list?ids='.implode(',', array_keys($user_ids)));
+		$users = request('user', 'list',['ids'=>implode(',', array_keys($user_ids))]);
 		foreach ($permissions as $permission){
 			$hash = $permission['hash'];
 			$uid = $permission['user_id'];

@@ -148,7 +148,7 @@ function create_invoice($sender = null, $tax_num = null, $bank_account = null, $
 	assert($sender !== null && trim($sender) != '','Invalid sender passed to create_invoice!');
 	assert($tax_num !== null && trim($tax_num) != '','Invalid tax number passed to create_invoice!');
 	assert(is_numeric($customer_contact_id),'Invalid customer contact id supplied to create_invoice!');
-	$contacts = request('contact', 'json_list?id='.$customer_contact_id);
+	$contacts = request('contact', 'json_list',['id'=>$customer_contact_id]);
 	$vcard = $contacts[$customer_contact_id];
 	if ($customer_number === null) $customer_number=$vcard['X-CUSTOMER-NUMBER'];
 	$customer = vcard_address($vcard);

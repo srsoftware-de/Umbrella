@@ -13,12 +13,12 @@ if ($task['parent_task_id']) $task['parent'] = load_tasks($task['parent_task_id'
 load_children($task,99); // up to 99 levels deep
 load_requirements($task);
 
-$project_users_permissions = request('project','user_list?id='.$task['project_id']); // needed to load project users
-$project_users = request('user','list?ids='.implode(',', array_keys($project_users_permissions))); // needed to load task users
+$project_users_permissions = request('project','user_list',['id'=>$task['project_id']]); // needed to load project users
+$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_permissions))]); // needed to load task users
 load_users($task,$project_users);
 //debug($task);
 $title = $task['name'].' - Umbrella';
-$task['project'] = request('project','json?id='.$task['project_id']);
+$task['project'] = request('project','json',['id'=>$task['project_id']]);
 $show_closed_children = param('closed') == 'show';
 
 function display_children($task){

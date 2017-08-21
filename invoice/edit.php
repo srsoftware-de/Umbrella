@@ -35,7 +35,7 @@ if ($services['time']){
 		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
 	}
 	
-	$tasks = request('task', 'json?ids='.implode(',', array_keys($tasks)));
+	$tasks = request('task', 'json',['ids'=>implode(',', array_keys($tasks))]);
 	// add times selected by user to invoice
 	if ($selected_times = post('times')){
 		$customer_price = 50*100; // TODO: get customer price
@@ -59,7 +59,7 @@ if ($services['time']){
 	$projects = array();
 	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;
 
-	$projects = request('project', 'json?ids='.implode(',', array_keys($projects)));
+	$projects = request('project', 'json',['ids'=>implode(',', array_keys($projects))]);
 
 	foreach ($times as $time_id => &$time){
 		foreach ($time['tasks'] as $task_id => $task){

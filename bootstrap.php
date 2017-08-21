@@ -3,6 +3,9 @@
 include 'config.php';
 
 define('INDEX_FETCH',PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
+const NO_CONVERSSION = 1;
+const ARRAY_CONVERSION = 2;
+const OBJECT_CONVERSION = 3;
 
 function assert_failure($script, $line, $message){
 	error('Assertion failed in '.$script.', line '.$line.': '.$message);
@@ -11,22 +14,50 @@ function assert_failure($script, $line, $message){
         die();
 }
 
-function getUrl($service,$path='',$add_token = false){
-	global $services,$token;
+function getUrl($service,$path=''){
+	global $services;
 	$url = $services[$service]['path'].$path;
-	if (!$add_token) return $url; 
-	if (strpos($url, '?')) return $url.'&token='.$token;
-	return $url.'?token='.$token;
+	return $url;
 }
 
-function request($service,$path,$debug = false,$decode = true){
-	$url = getUrl($service,$path,true);
+function request($service,$path,$data = array(), $debug = false,$decode = ARRAY_CONVERSION){
+	global $token;
+	$url = getUrl($service,$path,false);
 		
-	if ($debug) echo $url.'<br/>';
-	$context = stream_context_create(array('ssl'=>array('verify_peer'=>false)));
+	if ($debug) {
+		if ($data){
+			echo t('Sending post data to "?" :',$url);
+			debug($data);
+		} else echo t('Sending data to: "?"',$url);
+	}
+	
+	$ssl_options = array();
+	$ssl_options['verify_peer'] = false; // TODO: this is rather bad. we need to sort this out!!!
+	
+	$options = [ 'ssl'=>$ssl_options];
+	if ($data){
+		$data['token'] = $token;
+		$post_data = http_build_query($data);
+		
+		$http_options = array();
+		$http_options['method'] = 'POST';
+		$http_options['header'] = 'Content-type: application/x-www-form-urlencoded';
+		$http_options['content'] = $post_data;
+		
+		$options['http']=$http_options;
+	}
+	
+	$context = stream_context_create($options);
 	$response = file_get_contents($url,false,$context);
 	if ($debug) debug($response);
-	if ($decode) return json_decode($response,true);
+	switch ($decode){
+		case ARRAY_CONVERSION:
+			return json_decode($response,true);
+			break;
+		case OBJECT_CONVERSION:
+			return json_decode($response);
+			break;
+	}
 	return $response;
 }
 
@@ -89,19 +120,9 @@ function replace_text($text,$replacements = null){
 function current_user(){
 	global $token,$services;
 	assert(isset($services['user']['path']),'No user service configured!');
-	if ($token === null){
-		redirect($services['user']['path'].'login');
-	}
-	$url = $services['user']['path'].'validateToken';
-
-	$post_data = http_build_query(array('token'=>$token));
-	$options = array(
-		'http'=>array('method'=>'POST','header'=>'Content-type: application/x-www-form-urlencoded','content'=>$post_data),
-		'ssl'=>array('verify_peer'=>false)); // TODO: this is rather bad. we need to sort this out!!!
-	$context = stream_context_create($options);
-
-	$json = file_get_contents($url,false,$context);
-	$user = json_decode($json);
+	if ($token === null) redirect($services['user']['path'].'login');
+	$user = request('user', 'validateToken',['token'=>$token],false,OBJECT_CONVERSION);
+	if ($user === null) redirect($services['user']['path'].'login');
 	return $user;
 }
 
