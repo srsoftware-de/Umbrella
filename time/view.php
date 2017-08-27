@@ -21,12 +21,18 @@ include '../common_templates/messages.php';
 	<tr>
 		<th>Time</th>
 		<td>
+			<span class="right">
+				<a title="<?= t('edit')?>" href="edit" class="symbol"></a>
+				<a title="<?= t('stop')?>" href="stop">stop</a> 
+			</span>
+			<h2>
 			<?= date('Y-m-d H:i',$time['start_time']); ?>
 			<?php if ($time['end_time']) { ?>
 			... <?= date('Y-m-d H:i',$time['end_time']);?> (<?= ($time['end_time']-$time['start_time'])/3600 ?> hours)
 			<?php } else { ?>
 			(open)
 			<?php } ?>
+			</h2>
 		</td>
 	</tr>
 	<tr>

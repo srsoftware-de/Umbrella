@@ -22,7 +22,7 @@ $task['project'] = request('project','json',['id'=>$task['project_id']]);
 $show_closed_children = param('closed') == 'show';
 
 function display_children($task){
-	global $show_closed_children,$task_id;
+	global $show_closed_children,$task_id,$services;
 	if (!isset($task['children'])) return; ?>
 	<ul>
 	<?php foreach ($task['children'] as $id => $child_task) {
@@ -37,6 +37,10 @@ function display_children($task){
 			<a title="<?= t('start')?>"    href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
 			<a title="<?= t('open')?>"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('wait')?>"     href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $child_task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+
+			<?php if (isset($services['time'])) { ?>
+				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
+				<?php } ?>				
 			
 			<?php display_children($child_task);?>
 		</li>
