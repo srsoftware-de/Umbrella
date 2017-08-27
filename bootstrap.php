@@ -22,30 +22,25 @@ function getUrl($service,$path=''){
 
 function request($service,$path,$data = array(), $debug = false,$decode = ARRAY_CONVERSION){
 	global $token;
-	$url = getUrl($service,$path,false);
+	$url = getUrl($service,$path);
+	
+	if ($data === null) $data = array();
+	if (!isset($data['token'])) $data['token'] = $token;
 		
-	if ($debug) {
-		if ($data){
-			echo t('Sending post data to "?" :',$url);
-			debug($data);
-		} else echo t('Sending data to: "?"',$url);
-	}
+	if ($debug) echo t('Sending post data to "?" :',$url);
 	
 	$ssl_options = array();
 	$ssl_options['verify_peer'] = false; // TODO: this is rather bad. we need to sort this out!!!
 	
 	$options = [ 'ssl'=>$ssl_options];
-	if ($data){
-		$data['token'] = $token;
-		$post_data = http_build_query($data);
+	$post_data = http_build_query($data);
 		
-		$http_options = array();
-		$http_options['method'] = 'POST';
-		$http_options['header'] = 'Content-type: application/x-www-form-urlencoded';
-		$http_options['content'] = $post_data;
+	$http_options = array();
+	$http_options['method'] = 'POST';
+	$http_options['header'] = 'Content-type: application/x-www-form-urlencoded';
+	$http_options['content'] = $post_data;
 		
-		$options['http']=$http_options;
-	}
+	$options['http']=$http_options;
 	
 	$context = stream_context_create($options);
 	$response = file_get_contents($url,false,$context);
