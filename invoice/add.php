@@ -5,6 +5,9 @@ include 'controller.php';
 
 require_login();
 
+$settings = get_settings($user);
+if (!$settings) redirect('settings');
+
 if ($sender = post('sender')){
 	$customer_contact_id = post('customer');
 	if ($customer_contact_id) {

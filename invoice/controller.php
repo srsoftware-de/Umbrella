@@ -33,6 +33,17 @@ function get_or_create_db(){
 						single_price DOUBLE NOT NULL DEFAULT 0,
 						tax DOUBLE,
 						PRIMARY KEY(invoice_id, pos));');
+		$db->query('CREATE TABLE settings(
+						user_id INTEGER PRIMARY KEY,
+						decimal_separator CHAR,
+						thousands_separator CHAR,
+						currency VARCHAR(30),
+						decimals INT,
+						default_invoice_header TEXT,
+						default_invoice_footer TEXT,
+						invoice_prefix TEXT,
+						invoice_suffix TEXT,
+						invoice_number INT);');
 	} else {
 		$db = new PDO('sqlite:db/invoices.db');
 	}
@@ -199,5 +210,42 @@ function elevate($invoice_id = null, $position = null){
 		
 	$query = $db->prepare('UPDATE invoice_positions SET pos = :pos WHERE pos = -1 AND invoice_id = :id');
 	assert($query->execute(array(':pos'=>$position,':id'=>$invoice_id)),'Was not able to alter pos field of invoice position '.$position);	
+}
+
+function get_settings(){
+	global $user;
+	$db = get_or_create_db();
+	$query = $db->prepare('SELECT * FROM settings WHERE user_id = :uid');
+	assert($query->execute([':uid'=>$user->id]),t('Was no able to load user settings for invoices'));
+	return $query->fetch(INDEX_FETCH);
+}
+
+function save_settings($settings){
+	global $user;
+	$db = get_or_create_db();
+	$args = array(':uid'=>$user->id);
+	foreach ($settings as $key => $value){
+		$args[':'.$key] = $value;
+	}
+	$query = $db->prepare('INSERT OR REPLACE INTO settings (user_id, 
+											decimal_separator,
+											thousands_separator,
+											currency,
+											decimals,
+											default_invoice_header,
+											default_invoice_footer,
+											invoice_prefix, 
+											invoice_suffix, 
+											invoice_number)
+							VALUES 	(:uid,
+									:decimal_separator,
+									:thousands_separator,
+									:currency, :decimals,
+									:default_invoice_header,
+									:default_invoice_footer,
+									:invoice_prefix,
+									:invoice_suffix,
+									:invoice_number)');
+	assert($query->execute($args),t('Was not able to store your invoice settings'));
 }
 ?>
