@@ -20,9 +20,13 @@ function getUrl($service,$path=''){
 	return $url;
 }
 
-function request($service,$path,$data = array(), $debug = false,$decode = ARRAY_CONVERSION){
+function request($service = null,$path,$data = array(), $debug = false,$decode = ARRAY_CONVERSION){
 	global $token;
-	$url = getUrl($service,$path);
+	if ($service){
+		$url = getUrl($service,$path);
+	} else {
+		$url = $path;
+	}
 	
 	if ($data === null) $data = array();
 	if (!isset($data['token'])) $data['token'] = $token;
