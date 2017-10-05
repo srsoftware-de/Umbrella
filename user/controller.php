@@ -7,7 +7,7 @@
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($results as $user){
 			if (sha1($pass) == $user['pass']){				
-				$token = set_token_cookie($user,param('domain'));
+				$token = set_token_cookie($user);
 				$redirect = param('returnTo');
 				if ($redirect) $redirect.='?token='.$token;
 				if (!$redirect && $user['id'] == 1) $redirect='index';
@@ -35,6 +35,14 @@
 		assert($query->execute(array(':uid'=>$user['id'],':token'=>$token,':expiration'=>$expiration)),'Was not able to update token expiration date!');
 		setcookie('UmbrellaToken',$token,time()+3600,'/');
 		return $token;
+	}
+	
+	function unset_token_cookie($user = null){
+		assert(is_object($user),'Parameter "user" not set!');
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM tokens WHERE user_id = :userid');
+		assert($query->execute(array(':userid'=>$user->id)),'Was not able to execute DELETE statement.');
+		setcookie('UmbrellaToken',null,-1,'/');
 	}
 
 	function generateRandomString(){
