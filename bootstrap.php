@@ -31,14 +31,14 @@ function request($service = null,$path,$data = array(), $debug = false,$decode =
 	if ($data === null) $data = array();
 	if (!isset($data['token'])) $data['token'] = $token;
 		
-	if ($debug) echo t('Sending post data to "?" :',$url);
+	if ($debug) echo t('Sending post data to "?" :',$url).'<br/>';
 	
 	$ssl_options = array();
 	$ssl_options['verify_peer'] = false; // TODO: this is rather bad. we need to sort this out!!!
 	
 	$options = [ 'ssl'=>$ssl_options];
 	$post_data = http_build_query($data);
-		
+	if ($debug) echo t('Posting ?',print_r($data,true));		
 	$http_options = array();
 	$http_options['method'] = 'POST';
 	$http_options['header'] = 'Content-type: application/x-www-form-urlencoded';
@@ -112,6 +112,11 @@ function replace_text($text,$replacements = null){
 	return $text;
 }
 
+function location(){
+	$port = $_SERVER['SERVER_PORT'];
+	return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).$_SERVER['REQUEST_URI'];
+}
+
 /**
  * contacts the user service, sends the current token and recieves the user data.
  * if no token is given, redirects to the login page
@@ -119,9 +124,9 @@ function replace_text($text,$replacements = null){
 function current_user(){
 	global $token,$services;
 	assert(isset($services['user']['path']),'No user service configured!');
-	if ($token === null) redirect($services['user']['path'].'login');
+	if ($token === null) redirect($services['user']['path'].'login?returnTo='.location());
 	$user = request('user', 'validateToken',['token'=>$token],false,OBJECT_CONVERSION);
-	if ($user === null) redirect($services['user']['path'].'login');
+	if ($user === null) redirect($services['user']['path'].'login?returnTo='.location());
 	return $user;
 }
 
@@ -172,5 +177,8 @@ $infos = array();
 $user = null;
 
 $token = param('token');
-if (isset($_COOKIE['UmbrellaToken'])) $token = $_COOKIE['UmbrellaToken'];
-	
+if (isset($_GET['token'])){ // if token was appended to url: set cookie and reload
+	setcookie('UmbrellaToken',$token,time()+3600,'/');
+	redirect('.');
+}
+if (isset($_COOKIE['UmbrellaToken'])) $token = $_COOKIE['UmbrellaToken'];	
