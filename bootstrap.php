@@ -16,6 +16,7 @@ function assert_failure($script, $line, $code, $message){
 
 function getUrl($service,$path=''){
 	global $services;
+	assert(isset($services[$service]['path']),'No '.$service.' service configured!');
 	$url = $services[$service]['path'].$path;
 	return $url;
 }
