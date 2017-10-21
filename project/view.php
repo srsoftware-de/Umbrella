@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -25,7 +25,7 @@ $show_closed_tasks = param('closed') == 'show';
 function display_tasks($task_list,$parent_task_id){
 	global $show_closed_tasks,$project_id;
 	$first = true;
-	foreach ($task_list as $tid => $task){		
+	foreach ($task_list as $tid => $task){
 		if (!$show_closed_tasks && ($task['status']>=60)) continue;
 		if ($task['parent_task_id'] != $parent_task_id) continue;
 		if ($first){
@@ -34,7 +34,7 @@ function display_tasks($task_list,$parent_task_id){
 		<li class="<?= $task['status_string']?>">
 			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
 			<a class="symbol" title="edit" 			href="../../task/<?= $tid ?>/edit?redirect=../../project/<?= $project_id ?>/view"></a>
-			<a class="<?= $task['status'] == TASK_STATUS_STARTED?'hidden':'symbol'?>" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a> 
+			<a class="<?= $task['status'] == TASK_STATUS_STARTED?'hidden':'symbol'?>" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_COMPLETE?'hidden':'symbol'?>" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_CANCELED?'hidden':'symbol'?>" title="cancel"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_OPEN?'hidden':'symbol'?>" title="open"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
@@ -43,10 +43,10 @@ function display_tasks($task_list,$parent_task_id){
 			<a class="symbol" title="delete" 		href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php display_tasks($task_list,$tid)?>
 		</li>
-		<?php		
+		<?php
 	}
 	if (!$first){
-		?></ul><?php 
+		?></ul><?php
 	}
 }
 
@@ -80,7 +80,7 @@ include '../common_templates/messages.php';
 			<?php if (!$show_closed_tasks) { ?>
 			<a href="?closed=show"><?= t('show closed tasks')?></a>
 			<?php } ?>
-			<?php display_tasks($tasks, null); ?>			
+			<?php display_tasks($tasks, null); ?>
 		</td>
 	</tr>
 	<?php } ?>
@@ -95,6 +95,6 @@ include '../common_templates/messages.php';
 			</ul>
 		</td>
 	</tr>
-	<?php } ?>	
+	<?php } ?>
 </table>
 <?php include '../common_templates/closure.php'; ?>

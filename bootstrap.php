@@ -22,7 +22,6 @@ function getUrl($service,$path=''){
 }
 
 function request($service = null,$path,$data = array(), $debug = false,$decode = ARRAY_CONVERSION){
-	global $token;
 	if ($service){
 		$url = getUrl($service,$path);
 	} else {
@@ -30,7 +29,7 @@ function request($service = null,$path,$data = array(), $debug = false,$decode =
 	}
 
 	if ($data === null) $data = array();
-	if (!isset($data['token'])) $data['token'] = $token;
+	if (!isset($data['token'])) $data['token'] = $_SESSION['token'];
 
 	if ($debug) echo t('Sending post data to "?" :',$url).'<br/>';
 
@@ -167,8 +166,7 @@ function require_login(){
 }
 
 function postLink($url,$caption,$data = array(),$title = null){
-	global $token;
-	if ($token !== null && !isset($data['token'])) $data['token'] = $token;
+	if ($token !== null && !isset($data['token'])) $data['token'] = $_SESSION['token'];
 
 	echo '<form method="POST" action="'.$url.'">';
 	foreach ($data as $name => $value) echo '<input type="hidden" name="'.$name.'" value="'.$value.'" />';

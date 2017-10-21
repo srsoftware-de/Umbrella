@@ -7,7 +7,7 @@
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($results as $user){
 			if (sha1($pass) == $user['pass']){
-				$token = set_token_cookie($user);
+				$token = getOrCreateToken($user);
 				$redirect = param('returnTo');
 				if ($redirect) $redirect.='?token='.$token;
 				if (!$redirect && $user['id'] == 1) $redirect='index';
@@ -19,7 +19,7 @@
 		error('The provided username/password combination is not valid!');
 	}
 
-	function set_token_cookie($user = null){
+	function getOrCreateToken($user = null){
 		assert(is_array($user) && !empty($user),'Parameter "user" null or empty!');
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tokens WHERE user_id = :userid');
@@ -33,7 +33,7 @@
 		$expiration = time()+3600; // now + one hour
 		$query = $db->prepare('INSERT OR REPLACE INTO tokens (user_id, token, expiration) VALUES (:uid, :token, :expiration);');
 		assert($query->execute(array(':uid'=>$user['id'],':token'=>$token,':expiration'=>$expiration)),'Was not able to update token expiration date!');
-		setcookie('UmbrellaToken',$token,time()+3600,'/');
+		$_SESSION['token'] = $token;
 		return $token;
 	}
 
