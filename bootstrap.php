@@ -7,11 +7,11 @@ const NO_CONVERSSION = 1;
 const ARRAY_CONVERSION = 2;
 const OBJECT_CONVERSION = 3;
 
-function assert_failure($script, $line, $message){
+function assert_failure($script, $line, $code, $message){
 	error('Assertion failed in '.$script.', line '.$line.': '.$message);
 	include 'common_templates/messages.php';
 	include 'common_templates/closure.php';
-        die();
+	die();
 }
 
 function getUrl($service,$path=''){
