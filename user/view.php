@@ -1,9 +1,9 @@
-<?php 
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
-$user = current_user();
+require_login();
 $user_id = param('id');
 
 if ($user->id != 1) {
@@ -25,6 +25,6 @@ include '../common_templates/messages.php';
 	</tr>
 	<tr>
 		<th>Password (hashed)</th><td><?= $u['pass']; ?></td>
-	</tr>	
+	</tr>
 </table>
 <?php include '../common_templates/closure.php'; ?>

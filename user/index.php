@@ -3,11 +3,11 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_user_login();
 
 if ($user->id != 1) error('Currently, only admin can view the user list!');
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
 include 'menu.php';

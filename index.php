@@ -4,7 +4,7 @@ include 'bootstrap.php';
 
 $title = 'Umbrella';
 
-require_login();  // defined in bootstrap.php
+redirect(getUrl('task','index'));
 
 include 'common_templates/head.php';
 

@@ -1,17 +1,17 @@
 <?php
-	function perform_login($login = null, $pass = null){		
+	function perform_login($login = null, $pass = null){
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM users WHERE login = :login;');
 		assert($query->execute(array(':login'=>$login)),'Was not able to request users from database!');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($results as $user){
-			if (sha1($pass) == $user['pass']){				
+			if (sha1($pass) == $user['pass']){
 				$token = set_token_cookie($user);
 				$redirect = param('returnTo');
 				if ($redirect) $redirect.='?token='.$token;
 				if (!$redirect && $user['id'] == 1) $redirect='index';
-				if (!$redirect)	$redirect = getUrl('task');				
+				if (!$redirect)	$redirect = getUrl('task');
 				if (!$redirect)	$redirect = $user['id'].'/view';
 				redirect($redirect);
 			}
@@ -36,19 +36,19 @@
 		setcookie('UmbrellaToken',$token,time()+3600,'/');
 		return $token;
 	}
-	
-	function unset_token_cookie($user = null){
-		assert(is_object($user),'Parameter "user" not set!');
+
+	function revoke_token(){
+		global $user;
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM tokens WHERE user_id = :userid');
 		assert($query->execute(array(':userid'=>$user->id)),'Was not able to execute DELETE statement.');
-		setcookie('UmbrellaToken',null,-1,'/');
+		unset($_SESSION['token']);
 	}
 
 	function generateRandomString(){
 		return bin2hex(openssl_random_pseudo_bytes(40));
 	}
-	
+
 	function load_user($id = null){
 		assert($id !== null,'No user id passed to load_user!');
 		assert(is_numeric($id),'Invalid user id passed to load_user!');
@@ -56,7 +56,7 @@
 		$query = $db->prepare('SELECT * FROM users WHERE id = :id');
 		assert($query->execute(array(':id'=>$id)));
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		return $results[0];		
+		return objectFrom($results[0]);
 	}
 
 	function add_user($db,$login,$pass){
@@ -92,7 +92,7 @@
 		if ($include_passwords) $columns[]='pass';
 		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
 		$args = array();
-		
+
 		if (is_array($ids) && !empty($ids)){
 			$qMarks = str_repeat('?,', count($ids) - 1) . '?';
 			$sql .= ' WHERE id IN ('.$qMarks.')';
@@ -103,12 +103,34 @@
 		$results = $query->fetchAll(INDEX_FETCH);
 		return $results;
 	}
-	
+
 	function alter_password($user,$new_pass){
 		$db = get_or_create_db();
 		$hash = sha1($new_pass); // TODO: better hashing
 		$query = $db->prepare('UPDATE users SET pass = :pass WHERE id = :id;');
 		assert ($query->execute(array(':pass'=>$hash,':id'=>$user['id'])),'Was not able to update user '.$user['login']);
-		
+
+	}
+
+	function require_user_login(){
+		global $services,$user;
+		if ($_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
+
+		$db = get_or_create_db();
+
+		$query = $db->prepare('SELECT * FROM tokens WHERE token = :token;');
+		$params = array(':token' => $_SESSION['token']);
+		assert($query->execute($params),'Was not able to request token table.');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$time = time();
+		$user_id = null;
+
+		$query = $db->prepare('DELETE FROM tokens WHERE token = :token;');
+		foreach ($rows as $index => $row){
+			if ($row['expiration'] > $time){
+				$user_id = $row['user_id']; // read user data
+			} else 	$query->execute([':token'=>$row['token']]); // drop expired token
+		}
+		$user = ($user_id === null) ? null : load_user($user_id);
 	}
 ?>

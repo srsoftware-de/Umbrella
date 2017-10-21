@@ -1,9 +1,9 @@
-<?php 
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
-$user = current_user();
+require_login();
 $project_id = param('id');
 
 if (!$project_id) error('No project id passed to view!');

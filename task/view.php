@@ -1,9 +1,9 @@
-<?php 
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
-$user = current_user();
+require_login();
 $task_id = param('id');
 
 if (!$task_id) error('No task id passed to view!');
@@ -34,14 +34,14 @@ function display_children($task){
 			<a title="<?= t('cancel')?>"   href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('edit')?>"     href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
 			<a title="<?= t('add subtask')?>" href="../<?= $id ?>/add_subtask" class="symbol"></a>
-			<a title="<?= t('start')?>"    href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
+			<a title="<?= t('start')?>"    href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('open')?>"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('wait')?>"     href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $child_task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 
 			<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
-				<?php } ?>				
-			
+				<?php } ?>
+
 			<?php display_children($child_task);?>
 		</li>
 	<?php }?>
@@ -61,16 +61,16 @@ include '../common_templates/messages.php'; ?>
 			<span class="right">
 				<a title="<?= t('edit')?>"		href="edit"		class="symbol"></a>
 				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"></a>
-				<a title="<?= t('start')?>"    href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
+				<a title="<?= t('start')?>"    href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('complete')?>" href="complete" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('cancel')?>"   href="cancel"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('open')?>"     href="open"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
-				<a title="<?= t('wait')?>"     href="wait"     class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>				
+				<a title="<?= t('wait')?>"     href="wait"     class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('delete')?>"   href="delete"   class="symbol"></a>
-				
+
 				<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
-				<?php } ?>				
+				<?php } ?>
 			</span>
 			<h1><?= $task['name'] ?></h1>
 		</td>
@@ -139,6 +139,6 @@ include '../common_templates/messages.php'; ?>
 			</ul>
 		</td>
 	</tr>
-	<?php } ?>	
+	<?php } ?>
 </table>
 <?php include '../common_templates/closure.php'; ?>

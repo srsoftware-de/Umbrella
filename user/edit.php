@@ -3,14 +3,14 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-$user = current_user();
+require_login();
 $user_id = param('id');
 
 if ($user->id != 1) {
 	if ($user_id != $user_id) error('Currently, only admin can edit other users!');
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
 include 'menu.php';

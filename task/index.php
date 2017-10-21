@@ -3,13 +3,13 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-$user = current_user();
+require_login();
 $tasks = get_task_list(param('order'));
 //debug($tasks,true);
 $projects = request('project','list');
 $show_closed = param('closed') == 'show';
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -38,7 +38,7 @@ include '../common_templates/messages.php'; ?>
 		<th><a href="?order=due_date">Due</a></th>
 		<th>Actions</th>
 	</tr>
-	
+
 <?php foreach ($tasks as $id => $task):
 	if ($task['status'] >= 60 && !$show_closed) continue;
 	$project = $projects[$task['project_id']];
@@ -57,16 +57,16 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $task['due_date'] ?></td>
 		<td>
 			<a title="edit"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
-			<a title="start  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a> 
+			<a title="start  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 			<a title="complete" href="<?= $id ?>/complete?redirect=../index" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 			<a title="cancel"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 			<a title="open"     href="<?= $id ?>/open?redirect=../index"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 			<a title="wait"     href="<?= $id ?>/wait?redirect=../index"	  class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
-			
+
 		</td>
 	</tr>
 <?php endforeach; ?>
 
 </table>
-<?php 
+<?php
 include '../common_templates/closure.php'; ?>

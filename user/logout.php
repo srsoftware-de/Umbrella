@@ -4,9 +4,9 @@ include '../bootstrap.php';
 include 'controller.php';
 
 if ($token){
-	$user = current_user();
-	unset_token_cookie($user);
+	require_login();
+	revoke_token(	);
 }
-redirect(param('returnTo','index'));
+redirect(param('returnTo','login'));
 
 ?>
