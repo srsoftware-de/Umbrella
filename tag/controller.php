@@ -26,7 +26,7 @@
 		return $results;
 	}
 	
-	function save_tag($url = null,$tags = null){
+	function save_tag($url = null,$tags = null,$redirect = true){
 		global $user;
 		assert($url !== null && $url != '','No value set for url!');
 		assert($tags !== null,'No tags set');
@@ -61,7 +61,7 @@
 			$query->execute($param);
 		}
 		
-		redirect(getUrl('tag'));
+		if ($redirect)redirect(getUrl('tag'));
 	}
 	
 	function load_tag($tag = null){

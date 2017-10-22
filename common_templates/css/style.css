@@ -109,6 +109,7 @@ button {
     font-weight: bold;
     margin: 2px;
     padding: 5px;
+    display: inline-block;
 }
 
 input[type="submit"] {
