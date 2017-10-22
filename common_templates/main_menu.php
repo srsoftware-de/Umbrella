@@ -3,7 +3,7 @@
 	postLink($service['path'],t($service['name']));
 } 
 if (isset($user)) {
-	postLink($services['user']['path'].'logout',t('Log out ?',$user->login)); 
+	postLink($services['user']['path'].'logout?returnTo='.location(),t('Log out ?',$user->login)); 
 }
 ?>
 </div>
