@@ -2,7 +2,7 @@
 
 include '../bootstrap.php';
 include 'controller.php';
-require_login();
+require_login('task');
 
 $parent_task_id = param('id');
 if (!$parent_task_id) error('No parent task id passed!');

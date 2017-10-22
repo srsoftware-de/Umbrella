@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('contact');
 
 $id = param('id');
 $contact = read_contacts($id);

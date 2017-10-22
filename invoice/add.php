@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('invoice');
 
 $settings = get_settings($user);
 if (!$settings) redirect('settings');

@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-revoke_token();
+user_revoke_token();
 redirect(param('returnTo','login'));
 
 ?>

@@ -9,7 +9,7 @@ const DOWN=2;
 const FRAME=1;
 const NO_FRAME=0; // set this to 1 to enable debugging frames
 
-require_login();
+require_login('invoice');
 
 $id = param('id');
 assert(is_numeric($id),'No valid invoice id passed to edit!');

@@ -2,7 +2,7 @@
 
 include '../bootstrap.php';
 include 'controller.php';
-require_login();
+require_login('time');
 
 $time_id = param('id');
 assert(is_numeric($time_id),'No valid time id passed to drop!');

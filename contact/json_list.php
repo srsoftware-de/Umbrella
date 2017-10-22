@@ -3,5 +3,5 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('contact');
 echo json_encode(read_contacts());

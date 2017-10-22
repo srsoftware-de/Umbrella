@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('project');
 if ($name = post('name')){
 	add_project($name,post('description'));
     header('Location: index');

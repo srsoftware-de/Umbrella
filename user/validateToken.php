@@ -4,18 +4,24 @@ include 'controller.php';
 
 assert(isset($_POST['token']),'No token set!');
 $token = $_POST['token'];
+$domain = isset($_POST['domain']) ? $_POST['domain'] :  null;  
 $db = get_or_create_db();
-
 // the following lines fetch the user id from the token table
 $query = $db->prepare('SELECT * FROM tokens WHERE token = :token AND expiration > :time');
 assert($query->execute(array(':token'=>$token,':time'=>time())),'Was not able to check token');
 $results = $query->fetchAll(PDO::FETCH_ASSOC);
 assert(count($results>0),'Token not found');
 $token = $results[0];
-$token['expiration'] = time()+3600;
+
 // stretch expiration time
+$token['expiration'] = time()+3600;
 $query = $db->prepare('UPDATE tokens SET expiration = :exp WHERE user_id = :uid');
 $query->execute(array(':exp'=>$token['expiration'],':uid'=>$token['user_id']));
+
+if ($domain){
+	$query = $db->prepare('INSERT OR IGNORE INTO token_uses (token, domain) VALUES (:token, :domain)');
+	$query->execute([':token'=>$token['token'],':domain'=>$domain]);	
+}
 
 // the following lines fetch the user data from the users table
 $query = $db->prepare('SELECT * FROM users WHERE id = :uid');

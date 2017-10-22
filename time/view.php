@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('time');
 $time_id = param('id');
 if (!$time_id) error('No time id passed to view!');
 

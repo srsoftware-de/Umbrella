@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('files');
 if (isset($_FILES['file'])){
 	$file_info = $_FILES['file'];
 	if ($file_info['size'] == 0) {

@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('contact');
 $contacts = read_contacts();
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';

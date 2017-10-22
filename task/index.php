@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('task');
 $tasks = get_task_list(param('order'));
 //debug($tasks,true);
 $projects = request('project','list');

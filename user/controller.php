@@ -37,12 +37,23 @@
 		return $token;
 	}
 
-	function revoke_token(){
+	function user_revoke_token(){
 		global $user;
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM tokens WHERE user_id = :userid');
-		assert($query->execute(array(':userid'=>$user->id)),'Was not able to execute DELETE statement.');
+		$token = $_SESSION['token'];
 		unset($_SESSION['token']);
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
+		assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
+		
+		$query = $db->prepare('SELECT domain FROM token_uses WHERE token = :token;');
+		if ($query->execute([':token'=>$token])){
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			foreach ($rows as $row){
+				$url = $row['domain'].'revoke?token='.$token;
+				print_r($url);
+				file_get_contents($url);
+			}
+		}
 	}
 
 	function generateRandomString(){
@@ -79,6 +90,7 @@
 			$db = new PDO('sqlite:db/users.db');
 			$db->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL);');
 			$db->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
+			$db->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
 			add_user($db,'admin','admin');
 		} else {
 			$db = new PDO('sqlite:db/users.db');

@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-	require_login();
+	require_login('time');
 	
 	$times = get_time_list();
 	$assignments = get_time_assignments(array_keys($times));

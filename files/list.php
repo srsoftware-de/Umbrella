@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('files');
 $folder = param('folder');
 $files = list_files($user->id,$folder);
 

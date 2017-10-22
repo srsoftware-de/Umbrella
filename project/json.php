@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('project');
 $project_id = param('id');
 if ($project_ids = param('ids')){
 	$project_ids = explode(',', $project_ids);

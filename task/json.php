@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('task');
 $task_id = param('id');
 if ($task_ids = param('ids')){
 	$task_ids = explode(',', $task_ids);

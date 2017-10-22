@@ -16,6 +16,7 @@ function assert_failure($script, $line, $code, $message){
 
 function getUrl($service,$path=''){
 	global $services;
+	assert($service,'No service handed to getUrl!');
 	assert(isset($services[$service]['path']),'No '.$service.' service configured!');
 	$url = $services[$service]['path'].$path;
 	return $url;
@@ -140,9 +141,9 @@ function getLocallyFromToken(){
 }
 
 /* uses the user service to validate the session token and get user data */
-function validateToken(){
+function validateToken($service_name = null){
 	global $user;
-	$user = request('user', 'validateToken',['token'=>$_SESSION['token']],false,OBJECT_CONVERSION);
+	$user = request('user', 'validateToken',['token'=>$_SESSION['token'],'domain'=>getUrl($service_name)],false,OBJECT_CONVERSION);
 	if (is_object($user)){
 		$token = $user->token;
 		unset($user->token);
@@ -154,14 +155,23 @@ function validateToken(){
 	} else $user = null;
 }
 
+function revoke_token(){
+	$token = $_SESSION['token'];
+	unset($_SESSION['token']);
+	$db = get_or_create_db();
+	$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
+	assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
+}
+
 /**
  * checks if a user is logged in and forces a login of not.
  */
-function require_login(){
+function require_login($service_name = null){
 	global $services,$user;
+	assert($service_name !== null,'require_login called without a service name!');
 	if ($_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
 	$user = getLocallyFromToken();
-	if ($user === null) validateToken();
+	if ($user === null) validateToken($service_name);
 	if ($user === null) redirect($services['user']['path'].'login?returnTo='.location());
 }
 
@@ -197,10 +207,8 @@ function init(){
 	global $user;
 	$user = null;
 	session_start();
-	if (!isset($_SESSION['token'])){
-		$_SESSION['token'] = param('token');
-		if (isset($_GET['token'])) redirect('.'); // if token was appended to url: set cookie and reload
-	}
+	if (!isset($_SESSION['token'])) $_SESSION['token'] = param('token');
+	if (isset($_GET['token'])) redirect('.'); // if token was appended to url: set cookie and reload
 }
 
 function objectFrom($entity){

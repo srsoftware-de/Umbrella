@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('contact');
 if (post('EMAIL')){
 	$vcard = create_vcard($_POST);
 	store_vcard($vcard);

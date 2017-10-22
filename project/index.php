@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('project');
 $projects = get_project_list(param('order'));
 $show_closed = param('closed') == 'show';
 include '../common_templates/head.php';

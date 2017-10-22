@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('invoice');
 
 $id = param('id');
 assert(is_numeric($id),'No valid invoice id passed to edit!');

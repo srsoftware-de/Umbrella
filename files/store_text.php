@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('files');
 
 if (($content = param('content')) && ($filename = param('filename'))){
 	echo json_encode(store_text($filename,$content,$user->id));

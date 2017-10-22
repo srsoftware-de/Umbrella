@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('invoice');
 
 $invoice_id = param('id');
 $position = param('pos');

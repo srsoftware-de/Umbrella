@@ -2,7 +2,7 @@
 
 include '../bootstrap.php';
 include 'controller.php';
-require_login();
+require_login('time');
 
 $task_id = param('tid');
 if (!$task_id) error('No task id passed!');

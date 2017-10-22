@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_login('invoice');
 $invoices = load_invoices();
 //debug($invoices);
 include '../common_templates/head.php'; 

@@ -2,7 +2,7 @@
 
 include '../bootstrap.php';
 include 'controller.php';
-require_login();
+require_login('project');
 
 $project_id = param('id');
 if (!$project_id) error('No project id passed!');
