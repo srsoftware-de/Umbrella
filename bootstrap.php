@@ -14,11 +14,11 @@ function assert_failure($script, $line, $code, $message){
 	die();
 }
 
-function getUrl($service,$path=''){
+function getUrl($service_name,$path=''){
 	global $services;
-	assert($service,'No service handed to getUrl!');
-	assert(isset($services[$service]['path']),'No '.$service.' service configured!');
-	$url = $services[$service]['path'].$path;
+	assert($service_name !== null,'No service handed to getUrl!');
+	assert(isset($services[$service_name]['path']),'No '.$service_name.' service configured!');
+	$url = $services[$service_name]['path'].$path;
 	return $url;
 }
 
@@ -176,7 +176,7 @@ function require_login($service_name = null){
 }
 
 function postLink($url,$caption,$data = array(),$title = null){
-	if ($token !== null && !isset($data['token'])) $data['token'] = $_SESSION['token'];
+	if ($_SESSION['token'] !== null && !isset($data['token'])) $data['token'] = $_SESSION['token'];
 
 	echo '<form method="POST" action="'.$url.'">';
 	foreach ($data as $name => $value) echo '<input type="hidden" name="'.$name.'" value="'.$value.'" />';

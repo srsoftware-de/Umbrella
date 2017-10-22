@@ -16,6 +16,7 @@
 				redirect($redirect);
 			}
 		}
+		sleep(10);
 		error('The provided username/password combination is not valid!');
 	}
 

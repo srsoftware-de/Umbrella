@@ -1,0 +1,1 @@
+<a class="symbol" title="add link" href="<?= param('id')?'../':''?>add"></a>
