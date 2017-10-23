@@ -7,7 +7,7 @@ require_login('tag');
 
 $url = param('url');
 if ($url){
-	$tag = str_replace(' ','_',end(explode('/',$url)));
+	$tag = str_replace(' ',' ',end(explode('/',$url))); // replace u0020 by u00a0
 	$dom = new DOMDocument();
 	$dom->loadHTMLFile($url);
 	$divs=$dom->getElementsByTagName('div');
