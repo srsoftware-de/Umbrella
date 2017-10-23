@@ -40,10 +40,10 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Edit <?= $task['name']?></legend>
+	<fieldset><legend>Edit "<?= $task['name']?>"</legend>
 		<fieldset>
 			<legend>Project</legend>
-			<?= $task['project']['name']?>
+			<a href="<?= getUrl('project',$task['project']['id'].'/view')?>" ><?= $task['project']['name']?></a>
 		</fieldset>
 		<fieldset>
 			<legend>Task</legend>
