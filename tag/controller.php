@@ -18,7 +18,7 @@
 	function get_tag_list(){
 		global $user;
 		$db = get_or_create_db();
-		$sql = 'SELECT * FROM tags WHERE user_id = :uid ORDER BY tag';
+		$sql = 'SELECT * FROM tags WHERE user_id = :uid ORDER BY tag COLLATE NOCASE';
 		$args = array(':uid'=>$user->id);
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to request tag list!');
