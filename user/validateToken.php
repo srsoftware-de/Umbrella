@@ -27,7 +27,9 @@ if ($domain){
 $query = $db->prepare('SELECT * FROM users WHERE id = :uid');
 assert($query->execute(array(':uid'=>$token['user_id'])),'Was not able to load user!');
 $results = $query->fetchAll(PDO::FETCH_ASSOC);
-assert(count($results>0),'User not found');
+
+if (count($results)<1) throw new \Exception('User not found');
+
 $user = $results[0];
 unset($user['pass']);
 $user['token']=$token;
