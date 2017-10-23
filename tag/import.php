@@ -81,7 +81,7 @@ include '../common_templates/messages.php'; ?>
 		        ul.innerHTML=xhr.responseText;
 		       	setTimeout(import_listing, 1, listings);
 		       	var li=ul.parentElement;
-		       	setTimeout(function(){ li.parentElement.removeChild(li); },60000); 
+		       	setTimeout(function(){ li.parentElement.removeChild(li); },30000); 
 		    }
 		    else {
 		    	ul.innerHTML='<li>failed</li>';
