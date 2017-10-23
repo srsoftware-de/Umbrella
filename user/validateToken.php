@@ -14,9 +14,9 @@ assert(count($results>0),'Token not found');
 $token = $results[0];
 
 // stretch expiration time
-$token['expiration'] = time()+3600;
+$token['expiration'] = time()+300; // this value will be delivered to cliet apps
 $query = $db->prepare('UPDATE tokens SET expiration = :exp WHERE user_id = :uid');
-$query->execute(array(':exp'=>$token['expiration'],':uid'=>$token['user_id']));
+$query->execute(array(':exp'=>($token['expiration']+3000),':uid'=>$token['user_id'])); // the expiration period in the user app is way longer, so clients can revalidate from time to time
 
 if ($domain){
 	$query = $db->prepare('INSERT OR IGNORE INTO token_uses (token, domain) VALUES (:token, :domain)');
