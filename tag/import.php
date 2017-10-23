@@ -7,7 +7,7 @@ require_login('tag');
 
 $url = param('url');
 if ($url){
-	$tag = end(explode('/',$url));
+	$tag = str_replace(' ','_',end(explode('/',$url)));
 	$dom = new DOMDocument();
 	$dom->loadHTMLFile($url);
 	$divs=$dom->getElementsByTagName('div');
