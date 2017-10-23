@@ -85,19 +85,40 @@
 	
 	function update_tag(&$tag){
 		global $user;
-		debug($tag);
-		debug($_POST);
+		
 		$name = trim($_POST['tag']);
 		$db = get_or_create_db();
-		if ($name != '') {
+		
+		// TODO: die folgenden Fallunterscheidungen lassen sich bestimmt noch aufräumen
+		if ($name != '' && $name != $tag->tag) {
 			$tag->tag = $name;
-			$query = $db->prepare('UPDATE tags SET tag = :tag WHERE id = :tid');
-			$query->execute([':tag' => $tag->tag, ':tid' => $tag->id]);
-		}
-		$query = $db->prepare('DELETE FROM tags_urls WHERE id = :tid');
-		$query->execute([':tid'=>$tag->id]);
+				
+			// check, if tag with new name already exists
+			$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid AND tag = :tag');
+			assert($query->execute([':uid'=>$user->id,':tag'=>$name]),'Was not able to check, whether tag already exists!');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			if (count($rows)>0){ // tag already exists				
+				$existingTag = $rows[0];
+				$query = $db->prepare('DELETE FROM tags WHERE id = :tid'); // drop renamed tag
+				$query->execute([':tid' => $tag->id]);
+				
+				$query = $db->prepare('DELETE FROM tags_urls WHERE id = :tid');
+				$query->execute([':tid'=>$tag->id]);
+				
+				$tag->id = $existingTag['id'];
+			} else {
+				$query = $db->prepare('UPDATE tags SET tag = :tag WHERE id = :tid');
+				$query->execute([':tag' => $tag->tag, ':tid' => $tag->id]);
 
-		$query = $db->prepare('INSERT INTO tags_urls (id, url) VALUES (:tid, :url)');
+				$query = $db->prepare('DELETE FROM tags_urls WHERE id = :tid');
+				$query->execute([':tid'=>$tag->id]);				
+			}			
+		} else {
+			$query = $db->prepare('DELETE FROM tags_urls WHERE id = :tid');
+			$query->execute([':tid'=>$tag->id]);				
+		}
+
+		$query = $db->prepare('INSERT OR IGNORE INTO tags_urls (id, url) VALUES (:tid, :url)');
 		$param=[':tid'=>$tag->id];
 		foreach ($_POST['urls'] as $url){
 			$url = trim($url);
