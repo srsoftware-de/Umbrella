@@ -7,21 +7,33 @@ require_login('tag');
 
 $url = param('url');
 if ($url){
-	$tag = str_replace(' ',' ',end(explode('/',$url))); // replace u0020 by u00a0
+	$tag = end(explode('/',$url)); // replace u0020 by u00a0
 	$dom = new DOMDocument();
 	$dom->loadHTMLFile($url);
 	$divs=$dom->getElementsByTagName('div');
 	foreach ($divs as $div){
 		if (!$div->hasAttribute('class')) continue;
-		if ($div->getAttribute('class') != 'articleInfoPan') continue;
+		if ($div->getAttribute('class') != 'articleThumbBlock ') continue;
+		$headings = $div->getElementsByTagName('h3');
+		$title = null;
+		foreach ($headings as $heading){
+			$anchors = $heading->getElementsByTagName('a');
+			if ($title === null) $title = $heading->nodeValue;
+			foreach ($anchors as $anchor){
+				if ($anchor->hasAttribute('title')) $title = $anchor->getAttribute('title');
+			}
+		}
+		
 		$anchors = $div->getElementsByTagName('a');
 		foreach ($anchors as $anchor){
+			if (!$anchor->hasAttribute('target')) continue;
 			if (!$anchor->hasAttribute('href')) continue;
 			$href = $anchor->getAttribute('href');
 			print '<li>'.$href."</li>\n";
-			save_tag($href,$tag,false);
+			save_tag($href,$tag,$title,false);
 			break;
 		}
+		
 	}
 	die();
 }
@@ -39,7 +51,7 @@ if ($user_name){
 		if (in_array('tags', $classes)){
 			$anchors = $div->getElementsByTagName('a');
 			foreach ($anchors as $anchor){
-				if (!$anchor->hasAttribute('href')) continue;
+				if (!$anchor->hasAttribute('href')) continue;				
 				$href = $anchor->getAttribute('href');
 				$key = end(split('/', $href));
 				$links[$key]=$href;

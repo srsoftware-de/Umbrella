@@ -18,17 +18,11 @@ include '../common_templates/messages.php'; ?>
 	<legend>Tag "<?= $tag->tag ?>"</legend>
 	<?php foreach ($tag->links as $hash => $link ) {?>
 	<fieldset>
-		<legend><?= $link['url'] ?> <a class="symbol" href="../<?= $hash ?>/edit"></a></legend>
-		<span>
-			<a target="_blank" href="<?= $link['url'] ?>" ><?= isset($link['comment']) ? $link['comment']."<br/>":'[No Description]' ?></a>
-		</span>			
-		<?php if (isset($link['related'])) { ?>
-		<span>
-			<?php foreach ($link['related'] as $related){ ?>
+		<legend><?= isset($link['comment']) ? $link['comment']:$link['url']?> <a class="symbol" href="../<?= $hash ?>/edit"></a></legend>
+		<a target="_blank" href="<?= $link['url'] ?>" ><?= $link['url'] ?></a><br/>
+		<?php if (isset($link['related'])) { foreach ($link['related'] as $related){ ?>
 			<a class="button" href="../<?= $related ?>/view"><?= $related ?></a>
-			<?php } ?>
-		</span>
-		<?php } ?>
+		<?php } } ?>
 	</fieldset>
 	<?php } ?>	
 </fieldset>
