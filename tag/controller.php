@@ -7,8 +7,10 @@
 		assert(is_writable('db'),'Directory tag/db not writable!');
 		if (!file_exists('db/tasks.db')){
 			$db = new PDO('sqlite:db/tags.db');
-			$db->query('CREATE TABLE tags (id INTEGER PRIMARY KEY, tag VARCHAR(255), user_id INT NOT NULL, UNIQUE(user_id, tag));');
-			$db->query('CREATE TABLE tags_urls (id INTEGER NOT NULL, url TEXT NOT NULL, PRIMARY KEY (id, url))');
+			$db->query('CREATE TABLE tags (tag VARCHAR(255) NOT NULL, url_hash VARCHAR(255) NOT NULL, user_id int NOT NULL, UNIQUE(tag, url_hash, user_id));');			
+			$db->query('CREATE TABLE urls (hash VARCHAR(255) PRIMARY KEY, url TEXT NOT NULL);');
+			$db->query('CREATE TABLE comments (hash VARCHAR(255) PRIMARY KEY, comment TEXT NOT NULL)');
+			$db->query('CREATE TABLE url_comments (url_hash VARCHAR(255) NOT NULL, comment_hash VARCHAR(255) NOT NULL, user_id INT NOT NULL, UNIQUE(url_hash, comment_hash, user_id));');
 		} else {
 			$db = new PDO('sqlite:db/tags.db');
 		}
@@ -18,48 +20,35 @@
 	function get_tag_list(){
 		global $user;
 		$db = get_or_create_db();
-		$sql = 'SELECT * FROM tags WHERE user_id = :uid ORDER BY tag COLLATE NOCASE';
-		$args = array(':uid'=>$user->id);
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to request tag list!');
-		$results = $query->fetchAll(INDEX_FETCH);
-		return $results;
+		$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid ORDER BY tag COLLATE NOCASE');
+		assert($query->execute([':uid'=>$user->id]),'Was not able to request tag list!');
+		return $query->fetchAll(INDEX_FETCH);
 	}
 	
-	function save_tag($url = null,$tags = null,$redirect = true){
+	function save_tag($url = null,$tags = null,$comment = null, $redirect = true){
 		global $user;
 		assert($url !== null && $url != '','No value set for url!');
 		assert($tags !== null,'No tags set');
 		if (!is_array($tags)) $tags = explode(' ',str_replace(',', ' ', $tags));
 		
-		$tag_ids = [];
-		$new_tags = [];
+		$url_hash = sha1($url);
+		
+		$comment_hash = ($comment !== null && $comment != '') ? sha1($comment) : null;
+		
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid AND tag LIKE :tag');
-		$param = [':uid'=>$user->id];
-		foreach ($tags as $tag){
-			$tag = trim($tag);
-			if ($tag == '') continue;
-			$param[':tag'] = $tag;
-			$query->execute($param);
-			$row = $query->fetch(INDEX_FETCH);
-			if ($row){
-				$tag_ids[] = $row['id'];
-			} else $new_tags[] = $tag;		
+		$query = $db->prepare('INSERT OR IGNORE INTO urls (hash, url) VALUES (:hash, :url);');
+		assert($query->execute([':hash'=>$url_hash,':url'=>$url]),'Was not able to store url in database');  		
+		
+		if ($comment_hash !== null) {
+			$query = $db->prepare('INSERT OR IGNORE INTO comments (hash, comment) VALUES (:hash, :comment);');
+			assert($query->execute([':hash'=>$comment_hash,':comment'=>$comment]));
+			
+			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:uhash, :chash, :uid)');
+			$query->execute([':uhash'=>$url_hash,':chash'=>$comment_hash,':uid'=>$user->id]); 
 		}
-		$query = $db->prepare('INSERT INTO tags (user_id, tag) VALUES (:uid, :tag)');
-		foreach ($new_tags as $tag){
-			$param[':tag'] = $tag;
-			$query->execute($param);
-			$tag_ids[] = $db->lastInsertId();
-		}
-
-		$query = $db->prepare('INSERT INTO tags_urls (id, url) VALUES (:tid, :url)');
-		$param = [':url'=>$url];
-		foreach ($tag_ids as $tid){
-			$param[':tid'] = $tid;
-			$query->execute($param);
-		}
+		
+		$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid);');
+		foreach ($tags as $tag) assert($query->execute([':tag'=>$tag,':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
 		
 		if ($redirect)redirect(getUrl('tag'));
 	}
@@ -71,16 +60,36 @@
 		
 		$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid AND tag = :tag');
 		assert($query->execute([':uid'=>$user->id,':tag'=>$tag]),'Was not able to laod tag form database!');
-		$tag = $query->fetch(PDO::FETCH_ASSOC);
-		if ($tag){
-			$tag = objectFrom($tag);
-			$query = $db->prepare('SELECT url FROM tags_urls WHERE id = :tid');
-			assert($query->execute([':tid'=>$tag->id]));
-			$urls = $query->fetchAll(PDO::FETCH_COLUMN);
-			if ($urls) $tag->urls = $urls;
-			return objectFrom($tag);
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		
+		if ($rows){
+			$url_hashes = [];
+			foreach ($rows as $row) $url_hashes[] = $row['url_hash'];
+			
+			$qMarks = str_repeat("?,", count($url_hashes)-1) . "?";
+			
+			$query = $db->prepare("SELECT * FROM urls WHERE hash IN ($qMarks)");
+			assert($query->execute($url_hashes),'Was not able to load urls for tag!');
+			$urls = $query->fetchAll(INDEX_FETCH);
+			$query = $db->prepare("SELECT url_hash, comment_hash FROM url_comments WHERE user_id = ? AND url_hash IN ($qMarks)");
+			array_unshift($url_hashes, $user->id);
+			assert($query->execute($url_hashes),'Was not able to load urls for tag!');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			if ($rows){
+				$qMarks = str_repeat("?,", count($rows)-1) . "?";
+				$query = $db->prepare("SELECT * FROM comments WHERE hash = :hash");
+				foreach ($rows as $url_hash => $row){
+					$query->execute([':hash'=>$row['comment_hash']]);
+					$comment = $query->fetch(PDO::FETCH_ASSOC);
+					$urls[$url_hash]['comment'] = $comment['comment'];
+				}
+				
+			}			
 		}
-		return null;
+		$tag = objectFrom(['tag'=>$tag]);
+		$tag->links = $urls;
+		
+		return $tag;
 	}
 	
 	function update_tag(&$tag){
@@ -90,11 +99,11 @@
 		$db = get_or_create_db();
 		
 		// TODO: die folgenden Fallunterscheidungen lassen sich bestimmt noch aufräumen
-		if ($name != '' && $name != $tag->tag) {
+		if ($name != '' && strtolower($name) != strtolower($tag->tag)) {
 			$tag->tag = $name;
 				
 			// check, if tag with new name already exists
-			$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid AND tag = :tag');
+			$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid AND tag LIKE :tag');
 			assert($query->execute([':uid'=>$user->id,':tag'=>$name]),'Was not able to check, whether tag already exists!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			if (count($rows)>0){ // tag already exists				

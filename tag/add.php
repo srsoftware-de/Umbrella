@@ -6,7 +6,7 @@ include 'controller.php';
 require_login('tag');
 
 $url = param('url');
-if ($url) save_tag($url,param('tags'));
+if ($url) save_tag($url,param('tags'),param('comment'));
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -24,6 +24,11 @@ include '../common_templates/messages.php'; ?>
 			<legend>Tags</legend>
 			<input type="text" name="tags" />
 		</fieldset>
+		<fieldset>
+			<legend>Comment</legend>
+			<textarea name="comment"></textarea>
+		</fieldset>
+		
 		<input type="submit" />
 	</fieldset>
 </form>
