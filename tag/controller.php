@@ -101,49 +101,39 @@
 		return $tag;
 	}
 	
-	function update_tag(&$tag){
+	function load_url($hash){
 		global $user;
-		
-		$name = trim($_POST['tag']);
 		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM urls WHERE hash = :hash;');
+		$query->execute([':hash'=>$hash]);
+		$url = $query->fetch(PDO::FETCH_ASSOC);
 		
-		// TODO: die folgenden Fallunterscheidungen lassen sich bestimmt noch aufräumen
-		if ($name != '' && strtolower($name) != strtolower($tag->tag)) {
-			$tag->tag = $name;
-				
-			// check, if tag with new name already exists
-			$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid AND tag LIKE :tag');
-			assert($query->execute([':uid'=>$user->id,':tag'=>$name]),'Was not able to check, whether tag already exists!');
-			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-			if (count($rows)>0){ // tag already exists				
-				$existingTag = $rows[0];
-				$query = $db->prepare('DELETE FROM tags WHERE id = :tid'); // drop renamed tag
-				$query->execute([':tid' => $tag->id]);
-				
-				$query = $db->prepare('DELETE FROM tags_urls WHERE id = :tid');
-				$query->execute([':tid'=>$tag->id]);
-				
-				$tag->id = $existingTag['id'];
-			} else {
-				$query = $db->prepare('UPDATE tags SET tag = :tag WHERE id = :tid');
-				$query->execute([':tag' => $tag->tag, ':tid' => $tag->id]);
-
-				$query = $db->prepare('DELETE FROM tags_urls WHERE id = :tid');
-				$query->execute([':tid'=>$tag->id]);				
-			}			
-		} else {
-			$query = $db->prepare('DELETE FROM tags_urls WHERE id = :tid');
-			$query->execute([':tid'=>$tag->id]);				
-		}
-
-		$query = $db->prepare('INSERT OR IGNORE INTO tags_urls (id, url) VALUES (:tid, :url)');
-		$param=[':tid'=>$tag->id];
-		foreach ($_POST['urls'] as $url){
-			$url = trim($url);
-			if ($url == '') continue;
-			$param[':url']=$url;
-			$query->execute($param);
-		}
-		redirect(getUrl('tag',$tag->tag.'/view'));
+		$query = $db->prepare('SELECT comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash = :hash AND user_id = :uid;');
+		$query->execute([':hash'=>$hash,':uid'=>$user->id]);
+		$row = $query->fetch(PDO::FETCH_ASSOC);
+		if ($row) $url['comment']= $row['comment'];
+		
+		$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND url_hash = :hash ORDER BY TAG COLLATE NOCASE');
+		$query->execute([':hash'=>$hash,':uid'=>$user->id]);
+		$tags = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($tags as $tag) $url['tags'][] = $tag['tag'];
+		return $url;
+	}
+	
+	function delete_link($link){
+		global $user;
+		$url_hash = sha1($link['url']);
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM tags WHERE url_hash = :hash AND user_id = :uid;');
+		$query->execute([':hash'=>$url_hash,':uid'=>$user->id]);
+		
+		$query = $db->prepare('DELETE FROM url_comments WHERE url_hash = :hash AND user_id = :uid;');
+		$query->execute([':hash'=>$url_hash,':uid'=>$user->id]);
+		
+	}
+	
+	function update_url($link){
+		delete_link($link);
+		save_tag($_POST['url'],$_POST['tags'],$_POST['comment']);		
 	}
 ?>

@@ -4,11 +4,11 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('tag');
-$tag = param('id');
-if (!$tag) error('No tag passed to view!');
+$url_hash = param('id');
+if (!$url_hash) error('No url hash passed to view!');
 
-$tag = load_tag($tag);
-if (isset($_POST['tag'])) update_tag($tag);
+$link = load_url($url_hash);
+if (isset($_POST['url'])) update_url($link);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -17,13 +17,19 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 <fieldset>
-	<legend>Tag "<?= $tag->tag ?>"</legend>
-	New tag name: <input type="text" name="tag" value="<?= $tag->tag ?>" />
-	<ul>
-		<?php foreach ($tag->urls as $url ) {?>
-		<li><input type="text" name="urls[]" value="<?= $url ?>" /></li>
-		<?php } ?>
-	</ul>
+	<legend>URL "<?= $link['url'] ?>"</legend>
+	<label>
+		New Url:
+		<input type="text" name="url" value="<?= $link['url'] ?>" />
+	</label><br/>
+	<label>
+		Description:
+		<textarea name="comment"><?= $link['comment'] ?></textarea>
+	</label>	<br/>
+	<label>
+		Tags:
+		<input type="text" name="tags" value="<?= implode(' ',$link['tags']) ?>" /><br/>
+		</label>
 	<input type="submit" />
 </fieldset>
 </form>
