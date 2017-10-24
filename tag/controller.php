@@ -17,7 +17,7 @@
 		return $db;
 	}	
 
-	function get_tag_list(){
+	function get_tag_list($url = null){
 		global $user;
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid ORDER BY tag COLLATE NOCASE');
@@ -71,6 +71,16 @@
 			$query = $db->prepare("SELECT * FROM urls WHERE hash IN ($qMarks)");
 			assert($query->execute($url_hashes),'Was not able to load urls for tag!');
 			$urls = $query->fetchAll(INDEX_FETCH);
+			
+			$query = $db->prepare("SELECT tag FROM tags WHERE url_hash = :hash");
+			foreach ($url_hashes as $hash){
+				$query->execute([':hash'=>$hash]);
+				$tags = $query->fetchAll(INDEX_FETCH);
+				foreach ($tags as $related => $dummy) {
+					if ($related != $tag) $urls[$hash]['related'][] = $related;
+				}
+			}
+			
 			$query = $db->prepare("SELECT url_hash, comment_hash FROM url_comments WHERE user_id = ? AND url_hash IN ($qMarks)");
 			array_unshift($url_hashes, $user->id);
 			assert($query->execute($url_hashes),'Was not able to load urls for tag!');
@@ -82,13 +92,12 @@
 					$query->execute([':hash'=>$row['comment_hash']]);
 					$comment = $query->fetch(PDO::FETCH_ASSOC);
 					$urls[$url_hash]['comment'] = $comment['comment'];
-				}
-				
-			}			
+				}				
+			}
+
 		}
 		$tag = objectFrom(['tag'=>$tag]);
 		$tag->links = $urls;
-		
 		return $tag;
 	}
 	
