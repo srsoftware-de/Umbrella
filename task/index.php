@@ -30,27 +30,34 @@ include '../common_templates/messages.php'; ?>
 <table class="tasklist">
 	<tr>
 		<th><a href="?order=name">Name</a></th>
-		<th><a href="?order=project_id">Project</a></th>
 		<th><a href="?order=parent_task_id">Parent Task</a></th>
+		<th><a href="?order=project_id">Project</a></th>
 		<th><a href="?order=status">Status</a></th>
 		<th><a href="?order=start_date">Start</a></th>
 		<th><a href="?order=due_date">Due</a></th>
 		<th>Actions</th>
 	</tr>
 
-<?php foreach ($tasks as $id => $task):
+<?php 
+	$hide = [];
+	foreach ($tasks as $id => $task){ // filter out tasks, that are only group nodes
+		if ($task['status'] >= 60 && !$show_closed) continue;
+		if (isset($task['parent_task_id'])) $hide[] = $task['parent_task_id'];
+	}
+	foreach ($tasks as $id => $task):
 	if ($task['status'] >= 60 && !$show_closed) continue;
+	if (in_array($id, $hide)) continue;
 	$project = $projects[$task['project_id']];
 	$parent_id = $task['parent_task_id'];
 	?>
 	<tr class="project_<?= $task['project_id']?>">
 		<td><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
-		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
 		<td>
 			<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
 			<a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a>
 			<?php } ?>
 		</td>
+		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
 		<td><?= $TASK_STATES[$task['status']] ?></td>
 		<td><?= $task['start_date'] ?></td>
 		<td><?= $task['due_date'] ?></td>

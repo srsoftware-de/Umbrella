@@ -168,7 +168,7 @@ input.price{
 }
 
 @media (max-width:1199px) {
-	.tasklist tr>*:nth-child(3){
+	.tasklist tr>*:nth-child(2){
 		display: none;
 	}
 }
@@ -192,7 +192,7 @@ input.price{
 }
 
 @media (max-width: 600px){
-	.tasklist tr>*:nth-child(2){
+	.tasklist tr>*:nth-child(3){
 		display: none;
 	}
 }
