@@ -171,6 +171,7 @@ function require_login($service_name = null){
 	$user = getLocallyFromToken();
 	if ($user === null) validateToken($service_name);
 	if ($user === null) redirect($services['user']['path'].'login?returnTo='.location());
+	session_write_close();
 }
 
 function postLink($url,$caption,$data = array(),$title = null){

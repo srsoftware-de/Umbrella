@@ -59,7 +59,6 @@ if ($user_name){
 		}		 
 	}
 }
-session_write_close();
 
 				 
 
