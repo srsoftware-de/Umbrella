@@ -1,6 +1,7 @@
 <?php
 $translations = array(
 		'add to timetrack'=>'Zur Zeiterfassung hinzufügen',
+		'Bookmarks'=>'Lesezeichen',
 		'cancel'=>'abbrechen',
 		'Child tasks'=>'Unteraufgaben',
 		'complete'=>'abschließen',
