@@ -11,4 +11,10 @@ read -p 'Install project service? ' -n 1 -r
 echo
 if [[ $REPLY = [Yy] ]]; then
 	git clone -b Projects $SOURCE project
+
+	read -p 'Install task service? ' -n 1 -r
+	echo
+	if [[ $REPLY = [Yy] ]]; then
+        	git clone -b Tasks $SOURCE task
+	fi
 fi
