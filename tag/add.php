@@ -15,7 +15,7 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend>Add new URL</legend>
+		<legend><?= t('Add new URL') ?></legend>
 		<fieldset>
 			<legend>URL</legend>
 			<input type="text" name="url" />
@@ -25,7 +25,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="tags" />
 		</fieldset>
 		<fieldset>
-			<legend>Comment</legend>
+			<legend><?= t('Description')?></legend>
 			<textarea name="comment"></textarea>
 		</fieldset>
 		

@@ -99,9 +99,11 @@ if (isset($_FILES['tag_file'])){
 
 include '../common_templates/messages.php'; ?>
 
+
+
 <?php if ($links){ set_time_limit(0); ?>
 <fieldset>
-	<legend>Delicious tags</legend>
+	<legend><?= t('Delicious tags')?></legend>
 	<ul>
 	<?php foreach ($links as $key => $link) { ?>
 		<li>
@@ -145,9 +147,9 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 <fieldset>
-	<legend>Import tags from delicious</legend>
-	Delicious user name: <input type="text" name="delicious_user_name" /><br/>
-	<em>This may take a very long time!</em>
+	<legend><?= t('Import tags from delicious');?></legend>
+	<?= t('Delicious user name');?> <input type="text" name="delicious_user_name" /><br/>
+	<em><?= t('This may take a very long time!');?></em>
 	<input type="submit" />
 </fieldset>
 </form>

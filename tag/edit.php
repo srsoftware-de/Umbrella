@@ -17,17 +17,17 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 <fieldset>
-	<legend>URL "<?= $link['url'] ?>"</legend>
+	<legend><?= t('Edit URL ?','"'.$link['url'].'"'); ?></legend>
 	<label>
-		New Url:
+		<?= t('New Url'); ?>
 		<input type="text" name="url" value="<?= $link['url'] ?>" />
 	</label><br/>
 	<label>
-		Description:
+		<?= t('Description'); ?>
 		<textarea name="comment"><?= $link['comment'] ?></textarea>
 	</label>	<br/>
 	<label>
-		Tags:
+		<?= t('Tags'); ?>
 		<input type="text" name="tags" value="<?= implode(' ',$link['tags']) ?>" /><br/>
 		</label>
 	<input type="submit" />

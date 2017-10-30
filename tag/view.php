@@ -15,10 +15,10 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset class="tags">
-	<legend>Tag "<?= $tag->tag ?>"</legend>
+	<legend><?= t('Tag "?"',$tag->tag) ?></legend>
 	<?php foreach ($tag->links as $hash => $link ) {?>
 	<fieldset>
-		<legend><?= isset($link['comment']) ? $link['comment']:$link['url']?> <a class="symbol" href="../<?= $hash ?>/edit"></a></legend>
+		<legend><a class="symbol" href="../<?= $hash ?>/edit"></a><a class="symbol" href="../<?= $hash ?>/delete"></a> <?= isset($link['comment']) ? $link['comment']:$link['url']?></legend>
 		<a target="_blank" href="<?= $link['url'] ?>" ><?= $link['url'] ?></a><br/>
 		<?php if (isset($link['related'])) { foreach ($link['related'] as $related){ ?>
 			<a class="button" href="../<?= $related ?>/view"><?= $related ?></a>
