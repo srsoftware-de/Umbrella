@@ -1,1 +1,0 @@
-<a class="symbol" title="add new project" href="<?= param('id')?'../':''?>add"></a>
