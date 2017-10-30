@@ -30,7 +30,6 @@
 		assert($url !== null && $url != '','No value set for url!');
 		assert($tags !== null,'No tags set');
 		if (!is_array($tags)) $tags = explode(' ',str_replace(',', ' ', $tags));
-		
 		$url_hash = sha1($url);
 		
 		$comment_hash = ($comment !== null && $comment != '') ? sha1($comment) : null;

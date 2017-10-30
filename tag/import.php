@@ -67,6 +67,36 @@ if ($user_name){
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
+
+if (isset($_FILES['tag_file'])){
+	$lines = file($_FILES['tag_file']['tmp_name']);
+	set_time_limit(0);
+	foreach ($lines as $line){
+		if (stripos($line, 'HREF=') === false) continue;
+		$url = null;
+		$tags = null;
+		$parts = explode('<', $line);
+		// searh anchor part
+		foreach ($parts as $part){
+			if (stripos($part, 'A ')===0) {
+				$line = $part;
+				break;
+			}
+		}
+		$parts = explode('>', $line);
+		$title = $parts[1];
+		$parts = explode(' ',$parts[0]);
+		foreach ($parts as $part){
+			if (stripos($part,'href=')===0) $url = trim(substr($part,5),"\"\t\n\r\0\x0B");
+			if (stripos($part,'tags=')===0) $tags = trim(substr($part,5),"\"\t\n\r\0\x0B");
+		}
+		if ($tags === null) continue;
+		if ($url === null) continue;
+		$tags = str_replace(',', ' ', $tags);
+		save_tag($url,$tags,$title,false);
+	}
+}
+
 include '../common_templates/messages.php'; ?>
 
 <?php if ($links){ set_time_limit(0); ?>
@@ -121,5 +151,14 @@ include '../common_templates/messages.php'; ?>
 	<input type="submit" />
 </fieldset>
 </form>
+
+<form method="POST" enctype="multipart/form-data">
+<fieldset>
+	<legend><?= t('Import tags from file');?></legend>
+	<?= t('Select file with links');?> <input type="file" name="tag_file" /><br/>
+	<input type="submit" />
+</fieldset>
+</form>
+
 
 <?php include '../common_templates/closure.php'; ?> 
