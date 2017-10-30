@@ -3,6 +3,7 @@
 $translations = array(
 		'Actions' => 'Aktionen',
 		'add new project' => 'neues Projekt',
+		'Bookmarks' => 'Lesezeichen',
 		'cancel'=>'abbrechen',
 		'complete'=>'abschließen',
 		'completed'=>'abgeschlossen',
