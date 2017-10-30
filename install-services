@@ -6,3 +6,9 @@ echo
 if [[ $REPLY = [Yy] ]]; then
 	git clone -b Bookmarks $SOURCE bookmark
 fi
+
+read -p 'Install project service? ' -n 1 -r
+echo
+if [[ $REPLY = [Yy] ]]; then
+	git clone -b Projects $SOURCE project
+fi
