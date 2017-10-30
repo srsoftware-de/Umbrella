@@ -1,8 +1,0 @@
-#!/bin/bash
-SOURCE="/raid/GIT/Umbrella.git"
-
-read -p 'Install bookmark service? ' -n 1 -r
-echo
-if [[ $REPLY = [Yy] ]]; then
-	git clone -b Bookmarks $SOURCE bookmark
-fi
