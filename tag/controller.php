@@ -47,7 +47,9 @@
 		}
 		
 		$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid);');
-		foreach ($tags as $tag) assert($query->execute([':tag'=>$tag,':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
+		foreach ($tags as $tag) {
+			if ($tag != '')	assert($query->execute([':tag'=>strtolower($tag),':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
+		}
 		
 		if ($redirect)redirect(getUrl('tag'));
 	}
