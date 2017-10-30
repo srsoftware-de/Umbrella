@@ -1,6 +1,7 @@
 <?php
 $translations = array(
 		'Add new URL' => 'Neue URL hinzufpgen',
+		'Bookmarks' =>'Lesezeichen',
 		'Contacts'=>'Kontakte',
 		'Delicious tags'=>'Tags bei Delicious',
 		'Delicious user name'=>'Nutzername bei Delicious',
