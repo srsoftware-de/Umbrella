@@ -17,7 +17,7 @@
 		return $db;
 	}	
 
-	function get_tag_list($url = null){
+	function get_tag_list(){
 		global $user;
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid ORDER BY tag COLLATE NOCASE');
