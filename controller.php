@@ -8,7 +8,7 @@
 		if (!file_exists('db/tasks.db')){
 			$db = new PDO('sqlite:db/tags.db');
 			$db->query('CREATE TABLE tags (tag VARCHAR(255) NOT NULL, url_hash VARCHAR(255) NOT NULL, user_id int NOT NULL, UNIQUE(tag, url_hash, user_id));');			
-			$db->query('CREATE TABLE urls (hash VARCHAR(255) PRIMARY KEY, url TEXT NOT NULL);');
+			$db->query('CREATE TABLE urls (hash VARCHAR(255) PRIMARY KEY, url TEXT NOT NULL, timestamp INT NOT NULL DEFAULT 0);');
 			$db->query('CREATE TABLE comments (hash VARCHAR(255) PRIMARY KEY, comment TEXT NOT NULL)');
 			$db->query('CREATE TABLE url_comments (url_hash VARCHAR(255) NOT NULL, comment_hash VARCHAR(255) NOT NULL, user_id INT NOT NULL, UNIQUE(url_hash, comment_hash, user_id));');
 		} else {
@@ -25,6 +25,35 @@
 		return $query->fetchAll(INDEX_FETCH);
 	}
 	
+	function get_new_urls($limit = null){
+		global $user;
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash WHERE user_id = :uid GROUP BY hash ORDER BY timestamp DESC';		
+		$args = [':uid' => $user->id];
+		if ($limit !== null){
+			$sql .= ' LIMIT :limit';
+			$args[':limit']=$limit;
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to request url list!');
+		$urls = $query->fetchAll(INDEX_FETCH);
+		
+		$hashes = array_keys($urls);
+		$qmarks = implode(',', array_fill(0, count($hashes), '?'));
+		
+		$query = $db->prepare('SELECT tag,url_hash FROM tags WHERE url_hash IN ('.$qmarks.')');
+		assert($query->execute($hashes),'Was not able to request tags for url list!');
+		$tags = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($tags as $tag) $urls[$tag['url_hash']]['tags'][] = $tag['tag'];
+		
+		$hashes[] = $user->id; // add us
+		$query = $db->prepare('SELECT url_hash,comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
+		assert($query->execute($hashes),'Was not able to request comments for url list!');
+		$comments = $query->fetchAll(INDEX_FETCH);
+		foreach ($comments as $url_hash => $comment) $urls[$url_hash]['comment'] = $comment['comment'];
+		return $urls;
+	}
+	
 	function save_tag($url = null,$tags = null,$comment = null, $redirect = true){
 		global $user;
 		assert($url !== null && $url != '','No value set for url!');
@@ -35,8 +64,8 @@
 		$comment_hash = ($comment !== null && $comment != '') ? sha1($comment) : null;
 		
 		$db = get_or_create_db();
-		$query = $db->prepare('INSERT OR IGNORE INTO urls (hash, url) VALUES (:hash, :url);');
-		assert($query->execute([':hash'=>$url_hash,':url'=>$url]),'Was not able to store url in database');  		
+		$query = $db->prepare('INSERT OR IGNORE INTO urls (hash, url, timestamp) VALUES (:hash, :url, :time);');
+		assert($query->execute([':hash'=>$url_hash,':url'=>$url,':time'=>time()]),'Was not able to store url in database');  		
 		
 		if ($comment_hash !== null) {
 			$query = $db->prepare('INSERT OR IGNORE INTO comments (hash, comment) VALUES (:hash, :comment);');
