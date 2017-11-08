@@ -51,7 +51,7 @@
 			if ($tag != '')	assert($query->execute([':tag'=>strtolower($tag),':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
 		}
 		
-		if ($redirect)redirect(getUrl('tag'));
+		if ($redirect)redirect(getUrl('bookmark'));
 	}
 	
 	function load_tag($tag = null){

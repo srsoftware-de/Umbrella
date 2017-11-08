@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('tag');
+require_login('bookmark');
 $tag = param('id');
 if (!$tag) error('No tag passed to view!');
 

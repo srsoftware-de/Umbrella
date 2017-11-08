@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('tag');
+require_login('bookmark');
 
 $url = param('url');
 if ($url){
@@ -118,7 +118,7 @@ include '../common_templates/messages.php'; ?>
 		var ul = listings.pop();
 		var xhr = new XMLHttpRequest();
 		var url = ul.getAttribute('href');
-		xhr.open('GET', '<?= getUrl('tag','import?url='); ?>'+url);
+		xhr.open('GET', '<?= getUrl('bookmark','import?url='); ?>'+url);
 		xhr.onload = function() {
 		    if (xhr.status === 200) {
 		        ul.innerHTML=xhr.responseText;

@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('tag');
+require_login('bookmark');
 $url_hash = param('id');
 if (!$url_hash) error('No url hash passed to view!');
 

@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('tag');
+require_login('bookmark');
 
 $url = param('url');
 if ($url) save_tag($url,param('tags'),param('comment'));
