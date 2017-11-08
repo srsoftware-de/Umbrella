@@ -12,6 +12,14 @@ a{
 	color: red;
 	text-decoration: none;
 }
+textarea {
+    width: 100%;
+	min-height: 100px;
+}
+
+input[type=text]{
+	width: 100%;
+}
 #main_menu{
 	display: inline;
 }
@@ -135,12 +143,18 @@ input[type="submit"] {
     right: 5px;
     top: 5px;
 }
+.right-fix {
+    position: fixed;
+    right: 5px;
+    top: 5px;
+}
 .hover {
     border: 1px solid red;
     border-radius: 5px;
     max-height: 35px;
     overflow: hidden;
     z-index: 10;
+    background-color: black;
 }
 
 
@@ -162,6 +176,10 @@ input.price{
 	text-align: right;
 }
 
+td > h1{
+	display: inline-block;
+	margin: 0 10px 0 0;
+}
 .tags span{
 	display: inline-block;
 	vertical-align: top;
