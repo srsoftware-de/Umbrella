@@ -4,33 +4,49 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('files');
-$files = list_files($user->id);
-load_users($files);
-//debug($files);
+$path = param('path');
+$entries = list_entries($path);
+$parent = dirname($path);
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<h1>Files</h1>
+<h1><?= t('Files')?></h1>
 <table>
 	<tr>
-		<th>Directory</th>
-		<th>Name</th>
-		<th>Users</th>
-		<th>Actions</th>
+		<th><?= t('File / Directory') ?></th>
+		<th><?= t('Actions') ?></th>
 	</tr>
-	<?php foreach ($files as $hash => $file){ ?>
+	<?php if (!in_array($parent,['.',''])){ ?>
 	<tr>
-		<td><?= dirname($file['path'])?></td>
-		<td><?= basename($file['path'])?></td>
 		<td>
-			<?php foreach ($file['users'] as $uid => $user){ ?>
-			<?= $user['login']?> (<?= $FILE_PERMISSIONS[$user['permissions']]?>)<br/>
-			<?php }?>
+			<a href="?path=<?= $parent ?>">..</a>
+		</td>
+		<td></td>
+	</tr>
+	<?php } ?>
+	<?php foreach ($entries['dirs'] as $dir){ 
+	?>
+	<tr>
+		<td>
+			<a href="?path=user<?= $user->id.'/'.$dir ?>">
+				<span class="symbol"></span> <?= $dir ?>
+			</a>
 		</td>
 		<td>
-			<a class="symbol" title="download" href="download?file=<?= $hash ?>"></a>
+			<a class="symbol" title="delete" href="delete?file=<?= $hash ?>"></a>
+		</td>
+	</tr>
+	<?php }?>
+	<?php foreach ($entries['files'] as $file){ ?>
+	<tr>
+		<td>
+			<a title="download" href="download?file=<?= $path.'/'.$file ?>">
+				<span class="symbol"></span> <?= $file ?>
+			</a>
+		</td>
+		<td>
 			<a class="symbol" title="add user" href="add_user_to?file=<?= $hash ?>"></a>
 			<a class="symbol" title="delete" href="delete?file=<?= $hash ?>"></a>
 		</td>

@@ -5,32 +5,17 @@ include 'controller.php';
 
 require_login('files');
 
-$hash = param('file');
+$filename = param('file');
 
-if (!$hash) error('No file hash passed to view!');
-
-$allowed = false;
-
-$file = load_file($hash);
-if ($file === null){
-	error('No such file!');
-} else {
-	load_users($file);
-	foreach ($file['users'] as $id => $dummy){
-		if ($id == $user->id) $allowed = true;
-	}
-}
-
-if (!$allowed){
-	error('You are not allowed to view this file!');
+$absolute_path = get_absolute_path($filename);
+if (!$absolute_path) {
+	error('You are not allowed to access ?',$filename);
 	include '../common_templates/head.php';
 	include '../common_templates/main_menu.php';
 	include 'menu.php';
-	include '../common_templates/messages.php';
+	include '../common_templates/messages.php'; 
 	include '../common_templates/closure.php';
-	die();		
+	die();
 }
-
-header('Content-Type: '.$file['type']);
-header('Content-Disposition: attachment; filename="'.basename($file['path']).'"');
-readfile($file['absolute']);
+header('Content-Disposition: attachment; filename="'.basename($absolute_path).'"');
+readfile($absolute_path);

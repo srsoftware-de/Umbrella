@@ -5,138 +5,45 @@
 	const FILE_PERMISSION_WRITE = 3;
 	const RECURSIVE = true;
 	const STORAGE = '/.storage';	
-	
-	$FILE_PERMISSIONS = array(FILE_PERMISSION_OWNER=>'owner',FILE_PERMISSION_READ=>'read',FILE_PERMISSION_WRITE=>'write');	
 
 	function get_or_create_db(){
-		if (!file_exists('db')){
-			assert(mkdir('db'),'Failed to create file/db directory!');
-		}
+		if (!file_exists('db'))assert(mkdir('db'),'Failed to create file/db directory!');
 		assert(is_writable('db'),'Directory file/db not writable!');
-		if (!file_exists('db/files.db')){
-			$db = new PDO('sqlite:db/files.db');
-			$db->query('CREATE TABLE files (hash VARCHAR(50) PRIMARY KEY, type VARCHAR(255), path TEXT NOT NULL);');
-			$db->query('CREATE TABLE files_users (hash VARCHAR(50) NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT 0, PRIMARY KEY(hash, user_id));');
-		} else {
-			$db = new PDO('sqlite:db/files.db');
-		}
-		return $db;
-	}
-	
-	function list_files($user_id,$folder){
-		assert(is_numeric($user_id),'No valid user id passed to list files!');
-		$db = get_or_create_db();
-		$sql = 'SELECT * FROM files WHERE hash IN (SELECT hash FROM files_users WHERE user_id = :uid)';
-		$args = array(':uid'=>$user_id);
-		if ($folder) {
-			$sql .= ' AND path LIKE :prefix';
-			$args[':prefix']='/'.$folder.'%';
-		}
-		$sql .= ' ORDER BY path';
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read users files');
-		$files = $query->fetchAll(INDEX_FETCH);
-		return $files;		
+		return new PDO('sqlite:db/files.db');
 	}
 
-	function load_file($hash){
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM files WHERE hash = :hash');
-		assert($query->execute(array(':hash'=>$hash)),'Was not able to read file');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		if (empty($results)) return null;
-		$file = $results[0];
-		$file['absolute'] = getcwd().STORAGE.$file['path'];
-		return $file;		
+	function base_dir(){
+		return getcwd().STORAGE;
 	}
-	
-	function store_text($filename = '',$content = '',$user_id){
-		assert(is_numeric($user_id),'No valid user id passed to add_file!');
-		assert(trim($filename)!='','No valid filename passed to store_text');
-		assert(trim($content)!='','No content passed to store_text');
-	
-		$temp_file = tempnam(sys_get_temp_dir(),null).'.vcf';
-		file_put_contents($temp_file, $content);
-	
-		$file_data = array('tmp_name'=>$temp_file, 'name'=>basename($filename),'type'=>null);
-		return add_file($file_data, dirname($filename),$user_id);		
+
+	function list_entries($path = null){
+		global $user;
+		if ($path === null) $path = '/user'.$user->id;
+		if ($path[0] != '/') $path = '/'.$path;
+		$base_dir = base_dir();
+		$dir = base_dir().$path;
+		$entries = scandir($dir);
+		$dirs = [];
+		$files = [];
+		foreach ($entries as $entry){
+			if (in_array($entry,['.','..'])) continue;
+			if (is_dir($dir.'/'.$entry)) {
+				$dirs[] = $entry;
+			} else $files[] = $entry;
+		}
+		return ['dirs'=>$dirs,'files'=>$files];
 	}
-	
-	
-	function add_file($file_data, $folder='', $user_id,$check_upload = true){
-		assert(is_numeric($user_id),'No valid user id passed to add_file!');
-		
-		$hash = sha1_file($file_data['tmp_name']);
-		$db = get_or_create_db();
-		
-		$query = $db->prepare('SELECT * FROM files WHERE hash = :hash');
-		assert($query->execute(array(':hash'=>$hash)),'Was not able to query files table for file hash!');
-		$items = $query->fetchAll(INDEX_FETCH);
-		if (!empty($items)) {
-			$item1 = reset($items);
-			return 'This file has already been uploaded as "'.$item1['path'].'"!';
+
+	function get_absolute_path($filename = null){
+		global $user;
+		if ($filename === null || $filename == '') {
+			error('No filename passed to download!');
+			return false;
 		}
-		
-		$storage = getcwd().STORAGE;
-		if (strpos($folder, '/') !== 0) $folder = '/'.$folder;
-		$filename = $folder.'/'.$file_data['name'];
-		
-		if (file_exists($storage.$filename)) return 'A file "'.$filename.'" already exists!';
-		if (file_exists($storage.$folder)){
-			if (!is_dir($storage.$folder)) return $folder.' exists, but is not a directory!';
-		} else {
-			if (!mkdir($storage.$folder,0777,RECURSIVE)) return 'Was not able to create folder '.$folder.'!';
-		}
-		
-		
-		if (!rename($file_data['tmp_name'], $storage.$filename)) return 'Was not able to move file to '.$folder.'!';
-		
-		$query = $db->prepare('INSERT INTO files (hash, type, path) VALUES (:hash, :type, :path)');
-		assert($query->execute(array(':hash'=>$hash,':type'=>$file_data['type'],':path'=>$filename)),'Was not able to store file '.$filename);
-		
-		$query = $db->prepare('INSERT INTO files_users (hash, user_id, permissions) VALUES (:hash, :user, :perm)');
-		assert($query->execute(array(':hash'=>$hash, ':user'=>$user_id,':perm'=>FILE_PERMISSION_OWNER)),'Was not able to set permissions on file');
-		return true;
-	}
-	
-	function load_users(&$files){
-		$db = get_or_create_db();
-		$first_entry = reset($files);		
-		$is_array = isset($first_entry['path']);
-		$qMarks = '?';
-		$hashes = array($files['hash']);	
-		if ($is_array){
-			$hashes = array_keys($files);		
-			$qMarks = str_repeat('?,', count($hashes) - 1) . '?';
-		}
-		$query = $db->prepare('SELECT * FROM files_users WHERE hash IN ('.$qMarks.')');
-		assert($query->execute($hashes),'Was not able to read file permissions!');		
-		$permissions = $query->fetchAll(PDO::FETCH_ASSOC);
-		$user_ids = array();
-		foreach ($permissions as $permission){
-			$user_ids[$permission['user_id']]=null;
-		}
-		$users = request('user', 'list',['ids'=>implode(',', array_keys($user_ids))]);
-		foreach ($permissions as $permission){
-			$hash = $permission['hash'];
-			$uid = $permission['user_id'];
-			$user = $users[$uid];
-			if ($is_array){
-				$files[$hash]['users'][$uid] = $user;
-				$files[$hash]['users'][$uid]['permissions'] = $permission['permissions'];
-			} else {
-				$files['users'][$uid] = $user;
-				$files['users'][$uid]['permissions'] = $permission['permissions'];
-			}
-		}
-	}
-	
-	function assign_user_to_file($uid = null,$file_hash = null){
-		assert(is_numeric($uid),'No valid uid passed to assign_user_to_file!');
-		assert($file_hash !== null,'No valid file hash passed to assign_user_to_file!');
-		$db = get_or_create_db();
-		$query = $db->prepare('INSERT OR IGNORE INTO files_users (hash, user_id, permissions) VALUES (:hash, :user, :perm)');
-		assert($query->execute(array('hash'=>$file_hash,':user'=>$uid,':perm'=>FILE_PERMISSION_READ)),'Was not able to assign file to user');
+		if ($filename[0] != '/') $filename = '/'.$filename;
+		if (strpos($filename,'/user'.$user->id)!==false) return base_dir().$filename;
+		// TODO: implement hook to access shared files of other users
+		return null;
 	}
 	
 	function delete_file($file_hash = null){
