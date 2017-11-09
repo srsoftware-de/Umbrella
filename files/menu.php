@@ -1,2 +1,2 @@
-<?php $path = param('path'); $query = $path ? '?dir='.$path : ''; ?>
+<?php $query = param('path') ? '?dir='.param('path') : ''; ?>
 <a class="symbol" title="add new file" href="add<?= $query ?>"></a>

@@ -4,7 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('files');
-$path = param('path');
+$path = param('path','user'.$user->id);
 $entries = list_entries($path);
 $parent = dirname($path);
 include '../common_templates/head.php'; 
@@ -30,19 +30,19 @@ include '../common_templates/messages.php'; ?>
 	?>
 	<tr>
 		<td>
-			<a href="?path=user<?= $user->id.'/'.$dir ?>">
+			<a href="?path=<?= $path.DS.$dir ?>">
 				<span class="symbol"></span> <?= $dir ?>
 			</a>
 		</td>
 		<td>
-			<a class="symbol" title="delete" href="delete?file=<?= $path.DS.$file ?>"></a>
+			<a class="symbol" title="delete" href="delete?file=<?= $path.DS.$dir ?>"></a>
 		</td>
 	</tr>
 	<?php }?>
 	<?php foreach ($entries['files'] as $file){ ?>
 	<tr>
 		<td>
-			<a title="download" href="download?file=<?= $path.'/'.$file ?>">
+			<a title="download" href="download?file=<?= $path.DS.$file ?>">
 				<span class="symbol"></span> <?= $file ?>
 			</a>
 		</td>

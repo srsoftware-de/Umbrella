@@ -52,10 +52,11 @@
 	function add_file($file_data){
 		global $user;
 		$dir = param('dir');
-		if (!$dir) $dir = DS.'user'.$user->id;	
+		if (!$dir) $dir = 'user'.$user->id;	
 		
 		$filename = base_dir().DS.$dir.DS.$file_data['name'];
-		if (strpos($filename,DS.'user'.$user->id)===false) return t('You are not allowed to write to ?',dirname($filename));
+debug($filename);
+		if (strpos($filename,'user'.$user->id)===false) return t('You are not allowed to write to ?',dirname($filename));
 		
 		if (file_exists($filename)) return 'A file "'.$filename.'" already exists!';
 		$directory = dirname($filename);
@@ -71,7 +72,10 @@
 	}	
 
 	function delete_file($filename){
-		
-		assert(unlink($filename),t('Was not able to physically unlink file "?"',$filename));	
+		if (is_dir($filename)){
+			assert(rmdir($filename),t('Was not able to remove directory ?',basename($filename)));
+		} else {
+			assert(unlink($filename),t('Was not able to physically unlink file "?"',basename($filename)));	
+		}
 	}	
 ?>
