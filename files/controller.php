@@ -77,5 +77,14 @@ debug($filename);
 		} else {
 			assert(unlink($filename),t('Was not able to physically unlink file "?"',basename($filename)));	
 		}
+	}
+
+	function create_dir($dirname){
+		global $user;
+		$rel_par = param('dir','user'.$user->id);	
+		$parent = get_absolute_path($rel_par);
+		if (!$parent) return false;
+		if (mkdir($parent.DS.$dirname)) return $rel_par.DS.$dirname;
+		return false;
 	}	
 ?>
