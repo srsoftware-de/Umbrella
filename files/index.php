@@ -12,7 +12,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<h1><?= t('Files')?></h1>
+<h1><?= t('Files: ?',$path?$path:' ')?></h1>
 <table>
 	<tr>
 		<th><?= t('File / Directory') ?></th>
