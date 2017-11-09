@@ -5,6 +5,7 @@ $translations = array(
 		'Add Positions'=>'Posten hinzufügen',
 		'Amount'=>'Menge',
 		'Bank account: ?'=>'Bankverbindung: ?',
+		'Bookmarks'=>'Lesezeichen',
 		'Contacts'=>'Kontakte',
 		'currency'=>'Währung',
 		'Customer' => 'Kunde',

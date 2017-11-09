@@ -3,6 +3,7 @@
 $translations = array(
 		'Address'=>'Adresse',
 		'BDAY'=>'Geburtstag',
+		'Bookmarks'=>'Lesezeichen',
 		'City'=>'Ort',
 		'Contacts'=>'Kontakte',
 		'Country'=>'Land',
