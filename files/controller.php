@@ -39,11 +39,12 @@
 		global $user;
 		if ($filename === null || $filename == '') {
 			error('No filename passed to download!');
-			return false;
+			return null;
 		}
 		if ($filename[0] != DS) $filename = DS.$filename;
 		if (strpos($filename,DS.'user'.$user->id)!==false) return base_dir().$filename;
 		// TODO: implement hook to access shared files of other users
+		error('You are not allowed to access ?',$filename);
 		return null;
 	}
 
@@ -69,19 +70,8 @@
 		return true;
 	}	
 
-	function delete_file($file_hash = null){
-		assert($file_hash !== null,'No valid file hash passed to assign_user_to_file!');
+	function delete_file($filename){
 		
-		$file = load_file($file_hash);
-		$handle = getcwd().STORAGE.$file['path'];
-		
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM files WHERE hash = :hash');
-		assert($query->execute(array('hash'=>$file_hash)),'Was not able to delete file "'.$file['path'].'"');
-
-		$query = $db->prepare('DELETE FROM files_users WHERE hash = :hash');
-		assert($query->execute(array('hash'=>$file_hash)),'Was not able to delete user associations of file "'.$file['path'].'"');
-		
-		assert(unlink($handle),'Was not able to physically unlink file "'.$file['path'].'"');	
+		assert(unlink($filename),t('Was not able to physically unlink file "?"',$filename));	
 	}	
 ?>

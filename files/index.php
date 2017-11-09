@@ -35,7 +35,7 @@ include '../common_templates/messages.php'; ?>
 			</a>
 		</td>
 		<td>
-			<a class="symbol" title="delete" href="delete?file=<?= $hash ?>"></a>
+			<a class="symbol" title="delete" href="delete?file=<?= $path.DS.$file ?>"></a>
 		</td>
 	</tr>
 	<?php }?>
@@ -47,8 +47,8 @@ include '../common_templates/messages.php'; ?>
 			</a>
 		</td>
 		<td>
-			<a class="symbol" title="add user" href="add_user_to?file=<?= $hash ?>"></a>
-			<a class="symbol" title="delete" href="delete?file=<?= $hash ?>"></a>
+			<a class="symbol" title="share" href="share?file=<?= $path.DS.$file ?>"></a>
+			<a class="symbol" title="delete" href="delete?file=<?= $path.DS.$file ?>"></a>
 		</td>
 	</tr>
 	<?php }?>

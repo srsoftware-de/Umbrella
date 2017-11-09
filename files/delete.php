@@ -5,39 +5,26 @@ include 'controller.php';
 
 require_login('files');
 
-$hash = param('file');
+$filename = param('file');
 
-if (!$hash) error('No file hash passed to view!');
+if (!$filename) error('No filename passed to delete!');
 
-$allowed = false;
+$file = get_absolute_path($filename);
 
-$file = load_file($hash);
-if ($file === null){
-	error('No such file!');
-} else {
-	load_users($file);
-	foreach ($file['users'] as $id => $dummy){
-		if ($id == $user->id) $allowed = true;
-	}
-}
-
-if (!$allowed){
-	error('You are not allowed to delete this file!');
-} else {
+if ($file){
 	if (param('confirm') == 'yes'){
-		delete_file($hash);
-		redirect('index');
+		delete_file($file);
+		redirect('index?path='.dirname($filename));
 	}
 }
 
-$user_list = request('user','list');
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 
-if ($allowed){
-	echo dialog('Are you sure, you want to delete "'.$file['path'].'"?',array('YES'=>'?file='.$hash.'&confirm=yes','NO'=>'index'));
+if ($file){
+	echo dialog(t('Are you sure, you want to delete "?"?',$filename),array('YES'=>'?file='.urlencode($filename).'&confirm=yes','NO'=>'index'));
 }
 
 include '../common_templates/closure.php'; ?>
