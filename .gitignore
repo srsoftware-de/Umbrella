@@ -1,3 +1,4 @@
 *.db
 config.php
 bookmark
+.*.swp
