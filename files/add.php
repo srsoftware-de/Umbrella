@@ -18,9 +18,9 @@ if (isset($_FILES['file'])){
 				array_splice($tags, array_search('user'.$user->id, $tags ), 1); // delete "userXX" from tags
 				$tags[] = t('File');
 				$tags[] = $info['name'];
-				$download_url = getUrl('files','download?file='.$info['dir'].DS.$info['name']);
+				$display_url = getUrl('files','index?path='.$info['dir']);
 				$tags=implode(' ', $tags);
-			 	request('bookmark','add',['url'=>$download_url,'tags'=>$tags]);
+			 	request('bookmark','add',['url'=>$display_url,'tags'=>$tags,'comment'=>t('Show "?" in Umbrella File Manager.',$info['name'])]);
 			}
 			redirect('index'.($dir?'?path='.$dir:''));
 		} else error($info);
