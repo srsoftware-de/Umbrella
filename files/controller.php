@@ -53,9 +53,8 @@
 		global $user;
 		$dir = param('dir');
 		if (!$dir) $dir = 'user'.$user->id;	
-		
-		$filename = base_dir().DS.$dir.DS.$file_data['name'];
-debug($filename);
+		$filename = get_absolute_path($dir.DS.$file_data['name']);
+		if (!$filename) return null;
 		if (strpos($filename,'user'.$user->id)===false) return t('You are not allowed to write to ?',dirname($filename));
 		
 		if (file_exists($filename)) return 'A file "'.$filename.'" already exists!';
@@ -68,7 +67,7 @@ debug($filename);
 		
 		if (!rename($file_data['tmp_name'], $filename)) return t('Was not able to move file to ?!',$directory);
 		
-		return true;
+		return ['name'=>$file_data['name'],'absolute'=>$filename,'dir'=>$dir];
 	}	
 
 	function delete_file($filename){

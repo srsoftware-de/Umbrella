@@ -85,6 +85,7 @@ function info($message){
 }
 function error($message,$args = null){
 	global $errors;
+	if ($message === null) return;
 	$errors[] = t($message,$args);
 }
 
@@ -170,7 +171,7 @@ function require_login($service_name = null){
 	if ($_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
 	$user = getLocallyFromToken();
 	if ($user === null) validateToken($service_name);
-	if ($user === null) redirect($services['user']['path'].'login?returnTo='.location());
+	if ($user === null) redirect(getUrl('user','login?returnTo='.location()));
 	session_write_close();
 }
 
@@ -187,7 +188,7 @@ function postLink($url,$caption,$data = array(),$title = null){
 function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index')){
 	$result = '<fieldset class="dialog">'.$question.'</br>';
 	foreach ($options as $text => $link){
-		$result .= '<a href="'.$link.'">'.$text.'</a>&nbsp';
+		$result .= '<a class="button" href="'.$link.'">'.$text.'</a>&nbsp';
 	}
 	return $result.'</fieldset>';
 }

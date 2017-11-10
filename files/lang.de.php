@@ -4,6 +4,7 @@ $translations = array(
 		'Bookmarks'=>'Lesezeichen',
 		'Contacts'=>'Kontakte',
 		'Directory'=>'Verzeichnis',
+		'File'=>'Datei',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
 		'Log out ?'=>'? ausloggen',

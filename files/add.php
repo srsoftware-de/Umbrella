@@ -11,10 +11,19 @@ if (isset($_FILES['file'])){
 	if ($file_info['size'] == 0) {
 		error('Uploaded file is empty!');
 	} else {
-		$result = add_file($file_info);
-		if ($result === true) {
+		$info = add_file($file_info);
+		if (is_array($info)) {
+			if (isset($services['bookmark'])){ // add to bookmarks
+				$tags = explode(DS, $dir);
+				array_splice($tags, array_search('user'.$user->id, $tags ), 1); // delete "userXX" from tags
+				$tags[] = t('File');
+				$tags[] = $info['name'];
+				$download_url = getUrl('files','download?file='.$info['dir'].DS.$info['name']);
+				$tags=implode(' ', $tags);
+			 	request('bookmark','add',['url'=>$download_url,'tags'=>$tags]);
+			}
 			redirect('index'.($dir?'?path='.$dir:''));
-		} else error($result);
+		} else error($info);
 	}    	
 }
 

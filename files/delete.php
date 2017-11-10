@@ -23,8 +23,6 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 
-if ($file){
-	echo dialog(t('Are you sure, you want to delete "?"?',$filename),array('YES'=>'?file='.urlencode($filename).'&confirm=yes','NO'=>'index'));
-}
+if ($file) echo dialog(t('Are you sure, you want to delete "?"?',$filename),array(t('YES')=>'?file='.urlencode($filename).'&confirm=yes',t('NO')=>'index'));
 
 include '../common_templates/closure.php'; ?>
