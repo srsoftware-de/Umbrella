@@ -80,7 +80,7 @@
 			if ($tag != '')	assert($query->execute([':tag'=>strtolower($tag),':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
 		}
 		
-		if ($redirect)redirect(getUrl('bookmark'));
+		if ($redirect)redirect(getUrl('bookmark','index/5')); // show last five bookmarks
 	}
 	
 	function load_tag($tag = null){
@@ -98,7 +98,7 @@
 			
 			$qMarks = str_repeat("?,", count($url_hashes)-1) . "?";
 			
-			$query = $db->prepare("SELECT * FROM urls WHERE hash IN ($qMarks)");
+			$query = $db->prepare("SELECT * FROM urls WHERE hash IN ($qMarks) ORDER BY timestamp DESC");
 			assert($query->execute($url_hashes),'Was not able to load urls for tag!');
 			$urls = $query->fetchAll(INDEX_FETCH);
 			

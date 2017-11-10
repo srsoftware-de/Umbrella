@@ -13,6 +13,8 @@ if (isset($_POST['confirm']) && $_POST['confirm']==true) {
 	redirect('..');
 }
 
+if (!$link['comment']) $link['comment'] = t('[uncommented link]');
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';

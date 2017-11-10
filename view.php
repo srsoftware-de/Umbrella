@@ -4,6 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('bookmark');
+$base_url = getUrl('bookmark');
 $tag = param('id');
 if (!$tag) error('No tag passed to view!');
 
