@@ -49,11 +49,7 @@
 		$query = $db->prepare('SELECT domain FROM token_uses WHERE token = :token;');
 		if ($query->execute([':token'=>$token])){
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-			foreach ($rows as $row){
-				$url = $row['domain'].'revoke?token='.$token;
-				print_r($url);
-				file_get_contents($url);
-			}
+			foreach ($rows as $row) file_get_contents($row['domain'].'?revoke='.$token);
 		}
 	}
 

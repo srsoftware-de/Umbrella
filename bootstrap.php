@@ -154,12 +154,11 @@ function validateToken($service_name = null){
 	} else $user = null;
 }
 
-function revoke_token(){
-	$token = $_SESSION['token'];
-	unset($_SESSION['token']);
+function revoke_token($token){
 	$db = get_or_create_db();
 	$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
 	assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
+	unset($_SESSION['token']);	
 }
 
 /**
@@ -167,6 +166,10 @@ function revoke_token(){
  */
 function require_login($service_name = null){
 	global $services,$user;
+	
+	$revoke = param('revoke');
+	if ($revoke) die(revoke_token($revoke));
+	
 	assert($service_name !== null,'require_login called without a service name!');
 	if ($_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
 	$user = getLocallyFromToken();
