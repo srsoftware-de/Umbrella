@@ -88,6 +88,7 @@
 			$db->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL);');
 			$db->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
 			$db->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
+			$db->query('CREATE TABLE login_services (name VARCHAR(255), url TEXT, client_id VARCHAR(255), client_secret VARCHAR(255), user_info_field VARCHAR(255), PRIMARY KEY (name));');
 			add_user($db,'admin','admin');
 		} else {
 			$db = new PDO('sqlite:db/users.db');
@@ -141,5 +142,21 @@
 			} else 	$query->execute([':token'=>$row['token']]); // drop expired token
 		}
 		$user = ($user_id === null) ? null : load_user($user_id);
+	}
+	
+	function get_login_services($name = null){
+		$db = get_or_create_db();
+		
+		$sql = 'SELECT * FROM login_services';
+		$args = [];
+		if ($name) {
+			$sql .= ' WHERE name = :name';
+			$args[':name'] = $name;
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to read login services list.');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		if ($name) return $rows[$name];
+		return $rows;
 	}
 ?>
