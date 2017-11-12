@@ -19,6 +19,20 @@ function get_or_create_db(){
 	return $db;
 }
 
+function create_vcard($data){
+	$vcard = array();
+	$vcard['BEGIN'] = 'VCARD';
+	$vcard['VERSION'] = '4.0';
+
+	foreach ($data as $key => $value) {
+		$value = str_replace(array("\r\n","\r","\n"), ';', $value);
+		$vcard[$key] = $value;
+	}
+	$vcard['END'] = 'VCARD';
+	return $vcard;
+}
+
+
 function convert_val($key,$value){
 	if ($key == 'N') return $value['surname'].';'.$value['given'].';'.$value['additional'].';'.$value['prefix'].';'.$value['suffix'];
 	if ($key == 'ADR') return ';;'.$value['street'].';'.$value['locality'].';'.$value['region'].';'.$value['pcode'].';'.$value['country'];
