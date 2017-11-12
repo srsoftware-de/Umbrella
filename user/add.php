@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_user_login();
 
 if ($email = post('email')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
