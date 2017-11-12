@@ -190,6 +190,13 @@
 		redirect('index');
 	}
 	
+	function deassign_service($foreign_id){
+		$db = get_or_create_db();		
+		$query = $db->prepare('DELETE FROM service_ids_users WHERE service_id = :service;');
+		assert($query->execute([':service'=>$foreign_id]),t('Was not able to de-assign service id (?) from your user account!',$foreign_id));
+		redirect('index');
+	}
+	
 	function get_assigned_logins($foreign_id = null){
 		global $user;
 		$db = get_or_create_db();

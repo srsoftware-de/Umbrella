@@ -50,6 +50,7 @@ if (isset($services['contact'])){
 		<tr>
 			<th><?= t('Service Name')?></th>
 			<th><?= t('User id')?></th>
+			<th><?= t('Actions')?></th>
 		</tr>
 	<?php foreach ($assigned_logins as $login => $dummy) {
 		$parts = explode(':', $login);
@@ -61,6 +62,7 @@ if (isset($services['contact'])){
 		<tr>
 			<td><a href="<?= $login_service['url']?>"><?= $name ?></a></td>
 			<td><?= $id ?></td>
+			<td><a class="symbol" title="Delete assignment" href="<?= urlencode($login) ?>/deassign"> </a></td>
 		</tr>
 	<?php } ?>
 	</table>
@@ -71,15 +73,18 @@ if (isset($services['contact'])){
 
 <table>
 	<tr>
-		<th>Id</th>
-		<th>Username</th>
-		<th>Actions</th>
+		<th><?= t('Id')?></th>
+		<th><?= t('Username')?></th>
+		<th><?= t('Actions')?></th>
 	</tr>
 <?php foreach ($users as $id => $u): ?>
 	<tr>
 		<td><?= $id ?></td>
 		<td><?= $u['login'] ?></td>
-		<td><a href="<?= $id?>/edit">Edit</a></td>
+		<td>
+			<a class="symbol" title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
+			<a class="symbol" title="<?= t('Delete user')?>" href="<?= $id?>/delete"> </a>
+		</td>
 	</tr>
 <?php endforeach; ?>
 
