@@ -91,8 +91,7 @@ if (!function_exists('json_decode')) {
  * Please note this class stores nonces by default in $_SESSION['openid_connect_nonce']
  *
  */
-class OpenIDConnectClient
-{
+class OpenIDConnectClient{
 
     /**
      * @var string arbitrary id value
@@ -188,6 +187,12 @@ class OpenIDConnectClient
      * @var int timeout (seconds)
      */
     protected $timeOut = 60;
+    
+    /**
+     * @const By default, signature verification is not enforced in authenticate method. However by passing FORCE_SIGNATURE_VERIFICATION it can be enforced.
+     */
+    const FORCE_SIGNATURE_VERIFICATION = true;
+    const OPTIONAL_SIGNATURE_VERIFICATION = false;
 
     /**
      * @param $provider_url string optional
@@ -217,10 +222,12 @@ class OpenIDConnectClient
     }
 
     /**
+     * @param bool $signature_verification By default, autheticate will check signature only if RSA library is available AND jwks_uri is proveded.
+     * When this parameter is set to FORCE_SIGNATURE_VERIFICATION, absence of the library or an jwks_uri will throw an Exception.
      * @return bool
      * @throws OpenIDConnectClientException
      */
-    public function authenticate() {
+    public function authenticate($signature_verification = self::OPTIONAL_SIGNATURE_VERIFICATION) {
 
         // Do a preemptive check to see if the provider has thrown an error from a previous redirect
         if (isset($_REQUEST['error'])) {
@@ -233,8 +240,7 @@ class OpenIDConnectClient
 
             $code = $_REQUEST["code"];
             $token_json = $this->requestTokens($code);
-
-            // Throw an error if the server returns one
+			// Throw an error if the server returns one
             if (isset($token_json->error)) {
                 if (isset($token_json->error_description)) {
                     throw new OpenIDConnectClientException($token_json->error_description);
@@ -255,19 +261,28 @@ class OpenIDConnectClient
             }
 
             $claims = $this->decodeJWT($token_json->id_token, 1);
-
-            // Verify the signature
-            if ($this->canVerifySignatures()) {
-		if (!$this->getProviderConfigValue('jwks_uri')) {
-                    throw new OpenIDConnectClientException ("Unable to verify signature due to no jwks_uri being defined");
-                }
-                if (!$this->verifyJWTsignature($token_json->id_token)) {
-                    throw new OpenIDConnectClientException ("Unable to verify signature");
-                }
+		    // Verify the signature
+		    
+            if ($this->canVerifySignatures()){
+            	try {
+            		if (!$this->verifyJWTsignature($token_json->id_token)){
+            			throw new OpenIDConnectClientException ("Unable to verify signature");
+            		}
+            	} catch (OpenIDConnectClientException $ex){
+            		// if signature verification is forced, throw an exception
+            		if ($signature_verification == self::FORCE_SIGNATURE_VERIFICATION){
+            			throw $ex;
+            		} else { // otherwise: just raise a warning
+            			user_error('Signature verification skipped: '.$ex->getMessage());
+            		}
+            	}
+            } elseif ($signature_verification == self::FORCE_SIGNATURE_VERIFICATION){
+            	throw new OpenIDConnectClientException ("Signature verification enforced, but JWT signature verification unavailable!");
             } else {
-                user_error("Warning: JWT signature verification unavailable.");
+            	user_error('Warning: Sigature verification skipped due to missing RSA library.');
             }
-
+		    
+		    
             // If this is a valid claim
             if ($this->verifyJWTclaims($claims, $token_json->access_token)) {
 
@@ -728,7 +743,7 @@ class OpenIDConnectClient
         }
         return $verified;
     }
-
+    
     /**
      * @param object $claims
      * @return bool
@@ -742,15 +757,16 @@ class OpenIDConnectClient
                 $bit = '256';
             }
             $len = ((int)$bit)/16;
-            $expecte_at_hash = $this->urlEncode(substr(hash('sha'.$bit, $accessToken, true), 0, $len));
+            $expected_at_hash = $this->urlEncode(substr(hash('sha'.$bit, $accessToken, true), 0, $len));
         }
-        return (($claims->iss == $this->getProviderURL())
-            && (($claims->aud == $this->clientID) || (in_array($this->clientID, $claims->aud)))
-            && ($claims->nonce == $this->getNonce())
-            && ( !isset($claims->exp) || $claims->exp >= time())
-            && ( !isset($claims->nbf) || $claims->nbf <= time())
-            && ( !isset($claims->at_hash) || $claims->at_hash == $expecte_at_hash )
-        );
+        
+		if (rtrim($claims->iss,'/') != rtrim($this->getProviderURL(),'/')) return false;
+		if (($claims->aud != $this->clientID) && (!in_array($this->clientID, $claims->aud))) return false;
+		if ($claims->nonce != $this->getNonce()) return false;
+		if (isset($claims->exp) && $claims->exp < time()) return false;
+        if (isset($claims->nbf) && $claims->nbf > time()) return false;
+        if (isset($claims->at_hash) && $claims->at_hash != $expected_at_hash) return false;
+        return true;
     }
 
     /**

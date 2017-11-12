@@ -29,7 +29,7 @@ include '../common_templates/messages.php'; ?>
 <fieldset>
 	<legend><?= t('Login using OAuth 2 / OpenID Connect')?></legend>
 	<?php foreach ($login_services as $name => $data) {?>
-	<a href="openid_login?service=<?= $name ?>"><?= $name ?></a>
+	<a class="button" href="openid_login?service=<?= $name ?>"><?= $name ?></a>
 	<?php }?>
 </fieldset>
 <?php } ?>

@@ -1,4 +1,5 @@
 <?php
+
 	function perform_login($login = null, $pass = null){
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
@@ -18,6 +19,25 @@
 		}
 		sleep(10);
 		error('The provided username/password combination is not valid!');
+	}
+	
+	function perform_id_login($id){
+		debug("perdorm_id_login($id)");
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM users WHERE id = :id;');
+		assert($query->execute(array(':id'=>$id)),'Was not able to request users from database!');
+		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($results as $user){
+			$token = getOrCreateToken($user);
+			$redirect = param('returnTo');
+			if ($redirect) $redirect.='?token='.$token;
+			if (!$redirect && $user['id'] == 1) $redirect='index';
+			if (!$redirect)	$redirect = getUrl('task');
+			if (!$redirect)	$redirect = $user['id'].'/view';
+			redirect($redirect);
+			break;
+		}
+		error('No user found for id',$id);
 	}
 
 	function getOrCreateToken($user = null){
@@ -89,6 +109,7 @@
 			$db->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
 			$db->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
 			$db->query('CREATE TABLE login_services (name VARCHAR(255), url TEXT, client_id VARCHAR(255), client_secret VARCHAR(255), user_info_field VARCHAR(255), PRIMARY KEY (name));');
+			$db->query('CREATE TABLE service_ids_users (service_id VARCHAR(255) NOT NULL PRIMARY KEY, user_id INT NOT NULL);');
 			add_user($db,'admin','admin');
 		} else {
 			$db = new PDO('sqlite:db/users.db');
@@ -157,6 +178,34 @@
 		assert($query->execute($args),'Was not able to read login services list.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		if ($name) return $rows[$name];
+		return $rows;
+	}
+	
+	function assign_user_service($foreign_id){
+		global $user;
+		$db = get_or_create_db();
+		
+		$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user);');
+		assert($query->execute([':service'=>$foreign_id,':user'=>$user->id]),t('Was not able to assign service id (?) with your user account!',$foreign_id));
+		redirect('index');
+	}
+	
+	function get_assigned_logins($foreign_id = null){
+		global $user;
+		$db = get_or_create_db();
+		
+		$sql = 'SELECT * FROM service_ids_users ';
+		if ($foreign_id !== null) {			
+			$sql .= 'WHERE service_id = :id';
+			$args = [':id'=>$foreign_id];
+		} else {
+			$sql .= 'WHERE user_id = :id';
+			$args = [':id'=>$user->id];
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to read list of assigned logins.');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		if ($foreign_id !== null) return $rows[$foreign_id];
 		return $rows;
 	}
 ?>
