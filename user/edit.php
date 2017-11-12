@@ -3,7 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login();
+require_user_login();
 $user_id = param('id');
 
 if ($user->id != 1) {
