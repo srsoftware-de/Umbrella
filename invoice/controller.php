@@ -248,4 +248,5 @@ function save_settings($settings){
 									:invoice_number)');
 	assert($query->execute($args),t('Was not able to store your invoice settings'));
 }
+
 ?>

@@ -8,9 +8,16 @@
 	const DS = '/';
 
 	function get_or_create_db(){
-		if (!file_exists('db'))assert(mkdir('db'),'Failed to create file/db directory!');
-		assert(is_writable('db'),'Directory file'.DS.'db not writable!');
-		return new PDO('sqlite:db'.DS.'files.db');
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create files'.DS.'db directory!');
+		assert(is_writable('db'),'Directory files'.DS.'db not writable!');
+		if (!file_exists('db'.DS.'files.db')){
+			$db = new PDO('sqlite:db'.DS.'files.db');
+			$db->query('CREATE TABLE file_shares (file VARCHAR(2048) NOT NULL, user_id INT NOT NULL, PRIMARY KEY(file, user_id));');
+		} else {
+			$db = new PDO('sqlite:db'.DS.'files.db');
+		}
+		return $db;
+		
 	}
 
 	function base_dir(){
@@ -43,7 +50,9 @@
 		}
 		if ($filename[0] != DS) $filename = DS.$filename;
 		if (strpos($filename,DS.'user'.$user->id)!==false) return base_dir().$filename;
-		// TODO: implement hook to access shared files of other users
+		if (!empty(shared_files(ltrim($filename,DS)))) return base_dir().$filename;
+		
+		
 		error('You are not allowed to access ?',$filename);
 		return null;
 	}
@@ -85,5 +94,84 @@
 		if (!$parent) return false;
 		if (mkdir($parent.DS.$dirname)) return $rel_par.DS.$dirname;
 		return false;
+	}
+
+
+
+	function get_shares($filename){
+		$absolute_path = get_absolute_path($filename);
+		if (!$absolute_path) return error('You are not allowed to access ?',$filename);
+		$db = get_or_create_db();
+		
+		$query = $db->prepare('SELECT user_id FROM file_shares WHERE file = :file');
+		assert($query->execute([':file'=>$filename]),'Was no able to query file list.');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		return $rows;
+	}
+	
+	function shared_files($filename = null){
+		global $user;
+		//$absolute_path = get_absolute_path($filename);
+		$db = get_or_create_db();
+	
+		$sql = 'SELECT file FROM file_shares WHERE user_id = :uid';
+		$args = [':uid'=>$user->id];
+		if ($filename !== null){
+			$sql .= ' AND file = :file';
+			$args[':file'] = $filename; 
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was no able to query file list.');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);		
+		if ($filename !== null) return $rows; // used by download()
+		$result = array();
+		foreach ($rows as $row){
+			$filename = $row['file'];
+			$parts = explode(DS, $filename);
+			$pointer = &$result;
+			while ($part = array_shift($parts)){
+				
+				if (!isset($pointer[$part])){
+					$pointer[$part] = [];
+					if (count($parts) == 1){
+						$pointer[$part][array_shift($parts)] = file;
+					}
+					
+				}
+				$pointer = &$pointer[$part];
+				
+			}
+			
+		}		
+		return $result;
+	}
+
+	function share_file($filename = null,$user_id = null){
+		assert(is_string($filename),'No filename given!');
+		assert(is_numeric($user_id),'No user selected!');
+		$db = get_or_create_db();
+	
+		$query = $db->prepare('INSERT INTO file_shares (file, user_id) VALUES (:file, :uid);');
+		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
+		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}	
+	
+	function unshare_file($filename = null,$user_id = null){
+		assert(is_string($filename),'No filename given!');
+		assert(is_numeric($user_id),'No user selected!');
+		$db = get_or_create_db();
+		
+		$query = $db->prepare('DELETE FROM file_shares WHERE file = :file AND user_id = :uid;');
+		debug($query);
+		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
+		redirect(getUrl('files','share?file='.urlencode($filename)));
+	}
+	
+	function load_connected_users(){
+		$projects = request('project','list');
+		$project_ids = array_keys($projects);
+		$project_users = request('project','user_list',['id'=>$project_ids]);
+		$user_list = request('user','list');
+		return array_intersect_key($user_list, $project_users);		
+	}
 ?>

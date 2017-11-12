@@ -9,22 +9,12 @@ if ($email = post('email')){ // defined in bootstrap.php
 	} else error('No password given!');
 } else if ($pass = post('pass')) error('No email given');
 
-info('The default username/password is admin/admin.');
+info(t('The default username/password is admin/admin.'));
 
 $login_services = get_login_services();
 include '../common_templates/head.php'; 
 include '../common_templates/messages.php'; ?>
-<form method="POST">
-	<fieldset><legend>Login</legend>
-		<fieldset><legend>Email</legend>
-		<input type="text" autofocus="true" name="email" />
-		</fieldset>
-		<fieldset><legend>Password</legend>
-		<input type="password" name="pass" />
-		</fieldset>
-		<input type="submit" />
-	</fieldset>
-</form>
+
 <?php if (!empty($login_services)) { ?>
 <fieldset>
 	<legend><?= t('Login using OAuth 2 / OpenID Connect')?></legend>
@@ -34,3 +24,17 @@ include '../common_templates/messages.php'; ?>
 </fieldset>
 <?php } ?>
 <?php include '../common_templates/closure.php'; ?>
+
+
+<form method="POST">
+	<fieldset><legend><?= t('Login using email and password')?></legend>
+		<fieldset><legend><?= t('Email')?></legend>
+		<input type="text" autofocus="true" name="email" />
+		</fieldset>
+		<fieldset><legend><?= t('Password')?></legend>
+		<input type="password" name="pass" />
+		</fieldset>
+		<input type="submit" />
+	</fieldset>
+</form>
+

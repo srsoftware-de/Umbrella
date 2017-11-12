@@ -47,11 +47,20 @@ include '../common_templates/messages.php'; ?>
 			</a>
 		</td>
 		<td>
-			<a class="symbol" title="share" href="share?file=<?= $path.DS.$file ?>"></a>
+			<a class="symbol" title="share" href="share?file=<?= $path.DS.$file ?>"></a>
 			<a class="symbol" title="delete" href="delete?file=<?= $path.DS.$file ?>"></a>
 		</td>
 	</tr>
 	<?php }?>
+	<tr>
+		<td>
+			<a href="shared">
+				<span class="symbol"></span> <?= t('shared files')?>
+			</a>
+		</td>
+		<td></td>
+	</tr>
+	
 </table>
 
 <?php include '../common_templates/closure.php'; ?>
