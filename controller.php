@@ -102,12 +102,14 @@
 		return $projects;
 	}
 
-	function load_users($id = null){
-		assert($id !== null,'No project id passed to load_project!');
-		assert(is_numeric($id),'Invalid project id passed to load_project!');
+	function load_users($ids = null){
+		assert($ids !== null,'No project id passed to load_project!');
+		if (!is_array($ids)) $ids = [$ids];
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT user_id, permissions FROM projects_users WHERE project_id = :id');
-		assert($query->execute(array(':id'=>$id)));
+		$qmarks = implode(',', array_fill(0, count($ids), '?'));
+		
+		$query = $db->prepare('SELECT user_id, permissions FROM projects_users WHERE project_id in ('.$qmarks.')');
+		assert($query->execute($ids));
 		$results = $query->fetchAll(INDEX_FETCH);
 		return $results;
 	}

@@ -90,7 +90,7 @@ include '../common_templates/messages.php';
 		<td>
 			<ul>
 			<?php foreach ($project_users as $uid => $u) { ?>
-				<li><?= $u['login'].' ('.$PROJECT_PERMISSIONS[$project_users_permissions[$uid]['permissions']].')'; ?></li>
+				<li><?= $u['login'].' ('.t($PROJECT_PERMISSIONS[$project_users_permissions[$uid]['permissions']]).')'; ?></li>
 			<?php } ?>
 			</ul>
 		</td>
