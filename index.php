@@ -13,10 +13,10 @@ include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
-<div class="hover right-abs">
+<div class="hover right-fix">
 	<table>
 		<tr><th>
-			Hide/Show (<a href="#" onclick="return toggle('[class^=project_]');">all</a>)
+			<?= t('Hide/Show') ?> (<a href="#" onclick="return toggle('[class^=project_]');"><?= t('all')?></a>)
 		</th></tr>
 		<?php foreach ($projects as $pid => $project){ ?>
 		<tr class="plist">
@@ -29,12 +29,12 @@ include '../common_templates/messages.php'; ?>
 </div>
 <table class="tasklist">
 	<tr>
-		<th><a href="?order=name">Name</a></th>
-		<th><a href="?order=parent_task_id">Parent Task</a></th>
-		<th><a href="?order=project_id">Project</a></th>
-		<th><a href="?order=status">Status</a></th>
-		<th><a href="?order=start_date">Start</a></th>
-		<th><a href="?order=due_date">Due</a></th>
+		<th><a href="?order=name"><?= t('Name')?></a></th>
+		<th><a href="?order=parent_task_id"><?= t('Parent Task')?></a></th>
+		<th><a href="?order=project_id"><?= t('Project')?></a></th>
+		<th><a href="?order=status"><?= t('Status')?></a></th>
+		<th><a href="?order=start_date"><?= t('Start')?></a></th>
+		<th><a href="?order=due_date"><?= t('Due')?></a></th>
 		<th>Actions</th>
 	</tr>
 
@@ -58,16 +58,16 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 		</td>
 		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
-		<td><?= $TASK_STATES[$task['status']] ?></td>
+		<td><?= t($TASK_STATES[$task['status']]) ?></td>
 		<td><?= $task['start_date'] ?></td>
 		<td><?= $task['due_date'] ?></td>
 		<td>
-			<a title="edit"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
-			<a title="start  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
-			<a title="complete" href="<?= $id ?>/complete?redirect=../index" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-			<a title="cancel"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="open"     href="<?= $id ?>/open?redirect=../index"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
-			<a title="wait"     href="<?= $id ?>/wait?redirect=../index"	  class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
+			<a title="<?= t('start')?>  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('cancel')?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('do open')?>"     href="<?= $id ?>/open?redirect=../index"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('wait')?>"     href="<?= $id ?>/wait?redirect=../index"	  class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 
 		</td>
 	</tr>

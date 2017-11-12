@@ -51,16 +51,17 @@ function display_children($task){
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <table class="vertical tasks">
 	<tr>
 		<th><?= t('Task')?></th>
 		<td>
+			<h1><?= $task['name'] ?></h1>
 			<span class="right">
 				<a title="<?= t('edit')?>"		href="edit"		class="symbol"></a>
 				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"></a>
+				<a title="<?= t('add user')?>" href="add_user" class="symbol"></a>
 				<a title="<?= t('start')?>"    href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('complete')?>" href="complete" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('cancel')?>"   href="cancel"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
@@ -72,7 +73,7 @@ include '../common_templates/messages.php'; ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
 				<?php } ?>
 			</span>
-			<h1><?= $task['name'] ?></h1>
+						
 		</td>
 	</tr>
 	<tr>
