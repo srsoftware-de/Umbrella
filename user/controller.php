@@ -139,8 +139,8 @@
 		$db = get_or_create_db();
 		$hash = sha1($new_pass); // TODO: better hashing
 		$query = $db->prepare('UPDATE users SET pass = :pass WHERE id = :id;');
-		assert ($query->execute(array(':pass'=>$hash,':id'=>$user['id'])),'Was not able to update user '.$user['login']);
-
+		assert ($query->execute(array(':pass'=>$hash,':id'=>$user->id)),'Was not able to update user '.$user->login);
+		info('Your password has been changed.');
 	}
 
 	function require_user_login(){
