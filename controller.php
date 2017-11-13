@@ -37,16 +37,16 @@
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to request url list!');
 		$urls = $query->fetchAll(INDEX_FETCH);
-		
-		$hashes = array_keys($urls);
+		$hashes = array_keys($urls);		
 		$qmarks = implode(',', array_fill(0, count($hashes), '?'));
+		$hashes[] = $user->id; // add user id
 		
-		$query = $db->prepare('SELECT tag,url_hash FROM tags WHERE url_hash IN ('.$qmarks.')');
+		$query = $db->prepare('SELECT tag,url_hash FROM tags WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
 		assert($query->execute($hashes),'Was not able to request tags for url list!');
 		$tags = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($tags as $tag) $urls[$tag['url_hash']]['tags'][] = $tag['tag'];
 		
-		$hashes[] = $user->id; // add us
+		
 		$query = $db->prepare('SELECT url_hash,comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
 		assert($query->execute($hashes),'Was not able to request comments for url list!');
 		$comments = $query->fetchAll(INDEX_FETCH);
@@ -176,6 +176,20 @@
 	}
 	
 	function share_bookmark($user_id,$url_hash){
-		// TODO: implement
+		global $user;
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT tag FROM tags WHERE url_hash = :hash AND user_id = :uid');
+		assert($query->execute([':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to read your tags.');
+		$tags = array_keys($query->fetchAll(INDEX_FETCH));
+		$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid)');
+		foreach ($tags as $tag) $query->execute([':tag'=>$tag,':hash'=>$url_hash,':uid'=>$user_id]);
+		$query = $db->prepare('SELECT comment_hash FROM url_comments WHERE url_hash = :hash AND user_id = :uid');
+		assert($query->execute([':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to read comment for url.');
+		$comment_hashes = array_keys($query->fetchAll(INDEX_FETCH));
+		if (!empty($comment_hashes)){
+			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:url_hash, :comment_hash, :uid)');
+			foreach ($comment_hashes as $comment_hash) $query->execute([':url_hash'=>$url_hash,':comment_hash'=>$comment_hash,':uid'=>$user_id]);
+		}
+		info('Your bookmark has been shared.');
 	}
 ?>
