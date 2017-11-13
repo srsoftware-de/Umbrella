@@ -79,9 +79,10 @@ function param($name,$default = null){
 	return post($name,$default);
 }
 
-function info($message){
+function info($message,$args = null){
 	global $infos;
-	$infos[] = $message;
+	if ($message === null) return;
+	$infos[] = t($message,$args);
 }
 function error($message,$args = null){
 	global $errors;
@@ -114,9 +115,9 @@ function replace_text($text,$replacements = null){
 	return $text;
 }
 
-function location(){
+function location($drop_param = false){
 	$port = $_SERVER['SERVER_PORT'];
-	return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).$_SERVER['REQUEST_URI'];
+	return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).($drop_param?$_SERVER['REDIRECT_URL']:$_SERVER['REQUEST_URI']);
 }
 
 function getLocallyFromToken(){
@@ -211,7 +212,7 @@ function init(){
 	$user = null;
 	session_start();
 	if (!isset($_SESSION['token'])) $_SESSION['token'] = param('token');
-	if (isset($_GET['token'])) redirect('.'); // if token was appended to url: set cookie and reload
+	if (isset($_GET['token'])) redirect(location(true)); // if token was appended to url: set cookie and reload
 }
 
 function objectFrom($entity){
