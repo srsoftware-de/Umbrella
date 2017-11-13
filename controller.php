@@ -10,7 +10,7 @@
 			$db->query('CREATE TABLE tags (tag VARCHAR(255) NOT NULL, url_hash VARCHAR(255) NOT NULL, user_id int NOT NULL, UNIQUE(tag, url_hash, user_id));');			
 			$db->query('CREATE TABLE urls (hash VARCHAR(255) PRIMARY KEY, url TEXT NOT NULL, timestamp INT NOT NULL DEFAULT 0);');
 			$db->query('CREATE TABLE comments (hash VARCHAR(255) PRIMARY KEY, comment TEXT NOT NULL)');
-			$db->query('CREATE TABLE url_comments (url_hash VARCHAR(255) NOT NULL, comment_hash VARCHAR(255) NOT NULL, user_id INT NOT NULL, UNIQUE(url_hash, comment_hash, user_id));');
+			$db->query('CREATE TABLE url_comments (url_hash VARCHAR(255) NOT NULL, comment_hash VARCHAR(255) NOT NULL, user_id INT NOT NULL, UNIQUE(url_hash, user_id));');
 		} else {
 			$db = new PDO('sqlite:db/tags.db');
 		}
