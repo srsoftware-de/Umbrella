@@ -65,4 +65,4 @@ include '../common_templates/messages.php';
 	</table>
 </fieldset>
 
-<?php include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php'; ?>

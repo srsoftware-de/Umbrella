@@ -35,7 +35,8 @@ include '../common_templates/messages.php'; ?>
 			</a>
 		</td>
 		<td>
-			<a class="symbol" title="delete" href="delete?file=<?= $path.DS.$dir ?>"></a>
+			<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $path.DS.$dir ?>"></a>
+			<a class="symbol" title="<?= t('delete')?>"  href="delete?file=<?= $path.DS.$dir ?>"></a>			
 		</td>
 	</tr>
 	<?php }?>
@@ -47,8 +48,9 @@ include '../common_templates/messages.php'; ?>
 			</a>
 		</td>
 		<td>
-			<a class="symbol" title="share" href="share?file=<?= $path.DS.$file ?>"></a>
-			<a class="symbol" title="delete" href="delete?file=<?= $path.DS.$file ?>"></a>
+			<a class="symbol" title=<?= t('share')?> href="share?file=<?= $path.DS.$file ?>"></a>
+			<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $path.DS.$file ?>"></a>
+			<a class="symbol" title="<?= t('delete')?>" href="delete?file=<?= $path.DS.$file ?>"></a>
 		</td>
 	</tr>
 	<?php }?>

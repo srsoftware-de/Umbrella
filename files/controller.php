@@ -174,4 +174,16 @@
 		$user_list = request('user','list');
 		return array_intersect_key($user_list, $project_users);		
 	}
+	
+	function renameFile($currentname = null,$newname = null){
+		if ($currentname === null || trim($currentname == '')) return error('Rename called, but no source file given!');
+		if ($newname === null || trim($newname == '')) return error('Rename called, but no new name given!');
+		$origin = get_absolute_path($currentname);
+		if ($origin){
+			$dir = dirname($origin);
+			$target = $dir.DS.$newname;
+			if (!rename($origin,$target)) return error('Was not able to rename file!');
+			redirect('index?path='.dirname($currentname));
+		}
+	}
 ?>
