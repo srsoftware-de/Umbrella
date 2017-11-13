@@ -2,6 +2,10 @@
     font-family: "awesome";
     src: url("fontawesome-webfont.woff");
 }
+*{
+	max-width:100%;
+	min-width:auto;
+}
 
 body{
 	color: red;
@@ -184,7 +188,15 @@ td > h1{
 	display: inline-block;
 	vertical-align: top;
 }
-
+.bookmark .share,
+.bookmark .tags{
+	display: inline-block;
+}
+.bookmark>fieldset>a{
+	word-wrap: break-word;
+	display: block;	
+	min-width: auto;
+}
 @media (max-width:1199px) {
 	.tasklist tr>*:nth-child(2){
 		display: none;
