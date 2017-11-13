@@ -2,3 +2,4 @@
 config.php
 bookmark
 .*.swp
+.storage
