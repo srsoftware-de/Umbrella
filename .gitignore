@@ -1,4 +1,7 @@
 *.db
 config.php
 bookmark
+files
+project
+task
 .*.swp
