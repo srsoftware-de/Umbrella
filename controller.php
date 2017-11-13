@@ -65,12 +65,12 @@
 		
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT OR IGNORE INTO urls (hash, url, timestamp) VALUES (:hash, :url, :time);');
-		assert($query->execute([':hash'=>$url_hash,':url'=>$url,':time'=>time()]),'Was not able to store url in database');  		
+		assert($query->execute([':hash'=>$url_hash,':url'=>$url,':time'=>time()]),'Was not able to store url in database');
 		
 		if ($comment_hash !== null) {
 			$query = $db->prepare('INSERT OR IGNORE INTO comments (hash, comment) VALUES (:hash, :comment);');
 			assert($query->execute([':hash'=>$comment_hash,':comment'=>$comment]));
-			
+				
 			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:uhash, :chash, :uid)');
 			$query->execute([':uhash'=>$url_hash,':chash'=>$comment_hash,':uid'=>$user->id]); 
 		}
@@ -78,8 +78,8 @@
 		$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid);');
 		foreach ($tags as $tag) {
 			if ($tag != '')	assert($query->execute([':tag'=>strtolower($tag),':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
-		}
-		
+	}
+	
 		if ($redirect)redirect(getUrl('bookmark','index/5')); // show last five bookmarks
 	}
 	
@@ -165,5 +165,17 @@
 	function update_url($link){
 		delete_link($link);
 		save_tag($_POST['url'],$_POST['tags'],$_POST['comment']);		
+	}
+
+	function load_connected_users(){
+		$projects = request('project','list');
+		$project_ids = array_keys($projects);
+		$project_users = request('project','user_list',['id'=>$project_ids]);
+		$user_list = request('user','list');
+		return array_intersect_key($user_list, $project_users);
+	}
+	
+	function share_bookmark($user_id,$url_hash){
+		// TODO: implement
 	}
 ?>
