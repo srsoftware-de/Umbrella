@@ -6,6 +6,7 @@ $translations = array(
 	'Invoices'=>'Rechnungen',
 	'Login using email and password'=>'Mit Email und Passwort einloggen',
 	'Login using OAuth 2 / OpenID Connect'=>'Mit OAuth 2 / OpenID Connect einloggen',
+	'Log in using ? account.'=>'Mit ?-Account einloggen',
 	'Log out ?'=>'? ausloggen',
 	'Password'=>'Passwort',
 	'Projects'=>'Projekte',

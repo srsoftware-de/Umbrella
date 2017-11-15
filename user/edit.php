@@ -6,7 +6,8 @@ include 'controller.php';
 require_user_login();
 $user_id = param('id');
 
-if ($user->id != 1 && $user->id != $user_id) error('Currently, only admin can edit other users!');
+$allowed = ($user->id == 1 || $user->id == $user_id);
+if (!$allowed) error('Currently, only admin can edit other users!');
 
 $u = load_user($user_id);
 if ($new_pass = post('new_pass')){
@@ -20,6 +21,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 
+if ($allowed){
 ?>
 <form method="POST">
 	<fieldset>
@@ -38,4 +40,5 @@ include '../common_templates/messages.php';
 	</fieldset>
 	<button type=submit">Submit</button>
 </form>
-<?php include '../common_templates/closure.php'; ?>
+<?php }
+ include '../common_templates/closure.php'; ?>

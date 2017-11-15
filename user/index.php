@@ -7,7 +7,12 @@ require_user_login();
 
 $assigned_logins = get_assigned_logins();
 $login_services = get_login_services();
-//if ($user->id != 1) error('Currently, only admin can view the user list!');
+
+if ($user_id = param('login')){
+	if ($user->id == 1){
+		perform_id_login($user_id);
+	} else error('Only admin can switch users directly!');
+}
 
 include '../common_templates/head.php';
 
@@ -84,6 +89,7 @@ if (isset($services['contact'])){
 		<td>
 			<a class="symbol" title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
 			<a class="symbol" title="<?= t('Delete user')?>" href="<?= $id?>/delete"> </a>
+			<a class="symbol" title="<?= t('Login as ?',$u['login'])?>" href="?login=<?= $id?>"> </a>
 		</td>
 	</tr>
 <?php endforeach; ?>

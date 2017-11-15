@@ -22,7 +22,6 @@
 	}
 	
 	function perform_id_login($id){
-		debug("perdorm_id_login($id)");
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM users WHERE id = :id;');
 		assert($query->execute(array(':id'=>$id)),'Was not able to request users from database!');
