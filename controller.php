@@ -32,7 +32,7 @@
 							status INT DEFAULT '.TASK_STATUS_OPEN.',
 							start_date DATE,
 							due_date DATE);');
-			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT 1, PRIMARY KEY(task_id, user_id));');
+			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT '.self::TASK_PERMISSION_OWNER.', PRIMARY KEY(task_id, user_id));');
 			$db->query('CREATE TABLE task_dependencies (task_id INT NOT NULL, required_task_id INT NOT NULL, PRIMARY KEY(task_id, required_task_id));');
 		} else {
 			$db = new PDO('sqlite:db/tasks.db');
@@ -54,20 +54,53 @@
 		$db->exec('UPDATE tasks SET status = '.TASK_STATUS_OPEN.' WHERE status = '.TASK_STATUS_PENDING.' AND due_date != "" AND due_date <= '.$date);
 		$db->exec('UPDATE tasks SET status = '.TASK_STATUS_PENDING.' WHERE status = '.TASK_STATUS_OPEN.' AND start_date != "" AND start_date > '.$date);
 	}
+	
+	function get_task_ids_of_user($ids = null){
+		global $user;
+		$sql = 'SELECT task_id FROM tasks_users WHERE ';
+		$args = [];
+		if (is_array($ids)){
+			$qmarks = implode(',', array_fill(0, count($ids), '?'));
+			$sql .= 'task_id IN ('.$qmarks.') AND ';
+			$args = $ids;
+		}
+		$sql .= 'user_id = ?';
+		$args[] = $user->id;
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to read list of user-assigned tasks.');
+		return array_keys($query->fetchAll(INDEX_FETCH));
+	}
 
-	function get_task_list($order = null, $project_id = null){
+	function get_tasks($selection = []){
 		global $user,$TASK_STATES;
+		assert(is_array($selection),'Options passed to get_tasks is not an array!');
 		$db = get_or_create_db();
 		update_task_states($db);
-		$sql = 'SELECT * FROM tasks WHERE id IN (SELECT task_id FROM tasks_users WHERE user_id = :uid)';
-		$args = array(':uid'=>$user->id);
-		if (is_numeric($project_id)){
-			$sql .= ' AND project_id = :pid';
-			$args[':pid'] = $project_id;
+		
+		$task_ids = null;
+		$single = false;
+		if (isset($selection['task_id']) && $single=true) $task_ids=[$selection['task_id']];
+		if (isset($selection['id'])      && $single=true) $task_ids=[$selection['id']];
+		if (isset($selection['task_ids'])) $task_ids=$selection['task_ids'];
+		if (isset($selection['ids']))      $task_ids=$selection['ids'];
+
+		$args = get_task_ids_of_user($task_ids);
+	
+		if (empty($args)) {
+			assert(!$single,'You are not allowed to access that task!');
+			return [];
 		}
-		if ($order === null) $order = 'due_date';
+
+		$qmarks = implode(',', array_fill(0, count($args), '?'));
+		$sql = 'SELECT id,* FROM tasks WHERE id IN ('.$qmarks.')';
+		if (isset($selection['project_id'])){
+			$sql .= ' AND project_id = ?';
+			$args[] = $selection['project_id'];
+		}
+		if (!isset($selection['order'])) $selection['order'] = 'due_date';
 		$MAX_DATE = "'9999-99-99'";
-		switch ($order){
+		switch ($selection['order']){
 			case 'due_date':
 				$sql .= ' ORDER BY (CASE due_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(due_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
 				break;
@@ -87,10 +120,11 @@
 				$sql .= ' ORDER BY status, due_date COLLATE NOCASE';
 				break;
 		}
-		$query = $db->prepare($sql);	
-		assert($query->execute($args),'Was not able to request project list!');
-		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to request task list!');
+		$results = $query->fetchAll(INDEX_FETCH);
 		foreach ($results as &$task) $task['status_string'] = $TASK_STATES[$task['status']];
+		if ($single) return reset($results);
 		return $results;
 	}
 
@@ -183,26 +217,9 @@
 		}
 		if (!empty($child_tasks)) $task['children'] = $child_tasks;
 	}
-	
-	function load_tasks($ids = null){
-		assert($ids !== null,'No task id passed to load_tasks!');
-		$reset = is_numeric($ids); // if we get only one id, we will return a single element instad of an array
-		if ($reset) $ids = array($ids);
-		assert(is_array($ids),'Invalid task id passed to load_tasks!');
-		assert(!empty($ids),'No task id passed to load_tasks!');
-		
-		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-		$sql = 'SELECT id,* FROM tasks WHERE id IN ('.$qMarks.')';
-		$db = get_or_create_db();
-		$query = $db->prepare($sql);
-		assert($query->execute($ids),'Was not able to load tasks!');
-		$tasks = $query->fetchAll(INDEX_FETCH);
-		if ($reset) return reset($tasks);
-		return $tasks;
-	}
 
 	function delete_task($id = null){
-		$task = load_tasks($id);
+		$task = get_tasks(['id'=>$id]);
 		$db = get_or_create_db();
 		$args = array(':id'=>$id,':ptid'=>$task['parent_task_id']);
 		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');

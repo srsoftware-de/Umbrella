@@ -5,4 +5,7 @@ include 'controller.php';
 
 require_login('task');
 
-die(json_encode(get_task_list(param('order'),param('project'))));
+$selection = [];
+if ($order = param('order')) $selection['order']=$order;
+if ($project = param('project')) $selection['project_id'] = $project;
+die(json_encode(get_tasks($selection)));

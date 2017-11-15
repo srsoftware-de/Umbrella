@@ -7,7 +7,7 @@ require_login('task');
 $parent_task_id = param('id');
 if (!$parent_task_id) error('No parent task id passed!');
 
-$task = load_tasks($parent_task_id);
+$task = get_tasks(['id'=>$parent_task_id]);
 $project_id = find_project($parent_task_id);
 if (!$project_id) error('Was not able to determine project for this task!');
 

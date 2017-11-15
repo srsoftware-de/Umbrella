@@ -8,8 +8,8 @@ $task_id = param('id');
 
 if (!$task_id) error('No task id passed to view!');
 
-$task = load_tasks($task_id);
-if ($task['parent_task_id']) $task['parent'] = load_tasks($task['parent_task_id']);
+$task = get_tasks(['id'=>$task_id]);
+if ($task['parent_task_id']) $task['parent'] = get_tasks(['id'=>$task['parent_task_id']]);
 load_children($task,99); // up to 99 levels deep
 load_requirements($task);
 

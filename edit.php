@@ -6,7 +6,7 @@ require_login('task');
 
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
-$task = load_tasks($task_id);
+$task = get_tasks(['id'=>$task_id]);
 load_requirements($task);
 $project_id = $task['project_id'];
 
@@ -30,10 +30,10 @@ if ($name = post('name')){
 
 $task['project'] = request('project','json',['id'=>$project_id]);
 
-if ($task['parent_task_id']) $task['parent'] = load_tasks($task['parent_task_id']);
+if ($task['parent_task_id']) $task['parent'] = get_tasks(['id'=>$task['parent_task_id']]);
 
 // load other tasks of the project for the dropdown menu
-$project_tasks = get_task_list('name',$project_id);
+$project_tasks = get_tasks(['order'=>'name','project_id'=>$project_id]);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
