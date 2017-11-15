@@ -24,33 +24,29 @@ include '../common_templates/messages.php'; ?>
 <table>
 	<tr>
 		<th><?= t('File / Directory') ?></th>
-		<th><?= t('Actions') ?></th>
 	</tr>
 	<?php if ($path) {
 		$dir = dirname($path);
 		$up = ($dir == '.')? 'shared': '?path='.$dir;
 	?>
 	<tr>
-		<td><a href="<?= $up ?>">..</a></td>
-		<td></td>
+		<td><a title="<?= t('move one level up') ?>" href="<?= $up ?>">..</a></td>
 	</tr>
 	<?php }?>
 	<?php foreach ($shared_files as $entry => $content){ ?>	
 	<tr>
 		<?php if ($content == 'file') {?>
 		<td>
-			<a href="download?file=<?= $path.$entry ?>">
+			<a title="<?= t('dowlnload file')?>" href="download?file=<?= $path.$entry ?>">
 				<span class="symbol"></span> <?= $entry ?>
 			</a>
 		</td>
-		<td></td>
 		<?php } else { ?>
 		<td>
-			<a href="?path=<?= $path.$entry ?>">
+			<a title="<?= t('show folder')?>" href="?path=<?= $path.$entry ?>">
 				<span class="symbol"></span> <?= $entry ?>
 			</a>
 		</td>
-		<td></td>
 		<?php }?>
 	</tr>		
 	<?php }?>

@@ -182,7 +182,17 @@
 		if ($origin){
 			$dir = dirname($origin);
 			$target = $dir.DS.$newname;
+			
 			if (!rename($origin,$target)) return error('Was not able to rename file!');
+			
+			$new_local = dirname($currentname).DS.$newname;
+				
+			$db = get_or_create_db();
+			$query = $db->prepare('UPDATE file_shares SET file = replace(file, :currentname, :newname) WHERE file LIKE :search');
+			$query->execute([':currentname'=>$currentname.DS,':newname'=>$new_local.DS,':search'=>$currentname.DS.'%']);
+			$query = $db->prepare('UPDATE file_shares SET file = :newname WHERE file = :currentname');
+			$query->execute([':currentname'=>$currentname,':newname'=>$new_local]);
+			//debug(['current name'=>$currentname,'origin'=>$origin,'dir'=>$dir,'new name'=>$newname,'new local'=>$new_local,'target'=>$target],1);
 			redirect('index?path='.dirname($currentname));
 		}
 	}
