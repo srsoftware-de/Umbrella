@@ -19,7 +19,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Create new directory')?></legend>
 		<fieldset>
 			<legend>Name</legend>		
-			<input type="text" name="dirname" />
+			<input type="text" name="dirname" autofocus="true" />
 		</fieldset>
 		<input type="submit" />
 	</fieldset>
