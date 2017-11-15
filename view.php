@@ -7,11 +7,22 @@ require_login('project');
 $project_id = param('id');
 if (!$project_id) error('No project id passed to view!');
 
-$project = load_projects($project_id);
-//debug($project);
 $project_users_permissions = load_users($project_id);
-//debug($project_users_permissions);
+
+assert(array_key_exists($user->id, $project_users_permissions),'You are not member of this project!');
+$project = load_projects($project_id);
+
+$current_user_is_owner = ($project_users_permissions[$user->id]['permissions'] == PROJECT_PERMISSION_OWNER);
+
 $project_users = null;
+
+if ($remove_user_id = param('remove_user')){
+	if ($current_user_is_owner){
+		remove_user($project_id,$remove_user_id);
+		unset($project_users_permissions[$remove_user_id]);
+	} else error('You are not allowed to remove users from this project');
+}
+
 if (!empty($project_users_permissions)){
 	$user_ids = implode(',',array_keys($project_users_permissions));
 	$project_users = request('user', 'list',['ids'=>$user_ids]);
@@ -90,7 +101,10 @@ include '../common_templates/messages.php';
 		<td>
 			<ul>
 			<?php foreach ($project_users as $uid => $u) { ?>
-				<li><?= $u['login'].' ('.t($PROJECT_PERMISSIONS[$project_users_permissions[$uid]['permissions']]).')'; ?></li>
+				<li>
+					<?= $u['login'].' ('.t($PROJECT_PERMISSIONS[$project_users_permissions[$uid]['permissions']]).')'; ?>
+					<?php if ($current_user_is_owner && $uid != $user->id) { ?><a class="symbol" title="<?= t('remove ? from project',$u['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
+				</li>
 			<?php } ?>
 			</ul>
 		</td>

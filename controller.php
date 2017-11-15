@@ -102,14 +102,14 @@
 		return $projects;
 	}
 
-	function load_users($ids = null){
-		assert($ids !== null,'No project id passed to load_project!');
-		if (!is_array($ids)) $ids = [$ids];
+	function load_users($project_ids = null){
+		assert($project_ids !== null,'No project id passed to load_project!');
+		if (!is_array($project_ids)) $project_ids = [$project_ids];
 		$db = get_or_create_db();
-		$qmarks = implode(',', array_fill(0, count($ids), '?'));
+		$qmarks = implode(',', array_fill(0, count($project_ids), '?'));
 		
 		$query = $db->prepare('SELECT user_id, permissions FROM projects_users WHERE project_id in ('.$qmarks.')');
-		assert($query->execute($ids));
+		assert($query->execute($project_ids));
 		$results = $query->fetchAll(INDEX_FETCH);
 		return $results;
 	}
@@ -121,5 +121,12 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
 		assert($query->execute(array(':pid'=>$project_id,':uid'=>$user_id, ':perm'=>$permission)),'Was not able to assign project to user!');
+	}
+	
+	function remove_user($project_id,$user_id){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM projects_users WHERE project_id = :pid AND user_id = :uid');
+		assert($query->execute([':pid'=>$project_id,':uid'=>$user_id]),'Was not able to remove user from project!');
+		info('User has been removed from project.');		 
 	}
 ?>
