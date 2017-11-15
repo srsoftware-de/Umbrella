@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Task Management';
+<?php $title = 'Umbrella Bookmark Management';
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -21,7 +21,11 @@ include '../common_templates/messages.php'; ?>
 	 
 	?>
 	<fieldset>
-		<legend><a class="symbol" href="<?= $base_url.$hash ?>/edit"></a><a class="symbol" href="<?= $base_url.$hash ?>/delete"></a> <?= t('Site: ?',$host) ?></legend>
+		<legend>
+			<a class="symbol" title="<?= t('edit bookmark') ?>" href="<?= $base_url.$hash ?>/edit"></a>
+			<a class="symbol" title="<?= t('delete bookmark') ?>" href="<?= $base_url.$hash ?>/delete"></a>
+			<?= t('Site: ?',$host) ?>
+		</legend>
 		<?php if (isset($url['comment'])) { ?>
 		<a href="<?= $url['url']?>" target="_blank"><?= $url['comment']?></a><br/>
 		<?php } // comment is set?>

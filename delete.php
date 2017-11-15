@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Task Management';
+<?php $title = 'Umbrella Bookmark Management';
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -24,7 +24,8 @@ include '../common_templates/messages.php'; ?>
 <fieldset>
 	<legend><?= t('Confirmation required') ?></legend>
 	<?= t('Are you sure you want to delete "?" (?) ?',[$link['comment'],$link['url']]); ?><br/>
-	<button type="submit" name="confirm" value="false">No</button><button type="submit" name="confirm" value="true">Yes</button>
+	<button type="submit" name="confirm" value="false"><?= t('No')?></button>
+	<button type="submit" name="confirm" value="true"><?= t('Yes')?></button>
 </fieldset>
 </form>
 <?php include '../common_templates/closure.php'; ?>

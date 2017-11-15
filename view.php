@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Task Management';
+<?php $title = 'Umbrella Bookmark Management';
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -37,7 +37,7 @@ include '../common_templates/messages.php'; ?>
 		</div>
 		<?php } ?>
 		<fieldset class="share">
-			<legend>share</legend>
+			<legend><?= t('share')?></legend>
 			<form method="POST">
 				<input type="hidden" name="share_url_hash" value="<?= $hash?>" />
 				<select name="share_user_id">

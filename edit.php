@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Task Management';
+<?php $title = 'Umbrella Bookmark Management';
 
 include '../bootstrap.php';
 include 'controller.php';
