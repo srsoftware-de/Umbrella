@@ -21,7 +21,9 @@ include '../common_templates/messages.php'; ?>
 	<?php if (!in_array($parent,['.',''])){ ?>
 	<tr>
 		<td>
-			<a href="?path=<?= $parent ?>">..</a>
+			<a title="<?= t('move one directory up') ?>" href="?path=<?= $parent ?>">
+				<span class="symbol"></span> ..
+			</a>
 		</td>
 		<td></td>
 	</tr>

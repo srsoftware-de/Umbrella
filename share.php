@@ -58,7 +58,7 @@ include '../common_templates/messages.php';
 		<tr>
 			<td><?= $users[$user_id]['login']?></td>
 			<td>
-				<a class="symbol" title="<?= t('cancel sharing') ?>" href="<?= location() ?>&unshare=<?= $user_id ?>"></a>
+				<a class="symbol" title="<?= t('cancel sharing') ?>" href="<?= location() ?>&unshare=<?= $user_id ?>"></a>
 			</td>
 		</tr>
 		<?php } ?>
