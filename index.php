@@ -14,7 +14,7 @@ include '../common_templates/messages.php'; ?>
 <?php if (!$show_closed){ ?>
 <a class="symbol" title="<?= t('show closed projects') ?>" href="?closed=show"></a>
 <?php }?>
-<table>
+<table class="project-index">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
 		<th><a href="?order=status"><?= t('Status')?></a></th>

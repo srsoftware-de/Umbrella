@@ -67,7 +67,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 ?>
-<table class="vertical">
+<table class="vertical project-view">
 	<tr>
 		<th><?= t('Project')?></th>
 		<td>
