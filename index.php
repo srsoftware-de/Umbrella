@@ -19,6 +19,7 @@ foreach ($companies as $company){ ?>
 	<legend>
 		<span>
 			<a href="<?= $company->id ?>/edit" class="symbol"></a>
+			<a href="<?= $company->id ?>/add_user" class="symbol"></a>
 		</span>
 		<?= $company->name ?>
 	</legend>

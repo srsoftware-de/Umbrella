@@ -60,7 +60,10 @@ class Company {
 	}
 
 	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
@@ -68,9 +71,19 @@ class Company {
 	public function save(){
 		global $user;
 		$db = get_or_create_db();
-		debug($db);
 		if (isset($this->id)){
-
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE companies SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql); 
+				assert($query->execute($args),'Was no able to update company in database!');
+				redirect('../index');
+			}
 		} else {
 			$known_fields = array_keys(Company::fields());
 			$fields = [];
@@ -95,16 +108,42 @@ class Company {
 		global $user;
 		$db = get_or_create_db();
 
-		$query = $db->prepare('SELECT * FROM companies WHERE id IN (SELECT company_id FROM companies_users WHERE user_id = :uid)');
-		assert($query->execute([':uid'=>$user->id]),'Was not able to load companies!');
+		$sql = 'SELECT * FROM companies WHERE id IN (SELECT company_id FROM companies_users WHERE user_id = ?)';
+		$args = [];
+		if ($ids !== null){
+			if (!is_array($ids)) $ids = [ $ids ];
+			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
+			$sql .= ' AND id IN ('.$qmarks.')';
+			$args = $ids;			
+		}
+		array_unshift($args,$user->id);
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load companies!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$companies = [];
 		foreach ($rows as $row){
-			$company = new Company('loading...');
+			$company = new Company($row['name']);
 			$company->patch($row);
 			$companies[$row['id']] = $company;
 		}
 		return $companies;
+	}
+	
+	public function users(){
+		if (!isset($this->users)){
+			$db = get_or_create_db();
+			$query = $db->prepare('SELECT user_id FROM companies_users WHERE company_id = :id');
+			assert($query->execute([':id'=>$this->id]),'Was not able to load list of associated users!');
+			$this->users = array_keys($query->fetchAll(INDEX_FETCH));			
+		}
+		return $this->users;
+	}
+	
+	public function add_user($user_id = null){
+		assert($user_id !== null,'Trying to assign "null" as user to company! Aborting');
+		$db = get_or_create_db();
+		$query = $db->prepare('INSERT INTO companies_users (company_id, user_id) VALUES (:cid, :uid)');
+		assert($query->execute([':cid'=>$this->id,':uid'=>$user_id]),'Was not able to assign user in database!');
 	}
 }
 

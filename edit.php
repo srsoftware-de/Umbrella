@@ -6,7 +6,12 @@ include 'controller.php';
 require_login('company');
 
 $id = param('id');
-debug($id,1);
+$company = reset(Company::load($id));
+if ($data = param('company')){
+	$company->patch($data);
+	$company->save();
+}
+
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -18,20 +23,26 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Add new Company') ?></legend>
 		<?php foreach (Company::fields() as $field => $props) {
 			if (!is_array($props)) $props = [$props];
-			if (in_array($field,['id'])) continue;			
 		?>
 		<fieldset>
 			<legend><?= t($field)?></legend>
+			
+			<?php if ($field === 'id') { ?>
+			
+			<input type="hidden" name="company[<?= $field ?>]" value="<?= $company->id ?>"/><?= $company->id ?>
+			<?php } ?>
+			
+			
 			<?php if (in_array('TEXT',$props)) { ?>
-			<textarea name="company[<?= $field ?>]"></textarea>
+			<textarea name="company[<?= $field ?>]"><?= $company->{$field} ?></textarea>
 			<?php } ?>
 			
 			<?php if (array_key_exists('VARCHAR',$props)) { ?>
-			<input type="text" maxlength="<?= $props['VARCHAR'] ?>" name="company[<?= $field ?>]" value="<?= array_key_exists('DEFAULT',$props)?$props['DEFAULT']:'' ?>" />
+			<input type="text" maxlength="<?= $props['VARCHAR'] ?>" name="company[<?= $field ?>]" value="<?= $company->{$field} ?>" />
 			<?php } ?>
 			
 			<?php if (in_array('INT',$props)) { ?>
-			<input type="number" name="company[<?= $field ?>]" value="<?= array_key_exists('DEFAULT',$props)?$props['DEFAULT']:'' ?>" />
+			<input type="number" name="company[<?= $field ?>]" value="<?= $company->{$field} ?>" />
 			<?php } ?>
 			
 		</fieldset>
