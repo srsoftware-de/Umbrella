@@ -243,7 +243,13 @@ td > h1{
 }
 
 @media (max-width: 600px){
+	.project-view tr>*:nth-child(1),
 	.tasklist tr>*:nth-child(3){
+		display: none;
+	}
+}
+@media (max-width: 500px){
+	.project-index tr>*:nth-child(2){
 		display: none;
 	}
 }

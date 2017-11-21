@@ -102,6 +102,13 @@ function debug($object,$die = false){
 	}
 }
 
+function query_insert($sql,$args){
+	foreach ($args as $k => $v){
+		$sql = str_replace($k,'"'.$v.'"',$sql);
+	}
+	return $sql;
+}
+
 function redirect($url){
 	header('Location: '.$url);
 	die();
