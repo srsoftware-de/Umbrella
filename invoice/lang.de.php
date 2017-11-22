@@ -6,6 +6,7 @@ $translations = array(
 		'Amount'=>'Menge',
 		'Bank account: ?'=>'Bankverbindung: ?',
 		'Bookmarks'=>'Lesezeichen',
+		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
 		'currency'=>'Währung',
 		'Customer' => 'Kunde',

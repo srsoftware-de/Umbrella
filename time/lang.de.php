@@ -2,6 +2,7 @@
 $translations = array(
 		'Add Task "?" to Timetrack'=>'Aufgabe "?" zu Zeiterfassung hinzufügen',
 		'Bookmarks'=>'Lesezeichen',
+		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',

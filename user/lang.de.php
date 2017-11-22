@@ -1,7 +1,11 @@
 <?php
 $translations = array(
-	'Bookmarks'=>'Lesezeichen',
+	'Actions'=>'Aktionen',
+	'Assigned logins'=>'Verknüpfte Konten',
+	'Bookmarks'=>'Lese&shy;zeichen',
+	'Company'=>'Firma',
 	'Contacts'=>'Kontakte',
+	'Delete assignment'=>'Kontoverbindung löschen',
 	'Files'=>'Dateien',
 	'Invoices'=>'Rechnungen',
 	'Login using email and password'=>'Mit Email und Passwort einloggen',
@@ -12,8 +16,10 @@ $translations = array(
 	'Projects'=>'Projekte',
 	'Sending post data to "?" :'=>'Sende POST-Daten an "?" :',
 	'Sending data to: "?"'=>'Sende Daten an "?".',
+	'Service name'=>'Service-Name',
 	'Tasks'=>'Aufgaben',
 	'Timetrack'=>'Zeiterfassung',
 	'The default username/password is admin/admin.'=>'Standard-Nutzername/-Passwort ist admin/admin.',
+	'User id'=>'Benutzer&shy;kennung',
 	'Users'=>'Benutzer'
 );

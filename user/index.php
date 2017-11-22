@@ -67,7 +67,7 @@ if (isset($services['contact'])){
 		<tr>
 			<td><a href="<?= $login_service['url']?>"><?= $name ?></a></td>
 			<td><?= $id ?></td>
-			<td><a class="symbol" title="Delete assignment" href="<?= urlencode($login) ?>/deassign"> </a></td>
+			<td><a class="symbol" title="<?= t('Delete assignment')?>" href="<?= urlencode($login) ?>/deassign"> </a></td>
 		</tr>
 	<?php } ?>
 	</table>

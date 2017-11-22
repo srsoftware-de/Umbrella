@@ -5,6 +5,7 @@ $translations = array(
 		'BDAY'=>'Geburtstag',
 		'Bookmarks'=>'Lesezeichen',
 		'City'=>'Ort',
+		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
 		'Country'=>'Land',
 		'Edit Contact'=>'Kontakt bearbeiten',

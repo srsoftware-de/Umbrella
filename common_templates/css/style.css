@@ -97,6 +97,11 @@ label.location::after {
 	float: left;
 }
 
+.company > fieldset,
+.company > table{
+	margin-right: 10px;
+	float: left;
+}
 
 .invoice .customer,
 .invoice .sender,
