@@ -3,6 +3,7 @@ company
 config.php
 bookmark
 files
+invoice
 project
 task
 .*.swp
