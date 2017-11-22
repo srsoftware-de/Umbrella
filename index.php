@@ -1,12 +1,31 @@
-<?php
+<?php $title = 'Umbrella Invoice Management';
 
-include 'bootstrap.php';
+include '../bootstrap.php';
+include 'controller.php';
 
-$title = 'Umbrella';
+require_login('invoice');
+$invoices = load_invoices();
+//debug($invoices);
+include '../common_templates/head.php'; 
+include '../common_templates/main_menu.php';
+include 'menu.php';
+include '../common_templates/messages.php'; ?>
 
-redirect(getUrl('task','index'));
+<table class="invoices">
+	<tr>
+		<th><?= t('Sender')?></th>
+		<th><?= t('Customer')?></th>
+		<th><?= t('Actions')?></th>
+	</tr>
+	<?php foreach ($invoices as $id => $invoice){ ?>
+	<tr>
+		<td><pre><?= $invoice['sender']?></pre></td>
+		<td><pre><?= $invoice['customer']?></pre></td>
+		<td>
+			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
+		</td>
+	</tr>
+	<?php } ?>
+</table>
 
-include 'common_templates/head.php';
-
-include 'common_templates/main_menu.php';
-include 'common_templates/closure.php';
+<?php include '../common_templates/closure.php'; ?>
