@@ -28,12 +28,11 @@ function get_or_create_db(){
 				} else $sql .= $props.", ";
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-			debug($sql);
 			$query = $db->prepare($sql);
 			assert($db->query($sql),'Was not able to create companies table in companies.db!');
 		}
 	} else {
-		$db = new PDO('sqlite:db/companies.db');
+		$db = new PDO('sqlite:db/invoices.db');
 	}
 	return $db;
 
@@ -56,19 +55,19 @@ class Invoice {
 		];
 
 		$invoices = [
-			'id'			=> ['INTEGER','KEY'=>'PRIMARY'],
-			'invoice_date'		=> ['TIMESTAMP','NOT NULL'],
-			'invoice_number'	=> ['TEXT','NOT NULL'],
+			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
+			'date'				=> ['TIMESTAMP','NOT NULL'],
+			'number'			=> ['TEXT','NOT NULL'],
 			'delivery_date'		=> 'TIMESTAMP',
-			'head'			=> 'TEXT',
-			'footer'		=> 'TEXT',
+			'head'				=> 'TEXT',
+			'footer'			=> 'TEXT',
 			'company_id'		=> ['INT','NOT NULL'],
-			'currency'		=> ['VARCHAR'=>10,'NOT NULL'],
-			'sender'		=> ['TEXT','NOT NULL'],
+			'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
+			'sender'			=> ['TEXT','NOT NULL'],
 			'tax_number'		=> ['VARCHAR'=>255],
 			'bank_account'		=> 'TEXT',
-			'court'			=> 'TEXT',
-			'customer'		=> 'TEXT',
+			'court'				=> 'TEXT',
+			'customer'			=> 'TEXT',
 			'customer_number'	=> 'INT',
 		];
 
@@ -99,9 +98,28 @@ class Invoice {
 	static function load($ids = null){
 		global $user;
 		$db = get_or_create_db();
-	
-		// TODO: implement
-		return null;
+		
+		$user_companies = request('company','json_list');
+		$user_company_ids = array_keys($user_companies);
+
+		$args = [];
+		if ($user_company_ids !== null){
+			if (!is_array($user_company_ids)) $user_company_ids = [ $user_company_ids ];
+			$qmarks = str_repeat('?,', count($user_company_ids) - 1) . '?';
+			$args = $user_company_ids;			
+		}
+		
+		$sql = 'SELECT * FROM invoices WHERE company_id IN ('.$qmarks.')';
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load invoices!');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$invoices = [];
+		foreach ($rows as $row){
+			$company = new Invoice($row['name']);
+			$company->patch($row);
+			$invoices[$row['id']] = $company;
+		}
+		return $invoices;
 	}
 }
 

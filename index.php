@@ -5,7 +5,6 @@ include 'controller.php';
 
 require_login('invoice');
 $invoices = Invoice::load();
-//debug($invoices);
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
