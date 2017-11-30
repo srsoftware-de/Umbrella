@@ -82,11 +82,6 @@ tr:nth-child(5n+1){
 	background-color: #303030;
 }
 
-
-td:last-child {
-    white-space: nowrap;
-}
-
 label.street:after,
 label.location::after {
     content: "\a ";

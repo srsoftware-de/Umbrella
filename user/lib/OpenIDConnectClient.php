@@ -372,14 +372,14 @@ class OpenIDConnectClient{
         // If the configuration value is not available, attempt to fetch it from a well known config endpoint
         // This is also known as auto "discovery"
         if (!isset($this->providerConfig[$param])) {
-	    if(!$this->wellKnown){
+		    if(!$this->wellKnown){
             	$well_known_config_url = rtrim($this->getProviderURL(),"/") . "/.well-known/openid-configuration";
             	$this->wellKnown = json_decode($this->fetchURL($well_known_config_url));
-	    }
+		    }
 
-	    $value = false;
-	    if(isset($this->wellKnown->{$param})){
-                $value = $this->wellKnown->{$param};
+		    $value = false;
+		    if(isset($this->wellKnown->{$param})){
+	        	$value = $this->wellKnown->{$param};
             }
 
             if ($value) {
@@ -388,9 +388,8 @@ class OpenIDConnectClient{
                 // Uses default value if provided
                 $this->providerConfig[$param] = $default;
             } else {
-                throw new OpenIDConnectClientException("The provider {$param} has not been set. Make sure your provider has a well known configuration available.");
+                throw new OpenIDConnectClientException("The provider \"{$param}\" has not been set. Make sure your provider serves a .well-known/openid-configuration");
             }
-
         }
 
         return $this->providerConfig[$param];
@@ -468,6 +467,7 @@ class OpenIDConnectClient{
     private function requestAuthorization() {
 
         $auth_endpoint = $this->getProviderConfigValue("authorization_endpoint");
+        debug(['endpoint'=>$auth_endpoint]);
         $response_type = "code";
 
         // Generate and store a nonce in the session
