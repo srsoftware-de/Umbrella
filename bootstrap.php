@@ -233,6 +233,17 @@ function objectFrom($entity){
 	return $entity;
 }
 
+function conclude_vcard($vcard){
+	$short = '';
+	if (isset($vcard['FN'])) return $vcard['FN'];
+	if (isset($vcard['N'])){
+		$names = explode(';',$vcard['N']);
+		return $names[1].' '.$names[0];
+	}
+	debug('error in conclude_vcard',1);
+}
+
+
 assert_options(ASSERT_ACTIVE,   true);
 assert_options(ASSERT_BAIL,     false);
 assert_options(ASSERT_WARNING,  true);
