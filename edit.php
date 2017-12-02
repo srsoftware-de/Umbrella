@@ -7,23 +7,20 @@ require_login('invoice');
 
 $id = param('id');
 assert(is_numeric($id),'No valid invoice id passed to edit!');
-$invoice = load_invoices($id);
+$invoice = reset(Invoice::load($id));
+
 assert($invoice !== null,'No invoice found or accessible for id = '.$id);
 
-if ($customer = post('customer')){
-	$keys = ['customer','customer_num','sender','tax_num','invoice_date','delivery_date','head','footer','bank_account','court'];
-	foreach ($keys as $key) {
-		if ($value = post($key)) $invoice[$key] = $value;
-	}
-	save_invoice($id,$invoice);
+if (isset($_POST['invoice'])){
+	$new_invoice_data = $_POST['invoice'];
+	$new_invoice_data['date'] = strtotime($new_invoice_data['date']);
+	$invoice->patch($new_invoice_data);
+	$invoice->save();
+	
+	$companySettings = CompanySettings::load($invoice->company_id);
+	$companySettings->updateFrom ($invoice);
 }
 
-$head_text = post('head','Wir erlauben uns, Ihnen die folgenden Positionen in Rechnung zu stellen:');
-$foot_text = post('foot',"Zahlbar innerhalb von 14 Tagen ohne Abzug.\n\nUnberechtigt abgezogene Skontobeträge werden nachgefordert.\nLieferung frei Haus.\nGeben Sie bei Rückfragen und bei Überweisung bitte ihre Kundennummer und Rechnungsnummern an!\n\n Wir danken für Ihren Auftrag.");
-$tax_number = post('tax_number','XXX');
-$customer_number = post('customer_number','XXX');
-$sender = post('sender','XXX');
-$projects = null;
 if ($services['time']){
 	$times = request('time', 'json_list');
 	$tasks = array();
@@ -73,26 +70,6 @@ if ($services['time']){
 	}
 }
 
-load_positions($invoice);
-
-if ($positions = post('position')){
-	$keys = array('item_code','title','description','amount','single_price');
-	
-	foreach ($positions as $pos => $position){
-		foreach ($keys as $key){
-			if ($key == 'single_price') $position[$key] = $position[$key]*100;
-			if ($invoice['positions'][$pos][$key] != $position[$key]){
-				$changed[$pos] = true;
-				$invoice['positions'][$pos][$key] = $position[$key];
-			}
-		}	
-	}
-	foreach ($changed as $pos => $dummy){
-		save_invoice_position($invoice['positions'][$pos]);
-	}
-	//if ($redirect = param('redirect')) redirect($redirect);
-}
-
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -105,36 +82,41 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Edit invoice')?></legend>
 		<fieldset class="customer">
 			<legend><?= t('Customer')?></legend>
-			<textarea name="customer"><?= $invoice['customer'] ?></textarea>
+			<textarea name="invoice[customer]"><?= $invoice->customer ?></textarea>
 			<fieldset>
 				<legend><?= t('Customer number')?></legend>
-				<input name="customer_num" value="<?= $invoice['customer_num'] ?>" />
+				<input name="invoice[customer_number]" value="<?= $invoice->customer_number ?>" />
 			</fieldset>		
 			
 		</fieldset>
 		<fieldset class="sender">
 			<legend><?= t('Sender')?></legend>
-			<textarea name="sender"><?= $invoice['sender'] ?></textarea>			
+			<textarea name="invoice[sender]"><?= $invoice->sender ?></textarea>			
 			<fieldset>
 				<legend><?= t('Tax number')?></legend>
-				<input name="tax_number" value="<?= $invoice['tax_num'] ?>" />
+				<input name="invoice[tax_number]" value="<?= $invoice->tax_number ?>" />
 			</fieldset>		
 		</fieldset>
 		
-		<fieldset>
+		<fieldset class="dates">
 			<legend><?= t('Dates')?></legend>
 			<label><?= t('Invoice Date')?>
-				<input name="invoice_date" value="<?= ($invoice_date = post('invoice_date'))?$invoice_date:date('Y-m-d')?>" />
+				<input name="invoice[date]" value="<?= $invoice->date() ?>" />
 			</label>
 			<label><?= t('Delivery Date')?>
-				<input name="delivery_date" value="<?= ($delivery_date = post('delivery_date'))?$delivery_date:date('Y-m-d')?>" />
-			</label>			
+				<input name="invoice[delivery_date]" value="<?= $invoice->delivery_date() ?>" />
+			</label>
+			<label><?= t('Invoice number')?>
+				<input name="invoice[number]" value="<?= $invoice->number ?>" />
+			</label>
+						
 		</fieldset>
-		<fieldset>
+		
+		<fieldset class="header">
 			<legend>
 				<?= t('Greeter/Head text')?>
 			</legend>
-			<textarea name="head"><?= $head_text ?></textarea>
+			<textarea name="invoice[head]"><?= $invoice->head ?></textarea>
 		</fieldset>
 		<fieldset class="invoice_positions">
 			<legend><?= t('Positions')?></legend>
@@ -154,7 +136,7 @@ include '../common_templates/messages.php'; ?>
 				</tr>
 
 				<?php $first = true; 
-					foreach ($invoice['positions'] as $pos => $position) { ?>
+					foreach ($invoice->positions() as $pos => $position) { ?>
 				<tr>
 					<td><?= $position['pos']?></td>
 					<td><input name="position[<?= $pos ?>][item_code]" value="<?= $position['item_code']?>" /></td>
@@ -207,19 +189,19 @@ include '../common_templates/messages.php'; ?>
 			<legend>
 				<?= t('Footer text')?>
 			</legend>
-			<textarea name="footer"><?= $foot_text ?></textarea>
+			<textarea name="invoice[footer]"><?= $invoice->footer ?></textarea>
 		</fieldset>
 		<fieldset class="court">
 			<legend>
 				<?= t('Bank account')?>
 			</legend>
-			<textarea name="bank_account"><?= $invoice['bank_account'] ?></textarea>
+			<textarea name="invoice[bank_account]"><?= $invoice->bank_account ?></textarea>
 		</fieldset>
 		<fieldset>
 			<legend>
 				<?= t('Local court')?>
 			</legend>
-			<input type="text" name="court" value="<?= $invoice['court'] ?>"/>
+			<input type="text" name="invoice[court]" value="<?= $invoice->court ?>"/>
 		</fieldset>
 		
 		<button type="submit"><?= t('Save')?></button>		

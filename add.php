@@ -27,7 +27,7 @@ if ($customer_contact_id = post('customer')){
 	$invoice->template_id = 0; // TODO impelement by selection
 	$invoice->save();	
 	$company_settings->save();
-	redirect('.');
+	redirect($invoice->id.'/edit');
 } /*
 	$customer_contact_id = post('customer');
 	if ($customer_contact_id) {

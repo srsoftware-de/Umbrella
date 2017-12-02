@@ -62,18 +62,19 @@ function get_or_create_db(){
 class CompanySettings{
 	function __construct($company_id){
 		$this->company_id = $company_id;
-		$this->invoice_prefix = 'P';
-		$this->invoice_suffix = 'S';
+		$this->invoice_prefix = 'R';
+		$this->invoice_suffix = '';
 		$this->invoice_number = 1;
-		$this->default_invoice_header = 'HEADER';
-		$this->default_invoice_footer = 'FOOTER';
+		$this->default_invoice_header = 'We allow us to charge the following items:';
+		$this->default_invoice_footer = 'Due and payable without discounts within 30 days of the invoice date.';
 	}
 	
 	static function load($company){
-		$companySettings = new CompanySettings($company['id']);
+		$company_id = is_array($company) ? $company['id'] : $company;
+		$companySettings = new CompanySettings($company_id);
 		$db = get_or_create_db();
 		$sql = 'SELECT * FROM company_settings WHERE company_id = :cid';
-		$args = [':cid'=>$company['id']];
+		$args = [':cid'=>$company_id];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load settings for the selected company.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -140,6 +141,18 @@ class CompanySettings{
 			}
 		}
 	}
+	
+	function updateFrom(Invoice $invoice){
+		$data = [
+			'default_invoice_header' => $invoice->head,
+			'default_invoice_footer' => $invoice->footer,
+			'invoice_prefix' => preg_replace('/\d+\w*$/', '', $invoice->number),
+			'invoice_suffix' => preg_replace('/^\w*\d+/', '', $invoice->number),
+		];
+		$this->patch($data);
+		debug($this);
+		$this->save();
+	}
 }
 
 class Invoice {
@@ -195,6 +208,14 @@ class Invoice {
 		}
 		
 		$sql = 'SELECT * FROM invoices WHERE company_id IN ('.$qmarks.')';
+		
+		if ($ids !== null){
+			if (!is_array($ids)) $ids = [ $ids ];
+			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
+			$args = array_merge($args, $ids);
+			$sql .= ' AND id IN ('.$qmarks.')';
+		}		
+		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load invoices!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -212,7 +233,7 @@ class Invoice {
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE invoice SET';
+				$sql = 'UPDATE invoices SET';
 				$args = [':id'=>$this->id];
 				foreach ($this->dirty as $field){
 					$sql .= ' '.$field.'=:'.$field.',';
@@ -244,6 +265,12 @@ class Invoice {
 		return date('d.m.Y',$this->date);
 	}
 	
+	public function delivery_date(){
+		if (!isset($this->delivery_date) || $this->delivery_date === null) return '';
+		return date('d.m.Y',$this->delivery_date);
+	}
+	
+	
 	public function state(){
 		switch ($this->state){
 			case static::STATE_NEW: return t('new');
@@ -253,6 +280,10 @@ class Invoice {
 	
 	public function customer_short(){
 		return reset(explode("\n",$this->customer));
+	}
+	
+	public function positions(){
+		return []; // TODO: implement
 	}
 }
 

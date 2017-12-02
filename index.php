@@ -13,10 +13,8 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-
-
 <?php foreach ($companies as $company){ ?>
-<fieldset>
+<fieldset class="invoice list">
 	<legend><?= $company['name']?></legend>
 	<a href="add?company=<?= $company['id']?>">add invoice</a>
 	<table class="invoices">
@@ -25,16 +23,14 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Date')?></th>
 			<th><?= t('State')?></th>
 			<th><?= t('Customer')?></th>
-			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($invoices as $id => $invoice){
 			if ($invoice->company_id != $company['id']) continue; ?>
 		<tr>
-			<td><?= $invoice->number ?></td>
+			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->number ?></a></td>
 			<td><?= $invoice->date() ?></td>
 			<td><?= $invoice->state()?></td>
 			<td><?= $invoice->customer_short()?></td>
-			<td></td>
 		</tr>
 		<?php } ?>
 		
