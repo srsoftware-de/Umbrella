@@ -1,12 +1,33 @@
 <?php
 
+class InvoicePosition{
+	static function table(){	
+		return [
+			'invoice_id'	=> ['INTEGER','NOT NULL'],
+			'pos'		=> ['INTEGER','NOT NULL'],
+			'item_code'	=> ['VARCHAR'=>50],
+			'amount'	=> ['INTEGER','NOT NULL','DEFAULT'=>1],
+			'unit'		=> ['VARCHAR'=> 12],
+			'title'		=> ['VARCHAR'=>255],
+			'description'	=> 'TEXT',
+			'single_price'	=> 'INTEGER',
+			'tax'		=> 'INTEGER',
+		];
+	}	
+}
+
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create invoice/db directory!');
 	assert(is_writable('db'),'Directory invoice/db not writable!');
 	if (!file_exists('db/invoices.db')){
 		$db = new PDO('sqlite:db/invoices.db');
 		
-		foreach (Invoice::tables() as $table => $fields){		
+		$tables = ['invoices'=>Invoice::table(),
+			'invoice_positions'=>InvoicePosition::table(),
+			'company_settings'=>CompanySettings::table(),
+			];
+		
+		foreach ($tables as $table => $fields){		
 			$sql = 'CREATE TABLE '.$table.' ( ';
 			foreach ($fields as $field => $props){
 				$sql .= $field . ' ';
@@ -38,23 +59,100 @@ function get_or_create_db(){
 
 }
 
-class Invoice {
-	function __construct($name = null){
-		assert($name !== null,'Invoice name must not be empty');
-		$this->name = $name;
+class CompanySettings{
+	function __construct($company_id){
+		$this->company_id = $company_id;
+		$this->invoice_prefix = 'P';
+		$this->invoice_suffix = 'S';
+		$this->invoice_number = 1;
+		$this->default_invoice_header = 'HEADER';
+		$this->default_invoice_footer = 'FOOTER';
 	}
-
-	static function tables(){
-		$company_settings = [
-			'company_id' 			=> ['INTEGER','KEY'=>'PRIMARY'],
+	
+	static function load($company){
+		$companySettings = new CompanySettings($company['id']);
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM company_settings WHERE company_id = :cid';
+		$args = [':cid'=>$company['id']];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load settings for the selected company.');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($rows as $row) $companySettings->patch($row);
+		return $companySettings;		
+	}
+	
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+	
+	function applyTo(Invoice $invoice){
+		$invoice->company_id = $this->company_id;
+		$invoice->number = $this->invoice_prefix.$this->invoice_number.$this->invoice_suffix;
+		$this->patch(['invoice_number'=>$this->invoice_number+1]);
+		$invoice->head = $this->default_invoice_header;
+		$invoice->footer = $this->default_invoice_footer;
+	}
+	
+	static function table(){
+		return [
+			'company_id'				=> ['INTEGER','KEY'=>'PRIMARY'],
 			'default_invoice_header' 	=> 'TEXT',
 			'default_invoice_footer'	=> 'TEXT',
-			'invoice_prefix'		=> ['TEXT','DEFAULT'=>'R'],
-			'invoice_suffix'		=> ['TEXT','DEFAULT'=>null],
-			'invoice_number'		=> ['INT','NOT NULL'],
+			'invoice_prefix'			=> ['TEXT','DEFAULT'=>'R'],
+			'invoice_suffix'			=> ['TEXT','DEFAULT'=>null],
+			'invoice_number'			=> ['INT','NOT NULL'],
 		];
+	}
+	
+	public function save(){
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT count(*) AS count FROM company_settings WHERE company_id = :cid');
+		assert($query->execute([':cid'=>$this->company_id]),'Was not able to count settings for company!');
+		$count = reset($query->fetch(PDO::FETCH_ASSOC));
+		if ($count == 0){ // new!
+			$known_fields = array_keys(CompanySettings::table());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$sql = 'INSERT INTO company_settings ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to insert new row into company_settings');
+		} else {
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE company_settings SET';
+				$args = [':cid'=>$this->company_id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE company_id = :cid';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update company_settings in database!');
+			}
+		}
+	}
+}
 
-		$invoices = [
+class Invoice {
+	const STATE_NEW = 1;
+	
+	function __construct(array $company = []){
+		if (isset($company['id'])) $this->company_id = $company['id'];
+		if (isset($company['currency'])) $this->currency = $company['currency'];
+		$this->state = static::STATE_NEW;
+	}
+	
+	static function table(){
+		return [
 			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
 			'date'				=> ['TIMESTAMP','NOT NULL'],
 			'number'			=> ['TEXT','NOT NULL'],
@@ -63,6 +161,8 @@ class Invoice {
 			'footer'			=> 'TEXT',
 			'company_id'		=> ['INT','NOT NULL'],
 			'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
+			'template_id'		=> ['INT','NOT NULL'],
+			'state'				=> ['INT','NOT NULL','DEFAULT'=>1],
 			'sender'			=> ['TEXT','NOT NULL'],
 			'tax_number'		=> ['VARCHAR'=>255],
 			'bank_account'		=> 'TEXT',
@@ -70,22 +170,8 @@ class Invoice {
 			'customer'			=> 'TEXT',
 			'customer_number'	=> 'INT',
 		];
-
-		$invoice_positions = [
-			'invoice_id'	=> ['INTEGER','NOT NULL'],
-			'pos'		=> ['INTEGER','NOT NULL'],
-			'item_code'	=> ['VARCHAR'=>50],
-			'amount'	=> ['INTEGER','NOT NULL','DEFAULT'=>1],
-			'unit'		=> ['VARCHAR'=> 12],
-			'title'		=> ['VARCHAR'=>255],
-			'description'	=> 'TEXT',
-			'single_price'	=> 'INTEGER',
-			'tax'		=> 'INTEGER',
-		];
-
-		return compact(['company_settings', 'invoices', 'invoice_positions']);
 	}
-	
+
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -96,7 +182,6 @@ class Invoice {
 	}
 	
 	static function load($ids = null){
-		global $user;
 		$db = get_or_create_db();
 		
 		$user_companies = request('company','json_list');
@@ -115,11 +200,59 @@ class Invoice {
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$invoices = [];
 		foreach ($rows as $row){
-			$company = new Invoice($row['name']);
-			$company->patch($row);
-			$invoices[$row['id']] = $company;
+			$invoice = new Invoice();
+			$invoice->patch($row);
+			$invoices[$row['id']] = $invoice;
 		}
 		return $invoices;
+	}
+	
+	public function save(){
+		global $user;
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE invoice SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update invoice in database!');
+			}
+		} else {
+			$this->date = time();
+			$known_fields = array_keys(Invoice::table());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}			
+			$sql = 'INSERT INTO invoices ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to insert new invoice');	
+			$this->id = $db->lastInsertId();
+		}
+	}
+	
+	public function date(){
+		return date('d.m.Y',$this->date);
+	}
+	
+	public function state(){
+		switch ($this->state){
+			case static::STATE_NEW: return t('new');
+		}
+		return t('unknown state');
+	}
+	
+	public function customer_short(){
+		return reset(explode("\n",$this->customer));
 	}
 }
 

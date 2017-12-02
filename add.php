@@ -5,10 +5,30 @@ include 'controller.php';
 
 require_login('invoice');
 
-$settings = get_settings($user);
-if (!$settings) redirect('settings');
+$companies = request('company','json_list');
 
-if ($sender = post('sender')){
+$company = null;
+if (($company_id = param('company')) && isset($companies[$company_id])){
+	$company = $companies[$company_id];	
+}
+if ($company === null) redirect('.');
+
+$company_settings = CompanySettings::load($company);
+
+$contacts = request('contact','json_list');
+
+if ($customer_contact_id = post('customer')){
+	$customer_vcard  = $contacts[$customer_contact_id];
+	$_POST['customer'] = address_from_vcard($customer_vcard);
+	$_POST['customer_number'] = isset($customer_vcard['X-CUSTOMER-NUMBER']) ? $customer_vcard['X-CUSTOMER-NUMBER'] : null;
+	$invoice = new Invoice($company);
+	$invoice->patch($_POST);
+	$company_settings->applyTo($invoice);
+	$invoice->template_id = 0; // TODO impelement by selection
+	$invoice->save();	
+	$company_settings->save();
+	redirect('.');
+} /*
 	$customer_contact_id = post('customer');
 	if ($customer_contact_id) {
 		$id = create_invoice($sender,post('tax_number'),post('bank_account'),post('court'),post('customer'));
@@ -17,13 +37,8 @@ if ($sender = post('sender')){
 		error('No customer selected!');		
 	}
 }
+*/
 
-$contacts = request('contact','json_list');
-$vcard = request('contact','json_assigned');
-
-$tax_number = post('tax_number',$vcard['X-TAX-NUMBER']);
-$bank_account = str_replace(";", "\n", post('bank_account',$vcard['X-BANK-ACCOUNT']));
-$local_court = post('court',$vcard['X-COURT']);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -32,9 +47,9 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST" class="invoice">
 	<fieldset>
-		<legend>Create new invoice</legend>
-		<fieldset class="customer">
-			<legend>Customer</legend>
+		<legend><?= t('Create new invoice') ?></legend>
+		<fieldset class="customer">		
+			<legend><?= t('Customer') ?></legend>
 			<select name="customer">
 				<option value="">== select a customer ==</option>
 				<?php foreach ($contacts as $contact_id => $contact) { ?>
@@ -44,18 +59,18 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset class="sender">
 			<legend>Sender</legend>
-			<textarea name="sender"><?= vcard_address($vcard) ?></textarea>			
+			<textarea name="sender"><?= $company['address'] ?></textarea>			
 			<fieldset>
 				<legend>Tax number</legend>
-				<input name="tax_number" value="<?= $tax_number ?>" />
+				<input name="tax_number" value="<?= $company['tax_number'] ?>" />
 			</fieldset>
 			<fieldset>
 				<legend><?= t('Bank account')?></legend>
-				<textarea name="bank_account"><?= $bank_account ?></textarea>
+				<textarea name="bank_account"><?= $company['bank_account'] ?></textarea>
 			</fieldset>		
 			<fieldset>
 				<legend><?= t('Local cout')?></legend>
-				<input type="text" name="court" value="<?= $local_court ?>"/>
+				<input type="text" name="court" value="<?= $company['court'] ?>"/>
 			</fieldset>
 		</fieldset>
 		
