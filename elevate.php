@@ -7,6 +7,7 @@ require_login('invoice');
 
 $invoice_id = param('id');
 $position = param('pos');
-elevate($invoice_id, $position);
 
+$invoice = reset(Invoice::load($invoice_id));
+$invoice->elevate($position);
 redirect('edit');

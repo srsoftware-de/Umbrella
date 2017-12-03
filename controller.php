@@ -31,12 +31,13 @@ class InvoicePosition{
 			if ($set_dirty && isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
+		return $this;
 	}
 	
 	public function save(){
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
-		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able read from invoice positions table!');
+		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able to read from invoice positions table!');
 		$count = reset($query->fetch(PDO::FETCH_ASSOC));
 		if ($count == 0){ // new!
 			$known_fields = array_keys(InvoicePosition::table());
@@ -64,11 +65,12 @@ class InvoicePosition{
 				assert($query->execute($args),'Was no able to update invoice_positions in database!');
 			}
 		}
+		return $this;
 	}
 	
 	static function load($invoice){
 		$db = get_or_create_db();
-		$sql = 'SELECT pos,* FROM invoice_positions WHERE invoice_id = :iid';
+		$sql = 'SELECT pos,* FROM invoice_positions WHERE invoice_id = :iid ORDER BY pos';
 		$args = [':iid'=>$invoice->id];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load invoie positions.');
@@ -81,6 +83,13 @@ class InvoicePosition{
 		}
 		return $result;
 	}
+	
+	public function delete(){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
+		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able to remove entry from invoice positions table!');
+		return $this;		
+	} 
 }
 
 function get_or_create_db(){
@@ -364,6 +373,15 @@ class Invoice {
 		$query = $db->prepare('INSERT INTO invoice_positions (invoice_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
 		$args = array(':id'=>$invoice_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
 		assert($query->execute($args),'Was not able to store new postion for invoice '.$invoice_id.'!');
+	}
+	
+	function elevate($position_number){
+		if ($position_number<2) return;
+		$positions = $this->positions();
+		$a = $this->positions[$position_number]->delete();
+		$b = $this->positions[$position_number-1]->delete();
+		$a->patch(['pos'=>$position_number-1])->save();
+		$b->patch(['pos'=>$position_number])->save();
 	}
 }
 
