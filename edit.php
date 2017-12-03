@@ -11,15 +11,7 @@ $invoice = reset(Invoice::load($id));
 
 assert($invoice !== null,'No invoice found or accessible for id = '.$id);
 
-if (isset($_POST['invoice'])){
-	$new_invoice_data = $_POST['invoice'];
-	$new_invoice_data['date'] = strtotime($new_invoice_data['date']);
-	$invoice->patch($new_invoice_data);
-	$invoice->save();
-	
-	$companySettings = CompanySettings::load($invoice->company_id);
-	$companySettings->updateFrom ($invoice);
-}
+
 
 if ($services['time']){
 	$times = request('time', 'json_list');
@@ -28,7 +20,7 @@ if ($services['time']){
 		if ($time['end_time']===null) {
 			unset($times[$time_id]);
 			continue;
-		}		
+		}
 		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
 	}
 	
@@ -47,11 +39,27 @@ if ($services['time']){
 					$description .= '- '.$tasks[$tid]['name']."\n";
 				}
 			}
-			add_invoice_position($id,'timetrack',$time['subject'],$description,$duration,'hours',$customer_price,$timetrack_tax);
+			$position = new InvoicePosition($invoice);
+			$position->patch([
+					'item_code'=>t('timetrack'),
+					'amount'=>$duration,
+					'unit'=>t('hours'),
+					'title'=>$time['subject'],
+					'description'=>$description,
+					'single_price'=>$customer_price,
+					'tax'=>$timetrack_tax]);
+			$position->save();
 		}
 	}
 	
-	
+	if ($position_data = post('position')){
+		$positions = $invoice->positions();
+		foreach ($position_data as $pos => $data){
+			$data['single_price'] *= 100;// * $data['single_price'];
+			$positions[$pos]->patch($data);
+			$positions[$pos]->save();
+		}		
+	}
 		
 	$projects = array();
 	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;
@@ -68,6 +76,16 @@ if ($services['time']){
 		}
 		
 	}
+}
+
+if (isset($_POST['invoice'])){
+	$new_invoice_data = $_POST['invoice'];
+	$new_invoice_data['date'] = strtotime($new_invoice_data['date']);
+	$invoice->patch($new_invoice_data);
+	$invoice->save();
+
+	$companySettings = CompanySettings::load($invoice->company_id);
+	$companySettings->updateFrom($invoice);
 }
 
 include '../common_templates/head.php'; 
@@ -138,16 +156,16 @@ include '../common_templates/messages.php'; ?>
 				<?php $first = true; 
 					foreach ($invoice->positions() as $pos => $position) { ?>
 				<tr>
-					<td><?= $position['pos']?></td>
-					<td><input name="position[<?= $pos ?>][item_code]" value="<?= $position['item_code']?>" /></td>
+					<td><?= $pos ?></td>
+					<td><input name="position[<?= $pos ?>][item_code]" value="<?= $position->item_code ?>" /></td>
 					<td>
-						<input name="position[<?= $pos?>][title]" value="<?= $position['title']?>" />
-						<textarea name="position[<?= $pos?>][description]"><?= $position['description']?></textarea>
+						<input name="position[<?= $pos?>][title]" value="<?= $position->title ?>" />
+						<textarea name="position[<?= $pos?>][description]"><?= $position->description ?></textarea>
 					</td>
-					<td><input name="position[<?= $pos?>][amount]" value="<?= $position['amount']?>" /></td>
-					<td><?= t($position['unit'])?></td>
-					<td><input class="price" name="position[<?= $pos?>][single_price]" value="<?= $position['single_price']/100?>" /></td>
-					<td><?= round($position['single_price']*$position['amount']/100,2) ?></td>
+					<td><input name="position[<?= $pos?>][amount]" value="<?= $position->amount ?>" /></td>
+					<td><?= t($position->unit)?></td>
+					<td><input class="price" name="position[<?= $pos?>][single_price]" value="<?= $position->single_price/100?>" /></td>
+					<td><?= round($position->single_price*$position->amount/100,2) ?></td>
 					<td>
 					<?php if (!$first) { ?>
 						<a class="symbol" title="<?= t('move up')?>" href="elevate?pos=<?= $pos ?>"></a>

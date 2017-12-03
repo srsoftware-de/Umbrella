@@ -13,7 +13,74 @@ class InvoicePosition{
 			'single_price'	=> 'INTEGER',
 			'tax'		=> 'INTEGER',
 		];
-	}	
+	}
+
+	function __construct(Invoice $invoice){
+		$db = get_or_create_db();
+
+		$query = $db->prepare('SELECT max(pos) AS pos FROM invoice_positions WHERE invoice_id = :iid');
+		assert($query->execute([':iid'=>$invoice->id]),'Was not able to read invoice position table');
+		$this->pos = reset($query->fetch(PDO::FETCH_ASSOC)) +1;
+		$this->invoice_id = $invoice->id;
+		
+	}
+	
+	function patch($data = array(),$set_dirty = true){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($set_dirty && isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+	
+	public function save(){
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT count(*) AS count FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
+		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able read from invoice positions table!');
+		$count = reset($query->fetch(PDO::FETCH_ASSOC));
+		if ($count == 0){ // new!
+			$known_fields = array_keys(InvoicePosition::table());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$sql = 'INSERT INTO invoice_positions ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to insert new row into invoice_positions');
+		} else {
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE invoice_positions SET';
+				$args = [':iid'=>$this->invoice_id,':pos'=>$this->pos];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE invoice_id = :iid AND pos = :pos';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update invoice_positions in database!');
+			}
+		}
+	}
+	
+	static function load($invoice){
+		$db = get_or_create_db();
+		$sql = 'SELECT pos,* FROM invoice_positions WHERE invoice_id = :iid';
+		$args = [':iid'=>$invoice->id];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load invoie positions.');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$result = [];
+		foreach ($rows as $pos => $row){
+			$invoicePosition = new InvoicePosition($invoice);
+			$invoicePosition->patch($row,false);
+			$result[$pos] = $invoicePosition;
+		}
+		return $result;
+	}
 }
 
 function get_or_create_db(){
@@ -150,7 +217,6 @@ class CompanySettings{
 			'invoice_suffix' => preg_replace('/^\w*\d+/', '', $invoice->number),
 		];
 		$this->patch($data);
-		debug($this);
 		$this->save();
 	}
 }
@@ -222,7 +288,7 @@ class Invoice {
 		$invoices = [];
 		foreach ($rows as $row){
 			$invoice = new Invoice();
-			$invoice->patch($row);
+			$invoice->patch($row,false);
 			$invoices[$row['id']] = $invoice;
 		}
 		return $invoices;
@@ -266,7 +332,7 @@ class Invoice {
 	}
 	
 	public function delivery_date(){
-		if (!isset($this->delivery_date) || $this->delivery_date === null) return '';
+		if (!isset($this->delivery_date) || $this->delivery_date == '' || $this->delivery_date === null) return '';
 		return date('d.m.Y',$this->delivery_date);
 	}
 	
@@ -283,7 +349,21 @@ class Invoice {
 	}
 	
 	public function positions(){
-		return []; // TODO: implement
+		if (!isset($this->positions)) $this->positions = InvoicePosition::load($this);
+		return $this->positions;
+	}
+	
+	function add_position($code,$title,$description,$amount,$unit,$price,$tax){
+		$db = get_or_create_db();
+	
+		$query = $db->prepare('SELECT MAX(pos) FROM invoice_positions WHERE invoice_id = :id');
+		assert($query->execute(array(':id'=>$invoice_id)),'Was not able to get last invoice position!');
+		$row = $query->fetch(PDO::FETCH_COLUMN);
+		$pos = ($row === null)?1:$row+1;
+	
+		$query = $db->prepare('INSERT INTO invoice_positions (invoice_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
+		$args = array(':id'=>$invoice_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
+		assert($query->execute($args),'Was not able to store new postion for invoice '.$invoice_id.'!');
 	}
 }
 
