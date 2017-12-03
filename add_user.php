@@ -31,18 +31,18 @@ include 'menu.php';
 include '../common_templates/messages.php'; 
 
 if ($allowed){ ?>
-<h1>Add user to <?= $p['name']?></h1>
 <form method="POST">
-	<fieldset><legend>Add user to Project</legend>
+	<fieldset><legend><?= t('Add user to ?',$p['name'])?></legend>
 		<fieldset>
 			<select name="project_user">
-				<option value="" selected="true">= Select a user =</option>
+				<option value="" selected="true"><?= t('== Select a user ==')?></option>
 				<?php foreach ($user_list as $id => $u){ ?>
 				<option value="<?= $id ?>"><?= $u['login']?></option>
 				<?php }?>
 			</select>
 			<label>
-			<input type="checkbox" name="permissions" value="<?= PROJECT_PERMISSION_PARTICIPANT ?>" checked="true">Participant
+			<input type="checkbox" name="permissions" value="<?= PROJECT_PERMISSION_PARTICIPANT ?>" checked="true" />
+			<?= t('participant')?>
 			</label>	
 		</fieldset>
 		<input type="submit" />

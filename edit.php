@@ -24,13 +24,13 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset>
-		<legend>Edit Project</legend>
+		<legend><?= t('Edit Project')?></legend>
 		<fieldset>
-			<legend>Name</legend>
+			<legend><?= t('Name')?></legend>
 			<input type="text" name="name" value="<?= $project['name']; ?>"/>
 		</fieldset>
 		<fieldset>
-			<legend>Description</legend>
+			<legend><?= t('Description')?></legend>
 			<textarea name="description"><?= $project['description']?></textarea>
 		</fieldset>
 		<input type="submit" />
