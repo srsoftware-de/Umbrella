@@ -1,8 +1,10 @@
 <?php
 $translations = array(
-		'Add new URL' => 'Neue URL hinzufpgen',
+		'add link'=>'Link hinzufügen',
+		'Add new URL' => 'Neue URL hinzufügen',
 		'Are you sure you want to delete "?" (?) ?'=>'Sicher, dass du "?" (?) entfernen willst?',
 		'Bookmarks' =>'Lesezeichen',
+		'Company'=>'Firma',
 		'Confirmation required'=>'Bestätigung erforderlich',
 		'Contacts'=>'Kontakte',
 		'delete bookmark'=>'Lesezeichen löschen',
@@ -12,9 +14,11 @@ $translations = array(
 		'edit bookmark'=>'Lesezeichen bearbeiten',
 		'Edit URL ?'=>'URL ? bearbeiten',
 		'Files'=>'Dateien',
+		'import from delicious'=>'von Delicious importieren',
 		'Import tags from delicious'=>'Tags von delicious importieren',
 		'Import tags from file'=>'Tags aus Datei importieren',
 		'Invoices'=>'Rechnungen',
+		'latest bookmarks'=>'neuste Lesezeichen',
 		'Latest Urls'=>'Neuste Adressen',
 		'Log out ?'=>'? ausloggen',
 		'New Url'=>'Neue Url:',
