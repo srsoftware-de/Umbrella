@@ -19,7 +19,7 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add new Company') ?></legend>
+		<legend><?= t('add new company') ?></legend>
 		<?php foreach (Company::fields() as $field => $props) {
 			if (!is_array($props)) $props = [$props];
 			if (in_array($field,['id'])) continue;			

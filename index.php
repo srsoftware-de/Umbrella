@@ -6,7 +6,7 @@ include 'controller.php';
 require_login('company');
 
 $companies = Company::load();
-
+$user_list = request('user','list');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -15,7 +15,7 @@ include '../common_templates/messages.php';
 
 foreach ($companies as $company){ ?>
 
-<fieldset>
+<fieldset class="company">
 	<legend>
 		<span>
 			<a href="<?= $company->id ?>/edit" class="symbol"></a>
@@ -33,6 +33,14 @@ foreach ($companies as $company){ ?>
 		</tr>	
 	<?php }}?>
 	</table>
+	<fieldset>
+		<legend><?= t('current users')?></legend>
+		<ul>
+		<?php foreach ($company->users() as $uid) { ?>	
+			<li><?= $user_list[$uid]['login']?></li>
+		<?php } ?>
+		</ul>
+	</fieldset>
 </fieldset>
 
 <?php }
