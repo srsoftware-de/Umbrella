@@ -103,9 +103,7 @@ function debug($object,$die = false){
 }
 
 function query_insert($sql,$args){
-	foreach ($args as $k => $v){
-		$sql = str_replace($k,'"'.$v.'"',$sql);
-	}
+	foreach ($args as $k => $v) $sql = str_replace($k,'"'.$v.'"',$sql);
 	return $sql;
 }
 
@@ -240,9 +238,26 @@ function conclude_vcard($vcard){
 		$names = explode(';',$vcard['N']);
 		return $names[1].' '.$names[0];
 	}
-	debug('error in conclude_vcard',1);
+	debug('error in conclude_vcard: no name set',true);
 }
 
+function address_from_vcard($vcard){
+	$result = conclude_vcard($vcard)."\n";
+	$address = $vcard['ADR'];
+	if (is_array($address)){
+		$address = reset($address);
+	}
+	$address = split(';', $address);
+	if (!empty($address[0])) $result .= t('Postbox: ',$address[0])."\n"; // Postfach
+	if (!empty($address[1])) $result .= $address[1]."\n";				// Adresszusatz
+	if (!empty($address[2])) $result .=	$address[2]."\n";				// Straße
+	if (!empty($address[5])) $result .=	$address[5]." ";				// Postleitzahl
+	if (!empty($address[3])) $result .=	$address[3]."\n";				// Ort
+	if (!empty($address[4])) $result .=	$address[4]." / ";				// Region
+	if (!empty($address[6])) $result .=	$address[6];				// Land
+	
+	return $result;
+}
 
 assert_options(ASSERT_ACTIVE,   true);
 assert_options(ASSERT_BAIL,     false);

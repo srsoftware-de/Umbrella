@@ -98,11 +98,11 @@ label.location::after {
 	float: left;
 }
 
-.invoice .customer,
-.invoice .sender,
-.invoice .court {
-    float: left;
-    width: 45%;
+.invoice .dates label{
+	display: block
+}
+.invoice .header{
+	clear: both;
 }
 
 fieldset {
@@ -110,6 +110,14 @@ fieldset {
     border-color: red;
     border-radius: 10px;
     border-width: 1px;
+}
+
+.invoice .customer,
+.invoice .sender,
+.invoice .court,
+.invoice .dates,
+fieldset.invoice.list{
+	float: left;
 }
 
 .button,
