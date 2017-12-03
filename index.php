@@ -18,7 +18,7 @@ include '../common_templates/messages.php'; ?>
 <div class="hover right-fix">
 	<table>
 		<tr><th>
-			<?= t('Hide/Show') ?> (<a href="#" onclick="return toggle('[class^=project_]');"><?= t('all')?></a>)
+			<?= t('Hide/Show') ?> (<a href="#" onclick="return toggle('[class^=project_]');"><?= t('all')?></a> | <a href="?closed=show"><?= t('closed')?></a>)
 		</th></tr>
 		<?php foreach ($projects as $pid => $project){ ?>
 		<tr class="plist">
@@ -43,11 +43,11 @@ include '../common_templates/messages.php'; ?>
 <?php 
 	$hide = [];
 	foreach ($tasks as $id => $task){ // filter out tasks, that are only group nodes
-		if ($task['status'] >= 60 && !$show_closed) continue;
+		if (!$show_closed && in_array($task['status'],[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
 		if (isset($task['parent_task_id'])) $hide[] = $task['parent_task_id'];
 	}
 	foreach ($tasks as $id => $task):
-	if ($task['status'] >= 60 && !$show_closed) continue;
+	if (!$show_closed && in_array($task['status'],[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
 	if (in_array($id, $hide)) continue;
 	$project = $projects[$task['project_id']];
 	$parent_id = $task['parent_task_id'];
@@ -65,12 +65,11 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $task['due_date'] ?></td>
 		<td>
 			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
-			<a title="<?= t('start')?>  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('cancel')?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('do open')?>"     href="<?= $id ?>/open?redirect=../index"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('wait')?>"     href="<?= $id ?>/wait?redirect=../index"	  class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
-
+			<a title="<?= t('do open')?>"  href="<?= $id ?>/open?redirect=../index"     class="<?= in_array($task['status'],[TASK_STATUS_OPEN,TASK_STATUS_STARTED])? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('wait')?>"     href="<?= $id ?>/wait?redirect=../index"	  	class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('start')?>  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 		</td>
 	</tr>
 <?php endforeach; ?>

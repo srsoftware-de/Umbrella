@@ -17,19 +17,19 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Create new task</legend>
-		<fieldset><legend>Name</legend>
+	<fieldset><legend><?= t('Create new task')?></legend>
+		<fieldset><legend><?= t('Name')?></legend>
 			<input type="text" name="name" autofocus="true"/>
 		</fieldset>
-		<fieldset><legend>Description</legend>
+		<fieldset><legend><?= t('Description')?></legend>
 		<textarea name="description"></textarea>
 		</fieldset>
 		<fieldset>
-			<legend>Start date</legend>
+			<legend><?= t('Start date')?></legend>
 			<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" value="<?= date('Y-m-d');?>"/>
 		</fieldset>
 		<fieldset>
-			<legend>Due date</legend>
+			<legend><?= t('Due date')?></legend>
 			<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
 		</fieldset>
 		<input type="submit" />
