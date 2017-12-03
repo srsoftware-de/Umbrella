@@ -4,6 +4,7 @@ $translations = array(
 		'add new directory'=>'neuen Ordner hinzufügen',
 		'add new file'=>'neue Datei hinzufügen',
 		'Bookmarks'=>'Lesezeichen',
+		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
 		'Directory'=>'Verzeichnis',
 		'download file'=>'Datei herunterladen',
