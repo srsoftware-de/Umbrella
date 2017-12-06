@@ -98,10 +98,12 @@ function get_or_create_db(){
 	if (!file_exists('db/invoices.db')){
 		$db = new PDO('sqlite:db/invoices.db');
 		
-		$tables = ['invoices'=>Invoice::table(),
+		$tables = [
+			'invoices'=>Invoice::table(),
 			'invoice_positions'=>InvoicePosition::table(),
 			'company_settings'=>CompanySettings::table(),
-			];
+			'templates'=>Template::table(),
+		];
 		
 		foreach ($tables as $table => $fields){		
 			$sql = 'CREATE TABLE '.$table.' ( ';
@@ -385,4 +387,75 @@ class Invoice {
 	}
 }
 
+class Template{
+	static function table(){
+		return [
+			'id'						=> ['INTEGER','KEY'=>'PRIMARY'],
+			'company_id'			 	=> ['INT','NOT NULL'],
+			'name'						=> ['VARCHAR'=>255,'NOT NULL'],
+			'template'					=> 'BLOB',
+		];
+	}
+	
+	static function load($company_id){
+		$templates = [];
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM templates WHERE company_id = :cid';
+		$args = [':cid'=>$company_id];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to templates for the selected company.');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($rows as $row) {
+			$template = new Template();
+			$template->patch($row);
+			$templates[] = $template;
+		}
+		return $templates;
+	}
+	
+	function __construct($file_path){
+		$this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
+	}
+		
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+	
+	public function save(){
+		global $user;
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE templates SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update template in database!');
+			}
+		} else {
+			$known_fields = array_keys(Template::table());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$sql = 'INSERT INTO templates ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to insert new template');
+			$this->id = $db->lastInsertId();
+		}
+	}
+}
 ?>

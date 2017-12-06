@@ -82,10 +82,15 @@ if (isset($_POST['invoice'])){
 	$new_invoice_data['date'] = strtotime($new_invoice_data['date']);
 	$invoice->patch($new_invoice_data);
 	$invoice->save();
+	info('Your invoice ? has been saved.',$invoice->number);
 
 	$companySettings = CompanySettings::load($invoice->company_id);
 	$companySettings->updateFrom($invoice);
+	info('Company settings have been updated.');
 }
+
+$templates = Template::load($invoice->company_id);
+if (empty($templates)) warn('No templates have been provided for this company!');
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -220,8 +225,19 @@ include '../common_templates/messages.php'; ?>
 			</legend>
 			<input type="text" name="invoice[court]" value="<?= $invoice->court ?>"/>
 		</fieldset>
-		
-		<button type="submit"><?= t('Save')?></button>		
+		<fieldset>
+			<legend>
+				<?= t('Template')?>
+			</legend>
+			<select name="invoice[template_id]">
+				<option value=""><?= t('No invoice template selected')?></option>
+				<?php foreach ($templates as $template) {?>				
+				<option value="<?= $template->id ?>" <?= $template->id == $invoice->template_id ? 'selected="true"':'' ?>><?= $template->name ?></option>
+				<?php }?>
+			</select>
+			<a href="../templates?company=<?= $invoice->company_id ?>"><?= t('Manage templates') ?></a>
+		</fieldset>		
+		<button type="submit"><?= t('Save')?></button>				
 		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Donwload PDF') ?></a>
 	</fieldset>
 </form>
