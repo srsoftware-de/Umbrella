@@ -7,6 +7,13 @@ if (isset($errors) && !empty($errors)): ?>
 	<?php endforeach; ?>
 </div>
 <?php endif; 
+if (isset($warnings) && !empty($warnings)): ?>
+<div class="warnings">
+	<?php foreach ($warnings as $warning): ?>
+	<span><?= $warning ?></span>
+	<?php endforeach; ?>
+</div>
+<?php endif;
 if (isset($infos) && !empty($infos)): ?>
 <div class="infos">
 	<?php foreach ($infos as $info): ?>

@@ -40,14 +40,12 @@ input[type=text]{
 }
 
 .add_positions,
-.invoice_positions,
 .requirements{
-	max-height: 50px;
-	max-width: 200px;
+	max-height: 60px;
+	max-width: 66%;
 	overflow: hidden;
 }
 .add_positions:hover,
-.invoice_positions:hover,
 .requirements:hover{
 	max-height: 9999px;
 	max-width: 9999px;
@@ -118,6 +116,10 @@ fieldset {
 .invoice .dates,
 fieldset.invoice.list{
 	float: left;
+}
+
+.invoice .dates label{
+	text-align: right;
 }
 
 .button,
@@ -193,11 +195,13 @@ td > h1{
 	margin: 0 10px 0 0;
 }
 
-.infos, .errors{
+.infos, .errors, .warnings{
 	text-align: center;
 }
 
-.infos span,.errors span{
+.infos span,
+.errors span,
+.warnings span{
 	margin: 5px 0 0;
 	padding: 5px;
 	border-radius: 10px;
@@ -212,6 +216,10 @@ td > h1{
 	color: black;
 }
 
+.warnings span{
+	background-color: #ffff00;
+	color: black;
+}
 
 .tags span{
 	display: inline-block;

@@ -84,6 +84,14 @@ function info($message,$args = null){
 	if ($message === null) return;
 	$infos[] = t($message,$args);
 }
+
+function warn($message,$args = null){
+	global $warnings;
+	if ($message === null) return;
+	$warnings[] = t($message,$args);
+}
+
+
 function error($message,$args = null){
 	global $errors;
 	if ($message === null) return;
