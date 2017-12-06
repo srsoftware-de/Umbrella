@@ -222,7 +222,7 @@ class CompanySettings{
 		$data = [
 			'default_invoice_header' => $invoice->head,
 			'default_invoice_footer' => $invoice->footer,
-			'invoice_prefix' => preg_replace('/\d+\w*$/', '', $invoice->number),
+			'invoice_prefix' => preg_replace('/[1-9]+\w*$/', '', $invoice->number),
 			'invoice_suffix' => preg_replace('/^\w*\d+/', '', $invoice->number),
 		];
 		$this->patch($data);
