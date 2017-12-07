@@ -33,6 +33,11 @@ $tasks = request('task','list',['order'=>'status','project'=>$project_id]);
 $title = $project['name'].' - Umbrella';
 $show_closed_tasks = param('closed') == 'show';
 
+if (isset($services['bookmark'])){
+	$hash = sha1(location());
+	$bookmark = request('bookmark','json_get?id='.$hash);	
+}
+
 function display_tasks($task_list,$parent_task_id){
 	global $show_closed_tasks,$project_id;
 	$first = true;
@@ -60,7 +65,6 @@ function display_tasks($task_list,$parent_task_id){
 		?></ul><?php
 	}
 }
-
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -107,6 +111,17 @@ include '../common_templates/messages.php';
 				</li>
 			<?php } ?>
 			</ul>
+		</td>
+	</tr>
+	<?php } ?>
+	<?php if ($bookmark) { ?>
+	<tr>
+		<th><?= t('Tags')?></th>
+		<td>
+		<?php $base_url = getUrl('bookmark');
+		foreach ($bookmark['tags'] as $tag){ ?>
+			<a class="button" href="<?= $base_url.'/'.$tag.'/view' ?>"><?= $tag ?></a>
+		<?php } ?>
 		</td>
 	</tr>
 	<?php } ?>
