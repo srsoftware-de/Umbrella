@@ -397,6 +397,22 @@ class Invoice {
 		$query = $db->prepare('UPDATE invoice_positions SET pos = pos-1 WHERE invoice_id = :iid AND pos > :pos');
 		assert($query->execute([':iid'=>$this->id,':pos'=>$index]));		
 	}
+	
+	function sum(){
+		$sum = 0;
+		foreach ($this->positions() as $position){
+			$pos = $position->amount * $position->single_price;
+			$sum += $pos + ($pos*$position->tax/100.0);
+		}
+		return round($sum/100.0,2);
+	}
+	
+	function template(){
+		if (!isset($this->template_id) || $this->template_id === null || $this->template_id < 1) return null;
+		$templates = Template::load($this->company_id);
+		if (!isset($templates[$this->template_id])) return null;
+		return $templates[$this->template_id];
+	}
 }
 
 class Template{
@@ -420,13 +436,14 @@ class Template{
 		foreach ($rows as $row) {
 			$template = new Template();
 			$template->patch($row);
-			$templates[] = $template;
+			$template->dirty = [];			
+			$templates[$template->id] = $template;
 		}
 		return $templates;
 	}
 	
-	function __construct($file_path){
-		$this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
+	function __construct($file_path = null){
+		if ($file_path) $this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
 	}
 		
 	function patch($data = array()){
@@ -468,6 +485,14 @@ class Template{
 			assert($query->execute($args),'Was not able to insert new template');
 			$this->id = $db->lastInsertId();
 		}
+	}
+	
+	public function file(){
+		$tempfile = tempnam('/tmp','template_');
+		$f = fopen($tempfile,'w');
+		fwrite($f,$this->template);
+		fclose($f);
+		return $tempfile;
 	}
 }
 ?>

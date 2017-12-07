@@ -20,6 +20,7 @@ include '../common_templates/messages.php'; ?>
 	<table class="invoices">
 		<tr>
 			<th><?= t('Number')?></th>
+			<th><?= t('Sum')?></th>
 			<th><?= t('Date')?></th>
 			<th><?= t('State')?></th>
 			<th><?= t('Customer')?></th>
@@ -28,6 +29,7 @@ include '../common_templates/messages.php'; ?>
 			if ($invoice->company_id != $company['id']) continue; ?>
 		<tr>
 			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->number ?></a></td>
+			<td><?= $invoice->sum().' '.$invoice->currency ?></td>
 			<td><?= $invoice->date() ?></td>
 			<td><?= $invoice->state()?></td>
 			<td><?= $invoice->customer_short()?></td>

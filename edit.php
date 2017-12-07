@@ -244,5 +244,5 @@ include '../common_templates/messages.php'; ?>
 </form>
 
 <?php 
-debug($invoice->positions());
+
 include '../common_templates/closure.php'; ?>

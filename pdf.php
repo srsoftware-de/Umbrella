@@ -26,6 +26,12 @@ class PDF extends FPDF{
 		$this->inTable=false;
 	}
 	
+	function logo(){		
+		$file = $this->invoice->template()->file();
+		$type = end(explode('/',mime_content_type($file)));
+		$this->Image($this->invoice->template()->file(),10,10,null,30,$type);		
+	}
+	
 	function recipient(){
 		$this->SetY(45);
 		$this->SetX(10);
@@ -119,6 +125,9 @@ class PDF extends FPDF{
 	
 	function firstPage(){
 		$this->AddPage();
+		
+		$this->logo();
+		
 		$this->recipient();
 		$this->sender();
 		
