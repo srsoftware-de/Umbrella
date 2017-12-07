@@ -28,7 +28,7 @@ class InvoicePosition{
 	function patch($data = array(),$set_dirty = true){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
-			if ($set_dirty && isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 		return $this;
@@ -78,7 +78,8 @@ class InvoicePosition{
 		$result = [];
 		foreach ($rows as $pos => $row){
 			$invoicePosition = new InvoicePosition($invoice);
-			$invoicePosition->patch($row,false);
+			$invoicePosition->patch($row);
+			$invoicePosition->dirty = [];
 			$result[$pos] = $invoicePosition;
 		}
 		return $result;
@@ -157,13 +158,14 @@ class CompanySettings{
 		assert($query->execute($args),'Was not able to load settings for the selected company.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($rows as $row) $companySettings->patch($row);
+		$companySettings->dirty = [];
 		return $companySettings;		
 	}
 	
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
@@ -246,7 +248,7 @@ class Invoice {
 			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
 			'date'				=> ['TIMESTAMP','NOT NULL'],
 			'number'			=> ['TEXT','NOT NULL'],
-			'delivery_date'		=> 'TIMESTAMP',
+			'delivery_date'		=> ['VARCHAR'=>100],
 			'head'				=> 'TEXT',
 			'footer'			=> 'TEXT',
 			'company_id'		=> ['INT','NOT NULL'],
@@ -266,7 +268,7 @@ class Invoice {
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
@@ -300,6 +302,7 @@ class Invoice {
 		foreach ($rows as $row){
 			$invoice = new Invoice();
 			$invoice->patch($row,false);
+			$invoice->dirty = [];
 			$invoices[$row['id']] = $invoice;
 		}
 		return $invoices;
@@ -343,8 +346,8 @@ class Invoice {
 	}
 	
 	public function delivery_date(){
-		if (!isset($this->delivery_date) || $this->delivery_date == '' || $this->delivery_date === null) return '';
-		return date('d.m.Y',$this->delivery_date);
+		if (!isset($this->delivery_date) || $this->delivery_date === null) return '';
+		return $this->delivery_date;
 	}
 	
 	
@@ -385,6 +388,15 @@ class Invoice {
 		$a->patch(['pos'=>$position_number-1])->save();
 		$b->patch(['pos'=>$position_number])->save();
 	}
+	
+	function remove_position($index){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
+		assert($query->execute([':iid'=>$this->id,':pos'=>$index]));
+		
+		$query = $db->prepare('UPDATE invoice_positions SET pos = pos-1 WHERE invoice_id = :iid AND pos > :pos');
+		assert($query->execute([':iid'=>$this->id,':pos'=>$index]));		
+	}
 }
 
 class Template{
@@ -421,7 +433,7 @@ class Template{
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}

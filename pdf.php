@@ -7,15 +7,14 @@ const RIGHT=0;
 const NEWLINE=1;
 const DOWN=2;
 const FRAME=1;
-const NO_FRAME=0; // set this to 1 to enable debugging frames
+const NO_FRAME=0; // default 0, set this to 1 to enable debugging frames
 
 require_login('invoice');
 
 $id = param('id');
 assert(is_numeric($id),'No valid invoice id passed to edit!');
-$invoice = load_invoices($id);
+$invoice = reset(Invoice::load($id));
 assert($invoice !== null,'No invoice found or accessible for id = '.$id);
-load_positions($invoice);
 //debug($invoice,1);
 
 require('lib/fpdf181/fpdf.php');
@@ -32,11 +31,11 @@ class PDF extends FPDF{
 		$this->SetX(10);
 		$this->SetFont('Arial','U',7);
 		
-		$sender = str_replace("\n", ', ', $this->invoice['sender']);
+		$sender = str_replace("\n", ', ', $this->invoice->sender);
 		$this->Cell(0,8,utf8_decode($sender),NO_FRAME,DOWN,'L');
 		
 		$this->SetFont('Arial','',10);
-		$customer = explode("\n", $this->invoice['customer']);
+		$customer = explode("\n", $this->invoice->customer);
 		foreach ($customer as $line){
 			$this->Cell(0,5,utf8_decode($line),NO_FRAME,DOWN,'L');
 		}
@@ -49,7 +48,7 @@ class PDF extends FPDF{
 		$this->SetX(130);
 		
 	    // Title
-	    $sender = explode("\n", $this->invoice['sender']);
+	    $sender = explode("\n", $this->invoice->sender);
 	    foreach ($sender as $line){
 	    	$this->Cell(70,4,utf8_decode($line),NO_FRAME,DOWN,'R');
 	    }
@@ -63,32 +62,28 @@ class PDF extends FPDF{
 		
 		$this->SetFont('Arial','B',8);
 		
-		$date = date(t('Y-m-d'),$this->invoice['delivery_date']);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Invoice Number'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,'INV0001',NO_FRAME,RIGHT,'R');
 		
 		$this->SetFont('Arial','',8);
 		
-		$date = date(t('Y-m-d'),$this->invoice['invoice_date']);
+		$date = date(t('Y-m-d'),$this->invoice->date);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Date'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$date,NO_FRAME,RIGHT,'R');
 		
-		$date = date(t('Y-m-d'),$this->invoice['delivery_date']);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Delivery Date'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,$date,NO_FRAME,RIGHT,'R');
+		$this->Cell(20,4,$this->invoice->delivery_date(),NO_FRAME,RIGHT,'R');
 		
-		$date = date(t('Y-m-d'),$this->invoice['delivery_date']);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Tax number'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,$this->invoice['tax_num'],NO_FRAME,RIGHT,'R');
+		$this->Cell(20,4,$this->invoice->tax_number,NO_FRAME,RIGHT,'R');
 
-		$date = date(t('Y-m-d'),$this->invoice['delivery_date']);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Customer number'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,$this->invoice['customer_num'],NO_FRAME,NEWLINE,'R');
+		$this->Cell(20,4,$this->invoice->customer_number,NO_FRAME,NEWLINE,'R');
 		
 		if ($this->inTable){
 			$this->tableHead();
@@ -102,7 +97,7 @@ class PDF extends FPDF{
 		$this->amount_cell(null);
 		$this->unit_cell(null);
 		$this->code_cell(null);
-		$this->desc_cell(null);
+		$this->desc_cell(null,'');
 		$this->s_pr_cell(null);
 		$this->price_cell(null);
 	}
@@ -113,10 +108,10 @@ class PDF extends FPDF{
 	    // Arial italic 8
 	    $this->SetFont('Arial','',8);
 
-	    $bank_account = str_replace("\n", ", ", $this->invoice['bank_account']);
+	    $bank_account = str_replace("\n", ", ", $this->invoice->bank_account);
 	    $this->SetY(-15);
 	    $this->Cell(0,5,utf8_decode(t('Bank account: ?',$bank_account)),NO_FRAME,NEWLINE,'L');
-	    $this->Cell(0,5,utf8_decode(t('Local court: ?',$this->invoice['court'])),NO_FRAME,NEWLINE,'L');
+	    $this->Cell(0,5,utf8_decode(t('Local court: ?',$this->invoice->court)),NO_FRAME,NEWLINE,'L');
 	    
 	    $this->SetY(-15);
 	    $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',NO_FRAME,0,'R');
@@ -129,7 +124,7 @@ class PDF extends FPDF{
 		
 		$this->setY(95,1);
 		$this->SetFont('Arial','',10);
-		$head = explode("\n", $this->invoice['head']);
+		$head = explode("\n", $this->invoice->head);
 		foreach ($head as $line){
 			$this->Cell(0,10,utf8_decode($line),NO_FRAME,DOWN,'L');
 		}
@@ -139,7 +134,7 @@ class PDF extends FPDF{
 	function foot(){
 		$this->SetFont('Arial','',10);
 		$this->Ln();		
-		$this->MultiCell(0, 10, utf8_decode($this->invoice['footer']));
+		$this->MultiCell(0, 10, utf8_decode($this->invoice->footer));
 	}
 	
 	function generate(){
@@ -168,17 +163,17 @@ class PDF extends FPDF{
 	
 	function code_cell($i){
 		if ($i===null) $i=t('Code');
-		$this->Cell(15,7,utf8_decode($i),NO_FRAME,RIGHT,'C');
+		$this->Cell(20,7,utf8_decode($i),NO_FRAME,RIGHT,'C');
 	}
 	
 	function desc_cell($t,$d){
 		if ($t===null) {
-			$this->Cell(98,7,utf8_decode(t('Description')),NO_FRAME,'L');
+			$this->Cell(93,7,utf8_decode(t('Description')),NO_FRAME,'L');
 		} else {
 			$x = $this->GetX();
-			$this->MultiCell(98,7,utf8_decode($t),NO_FRAME,'L');
+			$this->MultiCell(93,7,utf8_decode($t),NO_FRAME,'L');
 			$this->SetX($x);
-			$this->MultiCell(98,4,utf8_decode($d),NO_FRAME,'L');
+			$this->MultiCell(93,4,utf8_decode($d),NO_FRAME,'L');
 		}
 	}
 	
@@ -199,24 +194,24 @@ class PDF extends FPDF{
 		$this->SetFont('Arial','',9);
 		$sum = 0;
 		$taxes = array();
-		foreach ($this->invoice['positions'] as $pos => $position){
+		foreach ($this->invoice->positions() as $pos => $position){
 			$this->pos_n_cell($pos);
-			$this->amount_cell($position['amount']);			
-			$this->unit_cell($position['unit']);							
-			$this->code_cell($position['item_code']);
+			$this->amount_cell($position->amount);			
+			$this->unit_cell($position->unit);							
+			$this->code_cell($position->item_code);
 			$x = $this->GetX();				
 			$y = $this->GetY();
-			$this->setX($x+98);
+			$this->setX($x+93);
 			
-			$this->s_pr_cell($position['single_price']);
-			$tot = $position['amount']*$position['single_price'];
+			$this->s_pr_cell($position->single_price);
+			$tot = $position->amount*$position->single_price;
 			$sum += $tot;
 			$this->price_cell($tot);
 			$this->setY($y);
 			$this->setX($x);
-			$this->desc_cell($position['title'],$position['description']);
+			$this->desc_cell($position->title,$position->description);
 			
-			$tax = $position['tax'];
+			$tax = $position->tax;
 			if ($tax){
 				if (!isset($taxes[$tax])) $taxes[$tax]=0;
 				$taxes[$tax] += $tot*$tax/100;

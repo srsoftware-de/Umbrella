@@ -10,8 +10,6 @@ assert(is_numeric($id),'No valid invoice id passed to edit!');
 $invoice = reset(Invoice::load($id));
 if (!$invoice) error('No invoice found or accessible for id ?',$id);
 
-
-
 if ($services['time']){
 	$times = request('time', 'json_list');
 	$tasks = array();
@@ -154,6 +152,7 @@ include '../common_templates/messages.php'; ?>
 					<th><?= t('Unit')?></th>
 					<th><?= t('Price')?></th>
 					<th><?= t('Price')?></th>
+					<th><?= t('Tax')?></th>
 					<th><?= t('Actions')?></th>
 				</tr>
 
@@ -166,14 +165,16 @@ include '../common_templates/messages.php'; ?>
 						<input name="position[<?= $pos?>][title]" value="<?= $position->title ?>" />
 						<textarea name="position[<?= $pos?>][description]"><?= $position->description ?></textarea>
 					</td>
-					<td><input name="position[<?= $pos?>][amount]" value="<?= $position->amount ?>" /></td>
+					<td><input class="amount" name="position[<?= $pos?>][amount]" value="<?= $position->amount ?>" /></td>
 					<td><?= t($position->unit)?></td>
 					<td><input class="price" name="position[<?= $pos?>][single_price]" value="<?= $position->single_price/100?>" /></td>
-					<td><?= round($position->single_price*$position->amount/100,2) ?></td>
+					<td class="pos_price"><?= round($position->single_price*$position->amount/100,2) ?></td>
+					<td><div class="tax"><input name="position[<?= $pos?>][tax]" value="<?= $position->tax?>" /> %</div></td>
 					<td>
-					<?php if (!$first) { ?>
-						<a class="symbol" title="<?= t('move up')?>" href="elevate?pos=<?= $pos ?>"></a>
-					<?php }?>
+						<a class="symbol" title="<?= t('drop')?>" href="drop?pos=<?= $pos ?>"></a>
+						<?php if (!$first) { ?>
+						<a class="symbol" title="<?= t('move up')?>" href="elevate?pos=<?= $pos ?>"></a>						
+						<?php }?>					
 					</td>
 				</tr>				
 				<?php $first = false; }?>
@@ -242,4 +243,6 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 </form>
 
-<?php include '../common_templates/closure.php'; ?>
+<?php 
+debug($invoice->positions());
+include '../common_templates/closure.php'; ?>
