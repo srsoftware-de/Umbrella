@@ -21,6 +21,11 @@ $title = $task['name'].' - Umbrella';
 $task['project'] = request('project','json',['id'=>$task['project_id']]);
 $show_closed_children = param('closed') == 'show';
 
+if (isset($services['bookmark'])){
+	$hash = sha1(location());
+	$bookmark = request('bookmark','json_get?id='.$hash);
+}
+
 function display_children($task){
 	global $show_closed_children,$task_id,$services;
 	if (!isset($task['children'])) return; ?>
@@ -138,6 +143,17 @@ include '../common_templates/messages.php'; ?>
 				<li><?= $u['login'].' ('.$TASK_PERMISSIONS[$u['permissions']].')'; ?></li>
 			<?php } ?>
 			</ul>
+		</td>
+	</tr>
+	<?php } ?>
+	<?php if ($bookmark) { ?>
+	<tr>
+		<th><?= t('Tags')?></th>
+		<td>
+		<?php $base_url = getUrl('bookmark');
+		foreach ($bookmark['tags'] as $tag){ ?>
+			<a class="button" href="<?= $base_url.'/'.$tag.'/view' ?>"><?= $tag ?></a>
+		<?php } ?>
 		</td>
 	</tr>
 	<?php } ?>
