@@ -18,7 +18,9 @@ if ($services['time']){
 			unset($times[$time_id]);
 			continue;
 		}
-		foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
+		if (isset($time['tasks'])){
+			foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
+		}
 	}
 	
 	$tasks = request('task', 'json',['ids'=>implode(',', array_keys($tasks))]);
@@ -49,22 +51,13 @@ if ($services['time']){
 		}
 	}
 	
-	if ($position_data = post('position')){
-		$positions = $invoice->positions();
-		foreach ($position_data as $pos => $data){
-			$data['single_price'] *= 100;// * $data['single_price'];
-			$positions[$pos]->patch($data);
-			$positions[$pos]->save();
-		}		
-	}
-		
 	$projects = array();
 	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;
 
 	$projects = request('project', 'json',['ids'=>implode(',', array_keys($projects))]);
 
 	foreach ($times as $time_id => &$time){
-		foreach ($time['tasks'] as $task_id => $task){
+		if (isset($time['tasks'])) foreach ($time['tasks'] as $task_id => $task){
 			$project_id = $tasks[$task_id]['project_id'];
 			$project = &$projects[$project_id];
 			if (!isset($project['times'])) $project['times'] = array();
@@ -72,6 +65,36 @@ if ($services['time']){
 			$project['times'][$time_id] = $time;
 		}
 		
+	}
+}
+
+if (isset($services['items'])){
+	$items = request('items','json_list',['company'=>$invoice->company_id]);
+	
+	if ($selected_items = post('items')){
+		foreach ($selected_items as $item_id => $dummy){
+			$item = $items[$item_id];
+			$position = new InvoicePosition($invoice);
+			$position->patch([
+					'item_code'=>$item['code'],
+					'amount'=>1,
+					'unit'=>$item['unit'],
+					'title'=>$item['name'],
+					'description'=>$item['description'],
+					'single_price'=>$item['unit_price'],
+					'tax'=>$item['tax']]);
+			$position->save();
+		}
+	}
+}
+
+
+if ($position_data = post('position')){
+	$positions = $invoice->positions();
+	foreach ($position_data as $pos => $data){
+		$data['single_price'] *= 100;// * $data['single_price'];
+		$positions[$pos]->patch($data);
+		$positions[$pos]->save();
 	}
 }
 
@@ -199,19 +222,36 @@ include '../common_templates/messages.php'; ?>
 							<?php foreach ($project['times'] as $time_id => $time) { ?>
 								<li>
 									<label>
-									<input type="checkbox" name="times[<?= $time_id?>]" />							
-									<span class="subject"><?= $time['subject']?></span>
-									<span class="description"><?= $time['description']?></span>
-									<span class="duration">(<?= round(($time['end_time']-$time['start_time'])/3600,2)?>&nbsp;<?= t('hours')?>)</span>
-									<ul>
-									<?php foreach ($time['tasks'] as $task_id => $task) { ?>
-										<li><?= $tasks[$task_id]['name']?></li>
-									<?php } ?>
-									</ul>
+										<input type="checkbox" name="times[<?= $time_id?>]" />							
+										<span class="subject"><?= $time['subject']?></span>
+										<span class="description"><?= $time['description']?></span>
+										<span class="duration">(<?= round(($time['end_time']-$time['start_time'])/3600,2)?>&nbsp;<?= t('hours')?>)</span>
+										<ul>
+										<?php foreach ($time['tasks'] as $task_id => $task) { ?>
+											<li><?= $tasks[$task_id]['name']?></li>
+										<?php } ?>
+										</ul>
 									</label>
 								</li>
 							<?php }?>
 							</ul>
+						</li>
+						<?php } // foreach project?>
+					</ul>
+				</li>
+			<?php }?>
+			<?php if ($items) { ?>
+				<li>
+					<?= t('Items')?>
+					<ul>			
+						<?php foreach ($items as $item_id => $item) {?>
+						<li>
+							<label>
+								<input type="checkbox" name="items[<?= $item_id?>]" />
+								<span class="code"><?= $item['code']?></span>							
+								<span class="name"><?= $item['name']?></span>
+								<span class="description"><?= $item['description']?></span>
+							</label>
 						</li>
 						<?php } // foreach project?>
 					</ul>
@@ -254,6 +294,4 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 </form>
 
-<?php 
-
-include '../common_templates/closure.php'; ?>
+<?php include '../common_templates/closure.php'; ?>
