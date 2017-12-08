@@ -261,6 +261,7 @@ class Invoice {
 			'court'				=> 'TEXT',
 			'customer'			=> 'TEXT',
 			'customer_number'	=> 'INT',
+			'customer_email'	=> ['VARCHAR'=>255]
 		];
 	}
 

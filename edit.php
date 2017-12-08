@@ -107,6 +107,10 @@ include '../common_templates/messages.php'; ?>
 				<legend><?= t('Customer number')?></legend>
 				<input name="invoice[customer_number]" value="<?= $invoice->customer_number ?>" />
 			</fieldset>		
+			<fieldset>
+				<legend><?= t('Customer email')?></legend>
+				<input name="invoice[customer_email]" value="<?= $invoice->customer_email ?>" />
+			</fieldset>	
 			
 		</fieldset>
 		<fieldset class="sender">
@@ -184,25 +188,32 @@ include '../common_templates/messages.php'; ?>
 		<fieldset class="add_positions">
 			<legend><?= t('Add Positions')?></legend>
 			<ul>			
-			<?php if ($projects) foreach ($projects as $project_id => $project) {?>
+			<?php if ($projects) { ?>
 				<li>
-					<?= $project['name']?>
-					<ul>
-					<?php foreach ($project['times'] as $time_id => $time) { ?>
+					<?= t('Timetrack')?>
+					<ul>			
+						<?php foreach ($projects as $project_id => $project) {?>
 						<li>
-							<label>
-							<input type="checkbox" name="times[<?= $time_id?>]" />							
-							<span class="subject"><?= $time['subject']?></span>
-							<span class="description"><?= $time['description']?></span>
-							<span class="duration">(<?= round(($time['end_time']-$time['start_time'])/3600,2)?>&nbsp;<?= t('hours')?>)</span>
+							<?= $project['name']?>
 							<ul>
-							<?php foreach ($time['tasks'] as $task_id => $task) { ?>
-								<li><?= $tasks[$task_id]['name']?></li>
-							<?php } ?>
+							<?php foreach ($project['times'] as $time_id => $time) { ?>
+								<li>
+									<label>
+									<input type="checkbox" name="times[<?= $time_id?>]" />							
+									<span class="subject"><?= $time['subject']?></span>
+									<span class="description"><?= $time['description']?></span>
+									<span class="duration">(<?= round(($time['end_time']-$time['start_time'])/3600,2)?>&nbsp;<?= t('hours')?>)</span>
+									<ul>
+									<?php foreach ($time['tasks'] as $task_id => $task) { ?>
+										<li><?= $tasks[$task_id]['name']?></li>
+									<?php } ?>
+									</ul>
+									</label>
+								</li>
+							<?php }?>
 							</ul>
-							</label>
 						</li>
-					<?php }?>
+						<?php } // foreach project?>
 					</ul>
 				</li>
 			<?php }?>

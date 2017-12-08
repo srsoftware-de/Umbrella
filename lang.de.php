@@ -10,6 +10,7 @@ $translations = array(
 		'Contacts'=>'Kontakte',
 		'currency'=>'Währung',
 		'Customer' => 'Kunde',
+		'Customer email' => 'Kunden-Mailadresse',
 		'Customer number'=>'Kundennummer',
 		'Date'=>'Datum',
 		'Dates'=>'Daten',

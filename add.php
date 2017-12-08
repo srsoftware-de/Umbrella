@@ -21,6 +21,17 @@ if ($customer_contact_id = post('customer')){
 	$customer_vcard  = $contacts[$customer_contact_id];
 	$_POST['customer'] = address_from_vcard($customer_vcard);
 	$_POST['customer_number'] = isset($customer_vcard['X-CUSTOMER-NUMBER']) ? $customer_vcard['X-CUSTOMER-NUMBER'] : null;
+	if (isset($customer_vcard['EMAIL'])){
+		$email = $customer_vcard['EMAIL'];
+		if (is_array($email)){
+			if (isset($email['TYPE=work'])) {
+				$email = $email['TYPE=work'];
+			} else {
+				$email = reset($email);
+			}
+		}
+		$_POST['customer_email'] = $email;
+	}
 	$invoice = new Invoice($company);
 	$invoice->patch($_POST);
 	$company_settings->applyTo($invoice);
