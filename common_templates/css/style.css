@@ -51,6 +51,15 @@ input[type=text]{
 	max-width: 9999px;
 }
 
+.add_positions > ul > li{
+	max-height: 20px;
+	overflow: hidden;
+}
+
+.add_positions > ul > li:hover{
+	max-height: 9999px;
+}
+
 .requirements label{
 	display: block;
 }
@@ -185,8 +194,18 @@ form.invoice textarea {
     width: 100%;
 }
 
-input.price{
+.pos_price,
+form.invoice input.price,
+form.invoice input.amount{
 	max-width: 60px;
+	text-align: right;
+}
+
+form.invoice .tax{
+	min-width: 70px;
+}
+form.invoice .tax input{
+	max-width: 40px;
 	text-align: right;
 }
 
