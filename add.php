@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Item Management';
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -15,6 +15,7 @@ if (!isset($companies[$company_id])){
 
 if ($item_data = param('item')){
 	$item = new Item();
+	$item_data['unit_price'] *= 100;
 	$item->patch($item_data);
 	$item->save();
 	
