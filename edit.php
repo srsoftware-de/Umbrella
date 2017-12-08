@@ -21,6 +21,16 @@ if ($name = post('name')){
 	
 	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'),$start_date,$due_date);
 	update_task_requirements($task_id,post('required_tasks'));
+	
+	if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
+		$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+		$tags = [];
+		foreach ($raw_tags as $tag){
+			if (trim($tag) != '') $tags[]=$tag;
+		}
+		request('bookmark','add',['url'=>getUrl('task').$task_id.'/view','comment'=>$name,'tags'=>$tags]);
+	}
+	
 	if ($target = param('redirect')){
 		redirect($target);
 	} else {
@@ -34,6 +44,11 @@ if ($task['parent_task_id']) $task['parent'] = get_tasks(['id'=>$task['parent_ta
 
 // load other tasks of the project for the dropdown menu
 $project_tasks = get_tasks(['order'=>'name','project_id'=>$project_id]);
+
+if (isset($services['bookmark'])){
+	$hash = sha1(getUrl('task',$task_id.'/view'));
+	$bookmark = request('bookmark','json_get?id='.$hash);
+}
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -65,6 +80,12 @@ include '../common_templates/messages.php'; ?>
 			<legend>Description</legend>
 			<textarea name="description"><?= $task['description']?></textarea>
 		</fieldset>
+		<?php if (isset($services['bookmark'])){ ?>
+		<fieldset>
+			<legend><?= t('Tags')?></legend>
+			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
+		</fieldset>
+		<?php } ?>
 		<fieldset>
 			<legend>Start date</legend>
 			<input name="start_date" type="date" value="<?= $task['start_date'] ?>" />

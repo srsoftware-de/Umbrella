@@ -129,7 +129,7 @@
 	}
 
 	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null){
-		global $user;
+		global $user,$services;
 		$db = get_or_create_db();
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
 		assert(is_numeric($project_id),'Task must reference project!');
@@ -152,15 +152,13 @@
 		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>$status, 'start'=>$start_date, ':due'=>$due_date)),'Was not able to create new task entry in database');
 		$task_id = $db->lastInsertId();
 		add_user_to_task($task_id,$user->id,TASK_PERMISSION_OWNER);
-		
-		if (isset($services['bookmark'])){ // add to bookmarks
-			$tags = explode(DS, $dir);
-			array_splice($tags, array_search('user'.$user->id, $tags ), 1); // delete "userXX" from tags
-			$tags[] = t('File');
-			$tags[] = $info['name'];
-			$display_url = getUrl('task',$task_id.DS.'view');
-			$tags=implode(' ', $tags);
-			request('bookmark','add',['url'=>$display_url,'tags'=>$tags,'comment'=>t('Show "?" in Umbrella File Manager.',$info['name'])]);
+		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
+			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+			$tags = [];
+			foreach ($raw_tags as $tag){
+				if (trim($tag) != '') $tags[]=$tag;
+			}
+			request('bookmark','add',['url'=>getUrl('task').$task_id.'/view','comment'=>$name,'tags'=>$tags],1);
 		}
 	}
 	

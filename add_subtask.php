@@ -22,21 +22,27 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset><legend>Add subtask to <?= $task['name']?></legend>
-		<fieldset><legend>Name</legend>
+		<fieldset><legend><?= t('Name')?></legend>
 		<input type="text" name="name" autofocus="true"/>
 		</fieldset>
-		<fieldset><legend>Description</legend>
+		<fieldset><legend><?= t('Description')?></legend>
 		<textarea name="description"></textarea>
 		</fieldset>
+		<?php if (isset($services['bookmark'])){?>
 		<fieldset>
-                        <legend>Start date</legend>
-                        <input name="start_date" type="date" value="<?= date('Y-m-d');?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
-                </fieldset>
-                <fieldset>
-                        <legend>Due date</legend>
-                        <input name="due_date" type="date" value="<?= $task['due_date'] ?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
-                </fieldset>
-		<input type="submit" />
+        	<legend><?= t('Tags')?></legend>
+			<input name="tags" type="text" value="" />
+		</fieldset>
+		<?php }?>                
+		<fieldset>
+			<legend><?= t('Start date')?></legend>
+			<input name="start_date" type="date" value="<?= date('Y-m-d');?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+		</fieldset>
+        <fieldset>
+        	<legend><?= t('Due date')?></legend>
+			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+		</fieldset>
+		<input type="submit" />		
 	</fieldset>
 </form>
 
