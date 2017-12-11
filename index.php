@@ -16,7 +16,7 @@ include '../common_templates/messages.php'; ?>
 <?php foreach ($companies as $company){ ?>
 <fieldset class="invoice list">
 	<legend><?= $company['name']?></legend>
-	<a href="add?company=<?= $company['id']?>">add invoice</a>
+	<a href="add?company=<?= $company['id']?>"><?= t('add invoice') ?></a>
 	<table class="invoices">
 		<tr>
 			<th><?= t('Number')?></th>
@@ -29,10 +29,10 @@ include '../common_templates/messages.php'; ?>
 			if ($invoice->company_id != $company['id']) continue; ?>
 		<tr>
 			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->number ?></a></td>
-			<td><?= $invoice->sum().' '.$invoice->currency ?></td>
-			<td><?= $invoice->date() ?></td>
-			<td><?= $invoice->state()?></td>
-			<td><?= $invoice->customer_short()?></td>
+			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->sum().' '.$invoice->currency ?></a></td>
+			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->date() ?></a></td>
+			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->state()?></a></td>
+			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->customer_short()?></a></td>
 		</tr>
 		<?php } ?>
 		

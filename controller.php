@@ -12,6 +12,7 @@ class InvoicePosition{
 			'description'	=> 'TEXT',
 			'single_price'	=> 'INTEGER',
 			'tax'		=> 'INTEGER',
+			'time_id'	=> 'INTEGER',
 		];
 	}
 
@@ -60,6 +61,7 @@ class InvoicePosition{
 					$sql .= ' '.$field.'=:'.$field.',';
 					$args[':'.$field] = $this->{$field};
 				}
+				$this->dirty = [];
 				$sql = rtrim($sql,',').' WHERE invoice_id = :iid AND pos = :pos';
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update invoice_positions in database!');
@@ -86,11 +88,20 @@ class InvoicePosition{
 	}
 	
 	public function delete(){
+		global $services;
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
 		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able to remove entry from invoice positions table!');
-		return $this;		
-	} 
+		
+		$query = $db->prepare('UPDATE invoice_positions SET pos = pos-1 WHERE invoice_id = :iid AND pos > :pos');
+		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]));
+		if (isset($this->time_id) && $this->time_id !== null && isset($services['time'])){
+			request('time','update_state',['OPEN'=>$this->time_id]);
+		}
+
+		return $this;
+	}
+	
 }
 
 function get_or_create_db(){
@@ -236,11 +247,25 @@ class CompanySettings{
 
 class Invoice {
 	const STATE_NEW = 1;
+	const STATE_SENT = 2;
+	const STATE_DELAYED = 3;
+	const STATE_PAYED = 4;
+	const STATE_ERROR = 99;
 	
 	function __construct(array $company = []){
 		if (isset($company['id'])) $this->company_id = $company['id'];
 		if (isset($company['currency'])) $this->currency = $company['currency'];
 		$this->state = static::STATE_NEW;
+	}
+
+	static function states(){
+		return [
+			static::STATE_NEW => 'new',
+			static::STATE_SENT => 'sent',
+			static::STATE_DELAYED => 'delayed',
+			static::STATE_PAYED => 'payed',
+			static::STATE_ERROR => 'error',
+		];
 	}
 	
 	static function table(){
@@ -310,7 +335,7 @@ class Invoice {
 	}
 	
 	public function save(){
-		global $user;
+		global $user,$services;
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
@@ -323,6 +348,29 @@ class Invoice {
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update invoice in database!');
+				if (in_array('state',$this->dirty) && isset($services['time'])){
+					$time_ids = [];
+					foreach ($this->positions() as $position){
+						if (isset($position->time_id) && $position->time_id !== null) $time_ids[] = $position->time_id;
+					}
+					if (!empty($time_ids)){
+						$state = null;
+						switch ($this->state){
+							case static::STATE_NEW:
+							case static::STATE_SENT:
+							case static::STATE_DELAYED:
+								$state = 'PENDING';
+								break;
+							case static::STATE_PAYED:
+								$state = 'COMPLETED';
+								break;
+							default:
+								$state = 'OPEN';
+						}
+						request('time','update_state',[$state=>implode(',',$time_ids)]);
+					}
+				}
+				$this->dirty = [];
 			}
 		} else {
 			$this->date = time();
@@ -353,9 +401,7 @@ class Invoice {
 	
 	
 	public function state(){
-		switch ($this->state){
-			case static::STATE_NEW: return t('new');
-		}
+		if (array_key_exists($this->state, Invoice::states())) return Invoice::states()[$this->state];
 		return t('unknown state');
 	}
 	
@@ -388,15 +434,6 @@ class Invoice {
 		$b = $this->positions[$position_number-1]->delete();
 		$a->patch(['pos'=>$position_number-1])->save();
 		$b->patch(['pos'=>$position_number])->save();
-	}
-	
-	function remove_position($index){
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
-		assert($query->execute([':iid'=>$this->id,':pos'=>$index]));
-		
-		$query = $db->prepare('UPDATE invoice_positions SET pos = pos-1 WHERE invoice_id = :iid AND pos > :pos');
-		assert($query->execute([':iid'=>$this->id,':pos'=>$index]));		
 	}
 	
 	function sum(){

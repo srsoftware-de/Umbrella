@@ -9,5 +9,6 @@ $invoice_id = param('id');
 $index = param('pos');
 
 $invoice = reset(Invoice::load($invoice_id));
-$invoice->remove_position($index);
+$positions = $invoice->positions();
+if (isset($positions[$index])) $positions[$index]->delete();
 redirect('edit');

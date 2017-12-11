@@ -46,9 +46,11 @@ if ($services['time']){
 					'title'=>$time['subject'],
 					'description'=>$description,
 					'single_price'=>$customer_price,
-					'tax'=>$timetrack_tax]);
+					'tax'=>$timetrack_tax,
+					'time_id'=>$time_id]);
 			$position->save();
 		}
+		request('time','update_state',['PENDING'=>implode(',',array_keys($selected_times))]);
 	}
 	
 	$projects = array();
@@ -156,7 +158,13 @@ include '../common_templates/messages.php'; ?>
 			<label><?= t('Invoice number')?>
 				<input name="invoice[number]" value="<?= $invoice->number ?>" />
 			</label>
-						
+			<label><?= t('State'); ?>
+				<select name="invoice[state]">
+				<?php foreach (Invoice::states() as $state => $text){ ?>
+					<option value="<?= $state ?>" <?= $invoice->state == $state ? 'selected="true"' :''?> ><?= t($text) ?></option>
+				<?php } ?>
+				</select>
+			<label>				
 		</fieldset>
 		
 		<fieldset class="header">
@@ -287,11 +295,11 @@ include '../common_templates/messages.php'; ?>
 				<option value="<?= $template->id ?>" <?= $template->id == $invoice->template_id ? 'selected="true"':'' ?>><?= $template->name ?></option>
 				<?php }?>
 			</select>
-			<a href="../templates?company=<?= $invoice->company_id ?>"><?= t('Manage templates') ?></a>
+			<a href="../templates?company=<?= $invoice->company_id ?>"><span class="symbol"></span><?= t('Manage templates') ?></a>
 		</fieldset>		
 		<button type="submit"><?= t('Save')?></button>				
-		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Donwload PDF') ?></a>
+		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Download PDF') ?></a>
 	</fieldset>
 </form>
-
+<?php debug($invoice->positions()); ?>
 <?php include '../common_templates/closure.php'; ?>
