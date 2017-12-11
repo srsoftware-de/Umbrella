@@ -14,12 +14,13 @@ include '../common_templates/messages.php'; ?>
 
 <table>
 	<tr>
-		<th><a href="?order=subject">Subject</a></th>
-		<th><a href="?order=subject">Description</a></th>
-		<th><a href="?order=start_time">Start</a></th>
-		<th><a href="?order=end_time">End</a></th>
-		<th>Hours</th>
-		<th>Actions</th>
+		<th><a href="?order=subject"><?= t('Subject')?></a></th>
+		<th><a href="?order=subject"><?= t('Description')?></a></th>
+		<th><a href="?order=start_time"><?= t('Start')?></a></th>
+		<th><a href="?order=end_time"><?= t('End')?></a></th>
+		<th><?= t('Hours')?></th>
+		<th><?= t('State')?></th>
+		<th><?= t('Actions')?></th>
 	</tr>
 	
 <?php foreach ($times as $id => $time): ?>
@@ -29,6 +30,7 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $time['start_time']?date('Y-m-d H:i',$time['start_time']):''; ?></td>
 		<td><?= $time['end_time']?date('Y-m-d H:i',$time['end_time']):'<a href="'.$id.'/stop">Stop</a>'; ?></td>
 		<td><?= $time['end_time']?(($time['end_time']-$time['start_time'])/3600).' hours':'' ?></td>
+		<td><?= TIME_STATES[$time['state']] ?></td>
 		<td>
 			<?php if ($time['end_time']) { ?>
 			<a class="symbol" title="edit" href="<?= $id ?>/edit"></a>

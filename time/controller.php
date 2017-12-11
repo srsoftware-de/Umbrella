@@ -1,4 +1,4 @@
-<?php
+<?PHp
 
 	const TIME_PERMISSION_OWNER = 1;
 	const TIME_PERMISSION_PARTICIPANT = 2;
@@ -9,7 +9,7 @@
 	const TIME_STATUS_COMPLETE = 60;
 	const TIME_STATUS_CANCELED = 100;
 	
-	$time_states = array(TIME_STATUS_CANCELED => 'canceled',
+	const TIME_STATES = array(TIME_STATUS_CANCELED => 'canceled',
 						 TIME_STATUS_PENDING => 'pending',
 						 TIME_STATUS_OPEN => 'open',
 						 TIME_STATUS_COMPLETE => 'completed',
@@ -29,7 +29,8 @@
 							subject VARCHAR(255) NOT NULL,
 							description TEXT,
 							start_time TIMESTAMP,
-							end_time TIMESTAMP);');
+							end_time TIMESTAMP,
+							state INT NOT NULL DEFAULT 10);');
 			$db->query('CREATE TABLE task_times (task_id INT NOT NULL, time_id INT NOT NULL, PRIMARY KEY(task_id, time_id));');
 		} else {
 			$db = new PDO('sqlite:db/times.db');
@@ -48,8 +49,8 @@
 	function start_time($user_id = null){
 		assert(is_numeric($user_id),'No valid user id passed to start_time');
 		$db = get_or_create_db();
-		$query = $db->prepare('INSERT INTO times (user_id, subject, start_time) VALUES (:uid, :subj, :start)');
-		assert($query->execute(array(':uid'=>$user_id,':subj'=>'new time',':start'=>time())),'Was not able to create new time entry!');
+		$query = $db->prepare('INSERT INTO times (user_id, subject, start_time, state) VALUES (:uid, :subj, :start, :state)');
+		assert($query->execute(array(':uid'=>$user_id,':subj'=>'new time',':start'=>time(),':state'=>TIME_STATUS_STARTED)),'Was not able to create new time entry!');
 	}
 
 	function drop_time($time_id = null){
@@ -102,7 +103,7 @@
 		return $assignments;
 	}
 
-	function update_time($time_id = null,$subject = null,$description = null,$start = null,$end = null){
+	function update_time($time_id = null,$subject = null,$description = null,$start = null,$end = null,$state = TIME_STATUS_OPEN){
 		assert(is_numeric($time_id),'Invalid time id passed to update_time!');
 		assert($subject !== null,'Subject must not be null!');
 		$start_time = strtotime($start);
@@ -110,10 +111,11 @@
 
 		$end_time = strtotime($end);
 		if (!$end_time) $end_time = null;
+		if ($end_time === null) $state = TIME_STATUS_STARTED;
 
 		$db = get_or_create_db();
-		$query = $db->prepare('UPDATE times SET subject = :sub, description = :desc, start_time = :start, end_time = :end WHERE id = :tid');		
-		assert($query->execute(array(':tid'=>$time_id,':sub'=>$subject,':desc'=>$description,':start'=>$start_time,':end'=>$end_time)),'Was not able to update time entry');
+		$query = $db->prepare('UPDATE times SET subject = :sub, description = :desc, start_time = :start, end_time = :end, state = :state WHERE id = :tid');		
+		assert($query->execute(array(':tid'=>$time_id,':sub'=>$subject,':desc'=>$description,':start'=>$start_time,':end'=>$end_time, ':state' => $state)),'Was not able to update time entry');
 	}
 
 	function get_open_tracks($user_id = null){
@@ -133,5 +135,16 @@
 		$tasks = $query->fetchAll(INDEX_FETCH);
 	    $tasks = request('task', 'json', ['ids'=>implode(',',array_keys($tasks))]);
 		$time['tasks'] = $tasks;
+	}
+
+	function set_state($time_id = null,$state = TIME_STATE_OPEN){
+		global $user;
+		assert($time_id !== null,'Invalid time id (null) submited to set_state!');
+		if (!is_array($time_id)) $time_id = [$time_id];
+		$db = get_or_create_db();
+		$query = $db->prepare('UPDATE times SET state = :state WHERE user_id = :uid AND id = :id');
+		foreach ($time_id as $id){
+			assert($query->execute([':state'=>$state,':uid'=>$user->id,':id'=>$id]),'Was not able to update state of time '.$time_id.'!');
+		}
 	}
 ?>
