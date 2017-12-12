@@ -82,8 +82,8 @@
 			$ids = $options['company_ids'];
 			if (!is_array($ids)) $ids = [$ids];
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' AND comapny_id IN ('.$qMarks.')';
-			$args = array_merge($args, $ids);
+			$sql .= ' AND company_id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);			
 		}
 
 		if (isset($options['order'])){
@@ -99,6 +99,7 @@
 		}
 
 		$db = get_or_create_db();
+		//debug(query_insert($sql, $args),1);
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load projects!');
 		$projects = $query->fetchAll(INDEX_FETCH);
