@@ -4,12 +4,10 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('task');
-if ($task_ids = param('ids')){
-	$task_ids = explode(',', $task_ids);
-	die(json_encode(get_tasks(['ids'=>$task_ids])));
-}
 
-$task_id = param('id');
-if (!$task_id) error('No task id passed to view!');
+$options = [];
+if ($ids = param('ids'))$options['ids'] = explode(',',$ids);
+if ($project_ids = param('project_ids')) $options['project_ids'] = explode(',',$project_ids);
+if ($ids_only = param('ids_only')) $options['ids_only'] = $ids_only;
 
-die(json_encode(get_tasks(['id'=>$task_id])));
+die(json_encode(load_tasks($options)));

@@ -71,6 +71,48 @@
 		assert($query->execute($args),'Was not able to read list of user-assigned tasks.');
 		return array_keys($query->fetchAll(INDEX_FETCH));
 	}
+	
+	function load_tasks($options = array()){
+		global $user;
+		$ids_only = isset($options['ids_only']) && $options['ids_only'];
+		
+		$sql = 'SELECT id';
+		$where = [];
+		$args = [];
+		
+		if (!$ids_only) $sql .= ',*';
+		$sql .= ' FROM tasks';
+		if (!$ids_only) { // if we request more than the task_ids: limit task list to user's tasks
+			$where[] = 'id IN (SELECT task_id FROM tasks_users WHERE user_id = ?)';
+			$args[] = $user->id;
+		}
+		
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+	
+		if (isset($options['project_ids'])){
+			$ids = $options['project_ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'project_id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+		
+		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+	
+		$db = get_or_create_db();
+		//debug(query_insert($sql, $args),1);
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load tasks!');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		if (isset($options['single']) && $options['single']) return reset($rows);
+		return $rows;
+	}
 
 	function get_tasks($selection = []){
 		global $user,$TASK_STATES;
