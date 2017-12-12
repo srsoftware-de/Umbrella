@@ -4,12 +4,20 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('project');
-$project_id = param('id');
+
+$options = [];
 if ($project_ids = param('ids')){
 	$project_ids = explode(',', $project_ids);
-	die(json_encode(load_projects($project_ids)));
+	$options['ids'] = $project_ids;	
 }
 
-if (!$project_id) error('No project id passed to view!');
+if ($company_ids = param('company_ids')){
+	$company_ids = explode(',', $company_ids);
+	$options['company_ids'] = $company_ids;
+}
 
-die(json_encode(load_projects($project_id)));
+if ($single = param('single')){
+	$options['single'] = $single;
+}
+
+die(json_encode(load_projects($options)));

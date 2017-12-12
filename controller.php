@@ -78,8 +78,8 @@
 			$args = array_merge($args, $ids); 
 		}
 		
-		if (isset($options['comapny_ids'])){
-			$ids = $options['comapny_ids'];
+		if (isset($options['company_ids'])){
+			$ids = $options['company_ids'];
 			if (!is_array($ids)) $ids = [$ids];
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$sql .= ' AND comapny_id IN ('.$qMarks.')';
