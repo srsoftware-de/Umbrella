@@ -33,7 +33,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST" enctype="multipart/form-data">
 	<fieldset>
-		<legend>Upload new file</legend>
+		<legend><?= t('Upload new file'); ?></legend>
 		<fieldset>
 			<legend>Name</legend>		
 			<input type="file" name="file" />
