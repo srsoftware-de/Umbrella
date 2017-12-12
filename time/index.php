@@ -4,8 +4,18 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('time');
-$times = get_time_list(param('order'));
-//debug($times,true);
+$times = load_times(['order'=>param('order')]);
+$task_ids = [];
+foreach ($times as $time){
+	foreach ($time['task_ids'] as $task_id) $task_ids[$task_id] = 1;
+}
+$tasks = request('task','json',['ids'=>implode(',', array_keys($task_ids))]);
+$project_ids = [];
+foreach ($tasks as $task){
+	$project_ids[$task['project_id']] = 1;
+}
+$projects = request('project','json',['ids'=>implode(',',array_keys($project_ids))]);
+debug($projects);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -14,17 +24,26 @@ include '../common_templates/messages.php'; ?>
 
 <table>
 	<tr>
+		<th><?= t('Project(s)')?></th>
 		<th><a href="?order=subject"><?= t('Subject')?></a></th>
-		<th><a href="?order=subject"><?= t('Description')?></a></th>
+		<th><a href="?order=description"><?= t('Description')?></a></th>
 		<th><a href="?order=start_time"><?= t('Start')?></a></th>
 		<th><a href="?order=end_time"><?= t('End')?></a></th>
 		<th><?= t('Hours')?></th>
-		<th><?= t('State')?></th>
+		<th><a href="?order=state"><?= t('State')?></a></th>
 		<th><?= t('Actions')?></th>
 	</tr>
 	
 <?php foreach ($times as $id => $time): ?>
 	<tr>
+		<td>
+			<?php $time_projects=[]; 
+			foreach ($time['task_ids'] as $task_id){
+				$pid = $tasks[$task_id]['project_id'];
+				$time_projects[$pid] = $projects[$pid]['name'];
+			}?>
+			<?= implode(' ',$time_projects)?>
+		</td>
 		<td><a href="<?= $id ?>/view"><?= $time['subject'] ?></a></td>
 		<td><?= $time['description'] ?></td>
 		<td><?= $time['start_time']?date('Y-m-d H:i',$time['start_time']):''; ?></td>

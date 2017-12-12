@@ -62,45 +62,79 @@
 		assert($query->execute(array(':tid'=>$time_id)),'Was not able to drop task_time entry!');		
 	}
 
-	function load_time($id = null){
-		assert($id !== null,'No time id passed to load_time!');
-		assert(is_numeric($id),'Invalid time id passed to load_time!');
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM times WHERE id = :id');
-		assert($query->execute(array(':id'=>$id)));
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		return $results[0];
-	}
-
-	function get_time_list($sort = null){
+	function load_times($options = array()){
 		global $user;
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM times WHERE user_id = :uid');
-		assert($query->execute(array(':uid'=>$user->id)),'Was not able to read time list from database!');
-		$result = $query->fetchAll(INDEX_FETCH);
-		return $result;
-	}
+		$ids_only = isset($options['ids_only']) && $options['ids_only'];
+		
+		$sql = 'SELECT id,*';
+		$where = [];
+		$args = [];
+		
+		$select_by_task_ids = (isset($options['task_ids']) && !empty($options['task_ids']));
+		
+		$sql .= ' FROM times';
+		if (!$select_by_task_ids) {
+			$where[] = 'user_id = ?';
+			$args[] = $user->id;
+		}
+		
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
 	
-	function get_time_assignments($ids = array()){
+		if ($select_by_task_ids){
+			$ids = $options['task_ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN (SELECT time_id FROM task_times WHERE task_id IN ('.$qMarks.'))';
+			$args = array_merge($args, $ids);
+		}
+		
+		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+		
+		if (isset($options['order'])){
+			switch ($options['order']){				
+				case 'description':
+				case 'end_time':
+				case 'start_time':
+				case 'state':
+				case 'subject':
+					$sql .= ' ORDER BY '.$options['order'];
+			}
+		}
+	
 		$db = get_or_create_db();
-		$sql = 'SELECT * FROM task_times';
-		$args=array();
-		if (is_array($ids) && !empty($ids)){
-			$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-			$sql .= ' WHERE time_id IN ('.$qMarks.')';
-			$args = $ids;
-		}
+		//debug(query_insert($sql, $args),1);
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load time assignments!');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		$assignments = array();
-		foreach ($results as $assignent){
-			$time_id = $assignent['time_id'];
-			$task_id = $assignent['task_id'];
-			if (!isset($assignments[$time_id])) $assignent[$time_id]= array();
-			$assignments[$time_id][$task_id] = null;
+		//debug($query,1);
+		assert($query->execute($args),'Was not able to load times!');
+		$times = $query->fetchAll(INDEX_FETCH);
+		
+		if (isset($options['single']) && $options['single']) {
+			foreach ($times as $time_id => $time){
+				$query = $db->prepare('SELECT task_id FROM task_times WHERE time_id = :tid');
+				assert($query->execute([':tid'=>$time_id]),'Was not able to load task ids associated with times!');
+				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+				foreach ($rows as $row) $time['task_ids'][] = $row['task_id'];
+				return $time;
+			}
 		}
-		return $assignments;
+		
+		$qMarks = str_repeat('?,',count($times)-1).'?';
+		$query = $db->prepare('SELECT time_id,task_id FROM task_times WHERE time_id IN ('.$qMarks.')' );
+		assert($query->execute(array_keys($times)),'Was not able to load task ids associated with times!');
+		
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($rows as $row){
+			$time_id = $row['time_id'];
+			$times[$time_id]['task_ids'][] = $row['task_id'];
+		}
+		
+		return $times;
 	}
 
 	function update_time($time_id = null,$subject = null,$description = null,$start = null,$end = null,$state = TIME_STATUS_OPEN){
@@ -125,16 +159,6 @@
 		assert($query->execute(array(':uid'=>$user_id)),'Was not able to read open time tracks.');
 		$tracks = $query->fetchAll(INDEX_FETCH);
 		return $tracks;
-	}
-
-	function load_tasks(&$time = null){
-		assert($time !== null,'Time passed to load_tasks must not be null');
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM task_times WHERE time_id = :time');
-		assert($query->execute(array(':time'=>$time['id'])),'Was not able to read tasks for timetrack.');
-		$tasks = $query->fetchAll(INDEX_FETCH);
-	    $tasks = request('task', 'json', ['ids'=>implode(',',array_keys($tasks))]);
-		$time['tasks'] = $tasks;
 	}
 
 	function set_state($time_id = null,$state = TIME_STATE_OPEN){

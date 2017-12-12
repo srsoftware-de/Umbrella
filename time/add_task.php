@@ -18,7 +18,7 @@ if ($count == 1) {
 	redirect(key($tracks).'/view');
 }
 
-$task = request('task','json',['id'=>$task_id]);
+$task = request('task','json',['ids'=>$task_id]);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';

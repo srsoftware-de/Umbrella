@@ -7,8 +7,8 @@ require_login('time');
 $time_id = param('id');
 if (!$time_id) error('No time id passed to view!');
 
-$time = load_time($time_id);
-load_tasks($time);
+$time = load_times(['ids'=>$time_id,'single'=>true]);
+if (isset($time['task_ids'])) $time['tasks'] = request('task','json',['ids'=>implode(',', $time['task_ids'])]);
 
 $title = $time['subject'].' - Umbrella';
 include '../common_templates/head.php';
@@ -19,7 +19,7 @@ include '../common_templates/messages.php';
 <h1><?= $time['subject'] ?></h1>
 <table class="vertical">
 	<tr>
-		<th>Time</th>
+		<th><?= t('Time')?></th>
 		<td>
 			<span class="right">
 				<a title="<?= t('edit')?>" href="edit" class="symbol"></a>
@@ -36,11 +36,11 @@ include '../common_templates/messages.php';
 		</td>
 	</tr>
 	<tr>
-		<th>Description</th><td><?= $time['description']; ?></td>
+		<th><?= t('Description')?></th><td><?= $time['description']; ?></td>
 	</tr>
 	<?php if (!empty($time['tasks'])) {?>
 	<tr>
-		<th>Tasks</th>
+		<th><?= t('Tasks')?></th>
 		<td class="tasks">
 			<ul>
 			<?php foreach ($time['tasks'] as $tid => $task) { ?>
