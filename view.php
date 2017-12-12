@@ -18,7 +18,7 @@ $project_users = request('user','list',['ids'=>implode(',', array_keys($project_
 load_users($task,$project_users);
 //debug($task);
 $title = $task['name'].' - Umbrella';
-$task['project'] = request('project','json',['id'=>$task['project_id']]);
+$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
 $show_closed_children = param('closed') == 'show';
 
 if (isset($services['bookmark'])){

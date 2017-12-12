@@ -21,7 +21,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Add subtask to <?= $task['name']?></legend>
+	<fieldset><legend><?= t('Add subtask to "?"',$task['name']) ?></legend>
 		<fieldset><legend><?= t('Name')?></legend>
 		<input type="text" name="name" autofocus="true"/>
 		</fieldset>

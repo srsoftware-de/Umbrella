@@ -1,5 +1,6 @@
 <?php
 $translations = array(
+		'Add subtask to "?"'=>'Unteraufgabe zu "?" hinzufügen',
 		'add to timetrack'=>'Zur Zeiterfassung hinzufügen',
 		'all'=>'alle',
 		'Bookmarks'=>'Lese&shy;zei&shy;chen',

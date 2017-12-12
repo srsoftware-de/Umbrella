@@ -38,7 +38,7 @@ if ($name = post('name')){
 	}
 }
 
-$task['project'] = request('project','json',['id'=>$project_id]);
+$task['project'] = request('project','json',['ids'=>$project_id,'single'=>ture]);
 
 if ($task['parent_task_id']) $task['parent'] = get_tasks(['id'=>$task['parent_task_id']]);
 
