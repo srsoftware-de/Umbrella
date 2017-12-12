@@ -9,7 +9,7 @@ $project_id = param('id');
 
 if (!$project_id) error('No project id passed to view!');
 
-$p = load_projects($project_id);
+$p = load_projects(['ids'=>$project_id,'single'=>true]);
 $title = $p['name'].' - Umbrella';
 $current_users = load_users($project_id);
 $allowed = false;

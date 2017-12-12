@@ -9,7 +9,7 @@ if (!$project_id) error('No project id passed to view!');
 
 
 if ($name = post('name')){
-	update_project($project_id,$name,post('description'));
+	update_project($project_id,$name,post('description'),post('company'));
 	if ($redirect=param('redirect')){
 		redirect($redirect);
 	} else {
@@ -17,7 +17,9 @@ if ($name = post('name')){
 	}
 }
 
-$project = load_projects($project_id);
+$project = load_projects(['ids'=>$project_id,'single'=>true]);
+$companies = request('company','json_list');
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -25,6 +27,15 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset>
 		<legend><?= t('Edit Project')?></legend>
+                <fieldset>
+                        <legend>Company</legend>
+                        <select name="company">
+				<option value="0"><?= t('== no company assigned =='); ?></option>
+                        <?php foreach($companies as $company) { ?>
+                                <option value="<?= $company['id'] ?>" <?= $company['id'] == $project['company_id']?'selected="true"':''?>><?= $company['name'] ?></a>
+                        <?php } ?>
+                        </select>
+                </fieldset>
 		<fieldset>
 			<legend><?= t('Name')?></legend>
 			<input type="text" name="name" value="<?= $project['name']; ?>"/>

@@ -31,7 +31,7 @@
 		assert(is_writable('db'),'Directory project/db not writable!');
 		if (!file_exists('db/projects.db')){
 			$db = new PDO('sqlite:db/projects.db');
-			$db->query('CREATE TABLE projects (id INTEGER PRIMARY KEY, name VARCHAR(255) NOT NULL, description TEXT, status INT DEFAULT '.PROJECT_STATUS_OPEN.');');
+			$db->query('CREATE TABLE projects (id INTEGER PRIMARY KEY, company_id INT, name VARCHAR(255) NOT NULL, description TEXT, status INT DEFAULT '.PROJECT_STATUS_OPEN.');');
 			$db->query('CREATE TABLE projects_users (project_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT 1, PRIMARY KEY(project_id, user_id));');
 		} else {
 			$db = new PDO('sqlite:db/projects.db');
@@ -39,42 +39,22 @@
 		return $db;
 	}
 
-	function get_project_list($order = null){
-		global $user;
-		$db = get_or_create_db();
-		$sql = 'SELECT * FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = :uid)';
-		$args = array(':uid'=>$user->id);
-
-		if ($order === null) $order = 'name';
-		switch ($order){
-			case 'name':
-			case 'status':
-				$sql .= ' ORDER BY '.$order.' COLLATE NOCASE';
-		}
-
-
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to request project list!');
-		$results = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
-		return $results;
-	}
-
-	function add_project($name,$description = null){
+	function add_project($name,$description = null,$company_id=null){
 		global $user;
 		$db = get_or_create_db();
 		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
-		$query = $db->prepare('INSERT INTO projects (name, description, status) VALUES (:name, :desc, :state);');
-		assert($query->execute(array(':name'=>$name,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new project entry in  database');
+		$query = $db->prepare('INSERT INTO projects (name, company_id, description, status) VALUES (:name, :cid, :desc, :state);');
+		assert($query->execute(array(':cid'=>$company_id,':name'=>$name,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new project entry in  database');
 		$project_id = $db->lastInsertId();
 		add_user_to_project($project_id,$user->id,PROJECT_PERMISSION_OWNER);
 	}
 
-	function update_project($id,$name,$description = null){
+	function update_project($id,$name,$description = null,$company_id = null){
 		$db = get_or_create_db();
 		assert(is_numeric($id),'invalid project id passed!');
 		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
-		$query = $db->prepare('UPDATE projects SET name = :name, description = :desc WHERE id = :id;');
-		assert($query->execute(array(':id' => $id, ':name'=>$name,':desc'=>$description)),'Was not able to alter project entry in database');
+		$query = $db->prepare('UPDATE projects SET company_id = :cid, name = :name, description = :desc WHERE id = :id;');
+		assert($query->execute(array(':id' => $id, ':cid'=>$company_id, ':name'=>$name,':desc'=>$description)),'Was not able to alter project entry in database');
 	}
 
 	function set_project_state($project_id, $state){
@@ -84,21 +64,45 @@
 		$query = $db->prepare('UPDATE projects SET status = :state WHERE id = :id;');
 		assert($query->execute(array(':state' => $state,':id'=>$project_id)),'Was not able to alter project state in database');
 	}
+	
+	function load_projects($options = array()){
+		global $user;
+		$sql = 'SELECT id,* FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
+		$args = [$user->id];
+		
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' AND id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids); 
+		}
+		
+		if (isset($options['comapny_ids'])){
+			$ids = $options['comapny_ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' AND comapny_id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
 
-	function load_projects($ids = null){
-		assert($ids !== null,'No project id passed to load_projects!');
-		$reset = is_numeric($ids); // if we get only one id, we will return a single element instad of an array
-		if ($reset) $ids = array($ids);
-		assert(is_array($ids),'Invalid project id passed to load_projects!');
-		assert(!empty($ids),'No project id passed to load_projects!');
+		if (isset($options['order'])){
+			switch ($options['order']){
+				case 'name':
+				case 'status':
+					$sql .= ' ORDER BY '.$options['order'].' COLLATE NOCASE';
+					break;
+				case 'company':
+					$sql .= ' ORDER BY company_id DESC';
+					break;
+			}
+		}
 
-		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-		$sql = 'SELECT id,* FROM projects WHERE id IN ('.$qMarks.')';
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
-		assert($query->execute($ids),'Was not able to load projects!');
+		assert($query->execute($args),'Was not able to load projects!');
 		$projects = $query->fetchAll(INDEX_FETCH);
-		if ($reset) return reset($projects);
+		if (isset($options['single']) && $options['single']) return reset($projects);
 		return $projects;
 	}
 

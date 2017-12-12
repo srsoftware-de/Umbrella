@@ -4,8 +4,10 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('project');
-$projects = get_project_list(param('order'));
-$show_closed = param('closed') == 'show';
+$projects = load_projects(['order'=>param('order')]);
+
+$show_closed = param('closed') == 'show' || param('order') == 'status';
+$companies = request('company','json_list');
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -17,6 +19,7 @@ include '../common_templates/messages.php'; ?>
 <table class="project-index">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
+		<th><a href="?order=company"><?= t('Company') ?></a></th>
 		<th><a href="?order=status"><?= t('Status')?></a></th>
 		<th><?= t('Actions')?></th>
 	</tr>
@@ -25,6 +28,7 @@ include '../common_templates/messages.php'; ?>
 	?>
 	<tr>
 		<td><a href="<?= $id ?>/view"><?= $project['name'] ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= isset($companies[$project['company_id']])?$companies[$project['company_id']]['name']:'' ?></a></td>
 		<td><?= t($PROJECT_STATES[$project['status']]) ?></td>
 		<td>
 			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>

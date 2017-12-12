@@ -10,7 +10,7 @@ if (!$project_id) error('No project id passed to view!');
 $project_users_permissions = load_users($project_id);
 
 assert(array_key_exists($user->id, $project_users_permissions),'You are not member of this project!');
-$project = load_projects($project_id);
+$project = load_projects(['ids'=>$project_id,'single'=>true]);
 
 $current_user_is_owner = ($project_users_permissions[$user->id]['permissions'] == PROJECT_PERMISSION_OWNER);
 
@@ -32,6 +32,8 @@ $tasks = request('task','list',['order'=>'status','project'=>$project_id]);
 //debug($tasks,true);
 $title = $project['name'].' - Umbrella';
 $show_closed_tasks = param('closed') == 'show';
+
+$companies = request('company','json_list');
 
 if (isset($services['bookmark'])){
 	$hash = sha1(location());
@@ -84,6 +86,14 @@ include '../common_templates/messages.php';
 			</span>
 			<h1><?= $project['name'] ?></h1>
 		</td>
+	</tr>
+	<tr>
+		<?php if (isset($companies[$project['company_id']])) { ?>
+		<th><?= t('Company') ?></th>
+		<td>
+			<?= $companies[$project['company_id']]['name'] ?>
+		</td>
+		<?php } ?>
 	</tr>
 	<tr>
 		<th><?= t('Description')?></th><td><?= $project['description']; ?></td>
