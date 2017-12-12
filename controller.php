@@ -46,15 +46,15 @@ class Company {
 	static function fields(){
 		return [
 			'id'					=> ['INTEGER','KEY'=>'PRIMARY'],
+			'name'					=> ['VARCHAR'=>255, 'NOT NULL'],
 			'address'				=> 'TEXT',
 			'bank_account'			=> 'TEXT',
 			'court'					=> 'TEXT',
 			'currency'				=> ['VARCHAR'=>10,'DEFAULT'=>'€'],
+			'logo'					=> 'TEXT',
+			'tax_number'			=> ['VARCHAR'=>255],
 			'decimals'				=> ['INT','NOT NULL','DEFAULT'=>'2'],
 			'decimal_separator'		=> ['VARCHAR'=>10,'DEFAULT'=>','],
-			'logo'					=> 'TEXT',
-			'name'					=> ['VARCHAR'=>255, 'NOT NULL'],
-			'tax_number'			=> ['VARCHAR'=>255],
 			'thousands_separator'	=> ['VARCHAR'=>10,'DEFAULT'=>'.'],
 		];
 	}

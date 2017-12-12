@@ -22,7 +22,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('add new company') ?></legend>
 		<?php foreach (Company::fields() as $field => $props) {
 			if (!is_array($props)) $props = [$props];
-			if (in_array($field,['id'])) continue;			
+			if (in_array($field,['id','logo'])) continue; // logo present for later use, disabled for now
 		?>
 		<fieldset>
 			<legend><?= t($field)?></legend>
