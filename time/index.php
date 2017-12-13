@@ -11,11 +11,8 @@ foreach ($times as $time){
 }
 $tasks = request('task','json',['ids'=>implode(',', array_keys($task_ids))]);
 $project_ids = [];
-foreach ($tasks as $task){
-	$project_ids[$task['project_id']] = 1;
-}
+foreach ($tasks as $task) $project_ids[$task['project_id']] = 1;
 $projects = request('project','json',['ids'=>implode(',',array_keys($project_ids))]);
-debug($projects);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -24,7 +21,7 @@ include '../common_templates/messages.php'; ?>
 
 <table>
 	<tr>
-		<th><?= t('Project(s)')?></th>
+		<th><?= t('Projects')?></th>
 		<th><a href="?order=subject"><?= t('Subject')?></a></th>
 		<th><a href="?order=description"><?= t('Description')?></a></th>
 		<th><a href="?order=start_time"><?= t('Start')?></a></th>

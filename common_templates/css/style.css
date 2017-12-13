@@ -60,6 +60,10 @@ input[type=text]{
 	max-height: 9999px;
 }
 
+.add_positions label span{
+	display: block;
+}
+
 .requirements label{
 	display: block;
 }
