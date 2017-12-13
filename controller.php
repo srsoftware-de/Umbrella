@@ -302,7 +302,7 @@ class Invoice {
 	static function load($ids = null){
 		$db = get_or_create_db();
 		
-		$user_companies = request('company','json_list');
+		$user_companies = request('company','json');
 		$user_company_ids = array_keys($user_companies);
 
 		$args = [];
@@ -328,6 +328,7 @@ class Invoice {
 		foreach ($rows as $row){
 			$invoice = new Invoice();
 			$invoice->patch($row,false);
+			//$invoice->company = $user_companies[$invoice->company_id];
 			$invoice->dirty = [];
 			$invoices[$row['id']] = $invoice;
 		}

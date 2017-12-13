@@ -11,60 +11,51 @@ $invoice = reset(Invoice::load($id));
 if (!$invoice) error('No invoice found or accessible for id ?',$id);
 
 if ($services['time']){
-	$times = request('time', 'json_list');
-	$tasks = array();
-	foreach ($times as $time_id => $time){
-		if ($time['end_time']===null) {
-			unset($times[$time_id]);
-			continue;
-		}
-		if (isset($time['tasks'])){
-			foreach ($time['tasks'] as $task_id => $dummy) $tasks[$task_id]=null;
-		}
-	}
-	
-	$tasks = request('task', 'json',['ids'=>implode(',', array_keys($tasks))]);
-	// add times selected by user to invoice
-	if ($selected_times = post('times')){
-		$customer_price = 50*100; // TODO: get customer price
-		$timetrack_tax = 19.0; // TODO: make adjustable
-		foreach ($selected_times as $time_id => $dummy){
-			$time = $times[$time_id];
-			$duration = ($time['end_time']-$time['start_time'])/3600;
-			$description = $time['description'];
-			if ($description === null || trim($description) == ''){
-				$description = '';
-				foreach ($time['tasks'] as $tid => $dummy){
-					$description .= '- '.$tasks[$tid]['name']."\n";
-				}
+	if (isset($invoice->company_id) && $invoice->company_id !== null){
+		$projects = request('project','json',['company_ids'=>$invoice->company_id]);		
+		$tasks = request('task','json',['project_ids'=>implode(',',array_keys($projects))]);
+		$times = request('time','json',['task_ids'=>implode(',',array_keys($tasks))]);
+		$user_ids = [];
+		foreach ($times as $time_id => $time){
+			$user_ids[$time['user_id']] = true;
+			foreach ($time['task_ids'] as $task_id){
+				$task = $tasks[$task_id];
+				$time['tasks'][$task_id] = $task;
+				$project_id = $task['project_id'];
+				$projects[$project_id]['times'][$time_id] = $time;
 			}
-			$position = new InvoicePosition($invoice);
-			$position->patch([
-					'item_code'=>t('timetrack'),
-					'amount'=>$duration,
-					'unit'=>t('hours'),
-					'title'=>$time['subject'],
-					'description'=>$description,
-					'single_price'=>$customer_price,
-					'tax'=>$timetrack_tax,
-					'time_id'=>$time_id]);
-			$position->save();
 		}
-		request('time','update_state',['PENDING'=>implode(',',array_keys($selected_times))]);
-	}
-	
-	$projects = array();
-	foreach ($tasks as $task_id => $task) $projects[$task['project_id']] = null;
-
-	$projects = request('project', 'json',['ids'=>implode(',', array_keys($projects))]);
-
-	foreach ($times as $time_id => &$time){
-		if (isset($time['tasks'])) foreach ($time['tasks'] as $task_id => $task){
-			$project_id = $tasks[$task_id]['project_id'];
-			$project = &$projects[$project_id];
-			if (!isset($project['times'])) $project['times'] = array();
-			
-			$project['times'][$time_id] = $time;
+		
+		$users = request('user','list',['ids'=>implode(',', array_keys($user_ids))]);
+		
+		// add times selected by user to invoice
+		if ($selected_times = post('times')){		
+			$customer_price = 50*100; // TODO: get customer price
+			$timetrack_tax = 19.0; // TODO: make adjustable
+			foreach ($selected_times as $time_id => $dummy){
+				
+				$time = $times[$time_id];
+				$duration = ($time['end_time']-$time['start_time'])/3600;
+				$description = $time['description'];
+				if ($description === null || trim($description) == ''){
+					$description = '';
+					foreach ($time['tasks'] as $tid => $dummy){
+						$description .= '- '.$tasks[$tid]['name']."\n";
+					}
+				}
+				$position = new InvoicePosition($invoice);
+				$position->patch([
+						'item_code'=>t('timetrack'),
+						'amount'=>$duration,
+						'unit'=>t('hours'),
+						'title'=>$time['subject'],
+						'description'=>$description,
+						'single_price'=>$customer_price,
+						'tax'=>$timetrack_tax,
+						'time_id'=>$time_id]);
+				$position->save();
+			}
+			request('time','update_state',['PENDING'=>implode(',',array_keys($selected_times))]);
 		}
 		
 	}
@@ -223,17 +214,19 @@ include '../common_templates/messages.php'; ?>
 				<li>
 					<?= t('Timetrack')?>
 					<ul>			
-						<?php foreach ($projects as $project_id => $project) {?>
+						<?php foreach ($projects as $project_id => $project) {
+							if (!isset($project['times']) || empty($project['times'])) continue;
+						?>
 						<li>
 							<?= $project['name']?>
 							<ul>
 							<?php foreach ($project['times'] as $time_id => $time) { ?>
 								<li>
 									<label>
-										<input type="checkbox" name="times[<?= $time_id?>]" />							
-										<span class="subject"><?= $time['subject']?></span>
-										<span class="description"><?= $time['description']?></span>
+										<input type="checkbox" name="times[<?= $time_id?>]" /><?= $time['subject']?>
+										<span class="user"><?= $users[$time['user_id']]['login']?></span>										
 										<span class="duration">(<?= round(($time['end_time']-$time['start_time'])/3600,2)?>&nbsp;<?= t('hours')?>)</span>
+										<span class="description"><?= $time['description']?></span>
 										<ul>
 										<?php foreach ($time['tasks'] as $task_id => $task) { ?>
 											<li><?= $tasks[$task_id]['name']?></li>
@@ -301,5 +294,4 @@ include '../common_templates/messages.php'; ?>
 		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Download PDF') ?></a>
 	</fieldset>
 </form>
-<?php debug($invoice->positions()); ?>
 <?php include '../common_templates/closure.php'; ?>

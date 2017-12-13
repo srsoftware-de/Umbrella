@@ -5,18 +5,17 @@ include 'controller.php';
 
 require_login('invoice');
 $invoices = Invoice::load();
-
-$companies = request('company','json_list');
+$companies = request('company','json');
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<?php foreach ($companies as $company){ ?>
+<?php foreach ($companies as $cid => $company){ ?>
 <fieldset class="invoice list">
 	<legend><?= $company['name']?></legend>
-	<a href="add?company=<?= $company['id']?>"><?= t('add invoice') ?></a>
+	<a href="add?company=<?= $cid?>"><?= t('add invoice') ?></a>
 	<table class="invoices">
 		<tr>
 			<th><?= t('Number')?></th>
@@ -26,7 +25,7 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Customer')?></th>
 		</tr>
 		<?php foreach ($invoices as $id => $invoice){
-			if ($invoice->company_id != $company['id']) continue; ?>
+			if ($invoice->company_id != $cid) continue; ?>
 		<tr>
 			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->number ?></a></td>
 			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->sum().' '.$invoice->currency ?></a></td>

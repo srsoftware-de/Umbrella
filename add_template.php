@@ -12,7 +12,7 @@ if ($template_data = param('template')){
 	redirect('templates');
 }
 
-$companies = request('company','json_list');
+$companies = request('company','json');
 
 if ($filename = param('file')){
 	$extension = '.HTML';
