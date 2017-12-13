@@ -6,6 +6,7 @@ include 'controller.php';
 require_login('company');
 
 $companies = Company::load();
+$projects = request('project','json',['company_ids'=>implode(',',array_keys($companies))]);
 $user_list = request('user','list');
 include '../common_templates/head.php';
 
@@ -33,6 +34,15 @@ foreach ($companies as $company){ ?>
 		</tr>	
 	<?php }}?>
 	</table>
+	<fieldset>
+		<legend><?= t('projects')?></legend>
+		<ul>
+		<?php foreach ($projects as $project) {
+			if ($project['company_id'] != $company->id) continue; ?>	
+			<li><a href="<?= getUrl('project',$project['id'].'/view')?>" ><?= $project['name']?></a></li>
+		<?php } ?>
+		</ul>
+	</fieldset>
 	<fieldset>
 		<legend><?= t('current users')?></legend>
 		<ul>

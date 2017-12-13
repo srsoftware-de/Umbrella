@@ -16,6 +16,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'logo'=>'Logo',
 		'name'=>'Firmenname',
+		'projects'=>'Projekte',
 		'Projects'=>'Projekte',
 		'Tasks'=>'Aufgaben',
 		'tax_number'=>'Steuer&shy;nummer',
