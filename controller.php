@@ -88,7 +88,6 @@
 
 		if (isset($options['order'])){
 			switch ($options['order']){
-				case 'name':
 				case 'status':
 					$sql .= ' ORDER BY '.$options['order'].' COLLATE NOCASE';
 					break;
@@ -96,7 +95,7 @@
 					$sql .= ' ORDER BY company_id DESC';
 					break;
 			}
-		}
+		} else $sql .= ' ORDER BY name COLLATE NOCASE';
 
 		$db = get_or_create_db();
 		//debug(query_insert($sql, $args),1);
