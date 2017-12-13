@@ -5,6 +5,6 @@ include 'controller.php';
 
 require_login('company');
 
-$companies = Company::load();
+if ($ids = param('ids')) die(json_encode(Company::load($ids)));
 
-echo json_encode($companies);
+die(json_encode(Company::load()));
