@@ -10,7 +10,7 @@ if ($name = post('name')){
     die();
 }
 
-$companies = request('company','json_list');
+$companies = request('company','json');
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -34,6 +34,12 @@ include '../common_templates/messages.php'; ?>
 			<legend>Description</legend>
 			<textarea name="description"></textarea>
 		</fieldset>
+		<?php if (isset($services['bookmark'])){?>
+		<fieldset>
+        	<legend><?= t('Tags')?></legend>
+			<input name="tags" type="text" value="" />
+		</fieldset>
+		<?php }?> 
 		<input type="submit" />
 	</fieldset>
 </form>

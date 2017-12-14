@@ -20,6 +20,12 @@ if ($name = post('name')){
 $project = load_projects(['ids'=>$project_id,'single'=>true]);
 $companies = request('company','json_list');
 
+if (isset($services['bookmark'])){
+	$hash = sha1(getUrl('project',$project_id.'/view'));
+	$bookmark = request('bookmark','json_get?id='.$hash);
+}
+
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -44,6 +50,12 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Description')?></legend>
 			<textarea name="description"><?= $project['description']?></textarea>
 		</fieldset>
+		<?php if (isset($services['bookmark'])){ ?>
+		<fieldset>
+			<legend><?= t('Tags')?></legend>
+			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
+		</fieldset>
+		<?php } ?>
 		<input type="submit" />
 	</fieldset>
 </form>

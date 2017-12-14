@@ -47,6 +47,15 @@
 		assert($query->execute(array(':cid'=>$company_id,':name'=>$name,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new project entry in  database');
 		$project_id = $db->lastInsertId();
 		add_user_to_project($project_id,$user->id,PROJECT_PERMISSION_OWNER);
+		
+		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
+			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+			$tags = [];
+			foreach ($raw_tags as $tag){
+				if (trim($tag) != '') $tags[]=$tag;
+			}
+			request('bookmark','add',['url'=>getUrl('project').$project_id.'/view','comment'=>$name,'tags'=>$tags]);
+		}
 	}
 
 	function update_project($id,$name,$description = null,$company_id = null){
