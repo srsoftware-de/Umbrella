@@ -124,9 +124,11 @@ fieldset {
 }
 
 .invoice .customer,
+.invoice .document_type,
 .invoice .sender,
 .invoice .court,
 .invoice .dates,
+.invoice .template,
 fieldset.invoice.list{
 	float: left;
 }
