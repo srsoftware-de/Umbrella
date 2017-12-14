@@ -5,7 +5,7 @@ include 'controller.php';
 
 require_login('invoice');
 
-$companies = request('company','json_list');
+$companies = request('company','json');
 $company_id =param('company');
 if (!isset($companies[$company_id])){
 	error('Was not able to finde requested company!');

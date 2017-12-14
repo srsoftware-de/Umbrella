@@ -5,7 +5,7 @@ include 'controller.php';
 
 require_login('items');
 
-$companies = request('company','json_list');
+$companies = request('company','json');
 
 $company = null;
 if ($company_id = param('company')){
@@ -60,7 +60,7 @@ include '../common_templates/messages.php'; ?>
 		</tr>
 		<tr>			
 			<td></td>
-			<td><?= $item->unit_price.' '.$company['currency']?> /</td>
+			<td><?= ($item->unit_price/100).' '.$company['currency']?> /</td>
 			<td><?= $item->unit ?></td>
 			<td><?= $item->description ?></td>
 		</tr>
