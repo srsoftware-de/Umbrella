@@ -9,7 +9,6 @@ if ($data = param('company')){
 	$company = new Company($data['name']);
 	$company->patch($data);
 	$company->save();
-	debug($company);
 }
 
 include '../common_templates/head.php';

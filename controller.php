@@ -104,18 +104,24 @@ class Company {
 		}
 	}
 
-	static function load($ids = null){
+	static function load($options = array()){
 		global $user;
 		$db = get_or_create_db();
 
 		$sql = 'SELECT * FROM companies WHERE id IN (SELECT company_id FROM companies_users WHERE user_id = ?)';
 		$args = [];
-		if ($ids !== null){
-			if (!is_array($ids)) $ids = [ $ids ];
-			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
-			$sql .= ' AND id IN ('.$qmarks.')';
-			$args = $ids;			
+		
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+		
+			if (!empty($ids)){
+				$qmarks = str_repeat('?,', count($ids) - 1) . '?';
+				$sql .= ' AND id IN ('.$qmarks.')';
+				$args = $ids;			
+			}
 		}
+		
 		array_unshift($args,$user->id);
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load companies!');
@@ -124,7 +130,9 @@ class Company {
 		foreach ($rows as $row){
 			$company = new Company($row['name']);
 			$company->patch($row);
-			$companies[$row['id']] = $company;
+			$company->dirty=[];
+			if (isset($options['single']) && $options['single']) return $company;
+			$companies[$row['id']] = $company;			
 		}
 		return $companies;
 	}
