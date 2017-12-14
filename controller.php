@@ -23,10 +23,18 @@ class InvoicePosition{
 		assert($query->execute([':iid'=>$invoice->id]),'Was not able to read invoice position table');
 		$this->pos = reset($query->fetch(PDO::FETCH_ASSOC)) +1;
 		$this->invoice_id = $invoice->id;
-		
 	}
 	
-	function patch($data = array(),$set_dirty = true){
+	public function copy(Invoice $invoice){
+		$new_position = new InvoicePosition($invoice);
+		foreach ($this as $field => $value){
+			if (in_array($field, ['id','invoice_id'])) continue;
+			$new_position->{$field} = $value;
+		}
+		return $new_position->save();
+	}
+	
+	public function patch($data = array(),$set_dirty = true){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
@@ -36,6 +44,7 @@ class InvoicePosition{
 	}
 	
 	public function save(){
+		global $services;
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
 		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able to read from invoice positions table!');
@@ -67,6 +76,7 @@ class InvoicePosition{
 				assert($query->execute($args),'Was no able to update invoice_positions in database!');
 			}
 		}
+		
 		return $this;
 	}
 	
@@ -152,11 +162,35 @@ function get_or_create_db(){
 class CompanySettings{
 	function __construct($company_id){
 		$this->company_id = $company_id;
+		
+		$this->offer_prefix = 'A';
+		$this->offer_suffix = '';
+		$this->offer_number = 1;
+		$this->default_offer_header = 'We are pleased to offer you the following services:';
+		$this->default_offer_footer = 'This offer is valid until '.date('Y-m-d',time()+14*24*60*60).'.';
+		$this->offer_mail_text = "Dear ladies and gentleman,\nyou can find our offer attached to this email. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
+
+		$this->confirmation_prefix = 'B';
+		$this->confirmation_suffix = '';
+		$this->confirmation_number = 1;
+		$this->default_confirmation_header = 'We are pleased to confirm your order ####:';
+		$this->default_confirmation_footer = '';
+		$this->confirmation_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find our confirmation for your order. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
+		
 		$this->invoice_prefix = 'R';
 		$this->invoice_suffix = '';
 		$this->invoice_number = 1;
 		$this->default_invoice_header = 'We allow us to charge the following items:';
 		$this->default_invoice_footer = 'Due and payable without discounts within 30 days of the invoice date.';
+		$this->invoice_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find an invoice for your order. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
+		
+
+		$this->reminder_prefix = 'M';
+		$this->reminder_suffix = '';
+		$this->reminder_number = 1;
+		$this->default_reminder_header = '';
+		$this->default_reminder_footer = '';
+		$this->reminder_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find a reminder for a bill you have not payed, yet. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
 	}
 	
 	static function load($company){
@@ -182,21 +216,68 @@ class CompanySettings{
 	}
 	
 	function applyTo(Invoice $invoice){
+		//debug($invoice,1);		
 		$invoice->company_id = $this->company_id;
-		$invoice->number = $this->invoice_prefix.$this->invoice_number.$this->invoice_suffix;
-		$this->patch(['invoice_number'=>$this->invoice_number+1]);
-		$invoice->head = $this->default_invoice_header;
-		$invoice->footer = $this->default_invoice_footer;
+
+		switch ($invoice->type){
+			case Invoice::TYPE_OFFER:
+				$invoice->number = $this->offer_prefix.$this->offer_number.$this->offer_suffix;
+				$this->patch(['offer_number'=>$this->offer_number+1]);
+				$invoice->head = $this->default_offer_header;
+				$invoice->footer = $this->default_offer_footer;
+				break;
+			case Invoice::TYPE_CONFIRMATION:
+				$invoice->number = $this->confirmation_prefix.$this->confirmation_number.$this->confirmation_suffix;
+				$this->patch(['confirmation_number'=>$this->confirmation_number+1]);
+				$invoice->head = $this->default_confirmation_header;
+				$invoice->footer = $this->default_confirmation_footer;
+				break;
+			case Invoice::TYPE_INVOICE:
+				$invoice->number = $this->invoice_prefix.$this->invoice_number.$this->invoice_suffix;
+				$this->patch(['invoice_number'=>$this->invoice_number+1]);
+				$invoice->head = $this->default_invoice_header;
+				$invoice->footer = $this->default_invoice_footer;
+				break;
+			case Invoice::TYPE_REMINDER:
+				$invoice->number = $this->reminder_prefix.$this->reminder_number.$this->reminder_suffix;
+				$this->patch(['reminder_number'=>$this->reminder_number+1]);
+				$invoice->head = $this->default_reminder_header;
+				$invoice->footer = $this->default_reminder_footer;
+				break;
+		}		
 	}
 	
 	static function table(){
 		return [
 			'company_id'				=> ['INTEGER','KEY'=>'PRIMARY'],
-			'default_invoice_header' 	=> 'TEXT',
-			'default_invoice_footer'	=> 'TEXT',
+			
+			'default_offer_header' 			=> 'TEXT',
+			'default_offer_footer'			=> 'TEXT',
+			'offer_prefix'				=> ['TEXT','DEFAULT'=>'A'],
+			'offer_suffix'				=> ['TEXT','DEFAULT'=>null],
+			'offer_number'				=> ['INT','NOT NULL','DEFAULT 1'],
+			'offer_mail_text'			=> 'TEXT',
+			
+			'default_confirmation_header'	 	=> 'TEXT',
+			'default_confirmation_footer'		=> 'TEXT',
+			'confirmation_prefix'			=> ['TEXT','DEFAULT'=>'B'],
+			'confirmation_suffix'			=> ['TEXT','DEFAULT'=>null],
+			'confirmation_number'			=> ['INT','NOT NULL','DEFAULT 1'],
+			'confirmation_mail_text'		=> 'TEXT',
+			
+			'default_invoice_header' 		=> 'TEXT',
+			'default_invoice_footer'		=> 'TEXT',
 			'invoice_prefix'			=> ['TEXT','DEFAULT'=>'R'],
 			'invoice_suffix'			=> ['TEXT','DEFAULT'=>null],
-			'invoice_number'			=> ['INT','NOT NULL'],
+			'invoice_number'			=> ['INT','NOT NULL','DEFAULT 1'],
+			'invoice_mail_text'			=> 'TEXT',
+				
+			'default_reminder_header' 		=> 'TEXT',
+			'default_reminder_footer'		=> 'TEXT',
+			'reminder_prefix'			=> ['TEXT','DEFAULT'=>'M'],
+			'reminder_suffix'			=> ['TEXT','DEFAULT'=>null],
+			'reminder_number'			=> ['INT','NOT NULL','DEFAULT 1'],
+			'reminder_mail_text'			=> 'TEXT',
 		];
 	}
 	
@@ -216,7 +297,7 @@ class CompanySettings{
 				}
 			}
 			$sql = 'INSERT INTO company_settings ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
-			$query = $db->prepare($sql);
+			$query = $db->prepare($sql);			
 			assert($query->execute($args),'Was not able to insert new row into company_settings');
 		} else {
 			if (!empty($this->dirty)){
@@ -234,11 +315,26 @@ class CompanySettings{
 	}
 	
 	function updateFrom(Invoice $invoice){
+		$type = '';
+		switch ($invoice->type){
+			case Invoice::TYPE_INVOICE:
+				$type = 'invoice';
+				break;
+			case Invoice::TYPE_OFFER:
+				$type = 'offer';
+				break;
+			case Invoice::TYPE_CONFIRMATION:
+				$type = 'confirmation';
+				break;
+			case Invoice::TYPE_REMINDER:
+				$type = 'reminder';
+				break;
+		}
 		$data = [
-			'default_invoice_header' => $invoice->head,
-			'default_invoice_footer' => $invoice->footer,
-			'invoice_prefix' => preg_replace('/[1-9]+\w*$/', '', $invoice->number),
-			'invoice_suffix' => preg_replace('/^\w*\d+/', '', $invoice->number),
+			'default_'.$type.'_header' => $invoice->head,
+			'default_'.$type.'_footer' => $invoice->footer,
+			$type.'_prefix' => preg_replace('/[1-9]+\w*$/', '', $invoice->number),
+			$type.'_suffix' => preg_replace('/^\w*\d+/', '', $invoice->number),
 		];
 		$this->patch($data);
 		$this->save();
@@ -252,10 +348,43 @@ class Invoice {
 	const STATE_PAYED = 4;
 	const STATE_ERROR = 99;
 	
+	const TYPE_OFFER = 1;
+	const TYPE_CONFIRMATION = 2;
+	const TYPE_INVOICE = 3;
+	const TYPE_REMINDER = 4;
+	
 	function __construct(array $company = []){
 		if (isset($company['id'])) $this->company_id = $company['id'];
 		if (isset($company['currency'])) $this->currency = $company['currency'];
 		$this->state = static::STATE_NEW;
+		$this->date = time();
+	}
+	
+	function derive(){
+		$new_invoice = new Invoice();
+		switch ($this->type){
+			case Invoice::TYPE_OFFER:
+				$new_invoice->type = Invoice::TYPE_CONFIRMATION;
+				break;
+			case Invoice::TYPE_CONFIRMATION:
+				$new_invoice->type = Invoice::TYPE_INVOICE;
+				break;
+			default:
+				$new_invoice->type = Invoice::TYPE_REMINDER;
+		}
+		$company_settings = CompanySettings::load($this->company_id);
+		$company_settings->applyTo($new_invoice);
+		foreach ($this as $field => $value){
+			if (!isset($new_invoice->{$field})) $new_invoice->{$field} = $value;	
+		}
+		unset($new_invoice->id);
+		
+		$new_invoice->save();
+		$company_settings->save();
+		
+		foreach ($this->positions() as $position) $new_position = $position->copy($new_invoice);
+		
+		return $new_invoice;
 	}
 
 	static function states(){
@@ -279,14 +408,15 @@ class Invoice {
 			'company_id'		=> ['INT','NOT NULL'],
 			'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
 			'template_id'		=> ['INT','NOT NULL'],
-			'state'				=> ['INT','NOT NULL','DEFAULT'=>1],
+			'state'				=> ['INT','NOT NULL','DEFAULT'=>static::STATE_NEW],
 			'sender'			=> ['TEXT','NOT NULL'],
 			'tax_number'		=> ['VARCHAR'=>255],
 			'bank_account'		=> 'TEXT',
 			'court'				=> 'TEXT',
 			'customer'			=> 'TEXT',
 			'customer_number'	=> 'INT',
-			'customer_email'	=> ['VARCHAR'=>255]
+			'customer_email'	=> ['VARCHAR'=>255],
+			'type'				=> ['INT','NOT NULL','DEFAULT'=>static::TYPE_INVOICE],
 		];
 	}
 
@@ -319,7 +449,9 @@ class Invoice {
 			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
 			$args = array_merge($args, $ids);
 			$sql .= ' AND id IN ('.$qmarks.')';
-		}		
+		}
+
+		$sql .= ' ORDER BY date DESC';
 		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load invoices!');
@@ -374,7 +506,7 @@ class Invoice {
 				$this->dirty = [];
 			}
 		} else {
-			$this->date = time();
+			if (!isset($this->date)) $this->date = time();
 			$known_fields = array_keys(Invoice::table());
 			$fields = [];
 			$args = [];
@@ -388,6 +520,15 @@ class Invoice {
 			$query = $db->prepare($sql);
 			assert($query->execute($args),'Was not able to insert new invoice');	
 			$this->id = $db->lastInsertId();
+		}
+		
+		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
+			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+			$tags = [];
+			foreach ($raw_tags as $tag){
+				if (trim($tag) != '') $tags[]=$tag;
+			}
+			request('bookmark','add',['url'=>getUrl('invoice').$this->id.'/edit','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
 		}
 	}
 	

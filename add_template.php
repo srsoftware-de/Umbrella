@@ -9,7 +9,7 @@ if ($template_data = param('template')){
 	$template = new Template($template_data['file']);
 	$template->patch($template_data);
 	$template->save();
-	redirect('templates');
+	redirect('index');
 }
 
 $companies = request('company','json');
@@ -27,14 +27,14 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 <fieldset>
 	<legend><?= t('Add template')?></legend>
-	<input type="text" name="template[name]" value="<?= t('Template ?',date('Y-m-d H:i:s'));?>" />
-	<input type="text" name="template[file]" value="<?= param('file') ?>" />
 	<select name="template[company_id]">
 		<option value=""><?= t('Assign template to company')?></option>
 		<?php foreach ($companies as $company){?>
 		<option value="<?= $company['id'] ?>"><?= $company['name']?></option>			
 		<?php }?>
 	</select>
+	<input type="text" name="template[name]" value="<?= t('Template ?',date('Y-m-d H:i:s'));?>" />
+	<input type="text" name="template[file]" value="<?= param('file') ?>" />
 	<input type="submit" />	
 </fieldset>
 </form>

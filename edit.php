@@ -106,6 +106,11 @@ if (isset($_POST['invoice'])){
 $templates = Template::load($invoice->company_id);
 if (empty($templates)) warn('No templates have been provided for this company!');
 
+if (isset($services['bookmark'])){
+	$hash = sha1(getUrl('invoice',$id.'/edit'));
+	$bookmark = request('bookmark','json_get?id='.$hash);
+}
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -140,13 +145,13 @@ include '../common_templates/messages.php'; ?>
 		
 		<fieldset class="dates">
 			<legend><?= t('Dates')?></legend>
-			<label><?= t('Invoice Date')?>
+			<label><?= t([Invoice::TYPE_OFFER=>'offer date',Invoice::TYPE_CONFIRMATION=>'confirmation date',Invoice::TYPE_INVOICE=>'invoice date',Invoice::TYPE_REMINDER=>'reminder date'][$invoice->type])?>
 				<input name="invoice[date]" value="<?= $invoice->date() ?>" />
 			</label>
 			<label><?= t('Delivery Date')?>
 				<input name="invoice[delivery_date]" value="<?= $invoice->delivery_date() ?>" />
 			</label>
-			<label><?= t('Invoice number')?>
+			<label><?= t([Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'confirmation number',Invoice::TYPE_INVOICE=>'invoice number',Invoice::TYPE_REMINDER=>'reminder number'][$invoice->type])?>
 				<input name="invoice[number]" value="<?= $invoice->number ?>" />
 			</label>
 			<label><?= t('State'); ?>
@@ -266,19 +271,19 @@ include '../common_templates/messages.php'; ?>
 			</legend>
 			<textarea name="invoice[footer]"><?= $invoice->footer ?></textarea>
 		</fieldset>
-		<fieldset class="court">
+		<fieldset class="bank_account">
 			<legend>
 				<?= t('Bank account')?>
 			</legend>
 			<textarea name="invoice[bank_account]"><?= $invoice->bank_account ?></textarea>
 		</fieldset>
-		<fieldset>
+		<fieldset class="court">
 			<legend>
 				<?= t('Local court')?>
 			</legend>
-			<input type="text" name="invoice[court]" value="<?= $invoice->court ?>"/>
+			<input name="invoice[court]" value="<?= $invoice->court ?>"/>
 		</fieldset>
-		<fieldset>
+		<fieldset class="template">
 			<legend>
 				<?= t('Template')?>
 			</legend>
@@ -289,7 +294,13 @@ include '../common_templates/messages.php'; ?>
 				<?php }?>
 			</select>
 			<a href="../templates?company=<?= $invoice->company_id ?>"><span class="symbol"></span><?= t('Manage templates') ?></a>
-		</fieldset>		
+		</fieldset>
+		<?php if (isset($services['bookmark'])){ ?>
+		<fieldset>
+			<legend><?= t('Tags')?></legend>
+			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
+		</fieldset>
+		<?php } ?>	
 		<button type="submit"><?= t('Save')?></button>				
 		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Download PDF') ?></a>
 	</fieldset>

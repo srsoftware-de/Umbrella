@@ -5,7 +5,7 @@ include 'controller.php';
 
 require_login('invoice');
 
-$companies = request('company','json_list');
+$companies = request('company','json');
 
 $company = null;
 if (($company_id = param('company')) && isset($companies[$company_id])){
@@ -31,12 +31,12 @@ if ($customer_contact_id = post('customer')){
 			}
 		}
 		$_POST['customer_email'] = $email;
-	}
-	$invoice = new Invoice($company);
+	}	
+	$invoice = new Invoice($company);	
 	$invoice->patch($_POST);
 	$company_settings->applyTo($invoice);
 	$invoice->template_id = 0; // TODO impelement by selection
-	$invoice->save();	
+	$invoice->save();
 	$company_settings->save();
 	redirect($invoice->id.'/edit');
 } /*
@@ -66,6 +66,15 @@ include '../common_templates/messages.php'; ?>
 				<?php foreach ($contacts as $contact_id => $contact) { ?>
 				<option value="<?= $contact_id ?>" <?= (post('customer')==$contact_id)?'selected="true"':''?>><?= conclude_vcard($contact)?></option>
 				<?php }?>				
+			</select>			
+		</fieldset>
+		<fieldset class="document_type">		
+			<legend><?= t('Document type') ?></legend>
+			<select name="type">
+				<option value="<?= Invoice::TYPE_INVOICE?>"><?= t('invoice')?></option>								
+				<option value="<?= Invoice::TYPE_OFFER?>"><?= t('offer')?></option>								
+				<option value="<?= Invoice::TYPE_CONFIRMATION?>"><?= t('confirmation')?></option>								
+				<option value="<?= Invoice::TYPE_REMINDER?>"><?= t('reminder')?></option>
 			</select>			
 		</fieldset>
 		<fieldset class="sender">
