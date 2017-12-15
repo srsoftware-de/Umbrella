@@ -302,7 +302,10 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<?php } ?>	
 		<button type="submit"><?= t('Save')?></button>				
-		<a class="button" title="<?= t('Download PDF') ?>" href="pdf"><?= t('Download PDF') ?></a>
+		<a class="button" title="<?= t('Download/Preview PDF') ?>" href="download"><?= t('Download/Preview PDF') ?></a>
+		<?php if (isset($services['files'])) { ?>
+		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>
+		<?php } ?>
 	</fieldset>
 </form>
 <?php include '../common_templates/closure.php'; ?>

@@ -26,10 +26,12 @@ class PDF extends FPDF{
 		$this->inTable=false;
 	}
 	
-	function logo(){		
-		$file = $this->invoice->template()->file();
-		$type = end(explode('/',mime_content_type($file)));
-		$this->Image($this->invoice->template()->file(),10,10,null,30,$type);		
+	function logo(){
+		if ($template = $this->invoice->template()){
+			$file = $template->file();
+			$type = end(explode('/',mime_content_type($file)));
+			$this->Image($file,10,10,null,30,$type);				
+		}
 	}
 	
 	function recipient(){
@@ -152,7 +154,19 @@ class PDF extends FPDF{
 		$this->tableHead();
 		$this->positions();
 		$this->foot();
-		$this->Output();		
+	}
+	
+	function download(){
+		$this->Output('I');		
+	}
+	
+	function store($dir){		
+		$file_contents = $this->Output('S');
+		$filename = $this->invoice->number.' - '.date('c').'.pdf';
+		save_file($dir.'/'.$filename,$file_contents,'application/pdf');
+		$list = request('files','index',['format'=>'json','path'=>$dir]);
+		assert(in_array($filename, $list['files']),'Something went wrong with the file upload!');
+		redirect(getUrl('files','index?path='.urlencode($dir)));
 	}
 	
 	function pos_n_cell($i){
@@ -245,9 +259,5 @@ class PDF extends FPDF{
 	}
 	
 }
-
-// Instanciation of inherited class
-$pdf = new PDF($invoice);
-$pdf->generate();
 
 ?>
