@@ -330,11 +330,15 @@ class CompanySettings{
 				$type = 'reminder';
 				break;
 		}
+		$prefix = preg_replace('/[1-9]+\w*$/', '', $invoice->number);
+		$suffix = preg_replace('/^\w*\d+/', '', $invoice->number);
+		$number = substr($invoice->number,strlen($prefix),strlen($invoice->number)-strlen($prefix)-strlen($suffix))+1;				
 		$data = [
 			'default_'.$type.'_header' => $invoice->head,
-			'default_'.$type.'_footer' => $invoice->footer,
-			$type.'_prefix' => preg_replace('/[1-9]+\w*$/', '', $invoice->number),
-			$type.'_suffix' => preg_replace('/^\w*\d+/', '', $invoice->number),
+			'default_'.$type.'_footer' => $invoice->footer,			
+			$type.'_prefix' => $prefix,
+			$type.'_suffix' => $suffix,
+			$type.'_number' => max($number,$this->{$type.'_number'}),	
 		];
 		$this->patch($data);
 		$this->save();
@@ -451,7 +455,7 @@ class Invoice {
 			$sql .= ' AND id IN ('.$qmarks.')';
 		}
 
-		$sql .= ' ORDER BY date DESC';
+		$sql .= ' ORDER BY id DESC';
 		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load invoices!');
