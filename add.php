@@ -23,7 +23,7 @@ if ($customer_contact_id = post('customer')){
 	$_POST['customer_number'] = isset($customer_vcard['X-CUSTOMER-NUMBER']) ? $customer_vcard['X-CUSTOMER-NUMBER'] : null;
 	if (isset($customer_vcard['EMAIL'])){
 		$email = $customer_vcard['EMAIL'];
-		if (is_array($email)){
+		while (is_array($email)){
 			if (isset($email['TYPE=work'])) {
 				$email = $email['TYPE=work'];
 			} else {
