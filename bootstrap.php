@@ -98,6 +98,36 @@ function save_file($filename,$file_contents,$mime){
 	$response = file_get_contents($url,false,$context);
 }
 
+function send_mail($sender, $reciever, $subject = '', $text = '', $attachment = null){
+	//debug([$sender, $reciever, $subject, $text],1);
+	
+	$filename = $attachment['name'];
+	
+	$content = $attachment['content'];
+	$content = chunk_split(base64_encode($content));
+	$uid = md5(uniqid(time()));
+	
+	// header
+	$header = "From: ".$sender." <".$sender.">\r\n";
+	$header .= "Reply-To: ".$sender."\r\n";
+	$header .= "MIME-Version: 1.0\r\n";
+	$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n";
+	
+	// message & attachment
+	$nmessage = "--".$uid."\r\n";
+	$nmessage .= "Content-type:text/plain; charset=iso-8859-1\r\n";
+	$nmessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
+	$nmessage .= $text."\r\n\r\n";
+	$nmessage .= "--".$uid."\r\n";
+	$nmessage .= "Content-Type: application/octet-stream; name=\"".$filename."\"\r\n";
+	$nmessage .= "Content-Transfer-Encoding: base64\r\n";
+	$nmessage .= "Content-Disposition: attachment; filename=\"".$filename."\"\r\n\r\n";
+	$nmessage .= $content."\r\n\r\n";
+	$nmessage .= "--".$uid."--";
+	
+	return mail($reciever, $subject, $nmessage, $header);
+}
+
 function post($name,$default = null){
 	if (isset($_POST[$name])){
 		$result = $_POST[$name];
