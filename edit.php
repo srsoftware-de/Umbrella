@@ -306,6 +306,7 @@ include '../common_templates/messages.php'; ?>
 		<?php if (isset($services['files'])) { ?>
 		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>
 		<?php } ?>
+		<a class="button" title="<?= t('Send as PDF to ?.',$invoice->customer_email)?>" href="send"><?= t('Send to ?',$invoice->customer_email)?></a>
 	</fieldset>
 </form>
 <?php include '../common_templates/closure.php'; ?>
