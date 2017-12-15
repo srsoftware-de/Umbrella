@@ -61,6 +61,43 @@ function request($service = null,$path,$data = array(), $debug = false,$decode =
 	return $response;
 }
 
+function save_file($filename,$file_contents,$mime){
+	$url = getUrl('files','add');
+	
+	$boundary = '--------------------------'.microtime(true);
+	$br = "\r\n";
+	
+	
+	$content =  '--'.$boundary.$br.
+				'Content-Disposition: form-data; name="file"; filename="'.basename($filename).'"'.$br.
+				'Content-Type: '.$mime.$br.$br.$file_contents.$br;
+	
+	$content .=	'--'.$boundary.$br.
+				'Content-Disposition: form-data; name="token"'.$br.$br.$_SESSION['token'].$br;
+
+	$content .=	'--'.$boundary.$br.
+				'Content-Disposition: form-data; name="dir"'.$br.$br.dirname($filename).$br;
+	
+	
+	$content .= "--".$boundary.'--'.$br;
+	
+	$ssl_options = ['verify_peer' => false]; // TODO: this is rather bad. we need to sort this out!!!
+	
+	$http_options = array();
+	$http_options['method'] = 'POST';
+	$http_options['header'] = 'Content-Type: multipart/form-data; boundary='.$boundary;	
+	$http_options['content'] = $content;
+
+	$options = [
+			'ssl' => $ssl_options,
+			'http'=> $http_options,
+	];
+	
+	$context = stream_context_create($options);	
+	
+	$response = file_get_contents($url,false,$context);
+}
+
 function post($name,$default = null){
 	if (isset($_POST[$name])){
 		$result = $_POST[$name];
