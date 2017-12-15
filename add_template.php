@@ -34,7 +34,7 @@ include '../common_templates/messages.php'; ?>
 		<?php }?>
 	</select>
 	<input type="text" name="template[name]" value="<?= t('Template ?',date('Y-m-d H:i:s'));?>" />
-	<input type="text" name="template[file]" value="<?= param('file') ?>" />
+	<input type="text" name="template[file]" disabled="true" value="<?= param('file') ?>" />
 	<input type="submit" />	
 </fieldset>
 </form>
