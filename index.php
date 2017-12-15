@@ -7,6 +7,11 @@ require_login('files');
 $path = param('path','user'.$user->id);
 $entries = list_entries($path);
 $parent = dirname($path);
+
+if (param('format') == 'json'){
+	die(json_encode($entries));
+}
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -28,8 +33,7 @@ include '../common_templates/messages.php'; ?>
 		<td></td>
 	</tr>
 	<?php } ?>
-	<?php foreach ($entries['dirs'] as $dir){ 
-	?>
+	<?php foreach ($entries['dirs'] as $dir){ ?>
 	<tr>
 		<td>
 			<a href="?path=<?= $path.DS.$dir ?>">
@@ -42,17 +46,18 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php }?>
-	<?php foreach ($entries['files'] as $file){ ?>
+	<?php foreach ($entries['files'] as $file){ 
+		$filename = urlencode($path.DS.$file);	?>
 	<tr>
 		<td>
-			<a title="download" href="download?file=<?= $path.DS.$file ?>">
+			<a title="download" href="download?file=<?= $filename ?>">
 				<span class="symbol"></span> <?= $file ?>
 			</a>
 		</td>
 		<td>
-			<a class="symbol" title=<?= t('share')?> href="share?file=<?= $path.DS.$file ?>"></a>
-			<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $path.DS.$file ?>"></a>
-			<a class="symbol" title="<?= t('delete')?>" href="delete?file=<?= $path.DS.$file ?>"></a>
+			<a class="symbol" title=<?= t('share')?> href="share?file=<?= $filename ?>"></a>
+			<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $filename ?>"></a>
+			<a class="symbol" title="<?= t('delete')?>" href="delete?file=<?= $filename ?>"></a>
 		</td>
 	</tr>
 	<?php }?>
