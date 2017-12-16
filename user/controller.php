@@ -29,7 +29,13 @@
 		foreach ($results as $user){
 			$token = getOrCreateToken($user);
 			$redirect = param('returnTo');
-			if ($redirect) $redirect.='?token='.$token;
+			if ($redirect) {
+				if (strpos($redirect, '?') === false){
+					$redirect.='?token='.$token;
+				} else {
+					$redirect.='&token='.$token;
+				}
+			}
 			if (!$redirect && $user['id'] == 1) $redirect='index';
 			if (!$redirect)	$redirect = getUrl('task');
 			if (!$redirect)	$redirect = $user['id'].'/view';

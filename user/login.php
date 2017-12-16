@@ -12,14 +12,17 @@ if ($email = post('email')){ // defined in bootstrap.php
 info(t('The default username/password is admin/admin.'));
 
 $login_services = get_login_services();
-include '../common_templates/head.php'; 
-include '../common_templates/messages.php'; ?>
 
-<?php if (!empty($login_services)) { ?>
+$redirect = param('returnTo');
+
+include '../common_templates/head.php'; 
+include '../common_templates/messages.php'; 
+
+if (!empty($login_services)) { ?>
 <fieldset>
 	<legend><?= t('Login using OAuth 2 / OpenID Connect')?></legend>
 	<?php foreach ($login_services as $name => $data) {?>
-	<a class="button" title="<?= t('Log in using ? account.',$name)?>" href="openid_login?service=<?= $name ?>"><?= $name ?></a>
+	<a class="button" title="<?= t('Log in using ? account.',$name)?>" href="openid_login?service=<?= $name.($redirect?'&returnTo='.$redirect:'') ?>"><?= $name ?></a>
 	<?php }?>
 </fieldset>
 <?php } ?>

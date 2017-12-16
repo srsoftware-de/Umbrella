@@ -192,9 +192,11 @@ function replace_text($text,$replacements = null){
 	return $text;
 }
 
-function location($drop_param = false){
+function location($drop_token = false){
 	$port = $_SERVER['SERVER_PORT'];
-	return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).($drop_param?$_SERVER['REDIRECT_URL']:$_SERVER['REQUEST_URI']);
+	if ($drop_token) unset($_GET['token']);
+	$get_string = empty($_GET)?'':'?'.http_build_query($_GET);
+	return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).$_SERVER['REDIRECT_URL'].$get_string;
 }
 
 function getLocallyFromToken(){
