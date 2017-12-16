@@ -7,7 +7,7 @@ require_login('project');
 $projects = load_projects(['order'=>param('order')]);
 
 $show_closed = param('closed') == 'show' || param('order') == 'status';
-$companies = request('company','json_list');
+$companies = request('company','json');
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';

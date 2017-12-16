@@ -18,7 +18,7 @@ if ($name = post('name')){
 }
 
 $project = load_projects(['ids'=>$project_id,'single'=>true]);
-$companies = request('company','json_list');
+$companies = request('company','json');
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('project',$project_id.'/view'));
