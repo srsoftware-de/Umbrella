@@ -115,7 +115,7 @@ function send_mail($sender, $reciever, $subject = '', $text = '', $attachment = 
 	
 	// message & attachment
 	$nmessage = "--".$uid."\r\n";
-	$nmessage .= "Content-type:text/plain; charset=iso-8859-1\r\n";
+	$nmessage .= "Content-type:text/plain; charset=utf-8\r\n";
 	$nmessage .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
 	$nmessage .= $text."\r\n\r\n";
 	$nmessage .= "--".$uid."\r\n";
@@ -147,22 +147,19 @@ function param($name,$default = null){
 }
 
 function info($message,$args = null){
-	global $infos;
 	if ($message === null) return;
-	$infos[] = t($message,$args);
+	$_SESSION['infos'][] = t($message,$args);
 }
 
 function warn($message,$args = null){
-	global $warnings;
 	if ($message === null) return;
-	$warnings[] = t($message,$args);
+	$_SESSION['warnings'][] = t($message,$args);
 }
 
 
 function error($message,$args = null){
-	global $errors;
 	if ($message === null) return;
-	$errors[] = t($message,$args);
+	$_SESSION['errors'][] = t($message,$args);
 }
 
 function debug($object,$die = false){
