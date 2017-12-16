@@ -45,32 +45,67 @@ function get_or_create_db(){
 class Item{
 	static function table(){
 		return [
-			'id'						=> ['INTEGER','KEY'=>'PRIMARY'],
-			'company_id'				=> ['INT','NOT NULL'],
-			'code'			 			=> ['VARCHAR'=>255],
-			'name'						=> ['VARCHAR'=>255,'NOT NULL'],
-			'description'				=> 'TEXT',
-			'unit'						=> ['VARCHAR'=>64],
-			'unit_price'				=> 'INT',
-			'tax'						=> 'INT'
+			'id'		=> ['INTEGER','KEY'=>'PRIMARY'],
+			'company_id'	=> ['INT','NOT NULL'],
+			'code'		=> ['VARCHAR'=>255],
+			'name'		=> ['VARCHAR'=>255,'NOT NULL'],
+			'description'	=> 'TEXT',
+			'unit'		=> ['VARCHAR'=>64],
+			'unit_price'	=> 'INT',
+			'tax'		=> 'INT'
 		];
 	}
 	
-	static function load($company_id){
+	static function load($options = array()){
 		$templates = [];
 		$db = get_or_create_db();
-		$sql = 'SELECT * FROM items WHERE company_id = :cid';
-		$args = [':cid'=>$company_id];
+
+		$where = [];
+		$args = [];
+		$sql = 'SELECT id,* FROM items';
+
+		$companies = request('company','json');
+	
+		
+		if (isset($options['company_id'])){
+			$cid = $options['company_id'];
+			if (!array_key_exists($cid,$companies)){
+				error("You requested items of a company you don't belong to!");
+				return null;
+			}
+			$where[] = 'company_id = ?';
+			$args[] = $cid;
+		} else {
+			$qMarks = str_repeat('?,', count($companies)-1).'?';
+			$where[] = 'company_id IN ('.$qMarks.')';
+			$args = array_merge($args, array_keys($companies));
+		}
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+		if (!empty($where)){
+			$sql .= ' WHERE '.implode(' AND ',$where);
+		}
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load items for the selected company.');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($rows as $row) {
-			$template = new Item();
-			$template->patch($row);
-			$template->dirty = [];			
-			$templates[$template->id] = $template;
+		$rows = $query->fetchAll(INDEX_FETCH);
+		if (empty($rows)){
+			error('Was not able to load any items.');
+			return null;
 		}
-		return $templates;
+		foreach ($rows as $row) {
+			$item = new Item();
+			$item->patch($row);
+			$item->dirty = [];
+			$item->company = $companies[$item->id];
+			if (isset($options['single']) && $options['single']) return $item;
+			$items[$item->id] = $item;
+		}
+		return $items;
 	}
 	
 	function patch($data = array()){
