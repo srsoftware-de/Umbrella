@@ -169,34 +169,28 @@ class PDF extends FPDF{
 		redirect(getUrl('files','index?path='.urlencode($dir)));
 	}
 	
-	function send(){
+	function send($sender,$reciever,$subject,$text){
 		global $user;
-		$company = request('company','json',['ids'=>$this->invoice->company_id,'single'=>true]);
-		$company_settings = CompanySettings::load($this->invoice->company_id);		
-		$file_contents = $this->Output('S');
-		$sender = $company['email'];
-		$reciever = $this->invoice->customer_email;
-		$subject = t('New document from ?',$company['name']);
-		
-		$text = '';
-		switch ($this->invoice->type){
-			case Invoice::TYPE_OFFER:
-				$text = $company_settings->offer_mail_text;
-				break;
-			case Invoice::TYPE_CONFIRMATION:
-				$text = $company_settings->confirmation_mail_text;
-				break;
-			case Invoice::TYPE_INVOICE:
-				$text = $company_settings->invoice_mail_text;
-				break;
-			case Invoice::TYPE_REMINDER:
-				$text = $company_settings->reminder_mail_text;
-				break;
+		if ($reciever == ''){
+			error('No reciever set for mail!');
+			return false;
+		}
+		if ($sender == ''){
+			error('No sender set for mail!');
+			return false;
+		}
+		if ($subject == ''){
+			error('No subject set for mail!');
+			return false;
+		}
+		if ($text == ''){
+			error('No text set for mail!');
+			return false;
 		}
 		
 		$attachment = [
 			'name' => $this->invoice->number.' - '.date('c').'.pdf',
-			'content' => $file_contents,
+			'content' => $this->Output('S'),
 		];
 		
 		return send_mail($sender,$reciever,$subject,$text,$attachment);

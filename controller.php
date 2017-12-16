@@ -213,6 +213,7 @@ class CompanySettings{
 			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
+		return $this;
 	}
 	
 	function applyTo(Invoice $invoice){
@@ -535,6 +536,54 @@ class Invoice {
 			request('bookmark','add',['url'=>getUrl('invoice').$this->id.'/edit','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
 		}
 	}
+	
+	public function company(){
+		if (!isset($this->company)){
+			$this->company = request('company','json',['ids'=>$this->company_id,'single'=>true]);
+		}
+		return $this->company;
+	}
+	
+	public function company_settings(){
+		if (!isset($this->company_settings)){
+			$this->company_settings = CompanySettings::load($this->company_id);
+		}
+		return $this->company_settings;
+	}
+	
+	public function mail_text(){
+		switch ($this->type){
+			case Invoice::TYPE_OFFER:
+				return $this->company_settings()->offer_mail_text;
+			case Invoice::TYPE_CONFIRMATION:
+				return $this->company_settings()->confirmation_mail_text;
+			case Invoice::TYPE_INVOICE:
+				return $this->company_settings()->invoice_mail_text;
+			case Invoice::TYPE_REMINDER:
+				return $this->company_settings()->reminder_mail_text;
+		}
+		return 'not implemented';
+	}
+	
+	public function update_mail_text($new_text){
+		$settings = $this->company_settings();
+		switch ($this->type){			
+			case Invoice::TYPE_OFFER:
+				$settings->patch(['offer_mail_text'=>$new_text]);
+				break;
+			case Invoice::TYPE_CONFIRMATION:
+				$settings->patch(['confirmation_mail_text'=>$new_text]);
+				break;
+			case Invoice::TYPE_INVOICE:
+				$settings->patch(['invoice_mail_text'=>$new_text]);
+				break;
+			case Invoice::TYPE_REMINDER:
+				$settings>patch(['reminder_mail_text'=>$new_text]);
+				break;
+		}
+		$settings->save();
+	}
+	
 	
 	public function date(){
 		return date('d.m.Y',$this->date);
