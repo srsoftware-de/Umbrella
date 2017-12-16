@@ -48,6 +48,8 @@ class Company {
 			'id'					=> ['INTEGER','KEY'=>'PRIMARY'],
 			'name'					=> ['VARCHAR'=>255, 'NOT NULL'],
 			'address'				=> 'TEXT',
+			'email'					=> ['VARCHAR'=>255],
+			'phone'					=> ['VARCHAR'=>255],
 			'bank_account'			=> 'TEXT',
 			'court'					=> 'TEXT',
 			'currency'				=> ['VARCHAR'=>10,'DEFAULT'=>'€'],
