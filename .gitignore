@@ -4,7 +4,8 @@ config.php
 bookmark
 files
 invoice
+item
 project
 task
-item
+time
 .*.swp
