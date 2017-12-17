@@ -60,6 +60,8 @@ class PDF extends FPDF{
 	    foreach ($sender as $line){
 	    	$this->Cell(70,4,utf8_decode($line),NO_FRAME,DOWN,'R');
 	    }
+	    $this->Cell(70,4,$this->invoice->company()['phone'],NO_FRAME,DOWN,'R');
+	    $this->Cell(70,4,$this->invoice->company()['email'],NO_FRAME,DOWN,'R');
 	}
 	
 	function Header(){
