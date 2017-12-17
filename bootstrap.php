@@ -192,10 +192,16 @@ function replace_text($text,$replacements = null){
 	return $text;
 }
 
-function location($drop_token = false){
+function location($drop = []){
+	if ($drop == '*'){
+		$args = [];
+	} else {
+		if (!is_array($drop)) $drop = [$drop];
+		$args = $_GET;
+		foreach ($drop as $key) unset($args[$key]);
+	}
 	$port = $_SERVER['SERVER_PORT'];
-	if ($drop_token) unset($_GET['token']);
-	$get_string = empty($_GET)?'':'?'.http_build_query($_GET);
+	$get_string = empty($args)?'':'?'.http_build_query($args);
 	return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).$_SERVER['REDIRECT_URL'].$get_string;
 }
 
