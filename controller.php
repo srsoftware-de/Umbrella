@@ -15,7 +15,7 @@
 						 TASK_STATUS_COMPLETE => 'completed',
 						 TASK_STATUS_STARTED => 'started'
 						);
-	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owener',TASK_PERMISSION_PARTICIPANT=>'participant');
+	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owner',TASK_PERMISSION_PARTICIPANT=>'participant');
 
 	function get_or_create_db(){
 		if (!file_exists('db')){
@@ -308,6 +308,12 @@
 		if (isset($data['project_id'])) return $data['project_id'];
 		if (isset($data['parent_task_id'])) return find_project($data['parent_task_id']);
 		return null;
+	}
+
+	function remove_user_from_task($user_id,$task_id){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid;');
+		assert($query->execute([':tid'=>$task_id,':uid'=>$user_id]),'Was not able to remove user from task.');
 	}
 	
 ?>

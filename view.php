@@ -140,7 +140,15 @@ include '../common_templates/messages.php'; ?>
 		<td>
 			<ul>
 			<?php foreach ($task['users'] as $uid => $u) { ?>
-				<li><?= $u['login'].' ('.$TASK_PERMISSIONS[$u['permissions']].')'; ?></li>
+				<li>
+					<?= $u['login'] ?>
+					(<?= t($TASK_PERMISSIONS[$u['permissions']]) ?>)
+					<?php if (
+						($task['users'][$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) 
+						&& $u['permissions'] != TASK_PERMISSION_OWNER){ ?>
+					<a class="symbol" href="drop_user?uid=<?= $uid ?>"></a>
+					<?php } ?>
+				</li>
 			<?php } ?>
 			</ul>
 		</td>
