@@ -22,7 +22,7 @@ $task['project'] = request('project','json',['ids'=>$task['project_id'],'single'
 $show_closed_children = param('closed') == 'show';
 
 if (isset($services['bookmark'])){
-	$hash = sha1(location());
+	$hash = sha1(location('*'));
 	$bookmark = request('bookmark','json_get?id='.$hash);
 }
 
