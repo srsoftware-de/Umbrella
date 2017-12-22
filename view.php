@@ -36,8 +36,8 @@ $show_closed_tasks = param('closed') == 'show';
 $companies = request('company','json_list');
 
 if (isset($services['bookmark'])){
-	$hash = sha1(location());
-	$bookmark = request('bookmark','json_get?id='.$hash);	
+	$hash = sha1(location('*'));
+	$bookmark = request('bookmark','json_get',['id'=>$hash]);	
 }
 
 function display_tasks($task_list,$parent_task_id){
@@ -51,6 +51,7 @@ function display_tasks($task_list,$parent_task_id){
 		} ?>
 		<li class="<?= $task['status_string']?>">
 			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
+			<span class="hover_h">
 			<a class="symbol" title="edit" 			href="../../task/<?= $tid ?>/edit?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_STARTED?'hidden':'symbol'?>" title="started"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_COMPLETE?'hidden':'symbol'?>" title="complete" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
@@ -58,7 +59,9 @@ function display_tasks($task_list,$parent_task_id){
 			<a class="<?= $task['status'] == TASK_STATUS_OPEN?'hidden':'symbol'?>" title="open"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="<?= $task['status'] == TASK_STATUS_PENDING?'hidden':'symbol'?>" title="wait"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="symbol" title="add subtask" 	href="../../task/<?= $tid ?>/add_subtask"></a>
+			<a class="symbol" title="<?= t('add user') ?>" href="../../task/<?= $tid ?>/add_user"> </a>
 			<a class="symbol" title="delete" 		href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
+			</span>
 			<?php display_tasks($task_list,$tid)?>
 		</li>
 		<?php
