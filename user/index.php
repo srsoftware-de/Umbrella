@@ -13,7 +13,12 @@ if ($user_id = param('login')){
 		perform_id_login($user_id);
 	} else error('Only admin can switch users directly!');
 }
-
+if ($new_login_service  = param('login_service')){
+	add_login_service($new_login_service);
+}
+if ($login_service_name = param('delete_login_service')){
+	drop_login_service($login_service_name);
+}
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -74,27 +79,63 @@ if (isset($services['contact'])){
 </fieldset>
 <?php }?>
 
-<?php if ($user->id == 1){ $users = get_userlist(); ?>
+<?php if ($user->id == 1){  ?>
+<fieldset class="userlist">
+	<legend><?= t('List of users') ?></legend>
+	<table>
+		<tr>
+			<th><?= t('Id')?></th>
+			<th><?= t('Username')?></th>
+			<th><?= t('Actions')?></th>
+		</tr>
+	<?php foreach (get_userlist() as $id => $u): ?>
+		<tr>
+			<td><?= $id ?></td>
+			<td><?= $u['login'] ?></td>
+			<td>
+				<a class="symbol" title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
+				<a class="symbol" title="<?= t('Lock user account')?>" href="<?= $id?>/lock"> </a>
+				<a class="symbol" title="<?= t('Login as ?',$u['login'])?>" href="?login=<?= $id?>"> </a>
+			</td>
+		</tr>
+	<?php endforeach; ?>
+	</table>
+</fieldset>
 
-<table>
-	<tr>
-		<th><?= t('Id')?></th>
-		<th><?= t('Username')?></th>
-		<th><?= t('Actions')?></th>
-	</tr>
-<?php foreach ($users as $id => $u): ?>
-	<tr>
-		<td><?= $id ?></td>
-		<td><?= $u['login'] ?></td>
-		<td>
-			<a class="symbol" title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
-			<a class="symbol" title="<?= t('Lock user account')?>" href="<?= $id?>/lock"> </a>
-			<a class="symbol" title="<?= t('Login as ?',$u['login'])?>" href="?login=<?= $id?>"> </a>
-		</td>
-	</tr>
-<?php endforeach; ?>
 
-</table>
+<fieldset class="login_service_list">
+	<legend><?= t('List of login services')?></legend>
+	<form method="POST">
+	<table>
+		<tr>
+			<td><?= t('Name')?></td>
+			<td><?= t('Auth Url')?></td>
+			<td><?= t('Client Appliance ID')?></td>
+			<td><?= t('Client Appliance secret')?></td>
+			<td><?= t('User id field in response')?></td>
+			<td><?= t('Actions') ?></td>
+		</tr>
+		<?php foreach (login_services() as $name => $service) { ?>
+		<tr>
+			<td><?= $name ?></td>
+			<td><a href="<?= $service['url']?>" target="_blank"><?= $service['url'] ?></td>
+			<td><?= $service['client_id'] ?></td>
+			<td><?= $service['client_secret'] ?></td>
+			<td><?= $service['user_info_field'] ?></td>
+			<td><a class="symbol" href="?delete_login_service=<?= urlencode($name )?>"></a></td>
+		</tr>
+		<?php } ?>		
+		<tr>
+			<td><input type="text" name="login_service[name]" /></td>
+			<td><input type="text" name="login_service[url]" /></td>
+			<td><input type="text" name="login_service[client_id]" /></td>
+			<td><input type="text" name="login_service[client_secret]" /></td>
+			<td><input type="text" name="login_service[user_info_field]"/></td>
+			<td><input type="submit" /></td>
+		</tr>
+	</table>
+	</form>
+</fieldset>
 <?php } // user id == 1
 
 include '../common_templates/closure.php'; ?>

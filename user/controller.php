@@ -152,6 +152,13 @@
 		return $results;
 	}
 
+	function login_services(){
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM login_services');
+		assert($query->execute(),'Was not able to load login service list.');
+		return $query->fetchAll(INDEX_FETCH);
+	}
+
 	function alter_password($user,$new_pass){
 		$db = get_or_create_db();
 		$hash = sha1($new_pass); // TODO: better hashing
@@ -249,5 +256,22 @@
 			if (is_dir('common_templates/css/'.$entry)) $results[] = $entry;
 		}
 		return $results;
+	}
+
+	function add_login_service($login_service){
+		assert(is_array($login_service),'Argument passed to user/controller::add_login_service is not an array!');
+		$db = get_or_create_db();
+		$args = [];
+		foreach ($login_service as $k => $v){
+			$args[':'.$k] = $v;
+		}
+		$query = $db->prepare('INSERT INTO login_services ('.implode(',',array_keys($login_service)).') VALUES ('.implode(',',array_keys($args)).')');
+		assert($query->execute($args),'Was not able to add login service!');
+	}
+
+	function drop_login_service($name){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM login_services WHERE name = :name');
+		assert($query->execute([':name'=>$name]),'Was not able to delete login_service "'.$name.'"!');
 	}
 ?>

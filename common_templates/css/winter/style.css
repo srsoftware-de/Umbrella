@@ -84,10 +84,6 @@ label.location::after {
     white-space: pre;
 }
 
-.contacts fieldset{
-	float: left;
-}
-
 .company > fieldset,
 .company > table{
 	margin-right: 10px;
@@ -106,12 +102,15 @@ fieldset {
     border-width: 1px;
 }
 
+.contacts fieldset,
 .invoice .customer,
 .invoice .document_type,
 .invoice .sender,
 .invoice .court,
 .invoice .dates,
 .invoice .template,
+fieldset.login_service_list,
+fieldset.userlist,
 fieldset.invoice.list{
 	float: left;
 }
