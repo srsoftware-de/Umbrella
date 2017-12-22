@@ -92,6 +92,18 @@
 		return objectFrom($results[0]);
 	}
 
+	function lock_user($id = null){
+		assert($id !== null,'No user id passed to lock_user!');
+		assert(is_numeric($id),'Invalid user id passed to lock_user!');
+		$db = get_or_create_db();
+		$query = $db->prepare('UPDATE users SET pass="" WHERE id = :id');
+		debug($query);
+		assert($query->execute(array(':id'=>$id)));
+		$query = $db->prepare('DELETE FROM service_ids_users WHERE user_id = :id');
+		debug($query);
+		assert($query->execute(array(':id'=>$id)));
+	}
+
 	function add_user($db,$login,$pass){
 		$hash = sha1($pass); // TODO: better hashing
 

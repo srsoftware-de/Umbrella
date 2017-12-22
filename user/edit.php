@@ -7,16 +7,20 @@ require_user_login();
 $user_id = param('id');
 
 $allowed = ($user->id == 1 || $user->id == $user_id);
-if (!$allowed) error('Currently, only admin can edit other users!');
-
-$u = load_user($user_id);
-if ($new_pass = post('new_pass')){
-	alter_password($u,$new_pass);
+if ($allowed) {
 	$u = load_user($user_id);
+	if ($new_pass = post('new_pass')){
+		alter_password($u,$new_pass);
+		$u = load_user($user_id);
+	}
+	if ($selected_theme = post('theme')){
+		if ($selected_theme != $u->theme) update_theme($u, $selected_theme);
+	}
+} else {
+	error('Currently, only admin can edit other users!');
+	redirect('../index');
 }
-if ($selected_theme = post('theme')){
-	if ($selected_theme != $u->theme) update_theme($u, $selected_theme);
-}
+
 $themes = get_themes();
 include '../common_templates/head.php';
 

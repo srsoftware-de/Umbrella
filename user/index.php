@@ -88,7 +88,7 @@ if (isset($services['contact'])){
 		<td><?= $u['login'] ?></td>
 		<td>
 			<a class="symbol" title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
-			<a class="symbol" title="<?= t('Delete user')?>" href="<?= $id?>/delete"> </a>
+			<a class="symbol" title="<?= t('Lock user account')?>" href="<?= $id?>/lock"> </a>
 			<a class="symbol" title="<?= t('Login as ?',$u['login'])?>" href="?login=<?= $id?>"> </a>
 		</td>
 	</tr>
