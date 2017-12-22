@@ -251,7 +251,7 @@ function revoke_token($token){
  * checks if a user is logged in and forces a login of not.
  */
 function require_login($service_name = null){
-	global $services,$user;
+	global $services,$user,$theme;
 	
 	$revoke = param('revoke');
 	if ($revoke) die(revoke_token($revoke));
@@ -262,6 +262,7 @@ function require_login($service_name = null){
 	if ($user === null) validateToken($service_name);
 	if ($user === null) redirect(getUrl('user','login?returnTo='.location()));
 	session_write_close();
+	if (isset($user->theme)) $theme = $user->theme;
 }
 
 function postLink($url,$caption,$data = array(),$title = null){

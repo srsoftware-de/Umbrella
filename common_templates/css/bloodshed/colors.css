@@ -30,6 +30,7 @@ button {
 }
 .hover{
     background-color: black;
+	border-color: red;
 }
 
 form.invoice textarea {

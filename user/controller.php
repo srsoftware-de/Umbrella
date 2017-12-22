@@ -110,7 +110,7 @@
 		assert(is_writable('db'),'Directory user/db not writable!');
 		if (!file_exists('db/users.db')){
 			$db = new PDO('sqlite:db/users.db');
-			$db->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL);');
+			$db->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, theme VARCHAR(50));');
 			$db->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
 			$db->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
 			$db->query('CREATE TABLE login_services (name VARCHAR(255), url TEXT, client_id VARCHAR(255), client_secret VARCHAR(255), user_info_field VARCHAR(255), PRIMARY KEY (name));');
@@ -147,9 +147,16 @@
 		assert ($query->execute(array(':pass'=>$hash,':id'=>$user->id)),'Was not able to update user '.$user->login);
 		info('Your password has been changed.');
 	}
+	function update_theme($user,$new_theme){
+		$db = get_or_create_db();
+		$query = $db->prepare('UPDATE users SET theme = :theme WHERE id = :id;');
+		assert ($query->execute(array(':theme'=>$new_theme,':id'=>$user->id)),'Was not able to update user '.$user->login);
+		info('Your theme has been changed.');
+		warn('Log out and in to change theme in all applications.');
+	}
 
 	function require_user_login(){
-		global $services,$user;
+		global $services,$user,$theme;
 		if ($_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
 
 		$db = get_or_create_db();
@@ -168,6 +175,7 @@
 			} else 	$query->execute([':token'=>$row['token']]); // drop expired token
 		}
 		$user = ($user_id === null) ? null : load_user($user_id);
+	        if (isset($user->theme)) $theme = $user->theme;
 	}
 	
 	function get_login_services($name = null){
@@ -219,5 +227,15 @@
 		$rows = $query->fetchAll(INDEX_FETCH);
 		if ($foreign_id !== null) return $rows[$foreign_id];
 		return $rows;
+	}
+
+	function get_themes(){
+		$entries = scandir('common_templates/css');
+		$results = [];
+		foreach ($entries as $entry){
+			if (in_array($entry,['.','..'])) continue;
+			if (is_dir('common_templates/css/'.$entry)) $results[] = $entry;
+		}
+		return $results;
 	}
 ?>

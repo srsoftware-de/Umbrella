@@ -1,0 +1,262 @@
+@font-face {
+    font-family: "awesome";
+    src: url("../fontawesome-webfont.woff");
+}
+*{
+	max-width:100%;
+	min-width:auto;
+}
+
+body{
+	font-family: sans-serif;
+}
+a{
+	text-decoration: none;
+}
+textarea {
+    width: 100%;
+	min-height: 100px;
+}
+
+input[type=text]{
+	width: 100%;
+}
+#main_menu,
+#main_menu form{
+	display: inline;
+}
+
+.hidden{
+	display: none;
+}
+
+.emphasized{
+	font-weight: bold;
+}
+
+.add_positions,
+.requirements{
+	max-height: 60px;
+	max-width: 66%;
+	overflow: hidden;
+}
+.add_positions:hover,
+.requirements:hover{
+	max-height: 9999px;
+	max-width: 9999px;
+}
+
+.add_positions > ul > li{
+	max-height: 20px;
+	overflow: hidden;
+}
+
+.add_positions > ul > li:hover{
+	max-height: 9999px;
+}
+
+.add_positions label span,
+.requirements label{
+	display: block;
+}
+
+.tasks .completed a,
+.tasks .canceled a,
+.children .inactive,
+.requirements .inactive,
+.tasks .inactive{
+	text-decoration: line-through;
+}
+
+table {
+    border-collapse: collapse;
+}
+tr > *{
+	padding: 5px 10px;
+}
+tr:nth-child(5n+1){
+	background-color: #303030;
+}
+
+label.street:after,
+label.location::after {
+    content: "\a ";
+    white-space: pre;
+}
+
+.contacts fieldset{
+	float: left;
+}
+
+.company > fieldset,
+.company > table{
+	margin-right: 10px;
+	float: left;
+}
+
+.invoice .dates label{
+	display: block
+}
+.invoice .header{
+	clear: both;
+}
+
+fieldset {
+    border-radius: 10px;
+    border-width: 1px;
+}
+
+.invoice .customer,
+.invoice .document_type,
+.invoice .sender,
+.invoice .court,
+.invoice .dates,
+.invoice .template,
+fieldset.invoice.list{
+	float: left;
+}
+
+.invoice .dates label{
+	text-align: right;
+}
+
+.button,
+input,
+button {
+    border: 0 none;
+    font-weight: bold;
+    margin: 2px;
+    padding: 5px;
+    display: inline-block;
+}
+
+input[type="submit"] {
+    float: right;
+}
+
+.symbol{
+	font-family: awesome;
+	font-size: 22px;
+}
+
+.right{
+	float: right;
+	margin-left: 5px;
+}
+
+.tasks .project {
+    font-weight: bold;
+}
+
+.right-abs {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+}
+.right-fix {
+    position: fixed;
+    right: 5px;
+    top: 5px;
+}
+.hover {
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    max-height: 35px;
+    overflow: hidden;
+    z-index: 10;
+}
+
+
+.hover:hover {
+    max-height: unset;
+}
+
+
+form.invoice textarea {
+    font-weight: bold;
+    min-height: 90px;
+    width: 100%;
+}
+
+.pos_price,
+form.invoice input.price,
+form.invoice input.amount{
+	max-width: 60px;
+	text-align: right;
+}
+
+form.invoice .tax{
+	min-width: 70px;
+}
+form.invoice .tax input{
+	max-width: 40px;
+	text-align: right;
+}
+
+td > h1{
+	display: inline-block;
+	margin: 0 10px 0 0;
+}
+
+.infos, .errors, .warnings{
+	text-align: center;
+}
+
+.infos span,
+.errors span,
+.warnings span{
+	margin: 5px 0 0;
+	padding: 5px;
+	border-radius: 10px;
+	display: inline-block;
+}
+
+.tags span{
+	display: inline-block;
+	vertical-align: top;
+}
+.bookmark .share,
+.bookmark .tags{
+	display: inline-block;
+}
+.bookmark>fieldset>a{
+	word-wrap: break-word;
+	display: block;	
+	min-width: auto;
+}
+@media (max-width:1199px) {
+	.tasklist tr>*:nth-child(2){
+		display: none;
+	}
+}
+
+@media (max-width: 900px){
+	.tasklist tr>*:nth-child(5){
+		display: none;
+	}
+}
+
+@media (max-width: 800px){
+	.tasklist tr>*:nth-child(4){
+		display: none;
+	}
+}
+
+@media (max-width: 700px){
+	.tasklist tr>*:nth-child(6){
+		display: none;
+	}
+}
+
+@media (max-width: 600px){
+	.project-view tr>*:nth-child(1),
+	.tasklist tr>*:nth-child(3){
+		display: none;
+	}
+}
+@media (max-width: 500px){
+	.project-index tr>*:nth-child(2){
+		display: none;
+	}
+}

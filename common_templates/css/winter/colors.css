@@ -1,0 +1,54 @@
+body{
+	color: black;
+	background-color: white;
+}
+a{
+	color: black;
+}
+
+.tasks .pending a{
+	color: black;
+}
+
+tr{
+	background-color: #efefef;
+}
+tr:nth-child(5n+1){
+	background-color: #d3d3d3;
+}
+
+fieldset {
+    background-color: #eeeeee;
+    border-color: black;
+}
+
+.button,
+input,
+button {
+    background-color: black;
+    color: #d3d3d3;
+}
+.hover{
+    background-color: white;
+	border-color: black;
+}
+
+form.invoice textarea {
+   background-color: black;
+    color: white;
+}
+
+.infos span{
+	background-color: #00ad00;
+	color: white;
+}
+.errors span{
+	background-color: #ff9847;
+	color: white;
+}
+
+.warnings span{
+	background-color: #ffff00;
+	color: black;
+}
+

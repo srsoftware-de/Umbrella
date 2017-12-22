@@ -14,7 +14,10 @@ if ($new_pass = post('new_pass')){
 	alter_password($u,$new_pass);
 	$u = load_user($user_id);
 }
-
+if ($selected_theme = post('theme')){
+	if ($selected_theme != $u->theme) update_theme($u, $selected_theme);
+}
+$themes = get_themes();
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -28,15 +31,23 @@ if ($allowed){
 	<legend>login</legend><?= $u->login; ?>
 	</fieldset>
 	
-	<?php foreach ($u as $key => $val):
+	<?php foreach ($u as $key => $val) {
 	if ($key == 'id' || $key == 'pass' || $key = 'login')continue;?>
 	<fieldset>
-		<legend><?= $key?></legend><?= $val; ?>
+		<legend><?= t($key) ?></legend><?= $val; ?>
 	</fieldset>
-	<?php endforeach;?>
+	<?php } // foreach ?>
 	<fieldset>
-		<legend>new password</legend>
+		<legend><?= t('new password')?></legend>
 		<input type="password" name="new_pass" />
+	</fieldset>
+	<fieldset>
+		<legend><?= t('theme'); ?></legend>
+		<select name="theme">
+		<?php foreach ($themes as $thm) { ?>
+			<option value="<?= $thm ?>" <?= $theme == $thm?'selected="true"':''?>><?= $thm ?></option>
+		<?php } ?>
+		</select>
 	</fieldset>
 	<button type=submit">Submit</button>
 </form>
