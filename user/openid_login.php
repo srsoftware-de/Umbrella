@@ -33,7 +33,12 @@ if ($login_service){
 		$id = $_SESSION['login_service_name'].':'.$info->{$login_service['user_info_field']};
 		unset($_SESSION['login_service_name']);
 		$user_id = reset(get_assigned_logins($id));
-		perform_id_login($user_id);
+		if ($user_id) {
+			perform_id_login($user_id);
+		} else {
+			error('Your login provider successfully athenticated you, but the account there is not linked to any umbrella account!');
+			redirect('login');
+		}
 	}
 }
 
