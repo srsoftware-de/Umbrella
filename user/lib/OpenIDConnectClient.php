@@ -22,6 +22,7 @@
  */
 
 include 'lib/phpseclib/Crypt/RSA.php';
+include 'lib/phpseclib/Math/BigInteger.php';
 
 /**
  * Use session to manage a nonce
