@@ -7,7 +7,6 @@ require_login('task');
 $selection = [];
 if ($order = param('order')) $selection['order'] = $order;
 $tasks = get_tasks($selection);
-//debug($tasks,true);
 $projects = request('project','list');
 $show_closed = param('closed') == 'show';
 

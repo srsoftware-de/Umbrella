@@ -130,8 +130,9 @@
 		$args = get_task_ids_of_user($task_ids);
 	
 		if (empty($args)) {
-			assert(!$single,'You are not allowed to access that task!');
-			return [];
+			$res =['name'=>'You are not allowed to access that task!'];
+			if (!$single) $res = [0=>$res];
+			return $res;
 		}
 
 		$qmarks = implode(',', array_fill(0, count($args), '?'));
