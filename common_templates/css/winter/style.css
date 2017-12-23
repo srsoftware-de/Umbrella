@@ -171,6 +171,18 @@ input[type="submit"] {
     max-height: unset;
 }
 
+.hover_h{
+	display: inline-block;
+	max-width: 25px;
+	white-space: nowrap;
+	overflow: hidden;
+	height: 19px;
+}
+
+.hover_h:hover{
+	display: inline;
+	padding: 30px 0;
+}
 
 form.invoice textarea {
     font-weight: bold;
