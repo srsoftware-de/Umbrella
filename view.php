@@ -35,9 +35,10 @@ function display_children($task){
 		?>
 		<li class="<?= $child_task['status_string'] ?>">
 			<a title="<?= t('view')?>"		href="../<?= $id ?>/view"><?= $child_task['name']?></a>
+			<span class="hover_h">
+			<a title="<?= t('edit')?>"     href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
 			<a title="<?= t('complete')?>" href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $child_task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('cancel')?>"   href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('edit')?>"     href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
 			<a title="<?= t('add subtask')?>" href="../<?= $id ?>/add_subtask" class="symbol"></a>
 			<a title="<?= t('start')?>"    href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('open')?>"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
@@ -46,7 +47,7 @@ function display_children($task){
 			<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
 				<?php } ?>
-
+			</span>
 			<?php display_children($child_task);?>
 		</li>
 	<?php }?>
