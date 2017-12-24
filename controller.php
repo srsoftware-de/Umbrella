@@ -221,4 +221,121 @@ function assign_contact($id){
 	assert($query->execute(array(':cid'=>$id,':uid'=>$user->id)),'Was not able to assign contact with user');
 }
 
+class Address{
+	function __construct($data){
+		assert(isset($data['val']),'No value set in address data');
+		$parts = explode(';',$data['val']);
+		$this->post_box = array_shift($parts);
+		$this->ext_addr = array_shift($parts);
+		$this->street   = array_shift($parts);
+		$this->locality = array_shift($parts);
+		$this->region   = array_shift($parts);
+		$this->post_code= array_shift($parts);
+		$this->country  = array_shift($parts);
+		if (isset($data['param'])) $this->param = $data['param'];
+	}
+	function __toString(){
+		return trim($this->ext_addr . "\n" . $this->street . "\n" . $this->post_code . ' ' . $this->locality . "\n" . $this->region . "\n" . $this->country);
+	}
+
+	function get(){
+		return str_replace("\n", ' / ',(string)$this);
+	}
+}
+
+class Name{
+	function __construct($data){
+		assert(isset($data['val']),'No value set in name data');
+		$parts = explode(';',$data['val']);
+		$this->family = array_shift($parts);
+		$this->given = array_shift($parts);
+		$this->additional = array_shift($parts);
+		$this->prefixes = array_shift($parts);
+		$this->suffixes = array_shift($parts);
+	}
+
+	function __toString(){
+		return trim($this->prefixes . ' ' . $this->given . ' ' . $this->family . ' ' . $this->suffixes);
+	}
+}
+
+class VCard{
+
+	function __construct($data){
+		$this->code = str_replace(["\r\n ","\r\n\t"],"",$data);
+	}
+
+	static function load($options = []){
+		global $user;
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM contacts WHERE id IN (SELECT contact_id FROM contacts_users WHERE user_id = ?)';
+		$args = [$user->id];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to query contacts for you!');	
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$cards = [];
+		foreach ($rows as $id => $columns){
+			$cards[$id] = new VCard($columns['DATA']);
+		}
+		return $cards;
+	}
+
+	function fields(){
+		if (!isset($this->fields) || $this->fields == null){
+			$this->fields = [];
+			$lines = explode("\r\n",$this->code);
+			foreach ($lines as $line){
+				$parts = explode(':',trim($line),2);
+
+				$key_parts = explode(';',$parts[0]);
+				$key = array_shift($key_parts);
+				if (in_array($key,['','BEGIN','VERSION','PRODID'])) continue;
+
+				$val = $parts[1];
+
+				$param = [];
+				foreach ($key_parts as $key_part){
+					$parts = explode('=',$key_part,2);
+					$k = array_shift($parts);
+					$v = end($parts);
+					if (isset($param[$k])){
+						$param[$k] = [$param[$k]];
+						$param[$k][] = $v;
+					} else $param[$k] = $v;
+				}
+
+				$field_val = [ 'val' => $val ];
+				if (!empty($param)) $field_val['param'] = $param;
+
+				if (isset($this->fields[$key])){
+					if (isset($this->fields[$key]['val'])) $this->fields[$key] = [$this->fields[$key]];
+					$this->fields[$key][] = $field_val;
+				} else {
+					$this->fields[$key] = $field_val;
+				}		
+			}
+		}
+		return $this->fields;
+	}
+
+	function addresses(){
+		if (!isset($this->addresses) || $this->addresses == null){
+			$this->addresses = [];
+			if (isset($this->fields()['ADR'])) {
+				if (isset($this->fields['ADR']['val'])){
+					$this->addresses[] = new Address($this->fields['ADR']);
+				} else foreach ($this->fields['ADR'] as $adr_data) $this->addresses[] = new Address($adr_data);
+			}
+		}
+		return $this->addresses;
+	}
+
+	function name(){
+		if (!isset($this->name) || $this->name == null){
+			$this->name = (isset($this->fields()['N']))? new Name($this->fields['N']) : null;			
+		}
+		return $this->name;
+	}
+}
+
 ?>
