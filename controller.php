@@ -336,6 +336,27 @@ class VCard{
 		}
 		return $this->name;
 	}
+
+	function phones(){
+		if (!isset($this->phones) || $this->phones == null){
+			if (isset($this->fields['TEL'])){
+				if (isset($this->fields['TEL']['val'])){
+					$this->phones = [ $this->fields['TEL'] ];
+				} else $this->phones = $this->fields['TEL'];
+			} else $this->phones = null;
+		}
+		return $this->phones;
+	}
+	function emails(){
+		if (!isset($this->emails) || $this->emails == null){
+			if (isset($this->fields['EMAIL'])){
+				if (isset($this->fields['EMAIL']['val'])){
+					$this->emails = [ $this->fields['EMAIL'] ];
+				} else $this->emails = $this->fields['EMAIL'];
+			} else $this->emails = null;
+		}
+		return $this->emails;
+	}
 }
 
 ?>

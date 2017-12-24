@@ -15,27 +15,43 @@ include '../common_templates/messages.php'; ?>
 	<legend><?= t('Contacts') ?></legend>
 	<table>
 		<tr>
+			<th><?= t('short') ?></th>
+			<th><?= t('name') ?></th>
+			<th><?= t('addresses') ?></th>
+			<th><?= t('phones') ?></th>
+			<th><?= t('emails') ?></th>
+			<th><?= t('actions') ?></th>
+			
 		</tr>
 		<?php foreach ($vcards as $id => $vcard){ 
 			$addresses = $vcard->addresses();
-
+			$emails    = $vcard->emails();
+			$phones    = $vcard->phones();
 		?>
 		<tr>
+			<td><?= $vcard->fields['FN']['val'] ?></td>
 			<td><?= (string)$vcard->name() ?></td>
-			<td><?= (!empty($addresses))?array_shift($addresses)->get():'' ?></td>
+			<td>
+			<?php while (!empty($addresses)) { ?>
+				<p><?= array_shift($addresses)->get() ?></p>
+			<?php } ?>
+			</td>
+			<td>
+			<?php while (!empty($emails)) { ?>
+				<p><?= array_shift($emails)['val'] ?></p>
+			<?php } ?>
+			</td>
+			<td>
+			<?php while(!empty($phones)) { ?>
+				<p><?= array_shift($phones)['val'] ?></p>
+			<?php } ?>
+			</td>
 			<td>
 				<a class="symbol" title="download" href="<?= $id?>/download"></a>
 				<a class="symbol" title="edit" href="<?= $id?>/edit"></a>
 				<a class="symbol" title="assign with me" href="<?= $id?>/assign_with_me"></a>
 			</td>
 		</tr>
-		<?php while (!empty($addresses)) { ?>
-		<tr>
-			<td></td>
-			<td><?= (!empty($addresses))?array_shift($addresses)->get():'' ?></td>
-			<td></td>
-		</tr>
-		<?php } ?>
 		<?php } ?>
 	</table>
 </fieldset>
