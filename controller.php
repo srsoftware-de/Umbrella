@@ -50,7 +50,7 @@
 		assert(is_numeric($user_id),'No valid user id passed to start_time');
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO times (user_id, subject, start_time, state) VALUES (:uid, :subj, :start, :state)');
-		assert($query->execute(array(':uid'=>$user_id,':subj'=>'new time',':start'=>time(),':state'=>TIME_STATUS_STARTED)),'Was not able to create new time entry!');
+		assert($query->execute(array(':uid'=>$user_id,':subj'=>t('new time'),':start'=>time(),':state'=>TIME_STATUS_STARTED)),'Was not able to create new time entry!');
 	}
 
 	function drop_time($time_id = null){

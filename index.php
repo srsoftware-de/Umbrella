@@ -45,8 +45,8 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $time['description'] ?></td>
 		<td><?= $time['start_time']?date('Y-m-d H:i',$time['start_time']):''; ?></td>
 		<td><?= $time['end_time']?date('Y-m-d H:i',$time['end_time']):'<a href="'.$id.'/stop">Stop</a>'; ?></td>
-		<td><?= $time['end_time']?(($time['end_time']-$time['start_time'])/3600).' hours':'' ?></td>
-		<td><?= TIME_STATES[$time['state']] ?></td>
+		<td><?= $time['end_time']?t('? hours',($time['end_time']-$time['start_time'])/3600):'' ?></td>
+		<td><?= t(TIME_STATES[$time['state']]) ?></td>
 		<td>
 			<?php if ($time['end_time']) { ?>
 			<a class="symbol" title="edit" href="<?= $id ?>/edit"></a>
