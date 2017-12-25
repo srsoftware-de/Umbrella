@@ -89,12 +89,12 @@ include '../common_templates/messages.php'; ?>
 				<textarea name="bank_account"><?= $company['bank_account'] ?></textarea>
 			</fieldset>		
 			<fieldset>
-				<legend><?= t('Local cout')?></legend>
+				<legend><?= t('Local court')?></legend>
 				<input type="text" name="court" value="<?= $company['court'] ?>"/>
 			</fieldset>
 		</fieldset>
 		
-		<button type="submit">Save</button>		
+		<button type="submit"><?= t('Save') ?></button>		
 	</fieldset>
 </form>
 

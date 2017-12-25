@@ -288,7 +288,7 @@ include '../common_templates/messages.php'; ?>
 				<?= t('Template')?>
 			</legend>
 			<select name="invoice[template_id]">
-				<option value=""><?= t('No invoice template selected')?></option>
+				<option value=""><?= t('No document template selected')?></option>
 				<?php foreach ($templates as $template) {?>				
 				<option value="<?= $template->id ?>" <?= $template->id == $invoice->template_id ? 'selected="true"':'' ?>><?= $template->name ?></option>
 				<?php }?>
