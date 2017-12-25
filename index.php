@@ -17,7 +17,8 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<h1><?= t('Files: ?',$path?$path:' ')?></h1>
+<fieldset>
+	<legend><?= t('Files: ?',$path?$path:' ')?></legend>
 <table>
 	<tr>
 		<th><?= t('File / Directory') ?></th>
@@ -71,5 +72,5 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	
 </table>
-
+</fieldset>
 <?php include '../common_templates/closure.php'; ?>
