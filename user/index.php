@@ -55,10 +55,10 @@ if (isset($services['contact'])){
 
 <?php if (!empty($assigned_logins)) { ?>
 <fieldset>
-	<legend><?= t('Assigned logins')?></legend>
+	<legend><?= t('assigned logins')?></legend>
 	<table>
 		<tr>
-			<th><?= t('Service Name')?></th>
+			<th><?= t('Service name')?></th>
 			<th><?= t('User id')?></th>
 			<th><?= t('Actions')?></th>
 		</tr>
