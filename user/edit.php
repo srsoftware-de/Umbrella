@@ -32,7 +32,7 @@ if ($allowed){
 ?>
 <form method="POST">
 	<fieldset>
-	<legend>login</legend><?= $u->login; ?>
+	<legend><?= t('login') ?></legend><?= $u->login; ?>
 	</fieldset>
 	
 	<?php foreach ($u as $key => $val) {
@@ -53,7 +53,7 @@ if ($allowed){
 		<?php } ?>
 		</select>
 	</fieldset>
-	<button type=submit">Submit</button>
+	<button type=submit"><?= t('Save') ?></button>
 </form>
 <?php }
  include '../common_templates/closure.php'; ?>

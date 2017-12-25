@@ -17,11 +17,11 @@ if ($email = post('email')){ // defined in bootstrap.php
 include '../common_templates/head.php'; 
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Create new User</legend>
-		<fieldset><legend>Email</legend>
+	<fieldset><legend><?= t('Create new user') ?></legend>
+		<fieldset><legend><?= t('Email') ?></legend>
 		<input type="text" name="email" />
 		</fieldset>
-		<fieldset><legend>Password</legend>
+		<fieldset><legend><?= t('Password') ?></legend>
 		<input type="password" name="pass" />
 		</fieldset>
 		<input type="submit" />
