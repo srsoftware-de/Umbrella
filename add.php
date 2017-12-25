@@ -17,44 +17,44 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend>Create new Contact</legend>
+		<legend><?= t('Create new contact') ?></legend>
 		<fieldset>
-			<legend>Name</legend>
-			<label>First Name
+			<legend><?= t('Name'); ?></legend>
+			<label><?= t('First Name') ?>
 				<input type="text" name="N[2]" <?= ($name = post('N'))?'value="'.$name['2'].'"':''?>/>
 			</label>
-			<label>Last Name
+			<label><?= t('Last Name') ?>
 				<input type="text" name="N[1]" <?= ($name = post('N'))?'value="'.$name['1'].'"':''?> />
 			</label>						
 		</fieldset>
 		<fieldset>
-			<legend>(primary) Email</legend>
+			<legend><?= t('(primary) Email') ?></legend>
 			<input type="text" name="EMAIL"<?= ($email = post('EMAIL'))?'value="'.$email.'"':''?>  />									
 		</fieldset>
 		<fieldset>
-			<legend>Organization</legend>
+			<legend><?= t('Organization') ?></legend>
 			<textarea name="ORG"><?= ($org = post('ORG'))?$org:'' ?></textarea>
 		</fieldset>
 		<fieldset>
-			<legend>(primary) Address</legend>
-			<label class="street">Street
+			<legend><?= t('(primary) Address') ?></legend>
+			<label class="street"><?= t('Street') ?>
 				<input type="text" name="ADR[3]" <?= ($adr = post('ADR'))?'value="'.$adr['3'].'"':''?> />
 			</label>
-			<label>Post Code
+			<label><?= t('Post Code') ?>
 				<input type="text" name="ADR[6]" <?= ($adr = post('ADR'))?'value="'.$adr['6'].'"':''?>/>
 			</label>
-			<label class="location">Location
+			<label class="location"><?= t('Location') ?>
 				<input type="text" name="ADR[4]" <?= ($adr = post('ADR'))?'value="'.$adr['4'].'"':''?>/>
 			</label>			
-			<label class="region">Region
+			<label class="region"><?= t('Region') ?>
 				<input type="text" name="ADR[5]" <?= ($adr = post('ADR'))?'value="'.$adr['5'].'"':''?>/>
 			</label>
-			<label>Country
+			<label><?= t('Country') ?>
 				<input type="text" name="ADR[7]" <?= ($adr = post('ADR'))?'value="'.$adr['7'].'"':''?>/>
 			</label>			
 						
 		</fieldset>
-		<button type="submit">Save</button>
+		<button type="submit"><?= t('Save') ?></button>
 	</fieldset>
 </form>
 

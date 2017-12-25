@@ -134,7 +134,7 @@ include '../common_templates/messages.php'; ?>
 		<?php foreach($vcard as $key => $value){
 			echo createFieldset($key,$value);
 		}?>
-		<button type="submit">Save</button>
+		<button type="submit"><?= t('Save') ?></button>
 	</fieldset>
 </form>
 
