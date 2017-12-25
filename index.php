@@ -36,7 +36,7 @@ include '../common_templates/messages.php'; ?>
 		<th><a href="?order=status"><?= t('Status')?></a></th>
 		<th><a href="?order=start_date"><?= t('Start')?></a></th>
 		<th><a href="?order=due_date"><?= t('Due')?></a></th>
-		<th>Actions</th>
+		<th><?= t('Actions') ?></th>
 	</tr>
 
 <?php 

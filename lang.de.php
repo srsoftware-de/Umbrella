@@ -2,6 +2,7 @@
 $translations = array(
 		'Add subtask to "?"'=>'Unteraufgabe zu "?" hinzufügen',
 		'add to timetrack'=>'Zur Zeiterfassung hinzufügen',
+		'Actions'=>'Aktionen',
 		'all'=>'alle',
 		'Bookmarks'=>'Lese&shy;zei&shy;chen',
 		'cancel'=>'abbrechen',
