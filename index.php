@@ -6,4 +6,25 @@ include 'controller.php';
 require_login('notes');
 
 $notes = Note::load();
-debug($notes);
+
+include '../common_templates/head.php';
+
+include '../common_templates/main_menu.php';
+include 'menu.php';
+include '../common_templates/messages.php'; 
+
+?>
+<table>
+	<tr>
+		<th><?= t('URL') ?></th>
+		<th><?= t('note') ?></th>
+	</tr>
+<?php foreach ($notes as $note) { ?>
+	<tr>
+		<td><a href="<?= $note['url'] ?>"><?= $note['url'] ?></a></td>
+		<td><a href="<?= $note['url'] ?>"><?= $note['note'] ?></a></td>
+	</tr>
+<?php } ?>
+</table>
+
+<?php include '../common_templates/bottom.php';
