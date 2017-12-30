@@ -9,6 +9,7 @@ const STATE_SOURCE_PROJECT_UNSET = 5;
 const STATE_MISSING_MYSQL_PARAMETER = 6;
 const STATE_NO_TARGET_PROJECTS = 7;
 const STATE_NO_TASK_DB_ACCESS = 8;
+const STATE_TASK_CREATION_FAILED = 9;
 include '../bootstrap.php';
 
 
@@ -86,9 +87,28 @@ if ($state == STATE_READY){
 	$query->execute([':pid'=>$source_project_id]);
 	$milestones = $query->fetchAll(INDEX_FETCH);
 	
+	$find_query = $task_db->prepare('SELECT * FROM tasks WHERE project_id = :pid AND name = :name');
+	$create_sql = 'INSERT INTO tasks (project_id, name, description, status, start_date, due_date) VALUES (:pid, :name, :desc, :status, :start, :due)';
+	$create_query = $task_db->prepare($create_sql);
 	foreach ($milestones as $id => $milestone){
 		
-		debug($milestone);
+		$find_query->execute([':pid'=>$target['project'],':name'=>$milestone['name']]);
+		$existing_tasks = $find_query->fetchAll(INDEX_FETCH); 		
+		
+		if (empty($existing_tasks)){
+			$start = date('Y-m-d',$milestone['start']);
+			$due = date('Y-m-d',$milestone['end']);
+			$state = $milestone['status'] == 1 ? 10 : 60;
+			$args = [':pid'=>$target['project'], ':name'=>$milestone['name'], ':desc'=>$milestone['desc'], ':status'=>$state, ':start'=>$start,':due'=>$due];
+			if (!$create_query->execute($args)){
+				$state = STATE_TASK_CREATION_FAILED;
+				error('Failed to create task. Query follows:');
+				error(query_insert($create_sql, $args));
+			}
+		} else {
+			debug($milestone);
+			debug($existing_tasks);
+		}
 	}
 }
 
