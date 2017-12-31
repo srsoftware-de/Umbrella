@@ -31,7 +31,9 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Actions')?></th>
 	</tr>
 	
-<?php foreach ($times as $id => $time): ?>
+<?php foreach ($times as $id => $time){ 
+	if ($time['state'] == TIME_STATUS_COMPLETE) continue;
+?>
 	<tr>
 		<td>
 			<?php $time_projects=[]; 
@@ -54,7 +56,7 @@ include '../common_templates/messages.php'; ?>
 			<a class="symbol" title="drop" href="<?= $id ?>/drop">	</a>
 		</td>
 	</tr>
-<?php endforeach; ?>
+<?php } ?>
 
 </table>
 <?php include '../common_templates/closure.php'; ?>

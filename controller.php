@@ -18,9 +18,7 @@
 	$TIME_PERMISSIONS = array(TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant');
 
 	function get_or_create_db(){
-		if (!file_exists('db')){
-			assert(mkdir('db'),'Failed to create time/db directory!');
-		}
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create time/db directory!');
 		assert(is_writable('db'),'Directory time/db not writable!');
 		if (!file_exists('db/times.db')){
 			$db = new PDO('sqlite:db/times.db');
