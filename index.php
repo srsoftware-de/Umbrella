@@ -144,13 +144,13 @@ if ($state == STATE_READY){
 			$status = $milestone['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
 			$create_args = [':pid'=>$target['project'], ':name'=>$milestone['name'], ':desc'=>$milestone['desc'], ':status'=>$status, ':start'=>$start,':due'=>$due];
 			if ($create_query->execute($create_args)){
-				$dst_task_id = $task_db->lastInsertId();
-				$milestone['dst_task'] = $dst_task_id;
+				$new_task_id = $task_db->lastInsertId();
+				$milestone['dst_task'] = $new_task_id;
 				foreach ($target['users'] as $uid){
-					$assign_args = [':tid'=>$dst_task_id,':uid'=>$uid];
+					$assign_args = [':tid'=>$new_task_id,':uid'=>$uid];
 					if (!$assign_query->execute($assign_args)){
 						$state = STATE_TASK_ASSIGNMENT_FAILED;
-						error('Failed to assign task to user:');
+						error('Failed to assign milestone-task to user:');
 						error(query_insert($assign_sql, $assign_args));
 						break 2;						
 					}
@@ -197,14 +197,13 @@ if ($state == STATE_READY){
 					$status = $tasklist['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
 					$create_args = [':parent'=>$dst_task_id,':pid'=>$target['project'], ':name'=>$tasklist['name'], ':desc'=>$tasklist['desc'], ':status'=>$status, ':start'=>$start,':due'=>$due];
 					if ($create_with_parent_query->execute($create_args)){
-						$dst_task_id = $task_db->lastInsertId();
-						$tasklist['dst_task'] = $dst_task_id;
+						$new_task_id = $task_db->lastInsertId();
+						$tasklist['dst_task'] = $new_task_id;
 						foreach ($target['users'] as $uid){
-							$assign_args = [':tid'=>$dst_task_id,':uid'=>$uid];
+							$assign_args = [':tid'=>$new_task_id,':uid'=>$uid];
 							if (!$assign_query->execute($assign_args)){
 								$state = STATE_TASK_ASSIGNMENT_FAILED;
-								error('Failed to assign task to user:');
-								error(query_insert($assign_sql, $assign_args));
+								error('Failed to assign tasklist-task to user:<br/>'.query_insert($assign_sql, $assign_args));
 								break 2;
 							}
 						}
@@ -230,14 +229,13 @@ if ($state == STATE_READY){
 				$status = $tasklist['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
 				$create_args = [':pid'=>$target['project'], ':name'=>$tasklist['name'], ':desc'=>$tasklist['desc'], ':status'=>$status, ':start'=>$start,':due'=>$due];
 				if ($create_query->execute($create_args)){
-					$dst_task_id = $task_db->lastInsertId();
-					$tasklist['dst_task'] = $dst_task_id;
+					$new_task_id = $task_db->lastInsertId();
+					$tasklist['dst_task'] = $new_task_id;
 					foreach ($target['users'] as $uid){
-						$assign_args = [':tid'=>$dst_task_id,':uid'=>$uid];
+						$assign_args = [':tid'=>$new_task_id,':uid'=>$uid];
 						if (!$assign_query->execute($assign_args)){
 							$state = STATE_TASK_ASSIGNMENT_FAILED;
-							error('Failed to assign task to user:');
-							error(query_insert($assign_sql, $assign_args));
+							error('Failed to assign task to user:<br/>'.query_insert($assign_sql, $assign_args));
 							break 2;
 						}
 					}
@@ -257,6 +255,48 @@ if ($state == STATE_READY){
 
 if ($state == STATE_READY){
 	info('Tasklists imported.');
+	
+	$query = $source_db->prepare('SELECT * FROM tasks WHERE project = :pid');
+	$query->execute([':pid'=>$source_project_id]);
+	$tasks = $query->fetchAll(INDEX_FETCH);
+	
+	foreach ($tasks as $id => $task){
+		$tasklist_id = $task['liste'];
+		$tasklist = $tasklists[$tasklist_id];
+		$dst_task_id = $tasklist['dst_task'];		
+		
+		$find_with_parent_query->execute([':pid'=>$target['project'],':parent'=>$dst_task_id,':name'=>$task['title']]);
+		$existing_tasks = $find_with_parent_query->fetchAll(INDEX_FETCH);
+		if (empty($existing_tasks)){ // task not existing
+			$start = date('Y-m-d',$task['start']);
+			$due = date('Y-m-d',$task['end']);;
+			$status = $task['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
+			$create_args = [':parent'=>$dst_task_id,':pid'=>$target['project'], ':name'=>$task['title'], ':desc'=>$task['text'], ':status'=>$status, ':start'=>$start,':due'=>$due];
+			if ($create_with_parent_query->execute($create_args)){
+				$new_task_id = $task_db->lastInsertId();
+				foreach ($target['users'] as $uid){
+					$assign_args = [':tid'=>$new_task_id,':uid'=>$uid];
+					if (!$assign_query->execute($assign_args)){
+						$state = STATE_TASK_ASSIGNMENT_FAILED;
+						error('Failed to assign task to user:<br/>'.query_insert($assign_sql, $assign_args));
+						break 2;
+					}
+				}
+			} else {
+				$state = STATE_TASK_CREATION_FAILED;
+				error('Failed to create task. Query follows:');
+				error(query_insert($create_sql, $create_args));
+				break;
+			}
+		
+		} else { // task already exists
+			warn('Task "'.$task['title'].'" already exists.');
+		}
+	}
+}
+
+if ($state == STATE_READY){
+	info('Tasks imported.');
 }
 
 include '../common_templates/head.php';
@@ -348,6 +388,4 @@ if (in_array($state, [ STATE_NO_TARGET_USERS ])) { ?>
 <?php }
 
 if ($state != STATE_READY){ ?><button type="submit">Go on</button></form><?php }
-debug($_POST);
-debug($state);
 include '../common_templates/closure.php';
