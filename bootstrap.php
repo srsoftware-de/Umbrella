@@ -297,7 +297,7 @@ function init(){
 	global $user;
 	$user = null;
 	session_start();
-	if (!isset($_SESSION['token'])) $_SESSION['token'] = param('token');
+	if ($token_param = param('token')) $_SESSION['token'] = $token_param;
 	if (isset($_GET['token'])) redirect(location(true)); // if token was appended to url: set cookie and reload
 }
 
