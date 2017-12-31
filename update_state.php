@@ -23,3 +23,7 @@ if ($complete = param('COMPLETED')){
 		set_state($time_id, TIME_STATUS_COMPLETE);
 	}
 }
+
+if ($redirect = param('returnTo')){
+	redirect($redirect);
+}

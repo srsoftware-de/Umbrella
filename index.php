@@ -39,16 +39,16 @@ include '../common_templates/messages.php'; ?>
 			<?php $time_projects=[]; 
 			foreach ($time['task_ids'] as $task_id){
 				$pid = $tasks[$task_id]['project_id'];
-				$time_projects[$pid] = $projects[$pid]['name'];
-			}?>
-			<?= implode(' ',$time_projects)?>
+				$time_projects[$pid] = $projects[$pid]['name']; ?>
+				<a href="<?= getUrl('project',$pid.'/view') ?>"><?= $projects[$pid]['name']?></a>
+			<?php }?>
 		</td>
 		<td><a href="<?= $id ?>/view"><?= $time['subject'] ?></a></td>
-		<td><?= $time['description'] ?></td>
-		<td><?= $time['start_time']?date('Y-m-d H:i',$time['start_time']):''; ?></td>
-		<td><?= $time['end_time']?date('Y-m-d H:i',$time['end_time']):'<a href="'.$id.'/stop">Stop</a>'; ?></td>
-		<td><?= $time['end_time']?t('? hours',($time['end_time']-$time['start_time'])/3600):'' ?></td>
-		<td><?= t(TIME_STATES[$time['state']]) ?></td>
+		<td><a href="<?= $id ?>/view"><?= $time['description'] ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time['start_time']?date('Y-m-d H:i',$time['start_time']):''; ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time['end_time']?date('Y-m-d H:i',$time['end_time']):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time['end_time']?round(($time['end_time']-$time['start_time'])/3600,2):'' ?></a></td>
+		<td><a href="<?= $id ?>/edit"><?= t(TIME_STATES[$time['state']]) ?></a></td>
 		<td>
 			<?php if ($time['end_time']) { ?>
 			<a class="symbol" title="edit" href="<?= $id ?>/edit"></a>

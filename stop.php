@@ -9,7 +9,7 @@ if (!$time_id) error('No time id passed to view!');
 
 
 if ($subject = post('subject')){
-	update_time($time_id,$subject,post('description'),post('start'),post('end'));
+	update_time($time_id,$subject,post('description'),post('start'),post('end'),post('state'));
     redirect('..');
 }
 
@@ -37,6 +37,14 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend><?= t('End')?></legend>
 			<input type="text" name="end" value="<?= date('Y-m-d H:i',$time['end_time']?$time['end_time']:time());?>" />
+		</fieldset>
+		<fieldset>
+			<legend><?= t('State')?></legend>
+			<select name="state">
+			<?php foreach (TIME_STATES as $k => $v) { ?>
+				<option value="<?= $k?>" <?= $time['state'] == $k?'selected="true"':''?>><?= t($v)?></option>
+			<?php }?>
+			</select>
 		</fieldset>
 		<input type="submit" />
 	</fieldset>

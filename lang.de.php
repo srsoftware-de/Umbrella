@@ -4,6 +4,7 @@ $translations = array(
 		'Add Task "?" to Timetrack'=>'Aufgabe "?" zu Zeiterfassung hinzufügen',
 		'Bookmarks'=>'Lesezeichen',
 		'Company'=>'Firma',
+		'completed'=>'abgeschlossen',
 		'Contacts'=>'Kontakte',
 		'Description'=>'Beschreibung',
 		'Edit Time'=>'Zeit bearbeiten',

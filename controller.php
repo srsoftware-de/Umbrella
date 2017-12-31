@@ -9,12 +9,12 @@
 	const TIME_STATUS_COMPLETE = 60;
 	const TIME_STATUS_CANCELED = 100;
 	
-	const TIME_STATES = array(TIME_STATUS_CANCELED => 'canceled',
+	const TIME_STATES = [TIME_STATUS_CANCELED => 'canceled',
 						 TIME_STATUS_PENDING => 'pending',
 						 TIME_STATUS_OPEN => 'open',
 						 TIME_STATUS_COMPLETE => 'completed',
 						 TIME_STATUS_STARTED => 'started'
-						);
+						];
 	$TIME_PERMISSIONS = array(TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant');
 
 	function get_or_create_db(){

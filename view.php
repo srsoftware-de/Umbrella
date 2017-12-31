@@ -17,18 +17,21 @@ include 'menu.php';
 include '../common_templates/messages.php';
 ?>
 <h1><?= $time['subject'] ?></h1>
-<table class="vertical">
+<table class="vertical time">
 	<tr>
 		<th><?= t('Time')?></th>
 		<td>
 			<span class="right">
 				<a title="<?= t('edit')?>" href="edit" class="symbol"></a>
-				<a title="<?= t('stop')?>" href="stop">stop</a> 
+				<?php if (!$time['end_time']) { ?>
+				<a title="<?= t('stop')?>" href="stop">stop</a>
+				<?php } ?>
+				<a title="<?= t('drop')?>" href="drop" class="symbol"></a> 
 			</span>
 			<h2>
 			<?= date('Y-m-d H:i',$time['start_time']); ?>
 			<?php if ($time['end_time']) { ?>
-			... <?= date('Y-m-d H:i',$time['end_time']);?> (<?= ($time['end_time']-$time['start_time'])/3600 ?> hours)
+			... <?= date('Y-m-d H:i',$time['end_time']);?> (<?= t('? hours',round(($time['end_time']-$time['start_time'])/3600,2)) ?>)
 			<?php } else { ?>
 			(open)
 			<?php } ?>
@@ -37,6 +40,18 @@ include '../common_templates/messages.php';
 	</tr>
 	<tr>
 		<th><?= t('Description')?></th><td><?= $time['description']; ?></td>
+	</tr>
+	<tr>
+		<th>
+			<?= t('State')?></th><td><?= t(TIME_STATES[$time['state']]); ?>
+			<?php if ($time['end_time']) { ?>
+			<span class="change_state">&rarr;
+				<a href="update_state?OPEN=2&returnTo=<?= location('*') ?>"><?= t('open')?></a> | 
+				<a href="update_state?PENDING=2&returnTo=<?= location('*') ?>"><?= t('pending')?></a> |
+				<a href="update_state?COMPLETED=2&returnTo=<?= location('*') ?>"><?= t('completed')?></a>
+			</span>
+			<?php } ?>
+		</td>
 	</tr>
 	<?php if (!empty($time['tasks'])) {?>
 	<tr>
