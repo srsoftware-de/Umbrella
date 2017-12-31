@@ -265,16 +265,6 @@ function require_login($service_name = null){
 	if (isset($user->theme)) $theme = $user->theme;
 }
 
-function postLink($url,$caption,$data = array(),$title = null){
-	if ($_SESSION['token'] !== null && !isset($data['token'])) $data['token'] = $_SESSION['token'];
-
-	echo '<form method="POST" action="'.$url.'">';
-	foreach ($data as $name => $value) echo '<input type="hidden" name="'.$name.'" value="'.$value.'" />';
-	echo '<button type="submit">'.$caption.'</button>';
-	echo '</form>';
-
-}
-
 function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index')){
 	$result = '<fieldset class="dialog">'.$question.'</br>';
 	foreach ($options as $text => $link){
