@@ -10,6 +10,10 @@ const STATE_MISSING_MYSQL_PARAMETER = 6;
 const STATE_NO_TARGET_PROJECTS = 7;
 const STATE_NO_TASK_DB_ACCESS = 8;
 const STATE_TASK_CREATION_FAILED = 9;
+const STATE_NO_TARGET_USERS = 10;
+const STATE_NOT_LOGGED_IN = 11;
+const STATE_TASK_ASSIGNMENT_FAILED = 11;
+
 include '../bootstrap.php';
 
 
@@ -54,7 +58,7 @@ if ($state == STATE_READY){
 if ($state == STATE_READY){
 	$projects = request('project','json');
 	if (!$projects || empty($projects)){
-		error('No target projects found! Create a project in umbrella first!');
+		error('No target projects found! Make sure you are logged in to umbrella and there is at least one project!');
 		$state = STATE_NO_TARGET_PROJECTS;
 	}
 }
@@ -67,6 +71,32 @@ if ($state == STATE_READY){
 		}
 	} else $state = STATE_MISSING_TARGET_PARAMETER;
 }
+
+if ($state == STATE_READY){
+	$all_users = request('user','list');
+	if (!$all_users || empty($all_users)){
+		error('Was not able to load user list Make sure you are logged in to umbrella.');
+		$state = STATE_NOT_LOGGED_IN;		
+	}
+	$user_ids = request('project','user_list',['id'=>$target['project']]);
+	if (!$user_ids || empty($user_ids)){
+		error('No users found in target project. Imported tasks need to be assigned to at least one user. Thus, you need to add at least one user to the target project.');
+		$state = STATE_NO_TARGET_USERS;
+	}
+	$users = [];
+	foreach ($user_ids as $uid => $dummy){
+		$users[$uid] = $all_users[$uid];
+	}
+}
+
+
+
+if ($state == STATE_READY){
+	foreach (['users'] as $field){
+		if (!isset($target[$field])) $state = STATE_NO_TARGET_USERS;
+	}
+}
+
 
 if ($state == STATE_READY){
 	$task_db = new PDO('sqlite:../task/db/tasks.db');
@@ -88,8 +118,13 @@ if ($state == STATE_READY){
 	$milestones = $query->fetchAll(INDEX_FETCH);
 	
 	$find_query = $task_db->prepare('SELECT * FROM tasks WHERE project_id = :pid AND name = :name');
+	
 	$create_sql = 'INSERT INTO tasks (project_id, name, description, status, start_date, due_date) VALUES (:pid, :name, :desc, :status, :start, :due)';
 	$create_query = $task_db->prepare($create_sql);
+	
+	$assign_sql = 'INSERT INTO tasks_users (task_id, user_id) VALUES (:tid, :uid)';
+	$assign_query = $task_db->prepare($assign_sql);
+	
 	foreach ($milestones as $id => $milestone){
 		
 		$find_query->execute([':pid'=>$target['project'],':name'=>$milestone['name']]);
@@ -99,11 +134,23 @@ if ($state == STATE_READY){
 			$start = date('Y-m-d',$milestone['start']);
 			$due = date('Y-m-d',$milestone['end']);
 			$state = $milestone['status'] == 1 ? 10 : 60;
-			$args = [':pid'=>$target['project'], ':name'=>$milestone['name'], ':desc'=>$milestone['desc'], ':status'=>$state, ':start'=>$start,':due'=>$due];
-			if (!$create_query->execute($args)){
+			$create_args = [':pid'=>$target['project'], ':name'=>$milestone['name'], ':desc'=>$milestone['desc'], ':status'=>$state, ':start'=>$start,':due'=>$due];
+			if ($create_query->execute($create_args)){
+				$task_id = $task_db->lastInsertId();
+				foreach ($target['users'] as $uid){
+					$assign_args = [':tid'=>$task_id,':uid'=>$uid];
+					if (!$assign_query->execute($assign_args)){
+						$state = STATE_TASK_ASSIGNMENT_FAILED;
+						error('Failed to assign task to user:');
+						error(query_insert($assign_sql, $assign_args));
+						break 2;						
+					}
+				} 				
+			} else {
 				$state = STATE_TASK_CREATION_FAILED;
 				error('Failed to create task. Query follows:');
-				error(query_insert($create_sql, $args));
+				error(query_insert($create_sql, $create_args));
+				break;
 			}
 		} else {
 			debug($milestone);
@@ -112,6 +159,9 @@ if ($state == STATE_READY){
 	}
 }
 
+if ($state == STATE_READY){
+	info('Milestones imported');
+}
 
 include '../common_templates/head.php';
 include '../common_templates/messages.php';
@@ -123,7 +173,8 @@ if (in_array($state,[	STATE_MISSING_MYSQL_PARAMETER,
 						STATE_NO_SOURCE_PROJECTS,
 						STATE_SOURCE_PROJECT_UNSET,
 						STATE_SOURCE_PROJECT_UNSET,
-						STATE_MISSING_TARGET_PARAMETER
+						STATE_MISSING_TARGET_PARAMETER,
+						STATE_NO_TARGET_USERS,
 					])) { ?>
 <fieldset>
 	<legend>Source</legend>
@@ -157,7 +208,8 @@ if (in_array($state,[	STATE_MISSING_MYSQL_PARAMETER,
 <?php } // missing input
 
 if (in_array($state, [	STATE_SOURCE_PROJECT_UNSET,
-						STATE_MISSING_TARGET_PARAMETER ])) { ?>
+						STATE_MISSING_TARGET_PARAMETER,
+						STATE_NO_TARGET_USERS ])) { ?>
 <fieldset>
 	<legend>Source Project</legend>
 	Select a project to import from:
@@ -171,22 +223,34 @@ if (in_array($state, [	STATE_SOURCE_PROJECT_UNSET,
 <?php }
 
 
-if (in_array($state, [ STATE_MISSING_TARGET_PARAMETER ])) { ?>
+if (in_array($state, [ STATE_MISSING_TARGET_PARAMETER,
+					   STATE_NO_TARGET_USERS ])) { ?>
 
 <fieldset>
 	<legend>Target Project</legend>
 	Select a project to import to:
 	<select name="target[project]">
 		<?php foreach ($projects as $id => $project) {?>
-		<option value="<?= $id ?>"><?= $project['name']?></option>
+		<option value="<?= $id ?>" <?= $id == $target['project']?'selected="true"':''?>><?= $project['name']?></option>
 		<?php }?>
 	</select>
 </fieldset>
 
 <?php }
 
-if ($state != STATE_READY){ ?><button type="submit">Go on</button></form><?php debug($_POST); }
+if (in_array($state, [ STATE_NO_TARGET_USERS ])) { ?>
 
+<fieldset>
+	<legend>Users</legend>
+	Select users, o which imported tasks shall be assigned to:
+	<?php foreach ($users as $id => $user) {?>
+	<br/>
+	<label><input type="checkbox" name="target[users][]" value="<?= $id ?>"><?= $user['login']?></label>
+	<?php }?>	
+</fieldset>
 
+<?php }
 
+if ($state != STATE_READY){ ?><button type="submit">Go on</button></form><?php }
+debug($_POST);
 include '../common_templates/bottom.php';
