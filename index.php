@@ -6,7 +6,7 @@ const STATE_MISSING_MYSQL_PARAMETER = 2;
 const STATE_NO_DB_CONNECTION = 3;
 const STATE_NO_SOURCE_PROJECTS = 4;
 const STATE_SOURCE_PROJECT_UNSET = 5;
-const STATE_MISSING_MYSQL_PARAMETER = 6;
+const STATE_MISSING_TARGET_PROJECT = 6;
 const STATE_NO_TARGET_PROJECTS = 7;
 const STATE_NO_TASK_DB_ACCESS = 8;
 const STATE_TASK_CREATION_FAILED = 9;
@@ -67,9 +67,9 @@ if ($state == STATE_READY){
 	$target = param('target');
 	if ($target){
 		foreach (['project'] as $field){
-			if (!isset($target[$field])) $state = STATE_MISSING_TARGET_PARAMETER;
+			if (!isset($target[$field])) $state = STATE_MISSING_TARGET_PROJECT;
 		}
-	} else $state = STATE_MISSING_TARGET_PARAMETER;
+	} else $state = STATE_MISSING_TARGET_PROJECT;
 }
 
 if ($state == STATE_READY){
@@ -133,8 +133,8 @@ if ($state == STATE_READY){
 		if (empty($existing_tasks)){
 			$start = date('Y-m-d',$milestone['start']);
 			$due = date('Y-m-d',$milestone['end']);
-			$state = $milestone['status'] == 1 ? 10 : 60;
-			$create_args = [':pid'=>$target['project'], ':name'=>$milestone['name'], ':desc'=>$milestone['desc'], ':status'=>$state, ':start'=>$start,':due'=>$due];
+			$status = $milestone['status'] == 1 ? 10 : 60;
+			$create_args = [':pid'=>$target['project'], ':name'=>$milestone['name'], ':desc'=>$milestone['desc'], ':status'=>$status, ':start'=>$start,':due'=>$due];
 			if ($create_query->execute($create_args)){
 				$task_id = $task_db->lastInsertId();
 				foreach ($target['users'] as $uid){
@@ -153,8 +153,7 @@ if ($state == STATE_READY){
 				break;
 			}
 		} else {
-			debug($milestone);
-			debug($existing_tasks);
+			warn('Task "'.$milestone['name'].'" already exists.');
 		}
 	}
 }
@@ -173,7 +172,7 @@ if (in_array($state,[	STATE_MISSING_MYSQL_PARAMETER,
 						STATE_NO_SOURCE_PROJECTS,
 						STATE_SOURCE_PROJECT_UNSET,
 						STATE_SOURCE_PROJECT_UNSET,
-						STATE_MISSING_TARGET_PARAMETER,
+						STATE_MISSING_TARGET_PROJECT,
 						STATE_NO_TARGET_USERS,
 					])) { ?>
 <fieldset>
@@ -208,7 +207,7 @@ if (in_array($state,[	STATE_MISSING_MYSQL_PARAMETER,
 <?php } // missing input
 
 if (in_array($state, [	STATE_SOURCE_PROJECT_UNSET,
-						STATE_MISSING_TARGET_PARAMETER,
+						STATE_MISSING_TARGET_PROJECT,
 						STATE_NO_TARGET_USERS ])) { ?>
 <fieldset>
 	<legend>Source Project</legend>
@@ -223,7 +222,7 @@ if (in_array($state, [	STATE_SOURCE_PROJECT_UNSET,
 <?php }
 
 
-if (in_array($state, [ STATE_MISSING_TARGET_PARAMETER,
+if (in_array($state, [ STATE_MISSING_TARGET_PROJECT,
 					   STATE_NO_TARGET_USERS ])) { ?>
 
 <fieldset>
@@ -253,4 +252,5 @@ if (in_array($state, [ STATE_NO_TARGET_USERS ])) { ?>
 
 if ($state != STATE_READY){ ?><button type="submit">Go on</button></form><?php }
 debug($_POST);
-include '../common_templates/bottom.php';
+debug($state);
+include '../common_templates/closure.php';
