@@ -14,6 +14,12 @@ const STATE_NO_TARGET_USERS = 10;
 const STATE_NOT_LOGGED_IN = 11;
 const STATE_TASK_ASSIGNMENT_FAILED = 11;
 
+const SRC_STATUS_CLOSED = 0;
+const SRC_STATUS_OPEN = 1;
+
+const DST_STATUS_OPEN = 10;
+const DST_STATUS_CLOSED = 60;
+
 include '../bootstrap.php';
 
 
@@ -112,6 +118,8 @@ if ($state == STATE_READY){
 	}
 }
 
+session_write_close();
+
 if ($state == STATE_READY){
 	$query = $source_db->prepare('SELECT * FROM milestones WHERE project = :pid ORDER BY Name');
 	$query->execute([':pid'=>$source_project_id]);
@@ -125,7 +133,7 @@ if ($state == STATE_READY){
 	$assign_sql = 'INSERT INTO tasks_users (task_id, user_id) VALUES (:tid, :uid)';
 	$assign_query = $task_db->prepare($assign_sql);
 	
-	foreach ($milestones as $id => $milestone){
+	foreach ($milestones as $id => &$milestone){
 		
 		$find_query->execute([':pid'=>$target['project'],':name'=>$milestone['name']]);
 		$existing_tasks = $find_query->fetchAll(INDEX_FETCH); 		
@@ -133,12 +141,13 @@ if ($state == STATE_READY){
 		if (empty($existing_tasks)){
 			$start = date('Y-m-d',$milestone['start']);
 			$due = date('Y-m-d',$milestone['end']);
-			$status = $milestone['status'] == 1 ? 10 : 60;
+			$status = $milestone['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
 			$create_args = [':pid'=>$target['project'], ':name'=>$milestone['name'], ':desc'=>$milestone['desc'], ':status'=>$status, ':start'=>$start,':due'=>$due];
 			if ($create_query->execute($create_args)){
-				$task_id = $task_db->lastInsertId();
+				$dst_task_id = $task_db->lastInsertId();
+				$milestone['dst_task'] = $dst_task_id;
 				foreach ($target['users'] as $uid){
-					$assign_args = [':tid'=>$task_id,':uid'=>$uid];
+					$assign_args = [':tid'=>$dst_task_id,':uid'=>$uid];
 					if (!$assign_query->execute($assign_args)){
 						$state = STATE_TASK_ASSIGNMENT_FAILED;
 						error('Failed to assign task to user:');
@@ -153,6 +162,7 @@ if ($state == STATE_READY){
 				break;
 			}
 		} else {
+			foreach ($existing_tasks as $dst_task_id => $task) $milestone['dst_task'] = $dst_task_id;
 			warn('Task "'.$milestone['name'].'" already exists.');
 		}
 	}
@@ -160,6 +170,93 @@ if ($state == STATE_READY){
 
 if ($state == STATE_READY){
 	info('Milestones imported');
+	$query = $source_db->prepare('SELECT * FROM tasklist WHERE project = :pid');
+	$query->execute([':pid'=>$source_project_id]);
+	$tasklists = $query->fetchAll(INDEX_FETCH); 
+	//debug(['MILESTONES'=>$milestones,'TASKLISTS'=>$tasklists]);
+	
+	$find_with_parent_query = $task_db->prepare('SELECT * FROM tasks WHERE project_id = :pid AND parent_task_id = :parent AND name = :name');
+	
+	$create_with_parent_sql = 'INSERT INTO tasks (parent_task_id, project_id, name, description, status, start_date, due_date) VALUES (:parent, :pid, :name, :desc, :status, :start, :due)';
+	$create_with_parent_query = $task_db->prepare($create_with_parent_sql);
+	
+	foreach ($tasklists as $id => &$tasklist){
+		if ($tasklist['milestone']){ // Tasklist is assigned to milestone
+			$milestone_id = $tasklist['milestone'];
+			$milestone = $milestones[$milestone_id];
+			$dst_task_id = $milestone['dst_task'];
+			
+			if ($tasklist['name'] == $milestone['name']){ // append tasks of tasklist directly to milestone-task
+				$tasklist['dst_task'] = $dst_task_id;
+			} else { // create task for tasklist as child of milestone-task
+				$find_with_parent_query->execute([':pid'=>$target['project'],':parent'=>$dst_task_id,':name'=>$tasklist['name']]);
+				$existing_tasks = $find_with_parent_query->fetchAll(INDEX_FETCH);
+				if (empty($existing_tasks)){ // tasklist-task not existing 
+					$start = date('Y-m-d',$tasklist['start']);
+					$due = null;
+					$status = $tasklist['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
+					$create_args = [':parent'=>$dst_task_id,':pid'=>$target['project'], ':name'=>$tasklist['name'], ':desc'=>$tasklist['desc'], ':status'=>$status, ':start'=>$start,':due'=>$due];
+					if ($create_with_parent_query->execute($create_args)){
+						$dst_task_id = $task_db->lastInsertId();
+						$tasklist['dst_task'] = $dst_task_id;
+						foreach ($target['users'] as $uid){
+							$assign_args = [':tid'=>$dst_task_id,':uid'=>$uid];
+							if (!$assign_query->execute($assign_args)){
+								$state = STATE_TASK_ASSIGNMENT_FAILED;
+								error('Failed to assign task to user:');
+								error(query_insert($assign_sql, $assign_args));
+								break 2;
+							}
+						}
+					} else {
+						$state = STATE_TASK_CREATION_FAILED;
+						error('Failed to create task. Query follows:');
+						error(query_insert($create_sql, $create_args));
+						break;
+					}
+						
+				} else { // tasklist-task already exists
+					foreach ($existing_tasks as $dst_task_id => $task) $tasklist['dst_task'] = $dst_task_id;
+					warn('Task "'.$tasklist['name'].'" already exists.');					 
+				}
+			}
+		} else { // Tasklist is not assigned to milestone
+			$find_query->execute([':pid'=>$target['project'],':name'=>$tasklist['name']]);
+			$existing_tasks = $find_query->fetchAll(INDEX_FETCH);
+			
+			if (empty($existing_tasks)){
+				$start = date('Y-m-d',$tasklist['start']);
+				$due = null;
+				$status = $tasklist['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
+				$create_args = [':pid'=>$target['project'], ':name'=>$tasklist['name'], ':desc'=>$tasklist['desc'], ':status'=>$status, ':start'=>$start,':due'=>$due];
+				if ($create_query->execute($create_args)){
+					$dst_task_id = $task_db->lastInsertId();
+					$tasklist['dst_task'] = $dst_task_id;
+					foreach ($target['users'] as $uid){
+						$assign_args = [':tid'=>$dst_task_id,':uid'=>$uid];
+						if (!$assign_query->execute($assign_args)){
+							$state = STATE_TASK_ASSIGNMENT_FAILED;
+							error('Failed to assign task to user:');
+							error(query_insert($assign_sql, $assign_args));
+							break 2;
+						}
+					}
+				} else {
+					$state = STATE_TASK_CREATION_FAILED;
+					error('Failed to create task. Query follows:');
+					error(query_insert($create_sql, $create_args));
+					break;
+				}
+			} else {
+				foreach ($existing_tasks as $dst_task_id => $task) $tasklist['dst_task'] = $dst_task_id;
+				warn('Task "'.$tasklist['name'].'" already exists.');
+			}
+		}
+	}
+}
+
+if ($state == STATE_READY){
+	info('Tasklists imported.');
 }
 
 include '../common_templates/head.php';
