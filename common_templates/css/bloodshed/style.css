@@ -90,6 +90,10 @@ label.location::after {
 	float: left;
 }
 
+table.time h2{
+	margin-right: 60px;
+}
+
 .invoice .dates label{
 	display: block
 }
@@ -172,17 +176,16 @@ input[type="submit"] {
     max-height: unset;
 }
 
-.hover_h{
-	display: inline-block;
-	max-width: 25px;
-	white-space: nowrap;
-	overflow: hidden;
-	height: 19px;
+.hover_h > a:nth-child(n+2){
+	display: none;
 }
 
 .hover_h:hover{
-	display: inline;
 	padding: 30px 0;
+}
+
+.hover_h:hover > a:nth-child(n+2){
+	display: inherit;
 }
 
 form.invoice textarea {
