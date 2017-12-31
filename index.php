@@ -510,5 +510,4 @@ if (in_array($state, [	STATE_NO_TARGET_TIME_USER ])) { ?>
 <?php }
 
 if ($state != STATE_READY){ ?><button type="submit">Go on</button></form><?php }
-debug($_POST);
 include '../common_templates/closure.php';
