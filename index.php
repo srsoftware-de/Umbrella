@@ -13,6 +13,10 @@ const STATE_TASK_CREATION_FAILED = 9;
 const STATE_NO_TARGET_USERS = 10;
 const STATE_NOT_LOGGED_IN = 11;
 const STATE_TASK_ASSIGNMENT_FAILED = 11;
+const STATE_NO_TARGET_TIME_USER = 12;
+const STATE_NO_TIME_DB_ACCESS = 13;
+const STATE_TIME_CREATION_FAILED = 14;
+const STATE_TIME_ASSIGNMENT_FAILED = 15;
 
 const SRC_STATUS_CLOSED = 0;
 const SRC_STATUS_OPEN = 1;
@@ -97,12 +101,8 @@ if ($state == STATE_READY){
 
 
 
-if ($state == STATE_READY){
-	foreach (['users'] as $field){
-		if (!isset($target[$field])) $state = STATE_NO_TARGET_USERS;
-	}
-}
-
+if ($state == STATE_READY && !isset($target['users'])) $state = STATE_NO_TARGET_USERS;
+if ($state == STATE_READY && !isset($target['time_user'])) $state = STATE_NO_TARGET_TIME_USER;
 
 if ($state == STATE_READY){
 	$task_db = new PDO('sqlite:../task/db/tasks.db');
@@ -118,12 +118,38 @@ if ($state == STATE_READY){
 	}
 }
 
+if ($state == STATE_READY){
+	$time_db = new PDO('sqlite:../time/db/times.db');
+	try {
+		$query = $time_db->prepare('SELECT * FROM times');
+		if (!$query){
+			error('Was not able to access times.db');
+			$state = STATE_NO_TIME_DB_ACCESS;
+		}
+	} catch (Exception $e){
+		error($e->getMessage());
+		$state = STATE_NO_TIME_DB_ACCESS;
+	}
+}
+
+
+
 session_write_close();
 
 if ($state == STATE_READY){
 	$query = $source_db->prepare('SELECT * FROM milestones WHERE project = :pid ORDER BY Name');
 	$query->execute([':pid'=>$source_project_id]);
 	$milestones = $query->fetchAll(INDEX_FETCH);
+	
+	
+	$milestones['unassigned'] = [
+		'project' => $source_project_id,
+		'name' => 'unassigned times',
+		'desc' => 'Times without task-assignment are assigned to this task during import. This is necessary as otherwise the times can not be assigned to the project.',
+		'start' => time(),
+		'end' => time(),
+		'status' => SRC_STATUS_CLOSED, 
+	];
 	
 	$find_query = $task_db->prepare('SELECT * FROM tasks WHERE project_id = :pid AND name = :name');
 	
@@ -166,14 +192,16 @@ if ($state == STATE_READY){
 			warn('Task "'.$milestone['name'].'" already exists.');
 		}
 	}
+	unset($milestone); // clear reference pointer
 }
+
+
 
 if ($state == STATE_READY){
 	info('Milestones imported');
 	$query = $source_db->prepare('SELECT * FROM tasklist WHERE project = :pid');
 	$query->execute([':pid'=>$source_project_id]);
 	$tasklists = $query->fetchAll(INDEX_FETCH); 
-	//debug(['MILESTONES'=>$milestones,'TASKLISTS'=>$tasklists]);
 	
 	$find_with_parent_query = $task_db->prepare('SELECT * FROM tasks WHERE project_id = :pid AND parent_task_id = :parent AND name = :name');
 	
@@ -251,6 +279,7 @@ if ($state == STATE_READY){
 			}
 		}
 	}
+	unset($tasklist); // clear reference pointer
 }
 
 if ($state == STATE_READY){
@@ -258,22 +287,23 @@ if ($state == STATE_READY){
 	
 	$query = $source_db->prepare('SELECT * FROM tasks WHERE project = :pid');
 	$query->execute([':pid'=>$source_project_id]);
-	$tasks = $query->fetchAll(INDEX_FETCH);
+	$src_tasks = $query->fetchAll(INDEX_FETCH);
 	
-	foreach ($tasks as $id => $task){
-		$tasklist_id = $task['liste'];
+	foreach ($src_tasks as $id => &$src_task){
+		$tasklist_id = $src_task['liste'];
 		$tasklist = $tasklists[$tasklist_id];
 		$dst_task_id = $tasklist['dst_task'];		
 		
-		$find_with_parent_query->execute([':pid'=>$target['project'],':parent'=>$dst_task_id,':name'=>$task['title']]);
+		$find_with_parent_query->execute([':pid'=>$target['project'],':parent'=>$dst_task_id,':name'=>$src_task['title']]);
 		$existing_tasks = $find_with_parent_query->fetchAll(INDEX_FETCH);
 		if (empty($existing_tasks)){ // task not existing
-			$start = date('Y-m-d',$task['start']);
-			$due = date('Y-m-d',$task['end']);;
-			$status = $task['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
-			$create_args = [':parent'=>$dst_task_id,':pid'=>$target['project'], ':name'=>$task['title'], ':desc'=>$task['text'], ':status'=>$status, ':start'=>$start,':due'=>$due];
+			$start = date('Y-m-d',$src_task['start']);
+			$due = date('Y-m-d',$src_task['end']);;
+			$status = $src_task['status'] == SRC_STATUS_OPEN ? DST_STATUS_OPEN : DST_STATUS_CLOSED;
+			$create_args = [':parent'=>$dst_task_id,':pid'=>$target['project'], ':name'=>$src_task['title'], ':desc'=>$src_task['text'], ':status'=>$status, ':start'=>$start,':due'=>$due];
 			if ($create_with_parent_query->execute($create_args)){
 				$new_task_id = $task_db->lastInsertId();
+				$src_task['dst_task'] = $new_task_id;
 				foreach ($target['users'] as $uid){
 					$assign_args = [':tid'=>$new_task_id,':uid'=>$uid];
 					if (!$assign_query->execute($assign_args)){
@@ -290,13 +320,87 @@ if ($state == STATE_READY){
 			}
 		
 		} else { // task already exists
-			warn('Task "'.$task['title'].'" already exists.');
+			foreach ($existing_tasks as $dst_task_id => $task) $src_task['dst_task'] = $dst_task_id;
+			warn('Task "'.$src_task['title'].'" already exists.');
 		}
 	}
+	unset($src_task);  // clear reference pointer
 }
 
 if ($state == STATE_READY){
 	info('Tasks imported.');
+	//debug(['MILESTONES'=>$milestones,'TASKLISTS'=>$tasklists,'TASKS'=>$tasks]);
+	
+	$query = $task_db->prepare('SELECT * FROM tasks WHERE project_id = :pid');
+	$query->execute([':pid'=>$target['project']]);
+	$dst_tasks = $query->fetchAll(INDEX_FETCH);
+	
+	$query = $source_db->prepare('SELECT * FROM timetracker WHERE project = :pid ORDER BY ID');
+	$query->execute([':pid'=>$source_project_id]);
+	$src_times = $query->fetchAll(INDEX_FETCH);
+
+	$find_query = $time_db->prepare('SELECT * FROM times WHERE start_time = :start AND end_time = :end');
+	
+	$create_sql = 'INSERT INTO times (user_id, subject, description, start_time, end_time) VALUES (:uid, :sub, :desc, :start, :end)';
+	$create_query = $time_db->prepare($create_sql);
+	
+	$assign_sql = 'INSERT INTO task_times (task_id, time_id) VALUES (:task, :time)';
+	$assign_query = $time_db->prepare($assign_sql);
+	
+	foreach ($src_times as $id => &$src_time){
+		$src_task_id = $src_time['task'];
+		if ($src_task_id){
+			$src_task = $src_tasks[$src_task_id];
+			$dst_task_id = $src_task['dst_task'];
+		} else {
+			$dst_task_id = $milestones['unassigned']['dst_task'];
+		}
+		$dst_task = $dst_tasks[$dst_task_id];
+		$src_time['dst_task'] = $dst_task;
+		
+		$start = $src_time['started'];
+		$end = $src_time['ended'];
+		
+		$find_query->execute([':start'=>$start,':end'=>$end]);
+		$existing_times = $find_query->fetchAll(INDEX_FETCH);
+		
+		if (empty($existing_times)){
+			
+			if ($src_task_id){
+				$subject = $dst_task['name'];
+				$desc = $src_time['comment'];
+			} else {
+				$subject = $src_time['comment'];
+				$desc = null;
+			}
+			$create_args = [ ':uid'=>$target['time_user'], ':sub'=>$subject, ':desc'=>$desc, ':start'=>$start, ':end'=>$end];
+			if ($create_query->execute($create_args)){
+				$new_time_id = $time_db->lastInsertId();
+				$src_time['dst_time'] = $new_time_id;
+				
+				$assign_args = [':task'=>$dst_task_id,':time'=>$new_time_id];
+				if (!$assign_query->execute($assign_args)){
+					$state = STATE_TIME_ASSIGNMENT_FAILED;
+					error('Failed to assign task to time:<br/>'.query_insert($assign_sql, $assign_args));
+					break 2;
+				}						
+			} else {
+				$state = STATE_TIME_CREATION_FAILED;
+				error('Failed to create time. Query follows:');
+				error(query_insert($create_sql, $create_args));
+				break;				
+			}
+		} else {
+			foreach ($existing_times as $dst_time_id => $dst_time) $src_time['dst_time'] = $dst_time_id;
+			warn('Time "'.$dst_time['subject'].'" already exists.');
+		}
+	}
+	unset($src_time); // clear reference pointer
+	//debug($src_times);
+}
+
+if ($state == STATE_READY){
+	info('Times imported.');
 }
 
 include '../common_templates/head.php';
@@ -311,6 +415,7 @@ if (in_array($state,[	STATE_MISSING_MYSQL_PARAMETER,
 						STATE_SOURCE_PROJECT_UNSET,
 						STATE_MISSING_TARGET_PROJECT,
 						STATE_NO_TARGET_USERS,
+						STATE_NO_TARGET_TIME_USER,
 					])) { ?>
 <fieldset>
 	<legend>Source</legend>
@@ -345,7 +450,8 @@ if (in_array($state,[	STATE_MISSING_MYSQL_PARAMETER,
 
 if (in_array($state, [	STATE_SOURCE_PROJECT_UNSET,
 						STATE_MISSING_TARGET_PROJECT,
-						STATE_NO_TARGET_USERS ])) { ?>
+						STATE_NO_TARGET_USERS,
+						STATE_NO_TARGET_TIME_USER ])) { ?>
 <fieldset>
 	<legend>Source Project</legend>
 	Select a project to import from:
@@ -359,8 +465,9 @@ if (in_array($state, [	STATE_SOURCE_PROJECT_UNSET,
 <?php }
 
 
-if (in_array($state, [ STATE_MISSING_TARGET_PROJECT,
-					   STATE_NO_TARGET_USERS ])) { ?>
+if (in_array($state, [	STATE_MISSING_TARGET_PROJECT,
+						STATE_NO_TARGET_USERS,
+						STATE_NO_TARGET_TIME_USER ])) { ?>
 
 <fieldset>
 	<legend>Target Project</legend>
@@ -374,18 +481,34 @@ if (in_array($state, [ STATE_MISSING_TARGET_PROJECT,
 
 <?php }
 
-if (in_array($state, [ STATE_NO_TARGET_USERS ])) { ?>
+if (in_array($state, [	STATE_NO_TARGET_USERS,
+						STATE_NO_TARGET_TIME_USER ])) { ?>
 
 <fieldset>
 	<legend>Users</legend>
-	Select users, o which imported tasks shall be assigned to:
+	Select users, to which imported tasks shall be assigned:
 	<?php foreach ($users as $id => $user) {?>
 	<br/>
-	<label><input type="checkbox" name="target[users][]" value="<?= $id ?>"><?= $user['login']?></label>
+	<label><input type="checkbox" name="target[users][]" value="<?= $id ?>" <?= in_array($id, $target['users'])?'checked="true"':''?>><?= $user['login']?></label>
 	<?php }?>	
 </fieldset>
 
 <?php }
 
+if (in_array($state, [	STATE_NO_TARGET_TIME_USER ])) { ?>
+
+<fieldset>
+	<legend>Users</legend>
+	Select users, to which imported times shall be assigned:
+	<select name="target[time_user]">
+	<?php foreach ($target['users'] as $id) {?>
+	<option value="<?= $id ?>"><?= $users[$id]['login']?></option>
+	<?php }?>
+	</select>
+</fieldset>
+
+<?php }
+
 if ($state != STATE_READY){ ?><button type="submit">Go on</button></form><?php }
+debug($_POST);
 include '../common_templates/closure.php';
