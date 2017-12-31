@@ -14,10 +14,17 @@ $project_ids = [];
 foreach ($tasks as $task) $project_ids[$task['project_id']] = 1;
 $projects = request('project','json',['ids'=>implode(',',array_keys($project_ids))]);
 
+$show_complete = param('complete') == 'show';
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php';
+
+if (!$show_complete){ ?>
+<a class="symbol" title="<?= t('show completed times') ?>" href="?complete=show"></a>
+<?php }?>
+
 
 <table>
 	<tr>
@@ -32,7 +39,7 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	
 <?php foreach ($times as $id => $time){ 
-	if ($time['state'] == TIME_STATUS_COMPLETE) continue;
+	if (!$show_complete && $time['state'] == TIME_STATUS_COMPLETE) continue;
 ?>
 	<tr>
 		<td>
@@ -53,7 +60,7 @@ include '../common_templates/messages.php'; ?>
 			<?php if ($time['end_time']) { ?>
 			<a class="symbol" title="edit" href="<?= $id ?>/edit"></a>
 			<?php } ?>
-			<a class="symbol" title="drop" href="<?= $id ?>/drop">	</a>
+			<a class="symbol" title="drop" href="<?= $id ?>/drop"></a>
 		</td>
 	</tr>
 <?php } ?>
