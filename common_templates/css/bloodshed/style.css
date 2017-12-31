@@ -129,6 +129,7 @@ button {
     display: inline-block;
 }
 
+.change_state,
 input[type="submit"] {
     float: right;
 }
@@ -236,6 +237,7 @@ td > h1{
 	display: block;	
 	min-width: auto;
 }
+
 @media (max-width:1199px) {
 	.tasklist tr>*:nth-child(2){
 		display: none;

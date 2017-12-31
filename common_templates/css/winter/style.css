@@ -129,6 +129,7 @@ button {
     display: inline-block;
 }
 
+.change_state,
 input[type="submit"] {
     float: right;
 }
