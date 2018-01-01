@@ -19,7 +19,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?> 
 
-<fieldset>
+<fieldset class="companies">
 <?php if (!$company){ ?>
 	<legend><?= t('Select a company') ?></legend>
 	<?php foreach ($companies as $id => $company){ ?>
