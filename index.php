@@ -11,7 +11,7 @@ include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
-
+<br/>
 <?php foreach ($companies as $cid => $company){ ?>
 <fieldset class="invoice list">
 	<legend><?= $company['name']?></legend>

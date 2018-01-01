@@ -225,7 +225,9 @@ include '../common_templates/messages.php'; ?>
 						<li>
 							<?= $project['name']?>
 							<ul>
-							<?php foreach ($project['times'] as $time_id => $time) { ?>
+							<?php foreach ($project['times'] as $time_id => $time) {
+								if ($time['state'] >= 60) continue;
+							?>
 								<li>
 									<label>
 										<input type="checkbox" name="times[<?= $time_id?>]" /><?= $time['subject']?>
