@@ -55,6 +55,15 @@ input[type=text]{
 	max-height: 9999px;
 }
 
+fieldset.add.invoice:hover {
+	max-height: unset;
+}
+
+fieldset.add.invoice {
+	max-height: 5px;
+	overflow: hidden;
+}
+
 .add_positions label span,
 .requirements label{
 	display: block;
