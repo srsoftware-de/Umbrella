@@ -5,7 +5,7 @@ include 'controller.php';
 
 require_login('notes');
 
-$url = param('url');
-assert($url !== null,'Called notes/json without url');
-$notes = Note::load(['url'=>$url]);
+$uri = param('uri');
+assert($uri !== null,'Called notes/json without uri');
+$notes = Note::load(['uri'=>$uri]);
 echo json_encode($notes);

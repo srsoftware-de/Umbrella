@@ -47,14 +47,29 @@ class Note{
 		global $user;
 		$db = get_or_create_db();
 		
-		$sql = 'SELECT * FROM notes WHERE user_id = :uid';
-		$args = [':uid' => $user->id];
-
-		if (isset($options['url'])){
-			$sql .= ' AND url = :url';
-			$args[':url'] = $options['url'];
+		$sql = 'SELECT * FROM notes WHERE user_id = ?';
+		$args = [$user->id];
+		
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' AND id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
 		}
-	
+
+		if (isset($options['uri'])){
+			$uri = $options['uri'];
+			$parts = explode(':', $uri,2);
+			$module = array_shift($parts);
+			$id = array_shift($parts);
+
+			$entities = request($module,'json',['ids'=>$id]);
+			if (empty($entities)) return [];
+			$sql = 'SELECT * FROM notes WHERE uri = :uri';
+			$args = [':uri' => $uri];
+		}
+		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load notes');
 		return $query->fetchAll(INDEX_FETCH);
@@ -63,13 +78,23 @@ class Note{
 	static function table(){
 		return [ 'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'user_id' => ['INT','NOT NULL'],
-			'url' => ['VARCHAR'=>255, 'NOT NULL'],
+			'uri' => ['VARCHAR'=>255, 'NOT NULL'],
 			'note' => ['TEXT','NOT NULL']
 		];
 	}
+	
+	static function delete($id = null){
+		if ($id === null){
+			error('No id passed to Note::delete!');
+			return false;
+		}
+		$db = get_or_create_db();		
+		$query = $db->prepare('DELETE FROM notes WHERE id = :id');
+		return $query->execute([':id'=>$id]);
+	}
 
-	function __construct($url = null, $note = null){
-		$this->url = $url;
+	function __construct($uri = null, $note = null){
+		$this->uri = $uri;
 		$this->note = $note;
 	}
 
@@ -77,10 +102,17 @@ class Note{
 		global $user;
 		$db = get_or_create_db();
 
-		$sql = 'INSERT INTO notes (user_id, url, note) VALUES (:uid, :url, :note);';
-		$args = [':uid'=>$user->id, ':url'=>$this->url, ':note'=>$this->note];
+		$sql = 'INSERT INTO notes (user_id, uri, note) VALUES (:uid, :uri, :note);';
+		$args = [':uid'=>$user->id, ':uri'=>$this->uri, ':note'=>$this->note];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to  save note!');
 
+	}
+	
+	function url(){
+		$parts = explode(':', $this->uri,2);
+		$module = array_shift($parts);
+		$id = array_shift($parts);
+		return '/'.$module.'/'.$id.'/view';
 	}
 }

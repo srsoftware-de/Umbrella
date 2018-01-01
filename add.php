@@ -5,10 +5,10 @@ include 'controller.php';
 
 require_login('notes');
 
-if (($url = param('url')) && ($note = param('note'))){
-	$note = new Note($url, $note);
+if (($uri = param('uri')) && ($note = param('note'))){
+	$note = new Note($uri, $note);
 	$note->save();
-	redirect($url);
+	redirect($note->url());
 }
 
 include '../common_templates/head.php';

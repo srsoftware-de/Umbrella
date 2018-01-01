@@ -19,10 +19,12 @@ include '../common_templates/messages.php';
 		<th><?= t('URL') ?></th>
 		<th><?= t('note') ?></th>
 	</tr>
-<?php foreach ($notes as $note) { ?>
+<?php foreach ($notes as $n) { 
+	$note = new Note($n['uri'],$n['note'])
+	?>
 	<tr>
-		<td><a href="<?= $note['url'] ?>"><?= $note['url'] ?></a></td>
-		<td><a href="<?= $note['url'] ?>"><?= $note['note'] ?></a></td>
+		<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
+		<td><a href="<?= $note->url() ?>"><?= $note->note ?></a></td>
 	</tr>
 <?php } ?>
 </table>
