@@ -19,6 +19,7 @@ $translations = array(
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
 		'Log out ?'=>'? ausloggen',
+		'Notes'=>'Notizen',
 		'open'=>'offen',
 		'owner'=>'Eigentümer',
 		'participant'=>'Mitglied',

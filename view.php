@@ -28,7 +28,7 @@ if (!empty($project_users_permissions)){
 	$project_users = request('user', 'list',['ids'=>$user_ids]);
 }
 //debug($project_users);
-$tasks = request('task','list',['order'=>'status','project'=>$project_id]);
+$tasks = request('task','list',['order'=>'name','project'=>$project_id]);
 //debug($tasks,true);
 $title = $project['name'].' - Umbrella';
 $show_closed_tasks = param('closed') == 'show';
@@ -139,4 +139,5 @@ include '../common_templates/messages.php';
 	</tr>
 	<?php } ?>
 </table>
-<?php include '../common_templates/closure.php'; ?>
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'project:'.$project_id],false,NO_CONVERSSION);
+include '../common_templates/closure.php'; ?>
