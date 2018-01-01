@@ -311,4 +311,6 @@ include '../common_templates/messages.php'; ?>
 		<a class="button" title="<?= t('Send as PDF to ?.',$invoice->customer_email)?>" href="send"><?= t('Send to ?',$invoice->customer_email)?></a>
 	</fieldset>
 </form>
-<?php include '../common_templates/closure.php'; ?>
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'invoice:'.$id],false,NO_CONVERSSION);
+
+include '../common_templates/closure.php'; ?>

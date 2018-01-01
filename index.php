@@ -28,11 +28,11 @@ include '../common_templates/messages.php'; ?>
 		<?php foreach ($invoices as $id => $invoice){
 			if ($invoice->company_id != $cid) continue; ?>
 		<tr>
-			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->number ?></a></td>
-			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->sum().' '.$invoice->currency ?></a></td>
-			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->date() ?></a></td>
-			<td><a href="<?= $invoice->id ?>/edit"><?= t($invoice->state()) ?></a></td>
-			<td><a href="<?= $invoice->id ?>/edit"><?= $invoice->customer_short()?></a></td>
+			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->number ?></a></td>
+			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->sum().' '.$invoice->currency ?></a></td>
+			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->date() ?></a></td>
+			<td><a href="<?= $invoice->id ?>/view"><?= t($invoice->state()) ?></a></td>
+			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->customer_short()?></a></td>
 			<td><a href="<?= $invoice->id ?>/step"><?= t([Invoice::TYPE_OFFER=>'create confirmation',Invoice::TYPE_CONFIRMATION=>'create invoice',Invoice::TYPE_INVOICE=>'create reminder',Invoice::TYPE_REMINDER=>'add reminder'][$invoice->type])?></a></td>
 			</td>
 		</tr>
