@@ -4,8 +4,10 @@ config.php
 contact
 bookmark
 files
+importer
 invoice
 item
+notes
 project
 task
 time
