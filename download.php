@@ -7,15 +7,13 @@ require_login('files');
 
 $filename = param('file');
 
-$absolute_path = get_absolute_path($filename);
-if (!$absolute_path) {
-	error('You are not allowed to access ?',$filename);
-	include '../common_templates/head.php';
-	include '../common_templates/main_menu.php';
-	include 'menu.php';
-	include '../common_templates/messages.php'; 
-	include '../common_templates/closure.php';
-	die();
+if (access_granted($filename)){
+	header('Content-Disposition: attachment; filename="'.basename($filename).'"');
+	die(readfile(base_dir().DS.$filename));	
 }
-header('Content-Disposition: attachment; filename="'.basename($absolute_path).'"');
-readfile($absolute_path);
+error('You are not allowed to access ?',$filename);
+include '../common_templates/head.php';
+include '../common_templates/main_menu.php';
+include 'menu.php';
+include '../common_templates/messages.php'; 
+include '../common_templates/closure.php';

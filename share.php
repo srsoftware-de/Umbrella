@@ -7,27 +7,24 @@ require_login('files');
 
 $filename = param('file');
 
+if (access_granted($filename)){
+	if ($user_id = param('user_id')) share_file($filename,$user_id);
+	if ($unshare_user = param('unshare'))unshare_file($filename,$unshare_user);
 
-$user_id = param('user_id');
-if ($user_id){
-	share_file($filename,$user_id);
+	$shares = get_shares($filename);	
+	
+} else {
+	error('You are not allowed to access "?".',$filename);
 }
 
-$unshare_user = param('unshare');
-if ($unshare_user){
-	unshare_file($filename,$unshare_user);
-}
-
-$shares = get_shares($filename);
 $users = load_connected_users();
-
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 
-?>
+if (isset($shares)){ ?>
 
 <fieldset>
 	<legend>
@@ -65,4 +62,6 @@ include '../common_templates/messages.php';
 	</table>
 </fieldset>
 
-<?php include '../common_templates/closure.php'; ?>
+<?php } // if shares
+
+include '../common_templates/closure.php'; ?>

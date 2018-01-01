@@ -6,6 +6,9 @@
 	const RECURSIVE = true;
 	const STORAGE = '/.storage';
 	const DS = '/';
+	
+	static $projects = null;
+	static $companies = null;
 
 	function get_or_create_db(){
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create files'.DS.'db directory!');
@@ -23,37 +26,91 @@
 	function base_dir(){
 		return getcwd().STORAGE;
 	}
-
-	function list_entries($path = null){
+	
+	function user_dir(){
 		global $user;
-		if ($path === null) $path = DS.'user'.$user->id;
-		if ($path[0] != DS) $path = DS.$path;
-		$base_dir = base_dir();
-		$dir = base_dir().$path;
-		$entries = scandir($dir);
-		$dirs = [];
-		$files = [];
-		foreach ($entries as $entry){
-			if (in_array($entry,['.','..'])) continue;
-			if (is_dir($dir.DS.$entry)) {
-				$dirs[] = $entry;
-			} else $files[] = $entry;
-		}
-		return ['dirs'=>$dirs,'files'=>$files];
+		return 'user'.DS.$user->id;
+	}
+	
+	function path_elements($path,$index = null){
+		$elements = explode(DS, $path);		
+		return $index!==null ? $elements[$index] : $elements;
+	}
+	
+	function projects(){
+		global $projects;
+		if (!$projects) $projects = request('project','json');
+		return $projects;
 	}
 
-	function get_absolute_path($filename = null){
-		global $user;
-		if ($filename === null || $filename == '') {
-			error('No filename passed to download!');
-			return null;
+	function companies(){
+		global $companies;
+		if (!$companies) $companies = request('company','json');
+		return $companies;
+	}
+	
+	function access_granted($relative_path){
+		if (in_array($relative_path, [user_dir(), 'project', 'company'])) return true;
+		
+		switch (path_elements($relative_path,0)){
+			case 'user':
+				if (strpos($relative_path,user_dir().DS)===0) return true; // if path startes with user/<id>/
+				break;
+			case 'project':
+				$project_id = path_elements($relative_path,1);
+				if (array_key_exists($project_id, projects())) return true;
+				break;
+			case 'company':
+				$company_id = path_elements($relative_path,1);
+				if (array_key_exists($company_id, companies())) return true;
+				break;
 		}
-		if ($filename[0] != DS) $filename = DS.$filename;
-		if (strpos($filename,DS.'user'.$user->id)!==false) return base_dir().$filename;
-		if (!empty(shared_files(ltrim($filename,DS)))) return base_dir().$filename;
 		
+		$shared_files = shared_files_list();
+		foreach ($shared_files as $entry) {
+			if ($entry['file'] == $relative_path) return true;
+		}
 		
-		error('You are not allowed to access ?',$filename);
+		return false;
+	}
+
+	function list_entries($relative_path = null){
+		if ($relative_path == null){
+			global $user;
+			return [
+				'dirs' => [
+					t('private files') => 'user'.DS.$user->id,
+					t('Companies') => 'company',
+					t('Projects') => 'project',
+				]
+			];
+		}		
+		
+		if (access_granted($relative_path)){
+			$dirs = ['..'=>dirname($relative_path)];
+			$files = [];
+
+			switch ($relative_path){
+				
+				case ('project'):
+					foreach (projects() as $project) $dirs[$project['name']] = 'project'.DS.$project['id'];
+					break;
+				case 'company':
+					foreach (companies() as $company) $dirs[$company['name']] = 'company'.DS.$company['id'];
+					break;
+				default:
+					$absolute_path = base_dir().DS.$relative_path;
+					$entries = scandir($absolute_path);
+					foreach ($entries as $entry){
+						if (in_array($entry,['.','..'])) continue;
+						if (is_dir($absolute_path.DS.$entry)) {
+							$dirs[$entry] = $relative_path.DS.$entry;
+						} else $files[$entry] = $relative_path.DS.$entry;
+					}
+			}
+			
+			return ['dirs'=>$dirs,'files'=>$files];
+		}
 		return null;
 	}
 
@@ -61,10 +118,8 @@
 	function add_file($file_data){
 		global $user;
 		$dir = param('dir');
-		if (!$dir) $dir = 'user'.$user->id;	
-		$filename = get_absolute_path($dir.DS.$file_data['name']);
+		$filename = base_dir().DS.$dir.DS.$file_data['name'];
 		if (!$filename) return null;
-		if (strpos($filename,'user'.$user->id)===false) return t('You are not allowed to write to ?',dirname($filename));
 		
 		if (file_exists($filename)) return 'A file "'.$filename.'" already exists!';
 		$directory = dirname($filename);
@@ -88,19 +143,15 @@
 	}
 
 	function create_dir($dirname){
-		global $user;
-		$rel_par = param('dir','user'.$user->id);	
-		$parent = get_absolute_path($rel_par);
-		if (!$parent) return false;
-		if (mkdir($parent.DS.$dirname)) return $rel_par.DS.$dirname;
+		if (access_granted($dirname) && mkdir(base_dir().DS.$dirname,0777,RECURSIVE)) return $dirname;
 		return false;
 	}
 
 
 
 	function get_shares($filename){
-		$absolute_path = get_absolute_path($filename);
-		if (!$absolute_path) return error('You are not allowed to access ?',$filename);
+		$absolute_path = base_dir().DS.$filename;
+		
 		$db = get_or_create_db();
 		
 		$query = $db->prepare('SELECT user_id FROM file_shares WHERE file = :file');
@@ -109,23 +160,24 @@
 		return $rows;
 	}
 	
-	function shared_files($filename = null){
+	function shared_files_list($filename = null){
 		global $user;
-		//$absolute_path = get_absolute_path($filename);
 		$db = get_or_create_db();
-	
+		
 		$sql = 'SELECT file FROM file_shares WHERE user_id = :uid';
 		$args = [':uid'=>$user->id];
 		if ($filename !== null){
 			$sql .= ' AND file = :file';
-			$args[':file'] = $filename; 
+			$args[':file'] = $filename;
 		}
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was no able to query file list.');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);		
-		if ($filename !== null) return $rows; // used by download()
+		return $query->fetchAll(PDO::FETCH_ASSOC);		
+	}
+	
+	function shared_files($filename = null){
 		$result = array();
-		foreach ($rows as $row){
+		foreach (shared_files_list($filename) as $row){
 			$filename = $row['file'];
 			$parts = explode(DS, $filename);
 			$pointer = &$result;
@@ -178,22 +230,23 @@
 	function renameFile($currentname = null,$newname = null){
 		if ($currentname === null || trim($currentname == '')) return error('Rename called, but no source file given!');
 		if ($newname === null || trim($newname == '')) return error('Rename called, but no new name given!');
-		$origin = get_absolute_path($currentname);
-		if ($origin){
-			$dir = dirname($origin);
-			$target = $dir.DS.$newname;
-			
-			if (!rename($origin,$target)) return error('Was not able to rename file!');
-			
-			$new_local = dirname($currentname).DS.$newname;
-				
-			$db = get_or_create_db();
-			$query = $db->prepare('UPDATE file_shares SET file = replace(file, :currentname, :newname) WHERE file LIKE :search');
-			$query->execute([':currentname'=>$currentname.DS,':newname'=>$new_local.DS,':search'=>$currentname.DS.'%']);
-			$query = $db->prepare('UPDATE file_shares SET file = :newname WHERE file = :currentname');
-			$query->execute([':currentname'=>$currentname,':newname'=>$new_local]);
-			//debug(['current name'=>$currentname,'origin'=>$origin,'dir'=>$dir,'new name'=>$newname,'new local'=>$new_local,'target'=>$target],1);
-			redirect('index?path='.dirname($currentname));
+		$origin = base_dir().DS.$currentname;
+		$dir = dirname($origin);
+		$target = $dir.DS.$newname;
+		
+		if (!rename($origin,$target)) {
+			error('Was not able to rename file!');
+			return false;
 		}
+		
+		$new_local = dirname($currentname).DS.$newname;
+			
+		$db = get_or_create_db();
+		$query = $db->prepare('UPDATE file_shares SET file = replace(file, :currentname, :newname) WHERE file LIKE :search');
+		$query->execute([':currentname'=>$currentname.DS,':newname'=>$new_local.DS,':search'=>$currentname.DS.'%']);
+		$query = $db->prepare('UPDATE file_shares SET file = :newname WHERE file = :currentname');
+		$query->execute([':currentname'=>$currentname,':newname'=>$new_local]);
+		//debug(['current name'=>$currentname,'origin'=>$origin,'dir'=>$dir,'new name'=>$newname,'new local'=>$new_local,'target'=>$target],1);
+		return true;
 	}
 ?>

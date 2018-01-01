@@ -5,9 +5,10 @@ include 'controller.php';
 
 require_login('files');
 
+$path = param('dir');
 $newdir = param('dirname');
 if ($newdir) {
-	$dir = create_dir($newdir);
+	$dir = create_dir($path.DS.$newdir);
 	if ($dir) redirect('index?path='.$dir);
 }
 include '../common_templates/head.php'; 
@@ -16,7 +17,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST" enctype="multipart/form-data">
 	<fieldset>
-		<legend><?= t('Create new directory')?></legend>
+		<legend><?= t('Create new directory in "?"',$path)?></legend>
 		<fieldset>
 			<legend>Name</legend>		
 			<input type="text" name="dirname" autofocus="true" />

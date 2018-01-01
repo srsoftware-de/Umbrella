@@ -7,9 +7,9 @@ require_login('files');
 
 $path = param('path');
 $shared_files = shared_files();
-$parent = dirname($path);
 
 if ($path){
+	$parent = dirname($path);
 	$parts = explode(DS, $path);
 	while ($part = array_shift($parts)) $shared_files = $shared_files[$part];
 }
