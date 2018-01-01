@@ -58,7 +58,12 @@ include '../common_templates/messages.php'; ?>
 			<a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a>
 			<?php } ?>
 		</td>
-		<td><a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a></td>
+		<td>
+			<span class="hover_h">
+			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a>
+			<a href="#" class="symbol" onclick="return toggle('.project_<?= $task['project_id'] ?>');"></a>
+			</span>
+		</td>
 		<td><?= t($TASK_STATES[$task['status']]) ?></td>
 		<td><?= $task['start_date'] ?></td>
 		<td><?= $task['due_date'] ?></td>

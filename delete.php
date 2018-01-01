@@ -26,3 +26,5 @@ include '../common_templates/messages.php'; ?>
 <h2><?= t('This will remove the task "?". Are you sure?',$task['name'])?></h2>
 <a href="?confirm=yes<?= $target?('&redirect='.$target):''?>" class="button"><?= t('Yes')?></a>
 <a href="view" class="button"><?= t('No')?></a>
+
+<?php include '../common_templates/closure.php';?>

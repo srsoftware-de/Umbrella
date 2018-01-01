@@ -167,24 +167,5 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 </table>
-<?php if (isset($services['notes'])) { 
-	$url = location('*');
-	$notes = request('notes','json',['url'=>$url]);
-	foreach ($notes as $nid => $note){ ?>
-	<fieldset>
-		<legend><?= 'user '.$note['user_id'] ?></legend>
-		<?= $note['note'] ?>
-	</fieldset>
-	<?php } ?>
-	<form action="<?= getUrl('notes','add') ?>" method="POST">
-		<input type="hidden" name="url" value="<?= location('*') ?>" />
-		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
-		<fieldset>
-			<legend><?= t('add note') ?></legend>
-			<textarea name="note">
-			</textarea>
-			<button type="submit"><?= t('add note') ?></button>		
-		</fieldset>
-	</form>
-<?php } ?> 
-<?php include '../common_templates/closure.php'; ?>
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSSION);	
+include '../common_templates/closure.php'; ?>
