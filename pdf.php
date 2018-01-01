@@ -167,7 +167,7 @@ class PDF extends FPDF{
 		$filename = $this->invoice->number.' - '.date('c').'.pdf';
 		save_file($dir.'/'.$filename,$file_contents,'application/pdf');
 		$list = request('files','index',['format'=>'json','path'=>$dir]);
-		assert(in_array($filename, $list['files']),'Something went wrong with the file upload!');
+		assert(array_key_exists($filename, $list['files']),'Something went wrong with the file upload!');
 		redirect(getUrl('files','index?path='.urlencode($dir)));
 	}
 	

@@ -7,6 +7,6 @@
 		$pdf->generate();	
 		$pdf->store($path);
 	} else {		
-		redirect(getUrl('files','select_dir?target='.urlencode(location())));
+		redirect(getUrl('files','select_dir?message='.urlencode(t('Select a folder to place invoice file:')).'&target='.urlencode(location('*'))));
 	}
 ?>
