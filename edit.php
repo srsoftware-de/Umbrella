@@ -91,10 +91,13 @@ include '../common_templates/messages.php'; ?>
 			<input name="start_date" type="date" value="<?= $task['start_date'] ?>" />
 			<?php if ($task['start_date']) { ?>
 			<select name="start_extension">
-				<option value="">No extension</option>
-				<option value="+1 week">+1 Week</option>
-				<option value="+1 month">+1 Month</option>
-				<option value="+1 year">+1 Year</option>
+				<option value=""><?= t('No extension') ?></option>
+				<option value="+1 week"><?= t('+one week')?></option>
+				<option value="+1 month"><?= t('+one month')?></option>
+				<option value="+3 months"><?= t('+three months')?></option>
+				<option value="+6 months"><?= t('+six months')?></option>
+				<option value="+1 year"><?= t('+one year')?></option>
+				
 			</select>			
 			<?php } ?>
 			</fieldset>
@@ -103,7 +106,7 @@ include '../common_templates/messages.php'; ?>
 			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" />
 			<?php if ($task['due_date']) { ?>
 			<select name="due_extension">
-				<option value="">No extension</option>
+				<option value=""><?= t('No extension') ?></option>
 				<option value="+1 week"><?= t('+one week')?></option>
 				<option value="+1 month"><?= t('+one month')?></option>
 				<option value="+3 months"><?= t('+three months')?></option>

@@ -22,6 +22,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Log out ?'=>'? ausloggen',
 		'No'=>'Nein',
+		'No extension'=>'keine Verlängerung',
 		'open'=>'offen',
 		'owner'=>'Inhaber',
 		'Parent'=>'über&shy;geordnete Aufgabe',
