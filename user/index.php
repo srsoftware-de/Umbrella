@@ -26,7 +26,8 @@ include 'menu.php';
 include '../common_templates/messages.php';
 
 if (isset($services['contact'])){
-	$contact = request('contact','json_assigned',null,false,true); 
+	$contact = request('contact','json_assigned',null,false,true);
+	if ($contact){
 ?>
 
 <fieldset>
@@ -51,7 +52,8 @@ if (isset($services['contact'])){
 	</fieldset>
 	<?php } ?>
 </fieldset>
-<?php } ?>
+<?php }
+} ?>
 
 <?php if (!empty($assigned_logins)) { ?>
 <fieldset>
@@ -86,12 +88,14 @@ if (isset($services['contact'])){
 		<tr>
 			<th><?= t('Id')?></th>
 			<th><?= t('Username')?></th>
+			<th><?= t('Email')?></th>
 			<th><?= t('Actions')?></th>
 		</tr>
 	<?php foreach (get_userlist() as $id => $u): ?>
 		<tr>
 			<td><?= $id ?></td>
 			<td><?= $u['login'] ?></td>
+			<td><?= $u['email'] ?></td>
 			<td>
 				<a class="symbol" title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
 				<a class="symbol" title="<?= t('Lock user account')?>" href="<?= $id?>/lock"> </a>

@@ -10,7 +10,6 @@
 			if (sha1($pass) == $user['pass']){
 				$token = getOrCreateToken($user);
 				$redirect = param('returnTo');
-				if ($redirect) $redirect.='?token='.$token;
 				if (!$redirect && $user['id'] == 1) $redirect='index';
 				if (!$redirect)	$redirect = getUrl('task');
 				if (!$redirect)	$redirect = $user['id'].'/view';
@@ -122,7 +121,7 @@
 		assert(is_writable('db'),'Directory user/db not writable!');
 		if (!file_exists('db/users.db')){
 			$db = new PDO('sqlite:db/users.db');
-			$db->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, theme VARCHAR(50));');
+			$db->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, email VARCHAR(255), theme VARCHAR(50));');
 			$db->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
 			$db->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
 			$db->query('CREATE TABLE login_services (name VARCHAR(255), url TEXT, client_id VARCHAR(255), client_secret VARCHAR(255), user_info_field VARCHAR(255), PRIMARY KEY (name));');
@@ -136,7 +135,7 @@
 
 	function get_userlist($ids = null,$include_passwords = false){
 		$db = get_or_create_db();
-		$columns = array('id', 'login');
+		$columns = array('id', 'login', 'email');
 		if ($include_passwords) $columns[]='pass';
 		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
 		$args = array();
@@ -166,12 +165,21 @@
 		assert ($query->execute(array(':pass'=>$hash,':id'=>$user->id)),'Was not able to update user '.$user->login);
 		info('Your password has been changed.');
 	}
-	function update_theme($user,$new_theme){
+	function update_user($user){
 		$db = get_or_create_db();
-		$query = $db->prepare('UPDATE users SET theme = :theme WHERE id = :id;');
-		assert ($query->execute(array(':theme'=>$new_theme,':id'=>$user->id)),'Was not able to update user '.$user->login);
-		info('Your theme has been changed.');
-		warn('Log out and in to change theme in all applications.');
+		$sql = 'UPDATE users SET ';
+		$args = [];
+		foreach ($user as $field => $value){
+			if (in_array($field,['id','pass'])) continue;
+			$args[':'.$field] = $value;
+			$sql .= $field.' = :'.$field.', ';
+		}
+		$sql=rtrim($sql,', ').' WHERE id = :id';
+		$args[':id'] = $user->id;
+		$query = $db->prepare($sql);
+		assert ($query->execute($args),'Was not able to update user '.$user->login);
+		info('User data has been updated.');
+		warn('If you changed your theme, you will have to log off an in again.');
 	}
 
 	function require_user_login(){

@@ -9,19 +9,23 @@ $user_id = param('id');
 $allowed = ($user->id == 1 || $user->id == $user_id);
 if ($allowed) {
 	$u = load_user($user_id);
-	if ($new_pass = post('new_pass')){
-		alter_password($u,$new_pass);
-		$u = load_user($user_id);
-	}
-	if ($selected_theme = post('theme')){
-		if ($selected_theme != $u->theme) update_theme($u, $selected_theme);
+	if (!empty($_POST)){
+		foreach ($_POST as $key => $value){
+			if ($key == 'new_pass') continue;		
+			$u->{$key} = $value;
+		}
+		update_user($u);
+		if ($new_pass = post('new_pass')){
+			alter_password($u,$new_pass);
+			$u = load_user($user_id);
+		}
 	}
 } else {
 	error('Currently, only admin can edit other users!');
 	redirect('../index');
 }
-
 $themes = get_themes();
+
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -31,19 +35,18 @@ include '../common_templates/messages.php';
 if ($allowed){
 ?>
 <form method="POST">
+	<?php foreach ($u as $field => $value) {
+		if (in_array($field, ['id','theme','pass'])) continue; ?>
 	<fieldset>
-	<legend><?= t('login') ?></legend><?= $u->login; ?>
+		<legend><?= t($field) ?></legend>
+		<input type="test" name="<?= $field ?>" value="<?= $value ?>" />
 	</fieldset>
 	
-	<?php foreach ($u as $key => $val) {
-	if ($key == 'id' || $key == 'pass' || $key = 'login')continue;?>
+	<?php }?>
+	
 	<fieldset>
-		<legend><?= t($key) ?></legend><?= $val; ?>
-	</fieldset>
-	<?php } // foreach ?>
-	<fieldset>
-		<legend><?= t('new password')?></legend>
-		<input type="password" name="new_pass" />
+		<legend><?= t('new password (leave empty to not change you password)')?></legend>
+		<input type="password" name="new_pass" autocomplete="new-password" />
 	</fieldset>
 	<fieldset>
 		<legend><?= t('theme'); ?></legend>
