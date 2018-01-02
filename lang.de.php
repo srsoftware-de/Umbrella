@@ -2,6 +2,7 @@
 
 $translations = array(
 		'actions'=>'Aktionen',
+		'Additional names'=>'weitere Namen',
 		'Address'=>'Adresse',
 		'addresses'=>'Adressen',
 		'BDAY'=>'Geburtstag',
@@ -17,7 +18,6 @@ $translations = array(
 		'Files'=>'Dateien',
 		'First Name'=>'Vorname',
 		'FN'=>'formatierter Name',
-		'First Name'=>'Vorame',
 		'Invoices'=>'Rechnungen',
 		'Last Name'=>'Nachname',
 		'Log out ?'=>'? ausloggen',

@@ -23,9 +23,22 @@ function create_vcard($data){
 	$vcard = array();
 	$vcard['BEGIN'] = 'VCARD';
 	$vcard['VERSION'] = '4.0';
-
 	foreach ($data as $key => $value) {
-		$value = str_replace(array("\r\n","\r","\n"), ';', $value);
+		if (is_array($value)){
+			ksort($value); // die Werte vom Formular kommen nicht unbedingt in der durch den Index angezeigten Reihenfolge. Deshalb: nach index sortieren
+			
+			// Es kann sein, dass das Formular nicht für alle Felder, welche die VCard-Spezifikation vorsieht, Werte liefert.
+			// Entsprechend werden alle nicht bedienten Felder mit leeren Werten belegt:
+			$lastkey = array_pop(array_keys($value));
+			if (is_numeric($lastkey)){
+				for ($index = 1; $index<$lastkey; $index++) {
+					if (!isset($value[$index])) $value[$index] = '';
+				}
+				ksort($value);
+			}
+			$value = implode(';', $value);
+		}
+		$value = str_replace(array("\r\n","\r","\n"), ';', $value);		
 		$vcard[$key] = $value;
 	}
 	$vcard['END'] = 'VCARD';
@@ -204,9 +217,9 @@ function read_assigned_contact(){
 	$query = $db->prepare('SELECT * FROM contacts WHERE id IN (SELECT contact_id FROM contacts_users WHERE user_id = :uid AND assigned = 1)');
 	assert($query->execute(array(':uid'=>$user->id)),'Was not able to query contact for you!');
 	$contacts = $query->fetchAll(INDEX_FETCH);
-	$contact=reset($contacts);	
-	$vcard= unserialize_vcard($contact['DATA']); 
-	return $vcard;
+	$contact=reset($contacts);
+	if ($contact) return unserialize_vcard($contact['DATA']); 
+	return null;
 }
 
 function assign_contact($id){
@@ -244,7 +257,7 @@ class Address{
 }
 
 class Name{
-	function __construct($data){
+	function __construct($data){		
 		assert(isset($data['val']),'No value set in name data');
 		$parts = explode(';',$data['val']);
 		$this->family = array_shift($parts);

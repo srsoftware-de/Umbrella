@@ -131,6 +131,7 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset>
 		<legend><?= t('Edit Contact') ?></legend>
+		<?php if (!isset($vcard['FN'])) echo createFieldset('FN', '')?>
 		<?php foreach($vcard as $key => $value){
 			echo createFieldset($key,$value);
 		}?>
