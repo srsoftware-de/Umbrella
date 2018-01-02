@@ -43,4 +43,10 @@ $translations = array(
 		'view'=>'ansehen',
 		'wait'=>'abwarten',
 		'Yes'=>'Ja',
+		'+one week'=>'+eine Woche',
+		'+one month'=>'+einen Monat',
+		'+three months'=>'+drei Monate',
+		'+six months'=>'+sechs Monate',
+		'+one year'=>'+ein Jahr',
+		
 );
