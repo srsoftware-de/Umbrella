@@ -26,6 +26,19 @@ input[type=text]{
 	display: inline;
 }
 
+#main_menu .button:hover {
+	font-size: inherit;
+	font-weight: inherit;
+	margin-top: initial;
+}
+
+#main_menu .button {
+	font-size: 12px;
+	font-weight: normal;
+	margin-top: 7px;
+	vertical-align: bottom;
+}
+
 .hidden{
 	display: none;
 }
