@@ -37,11 +37,8 @@ include '../common_templates/messages.php'; ?>
 <form method="POST" enctype="multipart/form-data">
 	<fieldset>
 		<legend><?= t('Upload new file'); ?></legend>
-		<fieldset>
-			<legend>Name</legend>		
-			<input type="file" name="file" />
-		</fieldset>
-		<input type="submit" />
+		<input type="file" name="file" />
+		<button type="submit"><?= t('Save') ?></button>
 	</fieldset>
 </form>
 

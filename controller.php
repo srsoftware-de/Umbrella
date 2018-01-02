@@ -154,9 +154,9 @@
 		
 		$db = get_or_create_db();
 		
-		$query = $db->prepare('SELECT user_id FROM file_shares WHERE file = :file');
+		$query = $db->prepare('SELECT user_id,file FROM file_shares WHERE file = :file');
 		assert($query->execute([':file'=>$filename]),'Was no able to query file list.');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$rows = $query->fetchAll(INDEX_FETCH);
 		return $rows;
 	}
 	
@@ -198,13 +198,24 @@
 		return $result;
 	}
 
-	function share_file($filename = null,$user_id = null){
+	function share_file($filename = null,$user_id_and_email = null,$send_mail = null){
+		global $user;
+		
+		$parts = explode('|', $user_id_and_email,2);
+		$user_id = $parts[0];
+		$reciever = $parts[1];
+		$sender = $user->email;
+		
 		assert(is_string($filename),'No filename given!');
 		assert(is_numeric($user_id),'No user selected!');
 		$db = get_or_create_db();
 	
 		$query = $db->prepare('INSERT INTO file_shares (file, user_id) VALUES (:file, :uid);');
 		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
+		info('File "?" has been shared.',$filename);
+
+		$url = getUrl('files','shared?path='.urldecode(dirname($filename)));
+		if ($send_mail == 'on')	send_mail($sender, $reciever, t('? shared a file with you',$user->login),t('You now have access to the file "?". Go to ? to download it.',[basename($filename),$url]));
 		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}	
 	
@@ -216,6 +227,7 @@
 		$query = $db->prepare('DELETE FROM file_shares WHERE file = :file AND user_id = :uid;');
 		debug($query);
 		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
+		info('File "?" has been unshared.',$filename);
 		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}
 	
