@@ -20,6 +20,11 @@ if ($id = param('id')){
 	error('No note id passed along with delete call!');
 }
 
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$parsedown  = Parsedown::instance();
+}
+
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -32,7 +37,7 @@ include '../common_templates/messages.php';
 <h2><?= t('This will remove the following note:')?></h2>
 <fieldset class="del_note">
 	<legend><?= $user->login ?></legend>
-	<?= $note['note']?>
+	<?= $parsedown?$parsedown->parse($note['note']):str_replace("\n", "<br/>", $note['note']) ?>
 </fieldset>
 <?= t('Are you sure?')?><br/>
 <a href="?confirm=yes<?= $target?('&redirect='.$target):''?>" class="button"><?= t('Yes')?></a>

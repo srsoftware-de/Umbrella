@@ -111,8 +111,9 @@ class Note{
 	
 	function url(){
 		$parts = explode(':', $this->uri,2);
-		$module = array_shift($parts);
+		$module = array_shift($parts);		
 		$id = array_shift($parts);
-		return '/'.$module.'/'.$id.'/view';
+		if ($module == 'files') return getUrl($module,'?path='.$id);
+		return getUrl($module,$id.'/view');
 	}
 }

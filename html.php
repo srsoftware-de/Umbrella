@@ -7,8 +7,12 @@ require_login('notes');
 $uri = param('uri');
 assert($uri !== null,'Called notes/json without uri');
 $notes = Note::load(['uri'=>$uri]);
-
 $users = request('user','list');
+
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$parsedown  = Parsedown::instance();
+}
 
 foreach ($notes as $nid => $note){ ?>
 	<fieldset>
@@ -18,13 +22,13 @@ foreach ($notes as $nid => $note){ ?>
 			<a class="symbol" href="<?= getUrl('notes',$nid.'/delete') ?>"></a>
 		</span>
 		<?php }?>
-		<?= $note['note'] ?>
+		<?= $parsedown?$parsedown->parse($note['note']):str_replace("\n", "<br/>", $note['note']) ?>
 	</fieldset>
 	<?php } ?>
 	<form action="<?= getUrl('notes','add') ?>" method="POST">
 		<input type="hidden" name="uri" value="<?= $uri ?>" />
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
-		<fieldset>
+		<fieldset class="add invoice">
 			<legend><?= t('add note') ?></legend>
 			<textarea name="note"></textarea>
 			<button type="submit"><?= t('add note') ?></button>		
