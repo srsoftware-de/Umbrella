@@ -84,7 +84,7 @@
 	}
 	
 	function load_tag($tag = null){
-		global $user;
+		global $services,$user;
 		assert($tag !== null,'Called load tag, but no tag given!');
 		$db = get_or_create_db();
 		
@@ -103,14 +103,18 @@
 			$urls = $query->fetchAll(INDEX_FETCH);
 			
 			$query = $db->prepare("SELECT tag FROM tags WHERE url_hash = :hash");
-			foreach ($url_hashes as $hash){
+			foreach ($urls as $hash => &$url){
 				$query->execute([':hash'=>$hash]);
 				$tags = $query->fetchAll(INDEX_FETCH);
 				foreach ($tags as $related => $dummy) {
-					if ($related != $tag) $urls[$hash]['related'][] = $related;
+					if ($related != $tag) $url['related'][] = $related;
 				}
+				$url['external']=true;
+				foreach ($services as $name => $service){
+					if (strpos($url['url'],$service['path']) === 0) $url['external'] = false;
+				}	
 			}
-			
+
 			$query = $db->prepare("SELECT url_hash, comment_hash FROM url_comments WHERE user_id = ? AND url_hash IN ($qMarks)");
 			array_unshift($url_hashes, $user->id);
 			assert($query->execute($url_hashes),'Was not able to load urls for tag!');

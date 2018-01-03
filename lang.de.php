@@ -2,6 +2,7 @@
 $translations = array(
 		'add link'=>'Link hinzufügen',
 		'Add new URL' => 'Neue URL hinzufügen',
+		'all tags'=>'Alle Schlagworte',
 		'Are you sure you want to delete "?" (?) ?'=>'Sicher, dass du "?" (?) entfernen willst?',
 		'Bookmarks' =>'Lesezeichen',
 		'Company'=>'Firma',

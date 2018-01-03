@@ -28,7 +28,7 @@ include '../common_templates/messages.php'; ?>
 			<a class="symbol" href="../<?= $hash ?>/delete"></a>
 			<?= isset($link['comment']) ? $link['comment']:$link['url']?>
 		</legend>
-		<a target="_blank" href="<?= $link['url'] ?>" ><?= $link['url'] ?></a>
+		<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= $link['url'] ?></a>
 		<?php if (isset($link['related'])) { ?>
 		<div class="tags">		
 			<?php foreach ($link['related'] as $related){ ?>
