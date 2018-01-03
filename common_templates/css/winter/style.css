@@ -258,6 +258,15 @@ td > h1{
 .bookmark .tags{
 	display: inline-block;
 }
+
+fieldset.bookmark > fieldset{
+	max-height: 10px;
+	overflow: hidden;
+}
+
+fieldset.bookmark > fieldset:hover{
+	max-height: unset;
+}
 .bookmark>fieldset>a{
 	word-wrap: break-word;
 	display: block;	
