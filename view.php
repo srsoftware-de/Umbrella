@@ -55,6 +55,12 @@ function display_children($task){
 	<?php
 }
 
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$task['description'] = Parsedown::instance()->parse($task['description']);
+} else {
+	$task['description'] = str_replace("\n", "<br/>", $task['description']);
+}
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
