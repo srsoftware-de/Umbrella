@@ -17,9 +17,9 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Create new Project</legend>
+	<fieldset><legend><?= t('Create new Project')?></legend>
 		<fieldset>
-			<legend>Company</legend>
+			<legend><?= t('Company')?></legend>
 			<select name="company">
 			<?php foreach($companies as $company) { ?>
 				<option value="<?= $company['id'] ?>"><?= $company['name'] ?></a>
@@ -27,11 +27,11 @@ include '../common_templates/messages.php'; ?>
 			</select>
 		</fieldset>
 		<fieldset>
-			<legend>Name</legend>
+			<legend><?= t('Name')?></legend>
 			<input type="text" name="name" />
 		</fieldset>
 		<fieldset>
-			<legend>Description</legend>
+			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"></textarea>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){?>

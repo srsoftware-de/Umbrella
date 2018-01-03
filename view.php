@@ -28,7 +28,7 @@ if (!empty($project_users_permissions)){
 	$project_users = request('user', 'list',['ids'=>$user_ids]);
 }
 //debug($project_users);
-$tasks = request('task','list',['order'=>'name','project'=>$project_id]);
+$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
 //debug($tasks,true);
 $title = $project['name'].' - Umbrella';
 $show_closed_tasks = param('closed') == 'show';
