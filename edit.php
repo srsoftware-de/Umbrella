@@ -22,15 +22,6 @@ if ($name = post('name')){
 	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'),$start_date,$due_date);
 	update_task_requirements($task_id,post('required_tasks'));
 	
-	if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
-		$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
-		$tags = [];
-		foreach ($raw_tags as $tag){
-			if (trim($tag) != '') $tags[]=$tag;
-		}
-		request('bookmark','add',['url'=>getUrl('task').$task_id.'/view','comment'=>$name,'tags'=>$tags]);
-	}
-	
 	if ($target = param('redirect')){
 		redirect($target);
 	} else {
@@ -131,5 +122,6 @@ include '../common_templates/messages.php'; ?>
 		<input type="submit" />
 	</fieldset>
 </form>
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSSION);
 
-<?php include '../common_templates/closure.php'; ?>
+include '../common_templates/closure.php'; ?>

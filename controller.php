@@ -170,6 +170,17 @@
 		if ($single) return reset($results);
 		return $results;
 	}
+	
+	function setTags($name,$task_id){
+		if ($raw_tags = param('tags')){
+			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+			$tags = [];
+			foreach ($raw_tags as $tag){
+				if (trim($tag) != '') $tags[]=$tag;
+			}
+			request('bookmark','add',['url'=>getUrl('task').$task_id.'/view','comment'=>t('Task: ?',$name),'tags'=>$tags],1);
+		}
+	}
 
 	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null){
 		global $user,$services;
@@ -195,17 +206,12 @@
 		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>$status, 'start'=>$start_date, ':due'=>$due_date)),'Was not able to create new task entry in database');
 		$task_id = $db->lastInsertId();
 		add_user_to_task($task_id,$user->id,TASK_PERMISSION_OWNER);
-		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
-			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
-			$tags = [];
-			foreach ($raw_tags as $tag){
-				if (trim($tag) != '') $tags[]=$tag;
-			}
-			request('bookmark','add',['url'=>getUrl('task').$task_id.'/view','comment'=>$name,'tags'=>$tags],1);
-		}
+		
+		if (isset($services['bookmark'])) setTags($name,$task_id);
 	}
 	
 	function update_task($id,$name,$description = null,$project_id = null,$parent_task_id = null,$start_date = null, $due_date = null){
+		global $services;
 		$db = get_or_create_db();
 		assert(is_numeric($id),'invalid task id passed!');
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
@@ -222,9 +228,12 @@
 				$start_date = $due_date;
 				info('Start date adjusted to match due date!');
 			}
-		}
+		}		
+		
 		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, start_date = :start, due_date = :due WHERE id = :id;');
 		assert($query->execute(array(':id' => $id, ':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':start'=>$start_date,':due'=>$due_date)),'Was not able to alter task entry in database');
+		
+		if (isset($services['bookmark'])) setTags($name,$id);
 	}
 	
 	function set_task_state($task_id, $state){

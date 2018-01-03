@@ -36,6 +36,7 @@ $translations = array(
 		'start'=>'anfangen',
 		'Start date'=>'Start&shy;datum',
 		'started'=>'angefangen',
+		'Task: ?'=>'Aufgabe: ?',
 		'Task'=>'Aufgabe',
 		'Tasks'=>'Aufgaben',
 		'This will remove the task "?". Are you sure?'=>'Sicher, dass die Aufgabe "?" gelöscht werden soll?',
