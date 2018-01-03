@@ -7,7 +7,6 @@ require_login('bookmark');
 
 if ($share_user = param('share_user_id')) share_bookmark($share_user,param('share_url_hash'));
 
-$base_url = getUrl('bookmark');
 $tag = param('id');
 if (!$tag) error('No tag passed to view!');
 
@@ -21,17 +20,18 @@ include '../common_templates/messages.php'; ?>
 
 <fieldset class="bookmark">
 	<legend><?= t('Tag "?"',$tag->tag) ?></legend>
+	
 	<?php foreach ($tag->links as $hash => $link ) {?>
 	<fieldset>
 		<legend>
 			<a class="symbol" href="../<?= $hash ?>/edit"></a>
 			<a class="symbol" href="../<?= $hash ?>/delete"></a>
-			<?= isset($link['comment']) ? $link['comment']:$link['url']?>
+			<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= isset($link['comment']) ? $link['comment']:$link['url']?></a>
 		</legend>
 		<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= $link['url'] ?></a>
-		<?php if (isset($link['related'])) { ?>
+		<?php if (isset($link['tags'])) { ?>
 		<div class="tags">		
-			<?php foreach ($link['related'] as $related){ ?>
+			<?php foreach ($link['tags'] as $related){ ?>
 			<a class="button" href="../<?= $related ?>/view"><?= $related ?></a>
 			<?php } ?>
 		</div>

@@ -20,7 +20,6 @@ $translations = array(
 		'Import tags from file'=>'Tags aus Datei importieren',
 		'Invoices'=>'Rechnungen',
 		'latest bookmarks'=>'neuste Lesezeichen',
-		'Latest Urls'=>'Neuste Adressen',
 		'Log out ?'=>'? ausloggen',
 		'New Url'=>'Neue Url:',
 		'No'=>'Nein',

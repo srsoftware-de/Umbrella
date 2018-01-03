@@ -107,7 +107,7 @@
 				$query->execute([':hash'=>$hash]);
 				$tags = $query->fetchAll(INDEX_FETCH);
 				foreach ($tags as $related => $dummy) {
-					if ($related != $tag) $url['related'][] = $related;
+					if ($related != $tag) $url['tags'][] = $related;
 				}
 				$url['external']=true;
 				foreach ($services as $name => $service){
