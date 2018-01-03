@@ -68,7 +68,7 @@ include '../common_templates/messages.php'; ?>
 		
 		<?php }?>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="https://www.markdownguide.org/cheat-sheet">click here for Markdown and extended Markdown cheat sheet</a>')?></legend>
+			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
 			<textarea name="description"><?= $task['description']?></textarea>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>

@@ -21,8 +21,9 @@ include '../common_templates/messages.php'; ?>
 		<fieldset><legend><?= t('Name')?></legend>
 			<input type="text" name="name" autofocus="true"/>
 		</fieldset>
-		<fieldset><legend><?= t('Description')?></legend>
-		<textarea name="description"></textarea>
+		<fieldset>
+			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<textarea name="description"></textarea>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Start date')?></legend>
