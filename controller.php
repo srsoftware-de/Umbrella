@@ -80,16 +80,17 @@
 		$where = [];
 		$args = [];
 		
-		if (!$ids_only) $sql .= ',*';
-		$sql .= ' FROM tasks';
 		if (!$ids_only) { // if we request more than the task_ids: limit task list to user's tasks
+			$sql .= ',*';
 			$where[] = 'id IN (SELECT task_id FROM tasks_users WHERE user_id = ?)';
 			$args[] = $user->id;
 		}
 		
+		$sql .= ' FROM tasks';
+		
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
-			if (!is_array($ids)) $ids = [$ids];
+			if (!is_array($ids) && $ids = [$ids]) $single = true;
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
@@ -104,46 +105,10 @@
 		}
 		
 		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
-	
-		$db = get_or_create_db();
-		//debug(query_insert($sql, $args),1);
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load tasks!');
-		$rows = $query->fetchAll(INDEX_FETCH);
-		if (isset($options['single']) && $options['single']) return reset($rows);
-		return $rows;
-	}
-
-	function get_tasks($selection = []){
-		global $user,$TASK_STATES;
-		assert(is_array($selection),'Options passed to get_tasks is not an array!');
-		$db = get_or_create_db();
-		update_task_states($db);
 		
-		$task_ids = null;
-		$single = false;
-		if (isset($selection['task_id']) && $single=true) $task_ids=[$selection['task_id']];
-		if (isset($selection['id'])      && $single=true) $task_ids=[$selection['id']];
-		if (isset($selection['task_ids'])) $task_ids=$selection['task_ids'];
-		if (isset($selection['ids']))      $task_ids=$selection['ids'];
-
-		$args = get_task_ids_of_user($task_ids);
-	
-		if (empty($args)) {
-			$res =['name'=>'You are not allowed to access that task!'];
-			if (!$single) $res = [0=>$res];
-			return $res;
-		}
-
-		$qmarks = implode(',', array_fill(0, count($args), '?'));
-		$sql = 'SELECT id,* FROM tasks WHERE id IN ('.$qmarks.')';
-		if (isset($selection['project_id'])){
-			$sql .= ' AND project_id = ?';
-			$args[] = $selection['project_id'];
-		}
-		if (!isset($selection['order'])) $selection['order'] = 'due_date';
+		if (!isset($options['order'])) $options['order'] = 'due_date';
 		$MAX_DATE = "'9999-99-99'";
-		switch ($selection['order']){
+		switch ($options['order']){
 			case 'due_date':
 				$sql .= ' ORDER BY (CASE due_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(due_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
 				break;
@@ -155,7 +120,7 @@
 				break;
 			case 'parent_task_id':
 				$sql .= ' ORDER BY project_id, parent_task_id, status, due_date COLLATE NOCASE';
-				break;				
+				break;
 			case 'start_date':
 				$sql .= ' ORDER BY (CASE start_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(start_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
 				break;
@@ -163,14 +128,15 @@
 				$sql .= ' ORDER BY status, due_date COLLATE NOCASE';
 				break;
 		}
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to request task list!');
-		$results = $query->fetchAll(INDEX_FETCH);
-		foreach ($results as &$task) $task['status_string'] = $TASK_STATES[$task['status']];
-		if ($single) return reset($results);
-		return $results;
-	}
 	
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load tasks!');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		if ($single) return reset($rows);
+		return $rows;
+	}
+
 	function setTags($name,$task_id){
 		if ($raw_tags = param('tags')){
 			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
@@ -182,7 +148,7 @@
 		}
 	}
 
-	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null){
+	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null, $user_ids = []){
 		global $user,$services;
 		$db = get_or_create_db();
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
@@ -206,7 +172,10 @@
 		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>$status, 'start'=>$start_date, ':due'=>$due_date)),'Was not able to create new task entry in database');
 		$task_id = $db->lastInsertId();
 		add_user_to_task($task_id,$user->id,TASK_PERMISSION_OWNER);
-		
+		foreach ($user_ids as $id) {
+			if ($id == $user->id) continue;
+			add_user_to_task($task_id,$id,TASK_PERMISSION_PARTICIPANT);
+		}
 		if (isset($services['bookmark'])) setTags($name,$task_id);
 	}
 	
@@ -268,20 +237,18 @@
 		if (!empty($child_tasks)) $task['children'] = $child_tasks;
 	}
 
-	function delete_task($id = null){
-		$task = get_tasks(['id'=>$id]);
+	function delete_task($task = null){
+		assert($task !== null,'No task passed to delete_task!');
 		$db = get_or_create_db();
 		$args = array(':id'=>$id,':ptid'=>$task['parent_task_id']);
 		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');
-	        assert($query->execute($args));
-		
+		assert($query->execute($args));		
 		$query = $db->prepare('DELETE FROM tasks WHERE id = :id');
 		assert($query->execute(array(':id'=>$id)));
 		$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :id');
 		assert($query->execute(array(':id'=>$id)));
 		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :id');
-		assert($query->execute(array(':id'=>$id)));
-		
+		assert($query->execute(array(':id'=>$id)));		
 	}
 	
 	function load_users(&$task,$project_users){

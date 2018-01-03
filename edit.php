@@ -6,7 +6,7 @@ require_login('task');
 
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
-$task = get_tasks(['id'=>$task_id]);
+$task = load_tasks(['ids'=>$task_id]);
 load_requirements($task);
 $project_id = $task['project_id'];
 
@@ -31,10 +31,10 @@ if ($name = post('name')){
 
 $task['project'] = request('project','json',['ids'=>$project_id,'single'=>ture]);
 
-if ($task['parent_task_id']) $task['parent'] = get_tasks(['id'=>$task['parent_task_id']]);
+if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
 
 // load other tasks of the project for the dropdown menu
-$project_tasks = get_tasks(['order'=>'name','project_id'=>$project_id]);
+$project_tasks = load_tasks(['order'=>'name','project_ids'=>$project_id]);
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('task',$task_id.'/view'));

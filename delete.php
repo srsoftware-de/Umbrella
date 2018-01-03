@@ -6,16 +6,20 @@ require_login('task');
 
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
-$task = get_tasks(['id'=>$task_id]);
-$target = param('redirect');
-if (param('confirm')=='yes'){
-	delete_task($task_id);
-	if ($target){
-		redirect($target);
-	} elseif ($task['parent_task_id']){
-		redirect('../'.$task['parent_task_id'].'/view');
+$task = load_tasks(['ids'=>$task_id]);
+if ($task){
+	$target = param('redirect');
+	if (param('confirm')=='yes'){
+		delete_task($task);
+		if ($target){
+			redirect($target);
+		} elseif ($task['parent_task_id']){
+			redirect('../'.$task['parent_task_id'].'/view');
+		}
+		redirect('../../project/'.$task['project_id'].'/view');
 	}
-	redirect('../../project/'.$task['project_id'].'/view');
+} else {
+	error('Task does not exist or you are not allowed to access it.');	
 }
 
 include '../common_templates/head.php'; 

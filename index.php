@@ -4,9 +4,8 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('task');
-$selection = [];
-if ($order = param('order')) $selection['order'] = $order;
-$tasks = get_tasks($selection);
+
+$tasks = load_tasks(['order'=>param('oder','due_date')]);
 $projects = request('project','list');
 $show_closed = param('closed') == 'show';
 

@@ -8,23 +8,35 @@ $task_id = param('id');
 
 if (!$task_id) error('No task id passed to view!');
 
-$task = get_tasks(['id'=>$task_id]);
-if ($task['parent_task_id']) $task['parent'] = get_tasks(['id'=>$task['parent_task_id']]);
-load_children($task,99); // up to 99 levels deep
-load_requirements($task);
+if ($task = load_tasks(['ids'=>$task_id])){
+	if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
+	load_children($task,99); // up to 99 levels deep
+	load_requirements($task);
 
-$project_users_permissions = request('project','user_list',['id'=>$task['project_id']]); // needed to load project users
-$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_permissions))]); // needed to load task users
-load_users($task,$project_users);
-//debug($task);
-$title = $task['name'].' - Umbrella';
-$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
-$show_closed_children = param('closed') == 'show';
+	$project_users_permissions = request('project','user_list',['id'=>$task['project_id']]); // needed to load project users
+	$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_permissions))]); // needed to load task users
+	load_users($task,$project_users);
 
-if (isset($services['bookmark'])){
-	$hash = sha1(location('*'));
-	$bookmark = request('bookmark','json_get?id='.$hash);
+	$title = $task['name'].' - Umbrella';
+	$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
+	$show_closed_children = param('closed') == 'show';
+	
+	if (file_exists('../lib/parsedown/Parsedown.php')){
+		include '../lib/parsedown/Parsedown.php';
+		$task['description'] = Parsedown::instance()->parse($task['description']);
+	} else {
+		$task['description'] = str_replace("\n", "<br/>", $task['description']);
+	}
+
+	if (isset($services['bookmark'])){
+		$hash = sha1(location('*'));
+		$bookmark = request('bookmark','json_get?id='.$hash);
+	}	
+} else {
+	$title = 'Umbrella Task Management';
+	error('Task does not exist or you are not allowed to access it.');
 }
+
 
 function display_children($task){
 	global $show_closed_children,$task_id,$services;
@@ -36,13 +48,13 @@ function display_children($task){
 		<li class="<?= $child_task['status_string'] ?>">
 			<a title="<?= t('view')?>"		href="../<?= $id ?>/view"><?= $child_task['name']?></a>
 			<span class="hover_h">
-			<a title="<?= t('edit')?>"     href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
-			<a title="<?= t('complete')?>" href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $child_task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('cancel')?>"   href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('add subtask')?>" href="../<?= $id ?>/add_subtask" class="symbol"></a>
-			<a title="<?= t('start')?>"    href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('open')?>"     href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('wait')?>"     href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $child_task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('edit')?>"			href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
+			<a title="<?= t('complete')?>"		href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $child_task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('cancel')?>"		href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('add subtask')?>"	href="../<?= $id ?>/add_subtask" class="symbol"></a>
+			<a title="<?= t('start')?>"			href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('open')?>"			href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('wait')?>"			href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $child_task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 
 			<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
@@ -70,7 +82,7 @@ include '../common_templates/messages.php'; ?>
 				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"></a>
 				<a title="<?= t('add user')?>" href="add_user" class="symbol"></a>
 				<a title="<?= t('start')?>"    href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
-				<a title="<?= t('complete')?>" href="complete?redirect=../<?= $task['parent_task_id'] ?>/view" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+				<a title="<?= t('complete')?>" href="complete?redirect=view" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('cancel')?>"   href="cancel"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('open')?>"     href="open"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('wait')?>"     href="wait"     class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
@@ -168,5 +180,6 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 </table>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSSION);	
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSSION);
+} // if task	
 include '../common_templates/closure.php'; ?>
