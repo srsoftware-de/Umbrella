@@ -272,6 +272,13 @@ fieldset.bookmark > fieldset:hover{
 	display: block;	
 	min-width: auto;
 }
+
+.copytext{
+	position:fixed;
+	width: 100px;
+	left: -105px;
+}
+
 @media (max-width:1199px) {
 	.tasklist tr>*:nth-child(2){
 		display: none;
