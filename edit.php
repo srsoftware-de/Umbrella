@@ -47,7 +47,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="name" value="<?= $project['name']; ?>"/>
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description')?></legend>
+			<legend><?= t('Description - <a target="_blank" href="https://www.markdownguide.org/cheat-sheet">click here for Markdown and extended Markdown cheat sheet</a>')?></legend>
 			<textarea name="description"><?= $project['description']?></textarea>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>

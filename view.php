@@ -35,11 +35,6 @@ $show_closed_tasks = param('closed') == 'show';
 
 $companies = request('company','json_list');
 
-if (isset($services['bookmark'])){
-	$hash = sha1(location('*'));
-	$bookmark = request('bookmark','json_get',['id'=>$hash]);	
-}
-
 function display_tasks($task_list,$parent_task_id){
 	global $show_closed_tasks,$project_id;
 	$first = true;
@@ -69,6 +64,13 @@ function display_tasks($task_list,$parent_task_id){
 	if (!$first){
 		?></ul><?php
 	}
+}
+
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$project['description'] = Parsedown::instance()->parse($project['description']);
+} else {
+	$project['description'] = str_replace("\n", "<br/>", $project['description']);
 }
 
 include '../common_templates/head.php';
@@ -126,18 +128,9 @@ include '../common_templates/messages.php';
 			</ul>
 		</td>
 	</tr>
-	<?php } ?>
-	<?php if ($bookmark) { ?>
-	<tr>
-		<th><?= t('Tags')?></th>
-		<td>
-		<?php $base_url = getUrl('bookmark');
-		foreach ($bookmark['tags'] as $tag){ ?>
-			<a class="button" href="<?= $base_url.'/'.$tag.'/view' ?>"><?= $tag ?></a>
-		<?php } ?>
-		</td>
-	</tr>
-	<?php } ?>
+	<?php } ?>		
 </table>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'project:'.$project_id],false,NO_CONVERSSION);
+<?php 
+if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSSION); 
+if (isset($services['notes'])) echo request('notes','html',['uri'=>'project:'.$project_id],false,NO_CONVERSSION);
 include '../common_templates/closure.php'; ?>
