@@ -24,8 +24,7 @@ if ($task){
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
-include 'menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php'; 
 
 <h2><?= t('This will remove the task "?". Are you sure?',$task['name'])?></h2>
 <a href="?confirm=yes<?= $target?('&redirect='.$target):''?>" class="button"><?= t('Yes')?></a>

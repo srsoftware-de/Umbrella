@@ -11,4 +11,4 @@ if ($redirect=param('redirect')){
 	redirect($redirect);
 } else {
 	redirect('view');
-};
+}
