@@ -50,11 +50,17 @@
 		$query = $db->prepare('SELECT url_hash,comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
 		assert($query->execute($hashes),'Was not able to request comments for url list!');
 		$comments = $query->fetchAll(INDEX_FETCH);
-		foreach ($comments as $url_hash => $comment) $urls[$url_hash]['comment'] = $comment['comment'];
+		foreach ($urls as $hash => &$url){
+			$url['external']=true;
+			if (isset($comments[$hash])) $url['comment'] = $comments[$hash]['comment'];
+			foreach ($services as $name => $service){
+				if (strpos($url['url'],$service['path']) === 0) $url['external'] = false;
+			}
+		}
 		return $urls;
 	}
 	
-	function save_tag($url = null,$tags = null,$comment = null, $redirect = true){
+	function save_tag($url = null,$tags = null,$comment = null){
 		global $user;
 		assert($url !== null && $url != '','No value set for url!');
 		assert($tags !== null,'No tags set');
@@ -78,9 +84,8 @@
 		$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid);');
 		foreach ($tags as $tag) {
 			if ($tag != '')	assert($query->execute([':tag'=>strtolower($tag),':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
-	}
-	
-		if ($redirect)redirect(getUrl('bookmark','index/5')); // show last five bookmarks
+		}
+		return $tag;
 	}
 	
 	function load_tag($tag = null){
@@ -168,7 +173,9 @@
 	
 	function update_url($link){
 		delete_link($link);
-		save_tag($_POST['url'],$_POST['tags'],$_POST['comment']);		
+		$tag = save_tag(param('url'),param('tags'),param('comment'));
+		info('Bookmark has been updated.');
+		return $tag;		
 	}
 
 	function load_connected_users(){

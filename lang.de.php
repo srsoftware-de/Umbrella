@@ -4,6 +4,7 @@ $translations = array(
 		'Add new URL' => 'Neue URL hinzufügen',
 		'all tags'=>'Alle Schlagworte',
 		'Are you sure you want to delete "?" (?) ?'=>'Sicher, dass du "?" (?) entfernen willst?',
+		'Bookmark has been updated.'=>'Lesezeichen wurde aktualisiert',
 		'Bookmarks' =>'Lesezeichen',
 		'Company'=>'Firma',
 		'Confirmation required'=>'Bestätigung erforderlich',
@@ -33,5 +34,6 @@ $translations = array(
 		'This may take a very long time!'=>'Das kann sehr lange dauern!',
 		'Timetrack'=>'Zeiterfassung',
 		'Users'=>'Benutzer',
-		'Yes'=>'Ja',		
+		'Yes'=>'Ja',
+		'Your bookmark has been shared.'=>'Dein Lesezeichen wurde geteilt',
 );

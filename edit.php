@@ -4,16 +4,22 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('bookmark');
-$url_hash = param('id');
-if (!$url_hash) error('No url hash passed to view!');
-
-$link = load_url($url_hash);
-if (isset($_POST['url'])) update_url($link);
+if ($url_hash = param('id')){
+	$link = load_url($url_hash);
+	if (param('url')) {
+		$tag = update_url($link);
+		if ($redirect = param('returnTo')){
+			redirect($redirect);
+		} else redirect(getUrl('bookmark',$tag.'/view'));
+	}
+} else error('No url hash passed to view!');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php'; 
+
+if ($url_hash){ ?>
 
 <form method="POST">
 <fieldset>
@@ -33,4 +39,6 @@ include '../common_templates/messages.php'; ?>
 	<input type="submit" />
 </fieldset>
 </form>
-<?php include '../common_templates/closure.php'; ?>
+<?php }
+
+include '../common_templates/closure.php'; ?>

@@ -24,8 +24,8 @@ include '../common_templates/messages.php'; ?>
 	<?php foreach ($tag->links as $hash => $link ) {?>
 	<fieldset>
 		<legend>
-			<a class="symbol" href="../<?= $hash ?>/edit"></a>
-			<a class="symbol" href="../<?= $hash ?>/delete"></a>
+			<a class="symbol" href="../<?= $hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
+			<a class="symbol" href="../<?= $hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>			
 			<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= isset($link['comment']) ? $link['comment']:$link['url']?></a>
 		</legend>
 		<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= $link['url'] ?></a>

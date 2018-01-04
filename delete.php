@@ -10,7 +10,9 @@ if (!$url_hash) error('No url hash passed to view!');
 $link = load_url($url_hash);
 if (isset($_POST['confirm']) && $_POST['confirm']==true) {
 	delete_link($link);
-	redirect('..');
+	if ($redirect = param('returnTo')){
+		redirect($redirect);
+	} else redirect('..');
 }
 
 if (!$link['comment']) $link['comment'] = t('[uncommented link]');

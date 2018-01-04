@@ -30,7 +30,7 @@ if ($url){
 			if (!$anchor->hasAttribute('href')) continue;
 			$href = $anchor->getAttribute('href');
 			print '<li>'.$href."</li>\n";
-			save_tag($href,$tag,$title,false);
+			save_tag($href,$tag,$title);
 			break;
 		}
 		
@@ -93,7 +93,7 @@ if (isset($_FILES['tag_file'])){
 		if ($tags === null) continue;
 		if ($url === null) continue;
 		$tags = str_replace(',', ' ', $tags);
-		save_tag($url,$tags,$title,false);
+		save_tag($url,$tags,$title);
 	}
 }
 

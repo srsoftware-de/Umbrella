@@ -9,6 +9,7 @@ $url = param('url');
 $tags = param('tags');
 if ($url && $tags) {
 	save_tag($url,param('tags'),param('comment'));
+	redirect(getUrl('bookmark')); // show last bookmarks
 } else if ($url){
 	error(t('Please set at least one tag!'));
 } else if ($tags) {
