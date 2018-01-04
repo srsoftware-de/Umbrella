@@ -4,36 +4,34 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('project');
-$project_id = param('id');
-if (!$project_id) error('No project id passed to view!');
+if ($project_id = param('id')){
+	$project = load_projects(['ids'=>$project_id,'single'=>true]);	
+	if ($project){
+		$user_ids = load_users($project);
+		$current_user_is_owner = $project['users'][$user->id]['permissions'] == PROJECT_PERMISSION_OWNER;
+		
+		if ($remove_user_id = param('remove_user')){
+			if ($current_user_is_owner){
+				remove_user($project_id,$remove_user_id);
+				unset($project['users'][$remove_user_id]);
+			} else error('You are not allowed to remove users from this project');
+		}
+		
+		$users = request('user','list',['ids'=>implode(',',$user_ids)]);
+		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
+		$companies = request('company','json');
+		$title = $project['name'].' - Umbrella';
+		$show_closed_tasks = param('closed') == 'show';
+		
+		if (file_exists('../lib/parsedown/Parsedown.php')){
+			include '../lib/parsedown/Parsedown.php';
+			$project['description'] = Parsedown::instance()->parse($project['description']);
+		} else {
+			$project['description'] = str_replace("\n", "<br/>", $project['description']);
+		}
+	} else error('You are not member of this project!');
+} else error('No project id passed to view!');
 
-$project_users_permissions = load_users($project_id);
-
-assert(array_key_exists($user->id, $project_users_permissions),'You are not member of this project!');
-$project = load_projects(['ids'=>$project_id,'single'=>true]);
-
-$current_user_is_owner = ($project_users_permissions[$user->id]['permissions'] == PROJECT_PERMISSION_OWNER);
-
-$project_users = null;
-
-if ($remove_user_id = param('remove_user')){
-	if ($current_user_is_owner){
-		remove_user($project_id,$remove_user_id);
-		unset($project_users_permissions[$remove_user_id]);
-	} else error('You are not allowed to remove users from this project');
-}
-
-if (!empty($project_users_permissions)){
-	$user_ids = implode(',',array_keys($project_users_permissions));
-	$project_users = request('user', 'list',['ids'=>$user_ids]);
-}
-//debug($project_users);
-$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
-//debug($tasks,true);
-$title = $project['name'].' - Umbrella';
-$show_closed_tasks = param('closed') == 'show';
-
-$companies = request('company','json_list');
 
 function display_tasks($task_list,$parent_task_id){
 	global $show_closed_tasks,$project_id;
@@ -66,17 +64,13 @@ function display_tasks($task_list,$parent_task_id){
 	}
 }
 
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$project['description'] = Parsedown::instance()->parse($project['description']);
-} else {
-	$project['description'] = str_replace("\n", "<br/>", $project['description']);
-}
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
+
+if ($project){
 ?>
 <table class="vertical project-view">
 	<tr>
@@ -114,15 +108,15 @@ include '../common_templates/messages.php';
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if ($project_users){ ?>
+	<?php if ($project['users']){ ?>
 	<tr>
 		<th><?= t('Users')?></th>
 		<td>
 			<ul>
-			<?php foreach ($project_users as $uid => $u) { ?>
+			<?php foreach ($project['users'] as $uid => $perms) { ?>
 				<li>
-					<?= $u['login'].' ('.t($PROJECT_PERMISSIONS[$project_users_permissions[$uid]['permissions']]).')'; ?>
-					<?php if ($current_user_is_owner && $uid != $user->id) { ?><a class="symbol" title="<?= t('remove ? from project',$u['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
+					<?= $users[$uid]['login'].' ('.t($PROJECT_PERMISSIONS[$perms['permissions']]).')'; ?>
+					<?php if ($current_user_is_owner && $uid != $user->id) { ?><a class="symbol" title="<?= t('remove ? from project',$users[$uid]['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
 				</li>
 			<?php } ?>
 			</ul>
@@ -133,4 +127,5 @@ include '../common_templates/messages.php';
 <?php 
 if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSSION); 
 if (isset($services['notes'])) echo request('notes','html',['uri'=>'project:'.$project_id],false,NO_CONVERSSION);
+}
 include '../common_templates/closure.php'; ?>

@@ -96,16 +96,28 @@
 		return $projects;
 	}
 
-	function load_users($project_ids = null){
-		assert($project_ids !== null,'No project id passed to load_project!');
-		if (!is_array($project_ids)) $project_ids = [$project_ids];
+	function load_users(&$projects){
+		assert(is_array($projects),'No projects passed to load_project!');
 		$db = get_or_create_db();
-		$qmarks = implode(',', array_fill(0, count($project_ids), '?'));
+				
+		$user_ids = [];
+		$query = $db->prepare('SELECT user_id, permissions FROM projects_users WHERE project_id = :pid');
+
 		
-		$query = $db->prepare('SELECT user_id, permissions FROM projects_users WHERE project_id in ('.$qmarks.')');
-		assert($query->execute($project_ids));
-		$results = $query->fetchAll(INDEX_FETCH);
-		return $results;
+		if (isset($projects['id'])){
+			assert($query->execute([':pid'=>$projects['id']]));
+			$users = $query->fetchAll(INDEX_FETCH);
+			$projects['users'] = $users;
+			foreach ($users as $id => $permissions) $user_ids[$id] = true;
+		} else {
+			foreach ($projects as &$project){
+				assert($query->execute([':pid'=>$project['id']]));
+				$users = $query->fetchAll(INDEX_FETCH);
+				$project['users'] = $users;
+				foreach ($users as $id => $permissions) $user_ids[$id] = true;
+			}
+		}
+		return array_keys($user_ids);
 	}
 
 	function add_user_to_project($project_id = null,$user_id = null,$permission = null){

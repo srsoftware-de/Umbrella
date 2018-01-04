@@ -5,9 +5,11 @@ include 'controller.php';
 
 require_login('project');
 $projects = load_projects(['order'=>param('order')]);
-
+$all_user_ids = load_users($projects);
+$users = request('user','list',['ids'=>$all_user_ids]);
 $show_closed = param('closed') == 'show' || param('order') == 'status';
 $companies = request('company','json');
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -21,6 +23,7 @@ include '../common_templates/messages.php'; ?>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
 		<th><a href="?order=company"><?= t('Company') ?></a></th>
 		<th><a href="?order=status"><?= t('Status')?></a></th>
+		<th><?= t('Users')?></th>
 		<th><?= t('Actions')?></th>
 	</tr>
 <?php foreach ($projects as $id => $project){
@@ -29,7 +32,12 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<td><a href="<?= $id ?>/view"><?= $project['name'] ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= isset($companies[$project['company_id']])?$companies[$project['company_id']]['name']:'' ?></a></td>
-		<td><?= t($PROJECT_STATES[$project['status']]) ?></td>
+		<td><?= t(project_state($project['status'])) ?></td>
+		<td>
+		<?php foreach ($project['users'] as $id => $perm) {?>
+		<?= $users[$id]['login']?><br/>
+		<?php } ?>
+		</td>
 		<td>
 			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
 			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $project['status'] == PROJECT_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>

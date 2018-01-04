@@ -5,25 +5,22 @@ include 'controller.php';
 
 require_login('project');
 
-$project_id = param('id');
+if ($project_id = param('id')){
+	$project = load_projects(['ids'=>$project_id,'single'=>true]);
+	load_users($project);
+	$title = $project['name'].' - Umbrella';
 
-if (!$project_id) error('No project id passed to view!');
+	$allowed = $project['users'][$user->id]['permissions'] == PROJECT_PERMISSION_OWNER;
+	
+	if ($allowed){
+		if ($project_user = post('project_user')){
+			add_user_to_project($project_id,$project_user,post('permissions'));
+			redirect('view');
+		}
+		$user_list = request('user','list');
+	} else error('You are not allowed to edit the user list of this project!');
+} else error('No project id passed to view!');
 
-$p = load_projects(['ids'=>$project_id,'single'=>true]);
-$title = $p['name'].' - Umbrella';
-$current_users = load_users($project_id);
-$allowed = false;
-foreach ($current_users as $id => $u){
-	if ($id == $user->id && ($u['permissions'] & PROJECT_PERMISSION_OWNER)) $allowed = true;
-}
-
-if ($allowed){
-	if ($project_user = post('project_user')){
-		add_user_to_project($project_id,$project_user,post('permissions'));
-		redirect('view');
-	}
-	$user_list = request('user','list');
-} else error('You are not allowed to edit the user list of this project!');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -32,7 +29,7 @@ include '../common_templates/messages.php';
 
 if ($allowed){ ?>
 <form method="POST">
-	<fieldset><legend><?= t('Add user to ?',$p['name'])?></legend>
+	<fieldset><legend><?= t('Add user to ?',$project['name'])?></legend>
 		<fieldset>
 			<select name="project_user">
 				<option value="" selected="true"><?= t('== Select a user ==')?></option>

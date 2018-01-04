@@ -34,4 +34,6 @@ $translations = array(
 		'Tasks'=>'Aufgaben',
 		'Timetrack'=>'Zeiterfassung',
 		'Users'=>'Benutzer',
+		'User has been removed from project.'=>'Nutzer wurde vom Projekt abgezogen',
+		'You are not allowed to edit the user list of this project!'=>'Sie sind nicht berechtigt, die Nutzerliste dieses Projekts zu ändern',
 );
