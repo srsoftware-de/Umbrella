@@ -44,7 +44,7 @@ function display_tasks($task_list,$parent_task_id){
 		if ($first){
 			$first = false; ?><ul><?php
 		} ?>
-		<li class="<?= $task['status_string']?>">
+		<li class="<?= task_state($task['status'])?>">
 			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
 			<span class="hover_h">
 			<a class="symbol" title="edit" 			href="../../task/<?= $tid ?>/edit?redirect=../../project/<?= $project_id ?>/view"></a>
