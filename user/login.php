@@ -9,7 +9,8 @@ if ($email = post('email')){ // defined in bootstrap.php
 	} else error('No password given!');
 } else if ($pass = post('pass')) error('No email given');
 
-info(t('The default username/password is admin/admin.'));
+$admin = load_user(1);
+if ($admin->pass == sha1('admin') && $admin->login == 'admin') info(t('The default username/password is admin/admin.'));
 
 $login_services = get_login_services();
 
