@@ -122,14 +122,17 @@
 			}
 		}
 		
-		$qMarks = str_repeat('?,',count($times)-1).'?';
-		$query = $db->prepare('SELECT time_id,task_id FROM task_times WHERE time_id IN ('.$qMarks.')' );
-		assert($query->execute(array_keys($times)),'Was not able to load task ids associated with times!');
+		$count = count($times);
+		if ($count>0){
+			$qMarks = str_repeat('?,',$count-1).'?';
+			$query = $db->prepare('SELECT time_id,task_id FROM task_times WHERE time_id IN ('.$qMarks.')' );
+			assert($query->execute(array_keys($times)),'Was not able to load task ids associated with times!');
 		
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($rows as $row){
-			$time_id = $row['time_id'];
-			$times[$time_id]['task_ids'][] = $row['task_id'];
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			foreach ($rows as $row){
+				$time_id = $row['time_id'];
+				$times[$time_id]['task_ids'][] = $row['task_id'];
+			}
 		}
 		
 		return $times;
