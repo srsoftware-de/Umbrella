@@ -135,7 +135,7 @@
 
 	function get_userlist($ids = null,$include_passwords = false){
 		$db = get_or_create_db();
-		$columns = array('id', 'login', 'email');
+		$columns = array('id','id', 'login', 'email');
 		if ($include_passwords) $columns[]='pass';
 		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
 		$args = array();
