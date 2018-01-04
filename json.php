@@ -8,5 +8,8 @@ require_login('company');
 $options = [];
 if ($ids = param('ids')) $options['ids'] = $ids;
 if ($single = param('single')) $options['single'] = $single; 
-	
-die(json_encode(Company::load($options)));
+
+$company = Company::load($options);
+
+if ($single && param('users')==1) $company->users();
+die(json_encode($company));
