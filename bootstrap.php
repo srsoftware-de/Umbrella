@@ -7,6 +7,40 @@ const NO_CONVERSSION = 1;
 const ARRAY_CONVERSION = 2;
 const OBJECT_CONVERSION = 3;
 
+const PROJECT_STATUS_OPEN = 10;
+const PROJECT_STATUS_STARTED = 20;
+const PROJECT_STATUS_PENDING = 40;
+const PROJECT_STATUS_COMPLETE = 60;
+const PROJECT_STATUS_CANCELED = 100;
+
+const TASK_STATUS_OPEN = 10;
+const TASK_STATUS_STARTED = 20;
+const TASK_STATUS_PENDING = 40;
+const TASK_STATUS_COMPLETE = 60;
+const TASK_STATUS_CANCELED = 100;
+
+function project_state($state){
+	switch ($state){
+		case PROJECT_STATUS_CANCELED: return 'canceled';
+		case PROJECT_STATUS_PENDING: return 'pending';
+		case PROJECT_STATUS_OPEN: return 'open';
+		case PROJECT_STATUS_COMPLETE: return 'completed';
+		case PROJECT_STATUS_STARTED: return 'started';
+	}
+	return 'unknown';
+}
+
+function task_state($state){
+	switch ($state){
+		case TASK_STATUS_OPEN: return 'open';
+		case TASK_STATUS_PENDING: return 'pending';
+		case TASK_STATUS_STARTED: return 'started';
+		case TASK_STATUS_CANCELED: return 'canceled';
+		case TASK_STATUS_COMPLETE : return 'completed';		
+	}
+	return 'unknown';
+}
+
 function assert_failure($script, $line, $code, $message){
 	error('Assertion failed in '.$script.', line '.$line.': '.$message);
 	include 'common_templates/messages.php';
@@ -179,7 +213,8 @@ function debug($object,$die = false){
 	}
 }
 
-function query_insert($sql,$args){
+function query_insert($query,$args){
+	$sql = ($query instanceof PDOStatement) ? $query->queryString : $query; 
 	foreach ($args as $k => $v) $sql = str_replace($k,'"'.$v.'"',$sql);
 	return $sql;
 }
