@@ -32,7 +32,7 @@ include '../common_templates/messages.php'; ?>
 		<?php if (isset($link['tags'])) { ?>
 		<div class="tags">		
 			<?php foreach ($link['tags'] as $related){ ?>
-			<a class="button" href="<?= $related ?>/view"><?= $related ?></a>
+			<a class="button" href="<?= getUrl('bookmark',$related.'/view') ?>"><?= $related ?></a>
 			<?php } ?>
 		</div>
 		<?php } ?>
