@@ -132,7 +132,7 @@ function save_file($filename,$file_contents,$mime){
 	$response = file_get_contents($url,false,$context);
 }
 
-function send_mail($sender, $reciever, $subject = '', $text = '', $attachment = null){
+function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 	//debug(['from'=>$sender, 'to'=>$reciever, 'subject'=>$subject, 'text'=>$text],1);
 	
 	if ($attachment){
