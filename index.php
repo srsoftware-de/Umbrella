@@ -63,7 +63,7 @@ include '../common_templates/messages.php'; ?>
 			<a href="#" class="symbol" onclick="return toggle('.project_<?= $task['project_id'] ?>');"></a>
 			</span>
 		</td>
-		<td><?= t($TASK_STATES[$task['status']]) ?></td>
+		<td><?= t(task_state($task['status'])) ?></td>
 		<td><?= $task['start_date'] ?></td>
 		<td><?= $task['due_date'] ?></td>
 		<td>

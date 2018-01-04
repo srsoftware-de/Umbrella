@@ -3,18 +3,6 @@
 	const TASK_PERMISSION_OWNER = 1;
 	const TASK_PERMISSION_PARTICIPANT = 2;
 	
-	const TASK_STATUS_OPEN = 10;
-	const TASK_STATUS_STARTED = 20;
-	const TASK_STATUS_PENDING = 40;
-	const TASK_STATUS_COMPLETE = 60;
-	const TASK_STATUS_CANCELED = 100;
-	
-	$TASK_STATES = array(TASK_STATUS_CANCELED => 'canceled',
-						 TASK_STATUS_PENDING => 'pending',
-						 TASK_STATUS_OPEN => 'open',
-						 TASK_STATUS_COMPLETE => 'completed',
-						 TASK_STATUS_STARTED => 'started'
-						);
 	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owner',TASK_PERMISSION_PARTICIPANT=>'participant');
 
 	function get_or_create_db(){
