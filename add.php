@@ -6,7 +6,7 @@ include 'controller.php';
 require_login('files');
 
 $dir = param('dir');
-if (access_granted($dir)){
+if (access_granted($dir) && !in_array($dir,['company','project'])){
 	if (isset($_FILES['file'])){
 		$file_info = $_FILES['file'];
 		if ($file_info['size'] == 0) {
@@ -25,10 +25,11 @@ if (access_granted($dir)){
 				}
 				redirect('index'.($dir?'?path='.$dir:''));
 			} else error($info);
-		}    	
+		}
 	}
 } else {
-	error('You are not allowed to add files to "?"',$dir);
+	error('You are not allowed to add files to "?"!',$dir);
+	redirect(getUrl('files','?path='.$dir));
 }
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
