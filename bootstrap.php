@@ -301,7 +301,6 @@ function require_login($service_name = null){
 	$user = getLocallyFromToken();
 	if ($user === null) validateToken($service_name);
 	if ($user === null) redirect(getUrl('user','login?returnTo='.location()));
-	session_write_close();
 	if (isset($user->theme)) $theme = $user->theme;
 }
 
