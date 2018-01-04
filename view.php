@@ -5,38 +5,36 @@ include 'controller.php';
 
 require_login('task');
 $task_id = param('id');
-
-if (!$task_id) error('No task id passed to view!');
-
-if ($task = load_tasks(['ids'=>$task_id])){
-	if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
-	load_children($task,99); // up to 99 levels deep
-	load_requirements($task);
-
-	$project_users_permissions = request('project','user_list',['id'=>$task['project_id']]); // needed to load project users
-	$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_permissions))]); // needed to load task users
-	load_users($task,$project_users);
-
-	$title = $task['name'].' - Umbrella';
-	$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
-	$show_closed_children = param('closed') == 'show';
+if ($task_id){
+	if ($task = load_tasks(['ids'=>$task_id])){
+		if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
+		load_children($task,99); // up to 99 levels deep
+		load_requirements($task);
 	
-	if (file_exists('../lib/parsedown/Parsedown.php')){
-		include '../lib/parsedown/Parsedown.php';
-		$task['description'] = Parsedown::instance()->parse($task['description']);
-	} else {
-		$task['description'] = str_replace("\n", "<br/>", $task['description']);
+		$project_users_permissions = request('project','user_list',['id'=>$task['project_id']]); // needed to load project users
+		$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_permissions))]); // needed to load task users
+		load_users($task,$project_users);
+	
+		$title = $task['name'].' - Umbrella';
+		$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
+		$show_closed_children = param('closed') == 'show';
+		
+		if (file_exists('../lib/parsedown/Parsedown.php')){
+			include '../lib/parsedown/Parsedown.php';
+			$task['description'] = Parsedown::instance()->parse($task['description']);
+		} else {
+			$task['description'] = str_replace("\n", "<br/>", $task['description']);
+		}
+	
+		if (isset($services['bookmark'])){
+			$hash = sha1(location('*'));
+			$bookmark = request('bookmark','json_get?id='.$hash);
+		}	
+	} else { // task not loaded
+		$title = 'Umbrella Task Management';
+		error('Task does not exist or you are not allowed to access it.');
 	}
-
-	if (isset($services['bookmark'])){
-		$hash = sha1(location('*'));
-		$bookmark = request('bookmark','json_get?id='.$hash);
-	}	
-} else {
-	$title = 'Umbrella Task Management';
-	error('Task does not exist or you are not allowed to access it.');
-}
-
+} else /*no task id*/ error('No task id passed to view!');
 
 function display_children($task){
 	global $show_closed_children,$task_id,$services;

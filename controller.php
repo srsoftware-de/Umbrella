@@ -149,7 +149,7 @@
 		}
 	}
 
-	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null, $user_ids = []){
+	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null, $users = []){
 		global $user,$services;
 		$db = get_or_create_db();
 		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
@@ -171,38 +171,70 @@
 		}
 		$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, start_date, due_date) VALUES (:name, :pid, :parent, :desc, :state, :start, :due);');
 		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>$status, 'start'=>$start_date, ':due'=>$due_date)),'Was not able to create new task entry in database');
-		$task_id = $db->lastInsertId();
-		add_user_to_task($task_id,$user->id,TASK_PERMISSION_OWNER);
-		foreach ($user_ids as $id) {
+		$task = [
+			'id' => $db->lastInsertId(),
+			'parent_task_id'=>$parent_task_id,
+			'project_id'=>$project_id,
+			'name' => $name,
+			'description'=>$description,
+			'status'=>TASK_STATUS_OPEN,
+			'start_date'=>$start_date,
+			'due_date'=>$due_date,			
+		];
+		
+		add_user_to_task($task,['id'=>$user->id,'email'=>$user->email,'login'=>$user->login],TASK_PERMISSION_OWNER);
+		foreach ($users as $id => $new_user) {
 			if ($id == $user->id) continue;
-			add_user_to_task($task_id,$id,TASK_PERMISSION_PARTICIPANT);
+			add_user_to_task($task,$new_user,TASK_PERMISSION_PARTICIPANT);
 		}
 		if (isset($services['bookmark'])) setTags($name,$task_id);
+		return $task;
 	}
 	
-	function update_task($id,$name,$description = null,$project_id = null,$parent_task_id = null,$start_date = null, $due_date = null){
-		global $services;
-		$db = get_or_create_db();
-		assert(is_numeric($id),'invalid task id passed!');
-		assert($name !== null && trim($name) != '','Task name must not be empty or null!');
-		assert(is_numeric($project_id),'Task must reference project!');
-		$start_stamp = null;
-		if ($start_date !== null && $start_date != ''){
-			$start_stamp = strtotime($start_date);
+	function update_task($task){
+		global $services,$user;
+		
+		// check
+		assert(array_key_exists('id',$task),'$task does not contain "id"');
+		assert(array_key_exists('name',$task)       && (trim($task['name']) != ''),'Task name must be set!');
+		assert(array_key_exists('project_id',$task) && is_numeric($task['project_id']),'Task must reference project!');
+		
+		// calculate
+		if (isset($task['start_date']) && trim($task['start_date']) != ''){
+			$start_stamp = strtotime($task['start_date']);
 			assert($start_stamp !== false,'Start date is not a valid date!');
-		}
-		if ($due_date !== null && $due_date != ''){
-			$due_stamp = strtotime($due_date);
+		}		
+		if (isset($task['due_date']) && trim($task['due_date']) != ''){
+			$due_stamp = strtotime($task['due_date']);
 			assert($due_stamp !== false,'Due date is not a valid date!');
 			if ($start_stamp && $start_stamp > $due_stamp){
-				$start_date = $due_date;
-				info('Start date adjusted to match due date!');
+				$task['start_date'] = $task['due_date'];
+				warn('Start date adjusted to match due date!');
 			}
 		}		
 		
+		// save
+		$db = get_or_create_db();		
 		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, start_date = :start, due_date = :due WHERE id = :id;');
-		assert($query->execute(array(':id' => $id, ':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':start'=>$start_date,':due'=>$due_date)),'Was not able to alter task entry in database');
+		$args = [
+			':id'=>$task['id'],
+			':name'=>$task['name'],
+			':pid'=>$task['project_id'],
+			':parent'=>$task['parent_task_id'],
+			':desc'=>$task['description'],
+			':start'=>$task['start_date'],
+			':due'=>$task['due_date']
+		];
+		assert($query->execute($args),'Was not able to alter task entry in database');
 		
+		// notify
+		$sender = $user->email;
+		foreach ($task['users'] as $uid => $u){
+			$reciever = $u['email'];
+			$subject = t('? edited one of your tasks',$user->login);
+			$text = t("The task \"?\" now has the following description:\n\n?\n\n?",[$task['name'],$task['description'],getUrl('task',$task['id'].'/view')]);
+			send_mail($sender, $u['email'], $subject, $text);
+		}
 		if (isset($services['bookmark'])) setTags($name,$id);
 	}
 	
@@ -275,13 +307,25 @@
 		$task['users'] = $users;		
 	}
 	
-	function add_user_to_task($task_id = null,$user_id = null,$permission = null){
-		assert(is_numeric($task_id),'task id must be numeric, is '.$task_id);
-		assert(is_numeric($user_id),'user id must be numeric, is '.$user_id);
+	function add_user_to_task($task,$new_user = null,$permission = null){
+		global $user;
+		// check
+		assert(array_key_exists('id',$task),'$task array does not contain "id"');
+		assert(array_key_exists('id', $new_user),'$new_user array does not contain "id"');
 		assert(is_numeric($permission),'permission must be numeric, is '.$permission);
+		
+		// assign
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm);');
-		assert($query->execute(array(':tid'=>$task_id,':uid'=>$user_id, ':perm'=>$permission)),'Was not able to assign task to user!');
+		assert($query->execute(array(':tid'=>$task['id'],':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign task to user!');
+		
+		// notify
+		$sender = $user->email;
+		$reciever = $new_user['email'];
+		$subject = t('? assigned you to a task',$user->login);
+		$text = t('You have been assigned to the task "?": ?',[$task['name'],getUrl('task',$task['id'].'/view')]);
+		send_mail($sender, $reciever, $subject, $text);
+		
 	}
 	
 	function find_project($task_id){

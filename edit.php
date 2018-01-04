@@ -2,25 +2,40 @@
 
 include '../bootstrap.php';
 include 'controller.php';
+
 require_login('task');
 
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
 $task = load_tasks(['ids'=>$task_id]);
+
+// get a map from user ids to permissions
+$project_user_permissions = request('project','user_list',['id'=>$task['project_id']]);
+$project_user_ids = array_keys($project_user_permissions);
+$project_users = request('user','list',['ids'=>implode(',', $project_user_ids)]);
+load_users($task,$project_users); // add users to task
+
 load_requirements($task);
 $project_id = $task['project_id'];
 
 if ($name = post('name')){
-	$due_date = post('due_date');
-	$modifier = post('due_extension');
-	if ($due_date && $modifier) $due_date = date('Y-m-d',strtotime($due_date.' '.$modifier));
-
-	$start_date = post('start_date');
-	$modifier = post('start_extension');
-	if ($start_date && $modifier) $start_date = date('Y-m-d',strtotime($start_date.' '.$modifier));
+	$task['name'] = $name;
 	
-	update_task($task_id,$name,post('description'),$project_id,post('parent_task_id'),$start_date,$due_date);
-	update_task_requirements($task_id,post('required_tasks'));
+	if ($start_date = post('start_date')){
+		$modifier = post('start_extension');
+		$task['start_date'] = $modifier ? date('Y-m-d',strtotime($start_date.' '.$modifier)) : $start_date;
+	}
+	
+	if ($due_date = post('due_date')){
+		$modifier = post('due_extension');
+		$task['due_date'] = $modifier ? date('Y-m-d',strtotime($due_date.' '.$modifier)) : $due_date;
+	}
+
+	if ($description = post('description')) $task['description'] = $description;
+	if ($parent = post('parent_task_id')) $task['parent_task_id'] = $parent;
+	
+	update_task($task);
+	update_task_requirements($task['id'],post('required_tasks'));
 	
 	if ($target = param('redirect')){
 		redirect($target);
