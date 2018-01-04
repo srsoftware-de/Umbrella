@@ -15,6 +15,18 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
+<script type="text/javascript">
+	function copyMarkdown(elem){
+		var textareas = elem.getElementsByTagName('textarea');
+		if (textareas.length>0) {
+			textareas[0].select();
+			document.execCommand("copy");
+			alert('<?= t('Copied markdown to clipboard.') ?>');
+		}
+		return false;
+	}
+</script>
+
 <fieldset>
 	<legend><?= t('Files: ?',$path?$path:' ')?></legend>
 	<table>
@@ -49,6 +61,10 @@ include '../common_templates/messages.php'; ?>
 				<a class="symbol" title=<?= t('share')?> href="share?file=<?= $filename ?>"></a>
 				<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $filename ?>"></a>
 				<a class="symbol" title="<?= t('delete')?>" href="delete?file=<?= $filename ?>"></a>
+				<?php if (is_image($alias)) { ?>
+				<a class="symbol" title="<?= t('Copy markdown to clipboard') ?>" href="#" onclick="return copyMarkdown(this);"><textarea class="copytext">![<?= t('alt text')?>](<?= getUrl('files','download?file='.$filename)?>)</textarea></a>
+				
+				<?php } ?>
 			</td>
 		</tr>
 		<?php }?>
@@ -60,7 +76,7 @@ include '../common_templates/messages.php'; ?>
 			</td>
 			<td></td>
 		</tr>
-		
 	</table>
+	<?php if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(getUrl('files','index?path='.$path))],false,NO_CONVERSSION); ?>	
 </fieldset>
 <?php include '../common_templates/closure.php'; ?>

@@ -291,4 +291,10 @@
 		//debug(['current name'=>$currentname,'origin'=>$origin,'dir'=>$dir,'new name'=>$newname,'new local'=>$new_local,'target'=>$target],1);
 		return true;
 	}
+	
+	function is_image($name){
+		$parts = explode('.',$name);
+		$extension = strtolower(array_pop($parts));
+		return in_array($extension,['jpg','jpeg','gif','png','svg']);
+	}
 ?>
