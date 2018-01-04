@@ -88,6 +88,7 @@
 		
 		$sql .= ' FROM tasks';
 		
+		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids) && $ids = [$ids]) $single = true;
@@ -238,17 +239,23 @@
 	}
 
 	function delete_task($task = null){
-		assert($task !== null,'No task passed to delete_task!');
+		assert(is_array($task),'No task passed to delete_task!');
 		$db = get_or_create_db();
-		$args = array(':id'=>$id,':ptid'=>$task['parent_task_id']);
-		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');
-		assert($query->execute($args));		
+		$args = [':id'=>$task['id']];
+		
 		$query = $db->prepare('DELETE FROM tasks WHERE id = :id');
-		assert($query->execute(array(':id'=>$id)));
+		assert($query->execute([':id'=>$task['id']]));
+		
 		$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :id');
-		assert($query->execute(array(':id'=>$id)));
+		assert($query->execute([':id'=>$task['id']]));
+		
 		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :id');
-		assert($query->execute(array(':id'=>$id)));		
+		assert($query->execute([':id'=>$task['id']]));
+		
+		$args[':ptid']= $task['parent_task_id'];		
+		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');		
+		assert($query->execute($args));
+		info('Task has been deleted.');
 	}
 	
 	function load_users(&$task,$project_users){

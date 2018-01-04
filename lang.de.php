@@ -41,6 +41,7 @@ $translations = array(
 		'Task: ?'=>'Aufgabe: ?',
 		'Task'=>'Aufgabe',
 		'Task does not exist or you are not allowed to access it.'=>'Aufgabe existiert nicht, oder Sie haben keine Zugriffsberechtigung',
+		'Task has been deleted.'=>'Task wurde gelöscht',
 		'Tasks'=>'Aufgaben',
 		'This will remove the task "?". Are you sure?'=>'Sicher, dass die Aufgabe "?" gelöscht werden soll?',
 		'Timetrack'=>'Zeit&shy;erfassung',
