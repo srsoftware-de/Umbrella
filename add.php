@@ -26,11 +26,11 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Add new URL') ?></legend>
 		<fieldset>
 			<legend>URL</legend>
-			<input type="text" name="url" value="<?= $url ?>" />
+			<input type="text" name="url" id="url" value="<?= $url ?>" />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description')?></legend>
-			<textarea name="comment"></textarea>
+			<textarea name="comment" descr="<?= t('You can select a comment from the site here')?>"></textarea>
 		</fieldset>
 		<fieldset>
 			<legend>Tags</legend>
@@ -39,6 +39,9 @@ include '../common_templates/messages.php'; ?>
 		
 		<input type="submit" />
 	</fieldset>
+	<script type="text/javascript">
+	$('#url').bind('input',getHeadings_delayed);
+	</script>
 </form>
 
 <?php include '../common_templates/closure.php'; ?>

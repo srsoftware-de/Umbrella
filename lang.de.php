@@ -36,4 +36,5 @@ $translations = array(
 		'Users'=>'Benutzer',
 		'Yes'=>'Ja',
 		'Your bookmark has been shared.'=>'Dein Lesezeichen wurde geteilt',
+		'You can select a comment from the site here'=>'Hier kannst du einen Kommentar von der Seite wählen',
 );
