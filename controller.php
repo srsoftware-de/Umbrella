@@ -120,19 +120,30 @@
 		return array_keys($user_ids);
 	}
 
-	function add_user_to_project($project_id = null,$user_id = null,$permission = null){
-		assert(is_numeric($project_id),'project id must be numeric, is '.$project_id);
-		assert(is_numeric($user_id),'user id must be numeric, is '.$user_id);
+	function add_user_to_project($project = null,$new_user = null,$permission = null){
+		global $user;
+		assert(is_array($project),'project id must be numeric, is '.$project_id);
+		assert(is_array($new_user),'user id must be numeric, is '.$user_id);
 		assert(is_numeric($permission),'permission must be numeric, is '.$permission);
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
-		assert($query->execute(array(':pid'=>$project_id,':uid'=>$user_id, ':perm'=>$permission)),'Was not able to assign project to user!');
+		assert($query->execute(array(':pid'=>$project['id'],':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign project to user!');
+		$sender = $user->email;
+		$reciever = $new_user['email'];
+		$subject = t('? added you to a project',$user->login);
+		$text = t('You have been added to the project "?": ?',[$project['name'],getUrl('project',$project['id'].'/view')]);
+		send_mail($sender, $reciever, $subject, $text);
 	}
 	
 	function remove_user($project_id,$user_id){
+		global $user;
 		$db = get_or_create_db();
+		
+		request('task','withdraw_user',['project_id'=>$project_id,'user_id'=>$user_id]);
+		
 		$query = $db->prepare('DELETE FROM projects_users WHERE project_id = :pid AND user_id = :uid');
 		assert($query->execute([':pid'=>$project_id,':uid'=>$user_id]),'Was not able to remove user from project!');
-		info('User has been removed from project.');		 
+		
+		info('User has been removed from project.');
 	}
 ?>

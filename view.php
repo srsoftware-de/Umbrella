@@ -4,6 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('project');
+$show_confirm_question = false;
 if ($project_id = param('id')){
 	$project = load_projects(['ids'=>$project_id,'single'=>true]);	
 	if ($project){
@@ -12,8 +13,12 @@ if ($project_id = param('id')){
 		
 		if ($remove_user_id = param('remove_user')){
 			if ($current_user_is_owner){
-				remove_user($project_id,$remove_user_id);
-				unset($project['users'][$remove_user_id]);
+				if (param('confirm')==='yes'){
+					remove_user($project_id,$remove_user_id);
+					unset($project['users'][$remove_user_id]);
+				} else {
+					$show_confirm_question = true;
+				}
 			} else error('You are not allowed to remove users from this project');
 		}
 		
@@ -71,6 +76,14 @@ include 'menu.php';
 include '../common_templates/messages.php';
 
 if ($project){
+	if ($show_confirm_question){ ?>
+<fieldset>
+	<legend><?= t('Confirm removal of "?" from project?',$users[$remove_user_id]['login'])?></legend>
+	<?= t('User will no longer have access to this projects. Task assigned to ? will be assigned to you. Are you sure?',$users[$remove_user_id]['login'])?><br/>
+	<a class="button" href="?remove_user=<?= $remove_user_id?>&confirm=yes"><?= t('Yes')?></a>
+	<a class="button" href="view"><?= t('No')?></a>
+</fieldset>
+<?php }
 ?>
 <table class="vertical project-view">
 	<tr>

@@ -13,11 +13,12 @@ if ($project_id = param('id')){
 	$allowed = $project['users'][$user->id]['permissions'] == PROJECT_PERMISSION_OWNER;
 	
 	if ($allowed){
-		if ($project_user = post('project_user')){
-			add_user_to_project($project_id,$project_user,post('permissions'));
+		$users = request('user','list');		
+		if ($new_uid = post('project_user')){
+			add_user_to_project($project,$users[$new_uid],post('permissions'));
 			redirect('view');
 		}
-		$user_list = request('user','list');
+		
 	} else error('You are not allowed to edit the user list of this project!');
 } else error('No project id passed to view!');
 
@@ -33,7 +34,7 @@ if ($allowed){ ?>
 		<fieldset>
 			<select name="project_user">
 				<option value="" selected="true"><?= t('== Select a user ==')?></option>
-				<?php foreach ($user_list as $id => $u){ ?>
+				<?php foreach ($users as $id => $u){ ?>
 				<option value="<?= $id ?>"><?= $u['login']?></option>
 				<?php }?>
 			</select>
