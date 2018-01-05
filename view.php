@@ -43,7 +43,7 @@ function display_children($task){
 	<?php foreach ($task['children'] as $id => $child_task) {
 			if (!$show_closed_children && $child_task['status'] >= 60) continue;
 		?>
-		<li class="<?= $child_task['status_string'] ?>">
+		<li class="<?= task_state($child_task['status']) ?>">
 			<a title="<?= t('view')?>"		href="../<?= $id ?>/view"><?= $child_task['name']?></a>
 			<span class="hover_h">
 			<a title="<?= t('edit')?>"			href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
@@ -111,6 +111,20 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $task['description']; ?></td>
 	</tr>
 	<?php } ?>
+	<?php if ($task['est_time'] > 0 || $task['est_time_children'] > 0){ ?>
+	<tr>
+		<th><?= t('Estimated time')?></th>
+		<td>
+			<?php if ($task['est_time'] > 0){ ?>
+			<?= t('? hours',$task['est_time'])?>
+			<br/>
+			<?php } ?>
+			<?php if ($task['est_time_children'] > 0){ ?>
+			<?= t('Sub-tasks: ? hours',$task['est_time_children'])?>
+			<?php } ?>
+		</td>
+	</tr>
+	<?php } ?>	
 	<?php if ($task['start_date']) { ?>
 	<tr>
 		<th><?= t('Start date')?></th>

@@ -18,6 +18,7 @@
 							name VARCHAR(255) NOT NULL, 
 							description TEXT, 
 							status INT DEFAULT '.TASK_STATUS_OPEN.',
+							est_time DOUBLE DEFAULT NULL,
 							start_date DATE,
 							due_date DATE);');
 			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT '.self::TASK_PERMISSION_OWNER.', PRIMARY KEY(task_id, user_id));');
@@ -157,8 +158,18 @@
 				info('Start date adjusted to match due date!');
 			}
 		}
-		$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, start_date, due_date) VALUES (:name, :pid, :parent, :desc, :state, :start, :due);');
-		assert($query->execute(array(':name'=>$name,':pid'=>$project_id, ':parent'=>$parent_task_id,':desc'=>$description,':state'=>$status, 'start'=>$start_date, ':due'=>$due_date)),'Was not able to create new task entry in database');
+		$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, est_time, start_date, due_date) VALUES (:name, :pid, :parent, :desc, :state, :est, :start, :due);');
+		$args = [
+			':name'=>$name,
+			':pid'=>$project_id,
+			':parent'=>$parent_task_id,
+			':desc'=>$description,
+			':state'=>$status,
+			':est'=>param('est_time'),
+			':start'=>$start_date,
+			':due'=>$due_date
+		];
+		assert($query->execute($args),'Was not able to create new task entry in database');
 		$task = [
 			'id' => $db->lastInsertId(),
 			'parent_task_id'=>$parent_task_id,
@@ -203,13 +214,14 @@
 		
 		// save
 		$db = get_or_create_db();		
-		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, start_date = :start, due_date = :due WHERE id = :id;');
+		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, est_time = :est, start_date = :start, due_date = :due WHERE id = :id;');
 		$args = [
 			':id'=>$task['id'],
 			':name'=>$task['name'],
 			':pid'=>$task['project_id'],
 			':parent'=>$task['parent_task_id'],
 			':desc'=>$task['description'],
+			':est'=>param('est_time'),
 			':start'=>$task['start_date'],
 			':due'=>$task['due_date']
 		];
@@ -249,13 +261,19 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tasks WHERE parent_task_id = :id');
 		assert($query->execute(array(':id'=>$id)),'Was not able to query children of '.$task['name']);
-		$child_tasks = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
+		$child_tasks = $query->fetchAll(INDEX_FETCH);
+		$child_time_sum = 0;
 		foreach ($child_tasks as $id => &$child_task){
 			$child_task['id'] = $id;
 			$child_task['status_string'] = $TASK_STATES[$child_task['status']];
 			if ($levels) load_children($child_task,$levels -1);
+			$child_time_sum += $child_task['est_time'];
+			if (isset($child_task['est_time_children'])) $child_time_sum += $child_task['est_time_children'];
+		}		
+		if (!empty($child_tasks)){
+			$task['children'] = $child_tasks;
+			$task['est_time_children'] = $child_time_sum;
 		}
-		if (!empty($child_tasks)) $task['children'] = $child_tasks;
 	}
 
 	function delete_task($task = null){

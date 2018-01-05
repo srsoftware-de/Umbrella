@@ -43,7 +43,13 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 			</select>
 		</fieldset>
-				<?php if (isset($services['bookmark'])){?>
+		<fieldset>
+			<legend><?= t('Estimated time')?></legend>
+			<label>
+				<?= t('? hours','<input type="number" name="est_time" />')?>
+			</label>
+		</fieldset>
+		<?php if (isset($services['bookmark'])){?>
 		<fieldset><legend><?= t('Tags')?></legend>
 			<input name="tags" type="text" value="<?= param('tags') ?>" />
 		</fieldset>

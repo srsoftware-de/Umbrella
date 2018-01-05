@@ -35,10 +35,15 @@ include '../common_templates/messages.php'; ?>
 		<fieldset><legend><?= t('Name')?></legend>
 			<input type="text" name="name" value="<?= $name ?>" autofocus="true"/>
 		</fieldset>
-		
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $description; ?></textarea>
+		</fieldset>
+		<fieldset>
+			<legend><?= t('Estimated time')?></legend>
+			<label>
+				<?= t('? hours','<input type="number" name="est_time" />')?>
+			</label>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Users') ?></legend>

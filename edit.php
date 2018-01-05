@@ -44,7 +44,7 @@ if ($name = post('name')){
 	}
 }
 
-$task['project'] = request('project','json',['ids'=>$project_id,'single'=>ture]);
+$task['project'] = request('project','json',['ids'=>$project_id,'single'=>true]);
 
 if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
 
@@ -60,18 +60,18 @@ include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend>Edit "<?= $task['name']?>"</legend>
+	<fieldset><legend><?= t('Edit "?"',$task['name']) ?></legend>
 		<fieldset>
-			<legend>Project</legend>
+			<legend><?= t('Project')?></legend>
 			<a href="<?= getUrl('project',$task['project']['id'].'/view')?>" ><?= $task['project']['name']?></a>
 		</fieldset>
 		<fieldset>
-			<legend>Task</legend>
+			<legend><?= t('Task')?></legend>
 			<input type="text" name="name" value="<?= $task['name'] ?>" autofocus="true"/>
 		</fieldset>
 		<?php if ($project_tasks){?>
 		<fieldset>
-			<legend>Parent task</legend>
+			<legend><?= t('Parent task')?></legend>
 			<select name="parent_task_id">
 			<option value="">= select parent task =</option>
 			<?php foreach ($project_tasks as $id => $project_task) {?>
@@ -85,6 +85,12 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
 			<textarea name="description"><?= $task['description']?></textarea>
 		</fieldset>
+		<fieldset>
+			<legend><?= t('Estimated time')?></legend>
+			<label>
+				<?= t('? hours','<input type="number" name="est_time" value="'.$task['est_time'].'" />')?>				 
+			</label>
+		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset>
 			<legend><?= t('Tags')?></legend>
@@ -92,7 +98,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<?php } ?>
 		<fieldset>
-			<legend>Start date</legend>
+			<legend><?= t('Start date')?></legend>
 			<input name="start_date" type="date" value="<?= $task['start_date'] ?>" />
 			<?php if ($task['start_date']) { ?>
 			<select name="start_extension">
@@ -107,7 +113,7 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 			</fieldset>
 		<fieldset>
-			<legend>Due date</legend>
+			<legend><?= t('Due date')?></legend>
 			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" />
 			<?php if ($task['due_date']) { ?>
 			<select name="due_extension">
@@ -122,7 +128,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<?php if (!empty($project_tasks)) {?>
 		<fieldset class="requirements">
-			<legend>Requires completion of</legend>
+			<legend><?= t('Requires completion of')?></legend>
 			<?php foreach ($project_tasks as $id => $project_task){
 				if ($id == $task_id) continue; 
 			?>
