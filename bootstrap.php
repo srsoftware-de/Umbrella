@@ -133,8 +133,7 @@ function save_file($filename,$file_contents,$mime){
 }
 
 function send_mail($sender, $reciever, $subject, $text, $attachment = null){
-	//debug(['from'=>$sender, 'to'=>$reciever, 'subject'=>$subject, 'text'=>$text],1);
-	
+	if ($sender == $reciever) return;
 	if ($attachment){
 		$filename = $attachment['name'];
 		
@@ -162,8 +161,7 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 	} else {
 		$header = "From: ".$sender;
 		$nmessage = $text;
-	}
-	
+	}	
 	return mail($reciever, $subject, $nmessage, $header);
 }
 
