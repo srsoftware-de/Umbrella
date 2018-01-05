@@ -184,7 +184,7 @@
 
 	function require_user_login(){
 		global $services,$user,$theme;
-		if ($_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
+		if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
 
 		$db = get_or_create_db();
 
