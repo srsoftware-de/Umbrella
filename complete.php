@@ -9,5 +9,7 @@ set_task_state($task_id,TASK_STATUS_COMPLETE);
 if ($target = param('redirect')) {
 	redirect($target);
 } else {
-	redirect('view');
+	$task = load_tasks(['ids'=>$task_id]);
+	if (isset($task['parent_task_id']) && $task['parent_task_id']!==null) redirect(getUrl('task',$task['parent_task_id'].'/view'));
+	redirect(getUrl('project',$task['project_id'].'/view'));
 }

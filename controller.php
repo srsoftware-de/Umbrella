@@ -331,5 +331,20 @@
 		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid;');
 		assert($query->execute([':tid'=>$task_id,':uid'=>$user_id]),'Was not able to remove user from task.');
 	}
-	
+
+	function withdraw_user($user_id,$project_id){
+		global $user;
+		$db = get_or_create_db();
+		
+		$args = [':pid'=>$project_id,':old'=>$user_id,':new'=>$user->id];
+		
+		
+		$select = 'SELECT id FROM tasks LEFT JOIN tasks_users ON tasks.id = tasks_users.task_id WHERE user_id = :old AND project_id = :pid';
+		
+		$query = $db->prepare('DELETE FROM tasks_users WHERE user_id = :new AND task_id IN ('.$select.')');
+		assert($query->execute($args),'Was not able to strip your current permissions from user`s tasks!');
+		
+		$query = $db->prepare('UPDATE tasks_users SET permissions='.TASK_PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
+		assert($query->execute($args),'Was not able to assign user`s tasks to you!');
+	}
 ?>
