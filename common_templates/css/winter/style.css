@@ -287,6 +287,14 @@ img[alt$="<"] {
   float:left;
 }
 
+#announce{
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	padding: 3px 5px 0;
+	border-top-left-radius: 7px;
+}
+
 @media (max-width:1199px) {
 	.tasklist tr>*:nth-child(2){
 		display: none;
