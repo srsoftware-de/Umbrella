@@ -7,10 +7,10 @@ require_user_login();
 
 if ($email = post('email')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
-		$db = get_or_create_db();
-		add_user($db,$email,$pass); // defined in controller.php
-		header('Location: index');
-		die();
+		if (add_user($email,$pass)){ // defined in controller.php
+			header('Location: index');
+			die();
+		}
 	} else error('No password given!');
 } else if ($pass = post('pass')) error('No email given');
 

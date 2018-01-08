@@ -9,10 +9,19 @@ $user_id = param('id');
 $allowed = ($user->id == 1 || $user->id == $user_id);
 if ($allowed) {
 	$u = load_user($user_id);
+	$u->dirty = [];
 	if (!empty($_POST)){
 		foreach ($_POST as $key => $value){
-			if ($key == 'new_pass') continue;		
-			$u->{$key} = $value;
+			
+			if ($key == 'new_pass') continue;
+			if ($value != $u->{$key}){
+				if ($key == 'login' && user_exists($value)){
+					error('User with this login name already existing!');
+				} else {
+					$u->dirty[] = $key;
+					$u->{$key} = $value;
+				}
+			}
 		}
 		update_user($u);
 		if ($new_pass = post('new_pass')){
@@ -36,7 +45,7 @@ if ($allowed){
 ?>
 <form method="POST">
 	<?php foreach ($u as $field => $value) {
-		if (in_array($field, ['id','theme','pass'])) continue; ?>
+		if (in_array($field, ['id','theme','pass','dirty'])) continue; ?>
 	<fieldset>
 		<legend><?= t($field) ?></legend>
 		<input type="test" name="<?= $field ?>" value="<?= $value ?>" />

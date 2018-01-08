@@ -1,5 +1,7 @@
 <?php
 
+	$db_handle = null;
+
 	function perform_login($login = null, $pass = null){
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
@@ -102,35 +104,53 @@
 		debug($query);
 		assert($query->execute(array(':id'=>$id)));
 	}
-
-	function add_user($db,$login,$pass){
-		$hash = sha1($pass); // TODO: better hashing
-
+	
+	function user_exists($login){
+		$db = get_or_create_db();
+		
 		$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
 		assert($query->execute(array(':login'=>$login)),'Was not able to assure non-existance of user!');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		assert($results[0]['count'] == 0,'User with this login name already existing!');
+		return $results[0]['count'] > 0;
+		
+		
+	}
+
+	function add_user($login,$pass){
+		
+		$db = get_or_create_db();
+		
+		if (user_exists($login)) {
+			error('User with this login name already existing!');
+			return false;
+		}
+		
+		$hash = sha1($pass); // TODO: better hashing		
+		
 		$query = $db->prepare('INSERT INTO users (login, pass) VALUES (:login, :pass);');
 		assert ($query->execute(array(':login'=>$login,':pass'=>$hash)),'Was not able to add user '.$login);
+		return true;
 	}
 
 	function get_or_create_db(){
+		global $db_handle;
+		if ($db_handle !== null) return $db_handle;
 		if (!file_exists('db')){
 			assert(mkdir('db'),'Failed to create user/db directory!');
 		}
 		assert(is_writable('db'),'Directory user/db not writable!');
 		if (!file_exists('db/users.db')){
-			$db = new PDO('sqlite:db/users.db');
-			$db->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, email VARCHAR(255), theme VARCHAR(50));');
-			$db->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
-			$db->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
-			$db->query('CREATE TABLE login_services (name VARCHAR(255), url TEXT, client_id VARCHAR(255), client_secret VARCHAR(255), user_info_field VARCHAR(255), PRIMARY KEY (name));');
-			$db->query('CREATE TABLE service_ids_users (service_id VARCHAR(255) NOT NULL PRIMARY KEY, user_id INT NOT NULL);');
-			add_user($db,'admin','admin');
+			$db_handle = new PDO('sqlite:db/users.db');
+			$db_handle->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, email VARCHAR(255), theme VARCHAR(50));');
+			$db_handle->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
+			$db_handle->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
+			$db_handle->query('CREATE TABLE login_services (name VARCHAR(255), url TEXT, client_id VARCHAR(255), client_secret VARCHAR(255), user_info_field VARCHAR(255), PRIMARY KEY (name));');
+			$db_handle->query('CREATE TABLE service_ids_users (service_id VARCHAR(255) NOT NULL PRIMARY KEY, user_id INT NOT NULL);');
+			add_user('admin','admin');
 		} else {
-			$db = new PDO('sqlite:db/users.db');
+			$db_handle = new PDO('sqlite:db/users.db');
 		}
-		return $db;
+		return $db_handle;
 	}
 
 	function get_userlist($ids = null,$include_passwords = false){
@@ -165,13 +185,14 @@
 		assert ($query->execute(array(':pass'=>$hash,':id'=>$user->id)),'Was not able to update user '.$user->login);
 		info('Your password has been changed.');
 	}
-	function update_user($user){
+	function update_user($user){	
+		if (empty($user->dirty)) return false;
 		$db = get_or_create_db();
 		$sql = 'UPDATE users SET ';
 		$args = [];
-		foreach ($user as $field => $value){
+		foreach ($user->dirty as $field){
 			if (in_array($field,['id','pass'])) continue;
-			$args[':'.$field] = $value;
+			$args[':'.$field] = $user->{$field};
 			$sql .= $field.' = :'.$field.', ';
 		}
 		$sql=rtrim($sql,', ').' WHERE id = :id';
@@ -180,6 +201,7 @@
 		assert ($query->execute($args),'Was not able to update user '.$user->login);
 		info('User data has been updated.');
 		warn('If you changed your theme, you will have to log off an in again.');
+		return true;
 	}
 
 	function require_user_login(){
