@@ -43,8 +43,10 @@ include '../common_templates/messages.php'; ?>
 				</a>
 			</td>
 			<td>
+				<?php if (!in_array($dir,['project','company','user/'.$user->id])) {?>
 				<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $dir ?>"></a>
-				<a class="symbol" title="<?= t('delete')?>"  href="delete?file=<?= $dir ?>"></a>			
+				<a class="symbol" title="<?= t('delete')?>"  href="delete?file=<?= $dir ?>"></a>
+				<?php }?>			
 			</td>
 		</tr>
 		<?php }?>

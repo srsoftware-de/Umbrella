@@ -5,11 +5,14 @@ include 'controller.php';
 
 require_login('files');
 $rel_file = param('file');
-if (access_granted($rel_file)){
+if (in_array($rel_file,['company','project','user/'.$user->id])){
+	error('You are not allowed to rename "?"!',$rel_file);
+	redirect('index');
+} elseif (access_granted($rel_file)){
 	$newname = param('new_name');
 	if ($newname && renameFile($rel_file,$newname)) redirect('index?path='.dirname($rel_file));
 } else {
-	error('You are not allowed to access "?"',$rel_file);
+	error('You are not allowed to rename "?"!',$rel_file);
 	$rel_file = null;
 }
 
