@@ -304,4 +304,24 @@
 		$query = $db->prepare('DELETE FROM login_services WHERE name = :name');
 		assert($query->execute([':name'=>$name]),'Was not able to delete login_service "'.$name.'"!');
 	}
+	
+	function invite_user($u){
+		global $user;
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM tokens WHERE user_id = :uid');
+		$query->execute([':uid'=>$u->id]);
+		$query = $db->prepare('INSERT INTO tokens (user_id, token, expiration) VALUES (:uid, :tok, :exp)');
+		$token = generateRandomString();
+		$args = [':uid'=>$u->id,':tok'=>$token,':exp'=>(time()+60*60*240)];
+		debug(query_insert($query, $args));
+		assert($query->execute($args),'Was not able to set token for user.'); // token valid for 10 days
+		$subject = t('? invited you to Umbrella',$user->login);
+		$url = getUrl('user',$u->id.'/edit?token='.$token);
+		$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
+			    t("Click the following link and set a password to join:\n?",$url)."\n".
+			    t('Note: this link can only be used once!');
+				
+		send_mail($user->email, $u->email, $subject, $text);
+		info('Email has been sent to ?',$u->email);
+	}
 ?>

@@ -295,7 +295,7 @@ function require_login($service_name = null){
 	if ($revoke) die(revoke_token($revoke));
 	
 	assert($service_name !== null,'require_login called without a service name!');
-	if ($_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
+	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
 	$user = getLocallyFromToken();
 	if ($user === null) validateToken($service_name);
 	if ($user === null) redirect(getUrl('user','login?returnTo='.location()));

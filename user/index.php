@@ -99,7 +99,8 @@ if (isset($services['contact'])){
 			<td>
 				<a class="symbol" title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
 				<a class="symbol" title="<?= t('Lock user account')?>" href="<?= $id?>/lock"> </a>
-				<a class="symbol" title="<?= t('Login as ?',$u['login'])?>" href="?login=<?= $id?>"> </a>
+				<a class="symbol" title="<?= t('Login as ?',$u['login'])?>" href="<?= $id?>/login"> </a>
+				<?php if ($u['email']!='') { ?><a class="symbol" title="<?= t('Send invitation email to ?',$u['email'])?>" href="<?= $id?>/invite"> </a><?php } ?>
 			</td>
 		</tr>
 	<?php endforeach; ?>
