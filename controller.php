@@ -31,10 +31,22 @@
 	
 	function update_task_requirements($id,$required_task_ids){
 		$db = get_or_create_db();
-		$query = $db->prepare('INSERT INTO task_dependencies (task_id, required_task_id) VALUES (:id, :req);');
-		foreach ($required_task_ids as $rid => $dummy){
-			$query->execute(array(':id'=>$id,':req'=>$rid));
+		
+		if (empty($required_task_ids)) {
+			$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :tid');
+			$query->execute([':tid'=>$id]);			
+			return;
 		}
+		$required_task_ids = array_keys($required_task_ids);
+		
+		$qmarks = implode(',', array_fill(0, count($required_task_ids), '?'));		
+		$args = $required_task_ids;
+		$args[] = $id;
+		
+		$query = $db->prepare('DELETE FROM task_dependencies WHERE required_task_id NOT IN ('.$qmarks.') AND task_id = ?');
+		$query->execute($args);
+		$query = $db->prepare('INSERT INTO task_dependencies (task_id, required_task_id) VALUES (:id, :req);');
+		foreach ($required_task_ids as $rid)$query->execute([':id'=>$id,':req'=>$rid]);
 	}
 	
 	function update_task_states($db){
@@ -235,7 +247,7 @@
 			$text = t("The task \"?\" now has the following description:\n\n?\n\n?",[$task['name'],$task['description'],getUrl('task',$task['id'].'/view')]);
 			send_mail($sender, $u['email'], $subject, $text);
 		}
-		if (isset($services['bookmark'])) setTags($name,$id);
+		if (isset($services['bookmark'])) setTags($task['name'],$task['id']);
 	}
 	
 	function set_task_state($task_id, $state){

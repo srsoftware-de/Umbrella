@@ -56,6 +56,38 @@ if (isset($services['bookmark'])){
 	$bookmark = request('bookmark','json_get?id='.$hash);
 }
 
+function show_project_task_checkbox($list, $id){
+	global $task;
+	$project_task = $list[$id];
+?>
+	<li>
+		<label>
+			<input type="checkbox" name="required_tasks[<?= $id?>]" <?= isset($task['requirements'][$id])?'checked="true"':'' ?>/>
+			<?= $project_task['name']?>
+		</label>
+		<ul>
+		<?php foreach ($list as $sub_id => $sub_task) {
+			if (in_array($sub_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+			if ($sub_task['parent_task_id'] == $id) show_project_task_checkbox($list,$sub_id);
+		}
+		?>
+		</ul>
+	</li>
+	<?php	
+}
+
+function show_project_task_option($list, $id, $space=''){
+	global $task;
+	$project_task = $list[$id];?>
+	<option value="<?= $id ?>" <?= ($id == $task['parent_task_id'])?'selected="selected"':''?>><?= $space.$project_task['name']?></option>
+		<?php foreach ($list as $sub_id => $sub_task) {
+			if ($sub_task['status']==TASK_STATUS_CANCELED)continue;
+			if ($sub_task['parent_task_id'] == $id) show_project_task_option($list,$sub_id,$space.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+		}
+		?>
+	<?php	
+}
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
@@ -74,9 +106,10 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Parent task')?></legend>
 			<select name="parent_task_id">
 			<option value="">= select parent task =</option>
-			<?php foreach ($project_tasks as $id => $project_task) {?>
-				<option value="<?= $id ?>" <?= ($id == $task['parent_task_id'])?'selected="selected"':''?>><?= $project_task['name']?></option>
-			<?php }?>
+			<?php foreach ($project_tasks as $id => $project_task) {
+				if ($project_task['status']==TASK_STATUS_CANCELED)continue;
+				if ($project_task['parent_task_id'] == null) show_project_task_option($project_tasks,$id); 
+			} ?>
 			</select>
 		</fieldset>
 		
@@ -129,14 +162,12 @@ include '../common_templates/messages.php'; ?>
 		<?php if (!empty($project_tasks)) {?>
 		<fieldset class="requirements">
 			<legend><?= t('Requires completion of')?></legend>
+			<ul>
 			<?php foreach ($project_tasks as $id => $project_task){
-				if ($id == $task_id) continue; 
-			?>
-			<label>
-				<input type="checkbox" name="required_tasks[<?= $id?>]" <?= array_key_exists($id, $task['requirements'])?'checked="true"':'' ?>/>
-				<?= $project_task['name']?>
-			</label>
-			<?php }?>
+				if (in_array($project_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+				if ($project_task['parent_task_id'] == null) show_project_task_checkbox($project_tasks,$id); 
+			}?>
+			</ul>
 		</fieldset>
 		<?php } ?>
 		<input type="submit" />
