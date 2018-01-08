@@ -82,7 +82,8 @@
 					t('private files') => 'user'.DS.$user->id,
 					t('Companies') => 'company',
 					t('Projects') => 'project',
-				]
+				],
+				'files'=>[]
 			];
 		}		
 		
