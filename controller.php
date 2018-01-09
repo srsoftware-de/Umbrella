@@ -2,8 +2,6 @@
 
 const MULTILINE=true;
 
-if (!isset($services['files'])) die('Contact service requres file service to be active!');
-	
 function get_or_create_db(){
 	if (!file_exists('db')){
 		assert(mkdir('db'),'Failed to create contact/db directory!');
@@ -97,9 +95,9 @@ function update_vcard($vcard,$data=null){
 function store_vcard($vcard = null, $id = null){
 	global $user;
 	assert(is_array($vcard),'No vcard data passsed to store_vcard');
-	//debug($vcard);
+
 	$data = serialize_vcard($vcard);
-	//debug($data,1);
+	
 	$db = get_or_create_db();
 	if (is_int($id)){
 		$query  = $db->prepare('UPDATE contacts SET data=:data WHERE id = :id');
