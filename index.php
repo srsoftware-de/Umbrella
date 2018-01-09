@@ -8,7 +8,7 @@ $projects = load_projects(['order'=>param('order')]);
 $all_user_ids = load_users($projects);
 $users = request('user','list',['ids'=>$all_user_ids]);
 $show_closed = param('closed') == 'show' || param('order') == 'status';
-$companies = request('company','json');
+$companies = isset($services['company']) ? request('company','json') : null;
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -21,7 +21,9 @@ include '../common_templates/messages.php'; ?>
 <table class="project-index">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
+		<?php if ($companies) { ?>
 		<th><a href="?order=company"><?= t('Company') ?></a></th>
+		<?php } ?>
 		<th><a href="?order=status"><?= t('Status')?></a></th>
 		<th><?= t('Users')?></th>
 		<th><?= t('Actions')?></th>
@@ -31,7 +33,9 @@ include '../common_templates/messages.php'; ?>
 	?>
 	<tr>
 		<td><a href="<?= $id ?>/view"><?= $project['name'] ?></a></td>
+		<?php if ($companies) { ?>
 		<td><a href="<?= $id ?>/view"><?= isset($companies[$project['company_id']])?$companies[$project['company_id']]['name']:'' ?></a></td>
+		<?php }?>
 		<td><?= t(project_state($project['status'])) ?></td>
 		<td>
 		<?php foreach ($project['users'] as $id => $perm) {?>

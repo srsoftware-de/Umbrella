@@ -10,7 +10,7 @@ if ($name = post('name')){
     die();
 }
 
-$companies = request('company','json');
+$companies = isset($services['company']) ? request('company','json') : null;
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -18,6 +18,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset><legend><?= t('Create new Project')?></legend>
+		<?php if ($companies) { ?>
 		<fieldset>
 			<legend><?= t('Company')?></legend>
 			<select name="company">
@@ -26,6 +27,7 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 			</select>
 		</fieldset>
+		<?php } // if companies ?>
 		<fieldset>
 			<legend><?= t('Name')?></legend>
 			<input type="text" name="name" />

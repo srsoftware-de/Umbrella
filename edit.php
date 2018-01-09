@@ -18,7 +18,7 @@ if ($name = post('name')){
 }
 
 $project = load_projects(['ids'=>$project_id,'single'=>true]);
-$companies = request('company','json');
+$companies = isset($services['company']) ? request('company','json') : null;
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('project',$project_id.'/view'));
@@ -33,15 +33,17 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset>
 		<legend><?= t('Edit Project')?></legend>
-                <fieldset>
-                        <legend>Company</legend>
-                        <select name="company">
+		<?php if ($companies) { ?>
+		<fieldset>
+			<legend>Company</legend>
+			<select name="company">
 				<option value="0"><?= t('== no company assigned =='); ?></option>
-                        <?php foreach($companies as $company) { ?>
-                                <option value="<?= $company['id'] ?>" <?= $company['id'] == $project['company_id']?'selected="true"':''?>><?= $company['name'] ?></a>
-                        <?php } ?>
-                        </select>
-                </fieldset>
+				<?php foreach($companies as $company) { ?>
+				<option value="<?= $company['id'] ?>" <?= $company['id'] == $project['company_id']?'selected="true"':''?>><?= $company['name'] ?></a>
+				<?php } ?>
+			</select>
+		</fieldset>
+		<?php } ?>
 		<fieldset>
 			<legend><?= t('Name')?></legend>
 			<input type="text" name="name" value="<?= $project['name']; ?>"/>

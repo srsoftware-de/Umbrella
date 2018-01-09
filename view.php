@@ -24,7 +24,11 @@ if ($project_id = param('id')){
 		
 		$users = request('user','list',['ids'=>implode(',',$user_ids)]);
 		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
-		$companies = request('company','json');
+		
+		if ($project['company_id'] !== null && isset($services['company'])){
+			$project['company'] = request('company','json',['ids'=>$project['company_id'],'single'=>true]);
+		}
+		
 		$title = $project['name'].' - Umbrella';
 		$show_closed_tasks = param('closed') == 'show';
 		
@@ -101,14 +105,12 @@ if ($project){
 			<h1><?= $project['name'] ?></h1>
 		</td>
 	</tr>
+	<?php if (isset($project['company'])) { ?>
 	<tr>
-		<?php if (isset($companies[$project['company_id']])) { ?>
 		<th><?= t('Company') ?></th>
-		<td>
-			<?= $companies[$project['company_id']]['name'] ?>
-		</td>
-		<?php } ?>
+		<td><?= $project['company']['name'] ?></td>
 	</tr>
+	<?php } ?>
 	<tr>
 		<th><?= t('Description')?></th><td><?= $project['description']; ?></td>
 	</tr>
