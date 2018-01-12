@@ -533,7 +533,7 @@ class Invoice {
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('invoice').$this->id.'/edit','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
+			request('bookmark','add',['url'=>getUrl('invoice').$this->id.'/view','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
 		}
 	}
 	
@@ -676,7 +676,8 @@ class Template{
 	}
 	
 	function __construct($file_path = null){
-		if ($file_path) $this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
+		global $services;
+		if ($file_path && isset($service['files'])) $this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
 	}
 		
 	function patch($data = array()){

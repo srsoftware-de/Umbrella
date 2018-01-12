@@ -11,4 +11,4 @@ $index = param('pos');
 $invoice = reset(Invoice::load($invoice_id));
 $positions = $invoice->positions();
 if (isset($positions[$index])) $positions[$index]->delete();
-redirect('edit');
+redirect('view');

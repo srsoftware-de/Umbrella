@@ -13,4 +13,4 @@ if (!$invoice) error('No invoice found or accessible for id ?',$id);
 $company_id = $invoice->company_id;
 
 $new_doc = $invoice->derive();
-redirect('../'.$new_doc->id.'/edit');
+redirect('../'.$new_doc->id.'/view');

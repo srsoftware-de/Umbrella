@@ -10,4 +10,4 @@ $position = param('pos');
 
 $invoice = reset(Invoice::load($invoice_id));
 $invoice->elevate($position);
-redirect('edit');
+redirect('view');

@@ -107,7 +107,7 @@ $templates = Template::load($invoice->company_id);
 if (empty($templates)) warn('No templates have been provided for this company!');
 
 if (isset($services['bookmark'])){
-	$hash = sha1(getUrl('invoice',$id.'/edit'));
+	$hash = sha1(getUrl('invoice',$id.'/view'));
 	$bookmark = request('bookmark','json_get?id='.$hash);
 }
 

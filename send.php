@@ -47,7 +47,7 @@
 		<textarea name="text"><?= $text ?></textarea>
 	</fieldset>
 	<input type="submit" />
-	<a class="button" href="edit"><?= t('Go back') ?></a>
+	<a class="button" href="view"><?= t('Go back') ?></a>
 </fieldset>
 </form>
 <?php include '../common_templates/closure.php'; ?>

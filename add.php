@@ -38,18 +38,8 @@ if ($customer_contact_id = post('customer')){
 	$invoice->template_id = 0; // TODO impelement by selection
 	$invoice->save();
 	$company_settings->save();
-	redirect($invoice->id.'/edit');
-} /*
-	$customer_contact_id = post('customer');
-	if ($customer_contact_id) {
-		$id = create_invoice($sender,post('tax_number'),post('bank_account'),post('court'),post('customer'));
-		redirect($id.'/edit');
-	} else {
-		error('No customer selected!');		
-	}
-}
-*/
-
+	redirect($invoice->id.'/view');
+} 
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
