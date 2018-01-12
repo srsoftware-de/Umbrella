@@ -10,6 +10,13 @@ if (!$time_id) error('No time id passed to view!');
 $time = load_times(['ids'=>$time_id,'single'=>true]);
 if (isset($time['task_ids'])) $time['tasks'] = request('task','json',['ids'=>implode(',', $time['task_ids'])]);
 
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$time['description'] = Parsedown::instance()->parse($time['description']);
+} else {
+	$time['description'] = str_replace("\n", "<br/>", $time['description']);
+}
+
 $title = $time['subject'].' - Umbrella';
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

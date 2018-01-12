@@ -6,15 +6,27 @@ include 'controller.php';
 require_login('time');
 $times = load_times(['order'=>param('order')]);
 $task_ids = [];
-foreach ($times as $time){
-	foreach ($time['task_ids'] as $task_id) $task_ids[$task_id] = 1;
+
+$parsedown = null;
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$parsedown = Parsedown::instance();
 }
+
+
+
+foreach ($times as &$time){
+	foreach ($time['task_ids'] as $task_id) $task_ids[$task_id] = 1;
+	if ($parsedown) $time['description'] = $parsedown->parse($time['description']);	
+}
+unset($time);
 $tasks = request('task','json',['ids'=>implode(',', array_keys($task_ids))]);
 $project_ids = [];
 foreach ($tasks as $task) $project_ids[$task['project_id']] = 1;
 $projects = request('project','json',['ids'=>implode(',',array_keys($project_ids))]);
 
 $show_complete = param('complete') == 'show';
+
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
