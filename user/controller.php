@@ -92,6 +92,29 @@
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		return objectFrom($results[0]);
 	}
+	
+	function get_userlist($ids = null,$include_passwords = false){
+		$db = get_or_create_db();
+		$columns = array('id','id', 'login', 'email');
+		if ($include_passwords) $columns[]='pass';
+		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
+		$args = array();
+		
+		if ($ids !== null){
+			if (!is_array($ids)){
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids) - 1) . '?';
+			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$args = $ids;
+		}
+			
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to request user list!');
+		$results = $query->fetchAll(INDEX_FETCH);
+		return $results;
+	}
 
 	function lock_user($id = null){
 		assert($id !== null,'No user id passed to lock_user!');
@@ -153,23 +176,7 @@
 		return $db_handle;
 	}
 
-	function get_userlist($ids = null,$include_passwords = false){
-		$db = get_or_create_db();
-		$columns = array('id','id', 'login', 'email');
-		if ($include_passwords) $columns[]='pass';
-		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
-		$args = array();
 
-		if (is_array($ids) && !empty($ids)){
-			$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-			$sql .= ' WHERE id IN ('.$qMarks.')';
-			$args = $ids;
-		}
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to request user list!');
-		$results = $query->fetchAll(INDEX_FETCH);
-		return $results;
-	}
 
 	function login_services(){
 		$db = get_or_create_db();
