@@ -20,10 +20,10 @@ foreach ($times as &$time){
 	if ($parsedown) $time['description'] = $parsedown->parse($time['description']);	
 }
 unset($time);
-$tasks = request('task','json',['ids'=>implode(',', array_keys($task_ids))]);
+$tasks = request('task','json',['ids'=>array_keys($task_ids)]);
 $project_ids = [];
 foreach ($tasks as $task) $project_ids[$task['project_id']] = 1;
-$projects = request('project','json',['ids'=>implode(',',array_keys($project_ids))]);
+$projects = request('project','json',['ids'=>array_keys($project_ids)]);
 
 $show_complete = param('complete') == 'show';
 

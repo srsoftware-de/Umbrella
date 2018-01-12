@@ -20,6 +20,7 @@ $translations = array(
 		'Open timetracks'=>'laufende Zeiterfassungen',
 		'pending'=>'wartend',
 		'Projects'=>'Projekte',
+		'References'=>'Verwendung',
 		'== Select a timetrack =='=>'== Timetrack auswählen ==',
 		'start' => 'Zeiterfassunng starten',
 		'Start'=>'Beginn',

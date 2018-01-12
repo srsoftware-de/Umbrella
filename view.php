@@ -8,7 +8,7 @@ $time_id = param('id');
 if (!$time_id) error('No time id passed to view!');
 
 $time = load_times(['ids'=>$time_id,'single'=>true]);
-if (isset($time['task_ids'])) $time['tasks'] = request('task','json',['ids'=>implode(',', $time['task_ids'])]);
+if (isset($time['task_ids'])) $time['tasks'] = request('task','json',['ids'=>$time['task_ids']]);
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
@@ -18,6 +18,8 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 }
 
 $title = $time['subject'].' - Umbrella';
+$documents = isset($services['invoice']) ? request('invoice','json',['times'=>$time_id]) : null;
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -67,6 +69,18 @@ include '../common_templates/messages.php';
 			<ul>
 			<?php foreach ($time['tasks'] as $tid => $task) { ?>
 				<li <?= $task['status']>=40?'class="pending"':'' ?>><a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a></li>
+			<?php } ?>
+			</ul>
+		</td>
+	</tr>
+	<?php } ?>
+	<?php if ($documents) { ?>
+		<tr>
+		<th><?= t('References')?></th>
+		<td class="documents">
+			<ul>
+			<?php foreach ($documents as $did => $document) { ?>
+				<li><a href="<?= getUrl('invoice', $did.'/view'); ?>"><?= $document['number'] ?></a></li>
 			<?php } ?>
 			</ul>
 		</td>
