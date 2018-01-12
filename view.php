@@ -12,7 +12,7 @@ if ($task_id){
 		load_requirements($task);
 	
 		$project_users_permissions = request('project','user_list',['id'=>$task['project_id']]); // needed to load project users
-		$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_permissions))]); // needed to load task users
+		$project_users = request('user','json',['ids'=>array_keys($project_users_permissions)]); // needed to load task users
 		load_users($task,$project_users);
 	
 		$title = $task['name'].' - Umbrella';
@@ -47,7 +47,7 @@ function display_children($task){
 			<a title="<?= t('view')?>"		href="../<?= $id ?>/view"><?= $child_task['name']?></a>
 			<span class="hover_h">
 			<a title="<?= t('edit')?>"			href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
-			<a title="<?= t('add subtask')?>"	href="../<?= $id ?>/add_subtask" class="symbol"></a>
+			<a title="<?= t('add subtask')?>"	href="../<?= $id ?>/add_subtask" class="symbol"> </a>
 			<a title="<?= t('complete')?>"		href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $child_task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('cancel')?>"		href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('start')?>"			href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
@@ -77,7 +77,7 @@ include '../common_templates/messages.php'; ?>
 			<h1><?= $task['name'] ?></h1>
 			<span class="right">
 				<a title="<?= t('edit')?>"		href="edit"		class="symbol"></a>
-				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"></a>
+				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"> </a>
 				<a title="<?= t('add user')?>" href="add_user" class="symbol"></a>
 				<a title="<?= t('start')?>"    href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('complete')?>" href="complete" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>

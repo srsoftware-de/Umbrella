@@ -11,8 +11,7 @@ $task = load_tasks(['ids'=>$task_id]);
 
 // get a map from user ids to permissions
 $project_user_permissions = request('project','user_list',['id'=>$task['project_id']]);
-$project_user_ids = array_keys($project_user_permissions);
-$project_users = request('user','list',['ids'=>implode(',', $project_user_ids)]);
+$project_users = request('user','json',['ids'=>array_keys($project_user_permissions)]);
 load_users($task,$project_users); // add users to task
 
 load_requirements($task);

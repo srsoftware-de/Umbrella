@@ -16,7 +16,7 @@ $description = post('description');
 $user_ids = param('users');
 
 $project_users_ids = request('project','user_list',['id'=>$project_id]);
-$project_users = request('user','list',['ids'=>implode(',', array_keys($project_users_ids))]);
+$project_users = request('user','json',['ids'=>array_keys($project_users_ids)]);
 
 if ($name){
 	if (is_array($user_ids) && !empty($user_ids)){
