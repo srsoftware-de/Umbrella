@@ -4,6 +4,8 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('invoice');
-$invoices = Invoice::load();
+$options = [];
+if ($times = param('times')) $options['times'] = $times;
+$invoices = Invoice::load($options);
 
 die(json_encode($invoices));

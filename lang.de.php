@@ -79,6 +79,7 @@ $translations = array(
 		'Send ? via mail'=>'? per Mail versenden',
 		'Send to ?'=>'An ? senden',
 		'sent'=>'versendet',
+		'Show time'=>'Zeit anzeigen',
 		'Single price'=>'Einzelpreis (EUR)',
 		'State'=>'Status',
 		'Store PDF'=>'PDF speichern',

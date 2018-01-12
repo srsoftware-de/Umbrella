@@ -13,8 +13,8 @@ if (!$invoice) error('No invoice found or accessible for id ?',$id);
 if ($services['time']){
 	if (isset($invoice->company_id) && $invoice->company_id !== null){
 		$projects = request('project','json',['company_ids'=>$invoice->company_id]);		
-		$tasks = request('task','json',['project_ids'=>implode(',',array_keys($projects))]);
-		$times = request('time','json',['task_ids'=>implode(',',array_keys($tasks))]);
+		$tasks = request('task','json',['project_ids'=>array_keys($projects)]);
+		$times = request('time','json',['task_ids'=>array_keys($tasks)]);
 		$user_ids = [];
 		foreach ($times as $time_id => $time){
 			$user_ids[$time['user_id']] = true;
@@ -26,7 +26,7 @@ if ($services['time']){
 			}
 		}
 		
-		$users = request('user','list',['ids'=>implode(',', array_keys($user_ids))]);
+		$users = request('user','json',['ids'=>array_keys($user_ids)]);
 		
 		// add times selected by user to invoice
 		if ($selected_times = post('times')){		
@@ -191,7 +191,12 @@ include '../common_templates/messages.php'; ?>
 					foreach ($invoice->positions() as $pos => $position) { ?>
 				<tr>
 					<td><?= $pos ?></td>
-					<td><input name="position[<?= $pos ?>][item_code]" value="<?= $position->item_code ?>" /></td>
+					<td>
+						<input name="position[<?= $pos ?>][item_code]" value="<?= $position->item_code ?>" />
+						<?php if ($position->time_id !== null) {?><br/>
+						<a href="<?= getUrl('time',$position->time_id.'/view') ?>"><?= t('Show time')?></a>
+						<?php } ?>
+					</td>
 					<td>
 						<input name="position[<?= $pos?>][title]" value="<?= $position->title ?>" />
 						<textarea name="position[<?= $pos?>][description]"><?= $position->description ?></textarea>

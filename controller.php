@@ -434,9 +434,8 @@ class Invoice {
 		}
 	}
 	
-	static function load($ids = null){
+	static function load($options = []){
 		$db = get_or_create_db();
-		
 		$user_companies = request('company','json');
 		$user_company_ids = array_keys($user_companies);
 
@@ -446,16 +445,28 @@ class Invoice {
 			$qmarks = str_repeat('?,', count($user_company_ids) - 1) . '?';
 			$args = $user_company_ids;			
 		}
-		
 		$sql = 'SELECT * FROM invoices WHERE company_id IN ('.$qmarks.')';
 		
-		if ($ids !== null){
-			if (!is_array($ids)) $ids = [ $ids ];
+		$single = false;
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$ids = [ $ids ];
+				$single = true;
+			}
 			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
 			$args = array_merge($args, $ids);
-			$sql .= ' AND id IN ('.$qmarks.')';
+			$sql .= ' AND id IN ('.$qmarks.')';			
 		}
-
+		
+		if (isset($options['times'])){
+			$tids = $options['times'];
+			if (!is_array($tids)) $tids = [$tids];
+			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
+			$args = array_merge($args, $tids);
+			$sql .= ' AND id IN (SELECT invoice_id FROM invoice_positions WHERE time_id IN ('.$qmarks.'))';				
+		}
+		
 		$sql .= ' ORDER BY id DESC';
 		
 		$query = $db->prepare($sql);
