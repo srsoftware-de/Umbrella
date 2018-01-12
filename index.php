@@ -6,7 +6,7 @@ include 'controller.php';
 require_login('project');
 $projects = load_projects(['order'=>param('order')]);
 $all_user_ids = load_users($projects);
-$users = request('user','list',['ids'=>$all_user_ids]);
+$users = request('user','json',['ids'=>$all_user_ids]);
 $show_closed = param('closed') == 'show' || param('order') == 'status';
 $companies = isset($services['company']) ? request('company','json') : null;
 

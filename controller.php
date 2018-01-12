@@ -60,9 +60,13 @@
 		$sql = 'SELECT id,* FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
 		$args = [$user->id];
 		
+		$single = false;
 		if (isset($options['ids'])){
-			$ids = $options['ids'];
-			if (!is_array($ids)) $ids = [$ids];
+			$ids = $options['ids'];			
+			if (!is_array($ids)) {
+				$ids = [$ids];
+				$single = true;
+			}
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids); 
@@ -92,7 +96,7 @@
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load projects!');
 		$projects = $query->fetchAll(INDEX_FETCH);
-		if (isset($options['single']) && $options['single']) return reset($projects);
+		if ($single) return reset($projects);
 		return $projects;
 	}
 

@@ -13,7 +13,7 @@ if ($project_id = param('id')){
 	$allowed = $project['users'][$user->id]['permissions'] == PROJECT_PERMISSION_OWNER;
 	
 	if ($allowed){
-		$users = request('user','list');		
+		$users = request('user','json');		
 		if ($new_uid = post('project_user')){
 			add_user_to_project($project,$users[$new_uid],post('permissions'));
 			redirect('view');

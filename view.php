@@ -22,7 +22,7 @@ if ($project_id = param('id')){
 			} else error('You are not allowed to remove users from this project');
 		}
 		
-		$users = request('user','list',['ids'=>implode(',',$user_ids)]);
+		$users = request('user','json',['ids'=>$user_ids]);
 		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
 		
 		if ($project['company_id'] !== null && isset($services['company'])){
