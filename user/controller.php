@@ -21,7 +21,7 @@
 		sleep(10);
 		error('The provided username/password combination is not valid!');
 	}
-	
+
 	function perform_id_login($id){
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM users WHERE id = :id;');
@@ -71,7 +71,7 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
 		assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
-		
+
 		$query = $db->prepare('SELECT domain FROM token_uses WHERE token = :token;');
 		if ($query->execute([':token'=>$token])){
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -99,7 +99,7 @@
 		if ($include_passwords) $columns[]='pass';
 		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
 		$args = array();
-		
+
 		if ($ids !== null){
 			if (!is_array($ids)){
 				$single = true;
@@ -109,7 +109,7 @@
 			$sql .= ' WHERE id IN ('.$qMarks.')';
 			$args = $ids;
 		}
-			
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to request user list!');
 		$results = $query->fetchAll(INDEX_FETCH);
@@ -127,10 +127,10 @@
 		debug($query);
 		assert($query->execute(array(':id'=>$id)));
 	}
-	
+
 	function user_exists($login){
 		$db = get_or_create_db();
-		
+
 		$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
 		assert($query->execute(array(':login'=>$login)),'Was not able to assure non-existance of user!');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
