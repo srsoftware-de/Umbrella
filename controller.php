@@ -206,7 +206,7 @@
 		assert($query->execute($args),'Was no able to query file list.');
 		return $query->fetchAll(PDO::FETCH_ASSOC);		
 	}
-	
+
 	function shared_files($filename = null){
 		$result = array();
 		foreach (shared_files_list($filename) as $row){
@@ -214,34 +214,31 @@
 			$parts = explode(DS, $filename);
 			$pointer = &$result;
 			while ($part = array_shift($parts)){
-				
+
 				if (!isset($pointer[$part])){
 					$pointer[$part] = [];
 					if (count($parts) == 1){
-						$pointer[$part][array_shift($parts)] = file;
+						$pointer[$part][array_shift($parts)] = $filename;
 					}
-					
 				}
 				$pointer = &$pointer[$part];
-				
 			}
-			
-		}		
+		}
 		return $result;
 	}
 
 	function share_file($filename = null,$user_id_and_email = null,$send_mail = null){
 		global $user;
-		
+
 		$parts = explode('|', $user_id_and_email,2);
 		$user_id = $parts[0];
 		$reciever = $parts[1];
 		$sender = $user->email;
-		
+
 		assert(is_string($filename),'No filename given!');
 		assert(is_numeric($user_id),'No user selected!');
 		$db = get_or_create_db();
-	
+
 		$query = $db->prepare('INSERT INTO file_shares (file, user_id) VALUES (:file, :uid);');
 		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
 		info('File "?" has been shared.',$filename);
@@ -249,28 +246,34 @@
 		$url = getUrl('files','shared?path='.urldecode(dirname($filename)));
 		if ($send_mail == 'on')	send_mail($sender, $reciever, t('? shared a file with you',$user->login),t('You now have access to the file "?". Go to ? to download it.',[basename($filename),$url]));
 		redirect(getUrl('files','share?file='.urlencode($filename)));
-	}	
-	
+	}
+
 	function unshare_file($filename = null,$user_id = null){
 		assert(is_string($filename),'No filename given!');
 		assert(is_numeric($user_id),'No user selected!');
 		$db = get_or_create_db();
-		
+
 		$query = $db->prepare('DELETE FROM file_shares WHERE file = :file AND user_id = :uid;');
 		debug($query);
 		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
 		info('File "?" has been unshared.',$filename);
 		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}
-	
+
 	function load_connected_users(){
-		$projects = request('project','list');
-		$project_ids = array_keys($projects);
-		$project_users = request('project','user_list',['id'=>$project_ids]);
-		$user_list = request('user','json');
-		return array_intersect_key($user_list, $project_users);		
+		global $services;
+		$user_ids = [];
+		if (isset($services['company'])) {
+			$c_users = request('company','json',['users'=>'only']);
+			foreach ($c_users as $uid) $user_ids[$uid] = true;
+		}
+		if (isset($services['project'])) {
+			$p_users = array_keys(request('project','json',['users'=>'only']));
+			foreach ($p_users as $uid) $user_ids[$uid] = true;
+		}
+		return request('user','json',['ids'=>array_keys($user_ids)]);
 	}
-	
+
 	function renameFile($currentname = null,$newname = null){
 		if ($currentname === null || trim($currentname == '')) return error('Rename called, but no source file given!');
 		if ($newname === null || trim($newname == '')) return error('Rename called, but no new name given!');

@@ -7,7 +7,6 @@ require_login('files');
 
 $path = param('path');
 $shared_files = shared_files();
-
 if ($path){
 	$parent = dirname($path);
 	$parts = explode(DS, $path);
@@ -33,9 +32,9 @@ include '../common_templates/messages.php'; ?>
 		<td><a title="<?= t('move one level up') ?>" href="<?= $up ?>">..</a></td>
 	</tr>
 	<?php }?>
-	<?php foreach ($shared_files as $entry => $content){ ?>	
+	<?php foreach ($shared_files as $entry => $content){ ?>
 	<tr>
-		<?php if ($content == 'file') {?>
+		<?php if ($content == $path.$entry) {?>
 		<td>
 			<a title="<?= t('dowlnload file')?>" href="download?file=<?= $path.$entry ?>">
 				<span class="symbol"></span> <?= $entry ?>
@@ -48,7 +47,7 @@ include '../common_templates/messages.php'; ?>
 			</a>
 		</td>
 		<?php }?>
-	</tr>		
+	</tr>
 	<?php }?>
 </table>
 

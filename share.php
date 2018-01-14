@@ -11,7 +11,7 @@ if (access_granted($filename)){
 	if ($user_id_and_email = param('user_id_and_email')) share_file($filename,$user_id_and_email,post('send_mail'));
 	if ($unshare_user = param('unshare'))unshare_file($filename,$unshare_user);
 
-	$shares = array_keys(get_shares($filename));	
+	$shares = array_keys(get_shares($filename));
 } else {
 	error('You are not allowed to access "?".',$filename);
 }
