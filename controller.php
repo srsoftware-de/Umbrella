@@ -46,10 +46,10 @@ class Note{
 	static function load($options = []){
 		global $user;
 		$db = get_or_create_db();
-		
+
 		$sql = 'SELECT * FROM notes WHERE user_id = ?';
 		$args = [$user->id];
-		
+
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) $ids = [$ids];
@@ -63,13 +63,14 @@ class Note{
 			$parts = explode(':', $uri,2);
 			$module = array_shift($parts);
 			$id = array_shift($parts);
-
-			$entities = request($module,'json',['ids'=>$id]);
-			if (empty($entities)) return [];
+			if ($module != 'files'){
+				$entities = request($module,'json',['ids'=>$id]);
+				if (empty($entities)) return [];
+			}
 			$sql = 'SELECT * FROM notes WHERE uri = :uri';
 			$args = [':uri' => $uri];
 		}
-		
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load notes');
 		return $query->fetchAll(INDEX_FETCH);
