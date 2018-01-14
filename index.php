@@ -6,8 +6,8 @@ include 'controller.php';
 require_login('company');
 
 $companies = Company::load();
-$projects = request('project','json',['company_ids'=>implode(',',array_keys($companies))]);
-$user_list = request('user','list');
+$projects = isset($services['project']) ? request('project','json',['company_ids'=>array_keys($companies)]) : null;
+$user_list = request('user','json');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -34,6 +34,7 @@ foreach ($companies as $company){ ?>
 		</tr>	
 	<?php }}?>
 	</table>
+	<?php if ($projects) { ?>
 	<fieldset>
 		<legend><?= t('projects')?></legend>
 		<ul>
@@ -43,6 +44,7 @@ foreach ($companies as $company){ ?>
 		<?php } ?>
 		</ul>
 	</fieldset>
+	<?php } ?>
 	<fieldset>
 		<legend><?= t('current users')?></legend>
 		<ul>
@@ -55,4 +57,4 @@ foreach ($companies as $company){ ?>
 
 <?php }
 
-include '../common_templates/bottom.php';
+include '../common_templates/closure.php';

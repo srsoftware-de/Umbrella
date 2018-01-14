@@ -17,7 +17,7 @@ if ($new_user_id = param('new_user')){
 
 
 $title = $company->name.' - Umbrella';
-$user_list = request('user','list');
+$user_list = request('user','json');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
