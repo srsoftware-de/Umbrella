@@ -7,7 +7,7 @@ require_login('notes');
 $uri = param('uri');
 assert($uri !== null,'Called notes/json without uri');
 $notes = Note::load(['uri'=>$uri]);
-$users = request('user','list');
+$users = request('user','json');
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
@@ -29,7 +29,7 @@ foreach ($notes as $nid => $note){ ?>
 		<input type="hidden" name="uri" value="<?= $uri ?>" />
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
 		<fieldset class="add invoice">
-			<legend><?= t('add note') ?></legend>
+			<legend><?= t('add note - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
 			<textarea name="note"></textarea>
 			<button type="submit"><?= t('add note') ?></button>		
 		</fieldset>
