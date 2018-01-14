@@ -6,5 +6,4 @@ include 'controller.php';
 require_user_login();
 
 $ids = param('ids');
-
 die(json_encode(get_userlist($ids)));

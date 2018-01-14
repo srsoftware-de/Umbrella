@@ -92,7 +92,7 @@
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		return objectFrom($results[0]);
 	}
-	
+
 	function get_userlist($ids = null,$include_passwords = false){
 		$db = get_or_create_db();
 		$columns = array('id','id', 'login', 'email');
@@ -140,16 +140,15 @@
 	}
 
 	function add_user($login,$pass){
-		
 		$db = get_or_create_db();
-		
+
 		if (user_exists($login)) {
 			error('User with this login name already existing!');
 			return false;
 		}
-		
-		$hash = sha1($pass); // TODO: better hashing		
-		
+
+		$hash = sha1($pass); // TODO: better hashing
+
 		$query = $db->prepare('INSERT INTO users (login, pass) VALUES (:login, :pass);');
 		assert ($query->execute(array(':login'=>$login,':pass'=>$hash)),'Was not able to add user '.$login);
 		return true;
@@ -311,7 +310,7 @@
 		$query = $db->prepare('DELETE FROM login_services WHERE name = :name');
 		assert($query->execute([':name'=>$name]),'Was not able to delete login_service "'.$name.'"!');
 	}
-	
+
 	function invite_user($u){
 		global $user;
 		$db = get_or_create_db();
@@ -327,7 +326,7 @@
 		$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
 			    t("Click the following link and set a password to join:\n?",$url)."\n".
 			    t('Note: this link can only be used once!');
-				
+
 		send_mail($user->email, $u->email, $subject, $text);
 		info('Email has been sent to ?',$u->email);
 	}
