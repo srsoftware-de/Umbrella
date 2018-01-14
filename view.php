@@ -12,28 +12,29 @@ if (!$invoice) error('No invoice found or accessible for id ?',$id);
 
 if ($services['time']){
 	if (isset($invoice->company_id) && $invoice->company_id !== null){
-		$projects = request('project','json',['company_ids'=>$invoice->company_id]);		
-		$tasks = request('task','json',['project_ids'=>array_keys($projects)]);
-		$times = request('time','json',['task_ids'=>array_keys($tasks)]);
+		$projects = request('project','json',['company_ids'=>$invoice->company_id]); // get all projects of the invoices' company
+		$tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
+		$times = request('time','json',['task_ids'=>array_keys($tasks)]); // get all times for tasks of the project
 		$user_ids = [];
 		foreach ($times as $time_id => $time){
 			$user_ids[$time['user_id']] = true;
 			foreach ($time['task_ids'] as $task_id){
+				if (!isset($tasks[$task_id])) continue;
 				$task = $tasks[$task_id];
 				$time['tasks'][$task_id] = $task;
 				$project_id = $task['project_id'];
 				$projects[$project_id]['times'][$time_id] = $time;
 			}
 		}
-		
+
 		$users = request('user','json',['ids'=>array_keys($user_ids)]);
-		
+
 		// add times selected by user to invoice
-		if ($selected_times = post('times')){		
+		if ($selected_times = post('times')){
 			$customer_price = 50*100; // TODO: get customer price
 			$timetrack_tax = 19.0; // TODO: make adjustable
 			foreach ($selected_times as $time_id => $dummy){
-				
+
 				$time = $times[$time_id];
 				$duration = ($time['end_time']-$time['start_time'])/3600;
 				$description = $time['description'];
@@ -57,13 +58,11 @@ if ($services['time']){
 			}
 			request('time','update_state',['PENDING'=>implode(',',array_keys($selected_times))]);
 		}
-		
 	}
 }
 
 if (isset($services['items'])){
-	$items = request('items','json_list',['company'=>$invoice->company_id]);
-	
+	$items = request('items','json',['company'=>$invoice->company_id]);
 	if ($selected_items = post('items')){
 		foreach ($selected_items as $item_id => $dummy){
 			$item = $items[$item_id];
@@ -127,22 +126,22 @@ include '../common_templates/messages.php'; ?>
 			<fieldset>
 				<legend><?= t('Customer number')?></legend>
 				<input name="invoice[customer_number]" value="<?= $invoice->customer_number ?>" />
-			</fieldset>		
+			</fieldset>
 			<fieldset>
 				<legend><?= t('Customer email')?></legend>
 				<input name="invoice[customer_email]" value="<?= $invoice->customer_email ?>" />
-			</fieldset>	
-			
+			</fieldset>
+
 		</fieldset>
 		<fieldset class="sender">
 			<legend><?= t('Sender')?></legend>
-			<textarea name="invoice[sender]"><?= $invoice->sender ?></textarea>			
+			<textarea name="invoice[sender]"><?= $invoice->sender ?></textarea>
 			<fieldset>
 				<legend><?= t('Tax number')?></legend>
 				<input name="invoice[tax_number]" value="<?= $invoice->tax_number ?>" />
-			</fieldset>		
+			</fieldset>
 		</fieldset>
-		
+
 		<fieldset class="dates">
 			<legend><?= t('Dates')?></legend>
 			<label><?= t([Invoice::TYPE_OFFER=>'offer date',Invoice::TYPE_CONFIRMATION=>'confirmation date',Invoice::TYPE_INVOICE=>'invoice date',Invoice::TYPE_REMINDER=>'reminder date'][$invoice->type])?>
@@ -160,9 +159,9 @@ include '../common_templates/messages.php'; ?>
 					<option value="<?= $state ?>" <?= $invoice->state == $state ? 'selected="true"' :''?> ><?= t($text) ?></option>
 				<?php } ?>
 				</select>
-			<label>				
+			<label>
 		</fieldset>
-		
+
 		<fieldset class="header">
 			<legend>
 				<?= t('Greeter/Head text')?>
@@ -187,7 +186,7 @@ include '../common_templates/messages.php'; ?>
 					<th><?= t('Actions')?></th>
 				</tr>
 
-				<?php $first = true; 
+				<?php $first = true;
 					foreach ($invoice->positions() as $pos => $position) { ?>
 				<tr>
 					<td><?= $pos ?></td>
@@ -209,21 +208,21 @@ include '../common_templates/messages.php'; ?>
 					<td>
 						<a class="symbol" title="<?= t('drop')?>" href="drop?pos=<?= $pos ?>"></a>
 						<?php if (!$first) { ?>
-						<a class="symbol" title="<?= t('move up')?>" href="elevate?pos=<?= $pos ?>"></a>						
-						<?php }?>					
+						<a class="symbol" title="<?= t('move up')?>" href="elevate?pos=<?= $pos ?>"></a>
+						<?php }?>
 					</td>
-				</tr>				
+				</tr>
 				<?php $first = false; }?>
 			</table>
 		</fieldset>
 
 		<fieldset class="add_positions">
 			<legend><?= t('Add Positions')?></legend>
-			<ul>			
+			<ul>
 			<?php if ($projects) { ?>
 				<li>
 					<?= t('Timetrack')?>
-					<ul>			
+					<ul>
 						<?php foreach ($projects as $project_id => $project) {
 							if (!isset($project['times']) || empty($project['times'])) continue;
 						?>
@@ -236,11 +235,12 @@ include '../common_templates/messages.php'; ?>
 								<li>
 									<label>
 										<input type="checkbox" name="times[<?= $time_id?>]" /><?= $time['subject']?>
-										<span class="user"><?= $users[$time['user_id']]['login']?></span>										
+										<span class="user"><?= $users[$time['user_id']]['login']?></span>
 										<span class="duration">(<?= round(($time['end_time']-$time['start_time'])/3600,2)?>&nbsp;<?= t('hours')?>)</span>
 										<span class="description"><?= $time['description']?></span>
 										<ul>
-										<?php foreach ($time['tasks'] as $task_id => $task) { ?>
+										<?php foreach ($time['tasks'] as $task_id => $task) {
+											if (!isset($tasks[$task_id])) continue; ?>
 											<li><?= $tasks[$task_id]['name']?></li>
 										<?php } ?>
 										</ul>
@@ -256,14 +256,14 @@ include '../common_templates/messages.php'; ?>
 			<?php if ($items) { ?>
 				<li>
 					<?= t('Items')?>
-					<ul>			
+					<ul>
 						<?php foreach ($items as $item_id => $item) {?>
 						<li>
 							<label>
 								<input type="checkbox" name="items[<?= $item_id?>]" />
-								<span class="code"><?= $item['code']?></span>							
+								<span class="code"><?= $item['code']?></span>
 								<span class="name"><?= $item['name']?></span>
-								<span class="description"><?= $item['description']?></span>
+								<span class="description"><?= str_replace("\n",'<br/>',$item['description']) ?></span>
 							</label>
 						</li>
 						<?php } // foreach project?>
@@ -296,7 +296,7 @@ include '../common_templates/messages.php'; ?>
 			</legend>
 			<select name="invoice[template_id]">
 				<option value=""><?= t('No document template selected')?></option>
-				<?php foreach ($templates as $template) {?>				
+				<?php foreach ($templates as $template) {?>
 				<option value="<?= $template->id ?>" <?= $template->id == $invoice->template_id ? 'selected="true"':'' ?>><?= $template->name ?></option>
 				<?php }?>
 			</select>
@@ -307,8 +307,8 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Tags')?></legend>
 			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
 		</fieldset>
-		<?php } ?>	
-		<button type="submit"><?= t('Save')?></button>				
+		<?php } ?>
+		<button type="submit"><?= t('Save')?></button>
 		<a class="button" title="<?= t('Download/Preview PDF') ?>" href="download"><?= t('Download/Preview PDF') ?></a>
 		<?php if (isset($services['files'])) { ?>
 		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>

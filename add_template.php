@@ -30,7 +30,7 @@ include '../common_templates/messages.php'; ?>
 	<select name="template[company_id]">
 		<option value=""><?= t('Assign template to company')?></option>
 		<?php foreach ($companies as $company){?>
-		<option value="<?= $company['id'] ?>"><?= $company['name']?></option>			
+		<option value="<?= $company['id'] ?>"><?= $company['name']?></option>
 		<?php }?>
 	</select>
 	<input type="text" name="template[name]" value="<?= t('Template ?',date('Y-m-d H:i:s'));?>" />

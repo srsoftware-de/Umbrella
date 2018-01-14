@@ -25,36 +25,37 @@ class PDF extends FPDF{
 		$this->invoice = $invoice;
 		$this->inTable=false;
 	}
-	
+
 	function logo(){
 		if ($template = $this->invoice->template()){
+
 			$file = $template->file();
 			$type = end(explode('/',mime_content_type($file)));
-			$this->Image($file,10,10,null,30,$type);				
+			$this->Image($file,10,10,null,30,$type);
 		}
 	}
-	
+
 	function recipient(){
 		$this->SetY(45);
 		$this->SetX(10);
 		$this->SetFont('Arial','U',7);
-		
+
 		$sender = str_replace("\n", ', ', $this->invoice->sender);
 		$this->Cell(0,8,utf8_decode($sender),NO_FRAME,DOWN,'L');
-		
+
 		$this->SetFont('Arial','',10);
 		$customer = explode("\n", $this->invoice->customer);
 		foreach ($customer as $line){
 			$this->Cell(0,5,utf8_decode($line),NO_FRAME,DOWN,'L');
 		}
 	}
-	
+
 	function sender(){
 		$this->SetFont('Arial','',8);
-		
+
 		$this->SetY(30);
 		$this->SetX(130);
-		
+
 	    // Title
 	    $sender = explode("\n", $this->invoice->sender);
 	    foreach ($sender as $line){
@@ -63,26 +64,26 @@ class PDF extends FPDF{
 	    $this->Cell(70,4,$this->invoice->company()['phone'],NO_FRAME,DOWN,'R');
 	    $this->Cell(70,4,$this->invoice->company()['email'],NO_FRAME,DOWN,'R');
 	}
-	
+
 	function Header(){
 		$x = 150;
 		$dy = 5;
-		
+
 		$y = ($this->PageNo() == 1)?50:10;
-		
+
 		$this->SetFont('Arial','B',8);
-		
+
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Invoice Number'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,'INV0001',NO_FRAME,RIGHT,'R');
-		
+		$this->Cell(20,4,$this->invoice->number,NO_FRAME,RIGHT,'R');
+
 		$this->SetFont('Arial','',8);
-		
+
 		$date = date(t('Y-m-d'),$this->invoice->date);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Date'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$date,NO_FRAME,RIGHT,'R');
-		
+
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Delivery Date'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$this->invoice->delivery_date(),NO_FRAME,RIGHT,'R');

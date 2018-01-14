@@ -433,7 +433,7 @@ class Invoice {
 			$this->{$key} = $val;
 		}
 	}
-	
+
 	static function load($options = []){
 		$db = get_or_create_db();
 		$user_companies = request('company','json');
@@ -446,7 +446,7 @@ class Invoice {
 			$args = $user_company_ids;			
 		}
 		$sql = 'SELECT * FROM invoices WHERE company_id IN ('.$qmarks.')';
-		
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -462,7 +462,7 @@ class Invoice {
 		if (isset($options['times'])){
 			$tids = $options['times'];
 			if (!is_array($tids)) $tids = [$tids];
-			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
+			$qmarks = str_repeat('?,', count($tids) - 1) . '?';
 			$args = array_merge($args, $tids);
 			$sql .= ' AND id IN (SELECT invoice_id FROM invoice_positions WHERE time_id IN ('.$qmarks.'))';				
 		}
@@ -668,7 +668,7 @@ class Template{
 			'template'					=> 'BLOB',
 		];
 	}
-	
+
 	static function load($company_id){
 		$templates = [];
 		$db = get_or_create_db();
@@ -680,17 +680,19 @@ class Template{
 		foreach ($rows as $row) {
 			$template = new Template();
 			$template->patch($row);
-			$template->dirty = [];			
+			$template->dirty = [];
 			$templates[$template->id] = $template;
 		}
 		return $templates;
 	}
-	
+
 	function __construct($file_path = null){
 		global $services;
-		if ($file_path && isset($service['files'])) $this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
+		if ($file_path !== null && isset($services['files'])) {
+			$this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
+		}
 	}
-		
+
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -699,7 +701,7 @@ class Template{
 			$this->{$key} = $val;
 		}
 	}
-	
+
 	public function save(){
 		global $user;
 		$db = get_or_create_db();
@@ -731,7 +733,7 @@ class Template{
 			$this->id = $db->lastInsertId();
 		}
 	}
-	
+
 	public function file(){
 		$tempfile = tempnam('/tmp','template_');
 		$f = fopen($tempfile,'w');
