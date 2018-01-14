@@ -54,7 +54,27 @@
 		$query = $db->prepare('UPDATE projects SET status = :state WHERE id = :id;');
 		assert($query->execute(array(':state' => $state,':id'=>$project_id)),'Was not able to alter project state in database');
 	}
-	
+
+	function connected_users($options = []){
+		global $user;
+		$sql = 'SELECT user_id,* FROM projects_users WHERE project_id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
+		$args = [$user->id];
+
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qmarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' AND project_id IN ('.$qmarks.')';
+			$args = array_merge($args,$ids);
+		}
+
+		$sql .= ' GROUP BY user_id';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to read connected users.');
+		return $query->fetchAll(INDEX_FETCH);
+	}
+
 	function load_projects($options = array()){
 		global $user;
 		$sql = 'SELECT id,* FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';

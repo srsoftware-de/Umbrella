@@ -10,7 +10,7 @@ if ($project_id = param('id')){
 	if ($project){
 		$user_ids = load_users($project);
 		$current_user_is_owner = $project['users'][$user->id]['permissions'] == PROJECT_PERMISSION_OWNER;
-		
+
 		if ($remove_user_id = param('remove_user')){
 			if ($current_user_is_owner){
 				if (param('confirm')==='yes'){
@@ -21,17 +21,17 @@ if ($project_id = param('id')){
 				}
 			} else error('You are not allowed to remove users from this project');
 		}
-		
+
 		$users = request('user','json',['ids'=>$user_ids]);
 		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
-		
-		if ($project['company_id'] !== null && isset($services['company'])){
-			$project['company'] = request('company','json',['ids'=>$project['company_id'],'single'=>true]);
+
+		if ($project['company_id'] > 0 && isset($services['company'])){
+			$project['company'] = request('company','json',['ids'=>$project['company_id']]);
 		}
-		
+
 		$title = $project['name'].' - Umbrella';
 		$show_closed_tasks = param('closed') == 'show';
-		
+
 		if (file_exists('../lib/parsedown/Parsedown.php')){
 			include '../lib/parsedown/Parsedown.php';
 			$project['description'] = Parsedown::instance()->parse($project['description']);
@@ -114,7 +114,7 @@ if ($project){
 	<?php if (isset($project['company'])) { ?>
 	<tr>
 		<th><?= t('Company') ?></th>
-		<td><?= $project['company']['name'] ?></td>
+		<td><a href="<?=getUrl('company')?>"><?= $project['company']['name'] ?></a></td>
 	</tr>
 	<?php } ?>
 	<tr>
@@ -134,7 +134,7 @@ if ($project){
 			<?php } ?>
 			<?php display_tasks($tasks, null); ?>
 		</td>
-	</tr>	
+	</tr>
 	<?php } ?>
 	<?php if ($project['users']){ ?>
 	<tr>
@@ -150,7 +150,7 @@ if ($project){
 			</ul>
 		</td>
 	</tr>
-	<?php } ?>		
+	<?php } ?>
 </table>
 <?php
 if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSSION); 
