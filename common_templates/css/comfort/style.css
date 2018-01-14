@@ -2,18 +2,17 @@ body{
 	margin-left: 160px;
 	margin-top: 25px;
 	font-family: sans-serif;
-	background:#8cff7e;
 	position: relative;
 }
 
 a{
-	color: red;
 	text-decoration:none;
 }
 
 fieldset{
 	position: relative;
 	background: white;
+	margin-top: 5px;
 }
 
 table{
@@ -30,6 +29,16 @@ img[alt$="<"] {
 
 span.hover_h {
 	float: right;
+}
+
+legend{
+	padding: 0 5px;
+	border-radius: 5px;
+}
+
+body > a.symbol {
+	padding: 5px;
+	border-radius: 5px;
 }
 #main_menu{
 	position: fixed;
@@ -50,6 +59,19 @@ span.hover_h {
 	border-radius: 5px;
 	border: 1px solid black;
 }
+
+.right{
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+
+.right a {
+	border: 1px solid;
+	border-radius: 5px;
+	padding: 0 5px;
+}
+
 
 .right-fix{
 	position: fixed;
@@ -72,11 +94,6 @@ span.hover_h {
 	right: 0;
 	top: 8px;
 	height: 35px;
-	background:#8cff7e;
-}
-
-.button{
-	background: white;
 }
 
 #announce{
@@ -85,6 +102,12 @@ span.hover_h {
 	bottom: 0;
 }
 
-#announce a{
-	color:black;
+.notes .note{
+	border: 1px solid;
+	border-radius: 5px;
+}
+
+.infos {
+	display: inline;
+	margin: 5px;
 }

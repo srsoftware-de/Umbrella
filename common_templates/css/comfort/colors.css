@@ -1,0 +1,44 @@
+body{
+	background: #0f3a09;
+}
+
+a{
+	color: #0f3a09;
+}
+
+.pending a{
+	color:#999ac7
+}
+
+a:hover{
+	color: red;
+}
+
+fieldset,legend{
+	background: white;
+}
+
+.share, .share>legend{
+		background:#8cff7e;
+}
+
+.button{
+	background: white;
+}
+
+#announce a{
+	color:black;
+}
+
+body > a.symbol {
+	background: white;
+}
+
+.right a {
+	background: white;
+	color: red;
+}
+
+.infos{
+	background: lime;
+}
