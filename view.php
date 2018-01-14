@@ -10,26 +10,26 @@ if ($task_id){
 		if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
 		load_children($task,99); // up to 99 levels deep
 		load_requirements($task);
-	
-		$project_users_permissions = request('project','user_list',['id'=>$task['project_id']]); // needed to load project users
+
+		$project_users_permissions = request('project','json',['ids'=>$task['project_id'],'users'=>'only']); // needed to load project users
 		$project_users = request('user','json',['ids'=>array_keys($project_users_permissions)]); // needed to load task users
 		load_users($task,$project_users);
-	
+
 		$title = $task['name'].' - Umbrella';
 		$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
 		$show_closed_children = param('closed') == 'show';
-		
+
 		if (file_exists('../lib/parsedown/Parsedown.php')){
 			include '../lib/parsedown/Parsedown.php';
 			$task['description'] = Parsedown::instance()->parse($task['description']);
 		} else {
 			$task['description'] = str_replace("\n", "<br/>", $task['description']);
 		}
-	
+
 		if (isset($services['bookmark'])){
 			$hash = sha1(location('*'));
 			$bookmark = request('bookmark','json_get?id='.$hash);
-		}	
+		}
 	} else { // task not loaded
 		$title = 'Umbrella Task Management';
 		error('Task does not exist or you are not allowed to access it.');
@@ -90,7 +90,6 @@ include '../common_templates/messages.php'; ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
 				<?php } ?>
 			</span>
-						
 		</td>
 	</tr>
 	<tr>
@@ -111,7 +110,10 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $task['description']; ?></td>
 	</tr>
 	<?php } ?>
-	<?php if ($task['est_time'] > 0 || $task['est_time_children'] > 0){ ?>
+	<?php if (
+		(isset($task['est_time']) && $task['est_time'] > 0) ||
+		(isset($task['est_time_children']) && $task['est_time_children'] > 0)
+		){ ?>
 	<tr>
 		<th><?= t('Estimated time')?></th>
 		<td>
@@ -193,5 +195,5 @@ include '../common_templates/messages.php'; ?>
 	<?php } ?>
 </table>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSSION);
-} // if task	
+} // if task
 include '../common_templates/closure.php'; ?>
