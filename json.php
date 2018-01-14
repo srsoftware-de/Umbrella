@@ -8,4 +8,4 @@ require_login('items');
 $company_id = param('company');
 assert($company_id !== null,'No company id supplied!');
 
-echo json_encode(Item::load($company_id));
+die(json_encode(Item::load(['company_id'=>$company_id])));
