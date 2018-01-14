@@ -26,13 +26,13 @@ include 'menu.php';
 include '../common_templates/messages.php';
 
 if (isset($services['contact'])){
-	$contact = request('contact','json_assigned',null,false,true);
+	$contact = request('contact','json_assigned');
 	if ($contact){
 ?>
 
 <fieldset>
 	<legend>
-		<?= isset($contact['FN'])?$contact['FN']:implode(' ',$contact['N'])?>
+		<?= isset($contact['FN'])?$contact['FN']:str_replace(';',' ',$contact['N'])?>
 	</legend>
 	<?php if (isset($contact['TEL'])) { ?>
 	<fieldset>

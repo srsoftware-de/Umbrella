@@ -268,9 +268,9 @@
 	function get_assigned_logins($foreign_id = null){
 		global $user;
 		$db = get_or_create_db();
-		
+
 		$sql = 'SELECT * FROM service_ids_users ';
-		if ($foreign_id !== null) {			
+		if ($foreign_id !== null) {
 			$sql .= 'WHERE service_id = :id';
 			$args = [':id'=>$foreign_id];
 		} else {
