@@ -1,6 +1,7 @@
 <?php
 $translations = array(
 	'Actions'=>'Aktionen',
+	'add user'=>'Nutzer hinzufügen',
 	'assigned logins'=>'verknüpfte Konten',
 	'Bookmarks'=>'Lese&shy;zeichen',
 	"Click the following link and set a password to join:\n?"=>"Klicke auf den folgenden Link und setze ein Passwort, um loszulegen:\n?",
@@ -8,10 +9,12 @@ $translations = array(
 	'Client Appliance secret'=>'Client-Anwendungs-Kennwort',
 	'Company'=>'Firma',
 	'Connect with ? account'=>'Mit ?-Account verbinden',
+	'connect with other account'=>'Mit anderem Konto verknüpfen',
 	'Contacts'=>'Kontakte',
 	'Create new user'=>'Neuen Benutzer anlegen',
 	'Currently, only admin can edit other users!'=>'Im Moment kann nur der Administrator andere Benutzer ändern!',
 	'Delete assignment'=>'Kontoverbindung löschen',
+	'edit your account'=>'dein Konto bearbeiten',
 	'Files'=>'Dateien',
 	'Invoices'=>'Rechnungen',
 	'List of login services' => 'Liste der Login-Services',

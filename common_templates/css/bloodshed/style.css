@@ -317,6 +317,9 @@ img[alt$="<"] {
 	.tasklist tr>*:nth-child(6){
 		display: none;
 	}
+	fieldset.bookmark > fieldset{
+	        max-height: 50px;
+	}
 }
 
 @media (max-width: 600px){

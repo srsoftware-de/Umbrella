@@ -111,3 +111,12 @@ body > a.symbol {
 	display: inline;
 	margin: 5px;
 }
+
+.hidden{
+	display: none;
+}
+.copytext{
+	position: fixed;
+	left: -100px;
+	width: 90px;
+}
