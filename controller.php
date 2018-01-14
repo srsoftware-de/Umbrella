@@ -100,13 +100,13 @@ class Item{
 			$item = new Item();
 			$item->patch($row);
 			$item->dirty = [];
-			$item->company = $companies[$item->id];
+			$item->company = $companies[$item->company_id];
 			if (isset($options['single']) && $options['single']) return $item;
 			$items[$item->id] = $item;
 		}
 		return $items;
 	}
-	
+
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
