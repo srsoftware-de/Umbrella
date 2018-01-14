@@ -25,8 +25,8 @@ include '../common_templates/messages.php'; ?>
 	<?php foreach ($companies as $id => $company){ ?>
 	<a class="button" href="?company=<?= $id ?>"><?= $company['name']?></a>
 	<?php } ?>
-	
-<?php } else {	
+
+<?php } else {
 	$items = Item::load(['company_id'=>$company_id]);
 	$bookmark_service = isset($services['bookmark']) ? getUrl('bookmark') : null; 
 	$item_base_url = $bookmark_service ? getUrl('items') : null;
@@ -58,7 +58,7 @@ include '../common_templates/messages.php'; ?>
 			<?php }?>
 			</td>
 		</tr>
-		<tr>			
+		<tr>
 			<td></td>
 			<td><?= ($item->unit_price/100).' '.$company['currency']?> /</td>
 			<td><?= $item->unit ?></td>
@@ -66,7 +66,7 @@ include '../common_templates/messages.php'; ?>
 				<span class="right">
 					<a class="symbol" href="<?= $item->id?>/edit"></a>
 				</span>
-				<?= $item->description ?>
+				<?= str_replace("\n",'<br/>',$item->description) ?>
 			</td>
 		</tr>
 		<?php }?>

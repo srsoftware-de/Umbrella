@@ -52,7 +52,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description')?></legend>
-			<input	type="text"	name="item[description]" value="<?= $item->description ?>" />
+			<textarea	name="item[description]" ><?= $item->description ?></textarea>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Unit')?></legend>
@@ -66,11 +66,12 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Tax')?></legend>
 			<input	type="text"	name="item[tax]" value="<?= $item->tax ?>"/> %
 		</fieldset>
+		<?php if ($bookmark) { ?>
 		<fieldset>
 			<legend><?= t('Tags')?></legend>
 			<input	type="text"	name="tags" value="<?= implode(' ',$bookmark['tags'])?>"/>
 		</fieldset>
-		
+		<?php } ?>
 		<button type="submit"><?= t('Submit')?></button>
 	</fieldset>
 </form>

@@ -5,12 +5,12 @@ function get_or_create_db(){
 	assert(is_writable('db'),'Directory item/db not writable!');
 	if (!file_exists('db/items.db')){
 		$db = new PDO('sqlite:db/items.db');
-		
+
 		$tables = [
 			'items'=>Item::table(),
 		];
-		
-		foreach ($tables as $table => $fields){		
+
+		foreach ($tables as $table => $fields){
 			$sql = 'CREATE TABLE '.$table.' ( ';
 			foreach ($fields as $field => $props){
 				$sql .= $field . ' ';
@@ -26,8 +26,8 @@ function get_or_create_db(){
 								$sql.= 'PRIMARY KEY '; break;
 							default:
 								$sql .= $prop_v.' ';
-						}	
-					}		
+						}
+					}
 					$sql .= ", ";
 				} else $sql .= $props.", ";
 			}
@@ -55,7 +55,7 @@ class Item{
 			'tax'		=> 'INT'
 		];
 	}
-	
+
 	static function load($options = array()){
 		$templates = [];
 		$db = get_or_create_db();
@@ -65,8 +65,7 @@ class Item{
 		$sql = 'SELECT id,* FROM items';
 
 		$companies = request('company','json');
-	
-		
+
 		if (isset($options['company_id'])){
 			$cid = $options['company_id'];
 			if (!array_key_exists($cid,$companies)){
@@ -116,7 +115,7 @@ class Item{
 			$this->{$key} = $val;
 		}
 	}
-	
+
 	public function save(){
 		global $user;
 		$db = get_or_create_db();
@@ -149,7 +148,7 @@ class Item{
 			$this->dirty = [];
 		}
 	}
-	
+
 	public function file(){
 		$tempfile = tempnam('/tmp','template_');
 		$f = fopen($tempfile,'w');

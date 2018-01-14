@@ -18,16 +18,16 @@ if ($item_data = param('item')){
 	$item_data['unit_price'] *= 100;
 	$item->patch($item_data);
 	$item->save();
-	
+
 	$tags_raw = explode(' ',param('tags'));
-	
+
 	if (isset($services['bookmark'])){
 		$tags = ['company_'.$company_id.'_items'];
 		foreach ($tags_raw as $tag){
 			if (trim($tag) == '') continue;
 			$tags[] = $tag;
 		}
-		
+
 		$item_url = getUrl('items',$item->id.'/view');
 		request('bookmark','add',['url'=>$item_url,'tags'=>$tags,'comment'=>$item->description]);
 	}
@@ -53,7 +53,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description')?></legend>
-			<input	type="text"	name="item[description]" />
+			<textarea	name="item[description]" ><?= $item->description ?></textarea>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Unit')?></legend>
