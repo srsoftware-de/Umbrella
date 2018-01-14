@@ -11,8 +11,9 @@ if ($bookmark) { ?>
 <fieldset>
 	<legend><?= t('Tags')?></legend>
 	<?php $base_url = getUrl('bookmark');
+	if (isset($bookmark['tags'])){
 	foreach ($bookmark['tags'] as $tag){ ?>
 	<a class="button" href="<?= $base_url.'/'.$tag.'/view' ?>"><?= $tag ?></a>
-	<?php } ?>
+	<?php }} ?>
 </fieldset>
 <?php }

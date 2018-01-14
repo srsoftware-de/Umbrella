@@ -24,11 +24,11 @@
 		assert($query->execute([':uid'=>$user->id]),'Was not able to request tag list!');
 		return $query->fetchAll(INDEX_FETCH);
 	}
-	
+
 	function get_new_urls($limit = null){
-		global $user;
+		global $user,$services;
 		$db = get_or_create_db();
-		$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash WHERE user_id = :uid GROUP BY hash ORDER BY timestamp DESC';		
+		$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash WHERE user_id = :uid GROUP BY hash ORDER BY timestamp DESC';
 		$args = [':uid' => $user->id];
 		if ($limit !== null){
 			$sql .= ' LIMIT :limit';
@@ -37,16 +37,15 @@
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to request url list!');
 		$urls = $query->fetchAll(INDEX_FETCH);
-		$hashes = array_keys($urls);		
+		$hashes = array_keys($urls);
 		$qmarks = implode(',', array_fill(0, count($hashes), '?'));
 		$hashes[] = $user->id; // add user id
-		
+
 		$query = $db->prepare('SELECT tag,url_hash FROM tags WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
 		assert($query->execute($hashes),'Was not able to request tags for url list!');
 		$tags = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($tags as $tag) $urls[$tag['url_hash']]['tags'][] = $tag['tag'];
-		
-		
+
 		$query = $db->prepare('SELECT url_hash,comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
 		assert($query->execute($hashes),'Was not able to request comments for url list!');
 		$comments = $query->fetchAll(INDEX_FETCH);
@@ -59,7 +58,7 @@
 		}
 		return $urls;
 	}
-	
+
 	function save_tag($url = null,$tags = null,$comment = null){
 		global $user;
 		assert($url !== null && $url != '','No value set for url!');
@@ -146,46 +145,51 @@
 		$query = $db->prepare('SELECT * FROM urls WHERE hash = :hash;');
 		$query->execute([':hash'=>$hash]);
 		$url = $query->fetch(PDO::FETCH_ASSOC);
-		
+
 		$query = $db->prepare('SELECT comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash = :hash AND user_id = :uid;');
 		$query->execute([':hash'=>$hash,':uid'=>$user->id]);
 		$row = $query->fetch(PDO::FETCH_ASSOC);
 		if ($row) $url['comment']= $row['comment'];
-		
+
 		$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND url_hash = :hash ORDER BY TAG COLLATE NOCASE');
 		$query->execute([':hash'=>$hash,':uid'=>$user->id]);
 		$tags = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($tags as $tag) $url['tags'][] = $tag['tag'];
 		return $url;
 	}
-	
+
 	function delete_link($link){
 		global $user;
 		$url_hash = sha1($link['url']);
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM tags WHERE url_hash = :hash AND user_id = :uid;');
 		$query->execute([':hash'=>$url_hash,':uid'=>$user->id]);
-		
+
 		$query = $db->prepare('DELETE FROM url_comments WHERE url_hash = :hash AND user_id = :uid;');
 		$query->execute([':hash'=>$url_hash,':uid'=>$user->id]);
-		
 	}
-	
+
 	function update_url($link){
 		delete_link($link);
 		$tag = save_tag(param('url'),param('tags'),param('comment'));
 		info('Bookmark has been updated.');
-		return $tag;		
+		return $tag;
 	}
 
 	function load_connected_users(){
-		$projects = request('project','list');
-		$project_ids = array_keys($projects);
-		$project_users = request('project','user_list',['id'=>$project_ids]);
-		$user_list = request('user','list');
-		return array_intersect_key($user_list, $project_users);
+		global $services;
+		$user_ids = [];
+		if (isset($services['company'])) {
+			$c_users = request('company','json',['users'=>'only']);
+			foreach ($c_users as $uid) $user_ids[$uid] = true;
+		}
+		if (isset($services['project'])) {
+			$p_users = array_keys(request('project','json',['users'=>'only']));
+			foreach ($p_users as $uid) $user_ids[$uid] = true;
+		}
+		return request('user','json',['ids'=>array_keys($user_ids)]);
 	}
-	
+
 	function share_bookmark($user_id,$url_hash){
 		global $user;
 		$db = get_or_create_db();
