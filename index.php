@@ -7,14 +7,18 @@ require_login('notes');
 
 $notes = Note::load();
 
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$parsedown  = Parsedown::instance();
+}
+
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include 'menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 ?>
-<table>
+<table class="notes">
 	<tr>
 		<th><?= t('URL') ?></th>
 		<th><?= t('note') ?></th>
@@ -24,9 +28,9 @@ include '../common_templates/messages.php';
 	?>
 	<tr>
 		<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
-		<td><a href="<?= $note->url() ?>"><?= $note->note ?></a></td>
+		<td class="note"><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
 	</tr>
 <?php } ?>
 </table>
 
-<?php include '../common_templates/bottom.php';
+<?php include '../common_templates/closure.php';
