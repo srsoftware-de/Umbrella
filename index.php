@@ -29,7 +29,7 @@ include '../common_templates/messages.php'; ?>
 			$phones    = $vcard->phones();
 		?>
 		<tr>
-			<td><?= $vcard->fields['FN']['val'] ?></td>
+			<td><?= isset($vcard->fields['FN']) ? $vcard->fields['FN']['val'] :'' ?></td>
 			<td><?= (string)$vcard->name() ?></td>
 			<td>
 			<?php while (!empty($addresses)) { ?>
