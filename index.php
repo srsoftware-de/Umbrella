@@ -10,7 +10,7 @@ if (in_array($path,['.','user'])) $path = null;
 $entries = list_entries($path);
 if (param('format') == 'json') die(json_encode($entries));
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -34,7 +34,6 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('File / Directory') ?></th>
 			<th><?= t('Actions') ?></th>
 		</tr>
-		
 		<?php foreach ($entries['dirs'] as $alias => $dir){ ?>
 		<tr>
 			<td>
@@ -46,12 +45,12 @@ include '../common_templates/messages.php'; ?>
 				<?php if (!in_array($dir,['project','company','user/'.$user->id])) {?>
 				<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $dir ?>"></a>
 				<a class="symbol" title="<?= t('delete')?>"  href="delete?file=<?= $dir ?>"></a>
-				<?php }?>			
+				<?php }?>
 			</td>
 		</tr>
 		<?php }?>
-		
-		<?php foreach ($entries['files'] as $alias => $file){ 
+
+		<?php foreach ($entries['files'] as $alias => $file){
 			$filename = urlencode($file);	?>
 		<tr>
 			<td>
@@ -60,12 +59,11 @@ include '../common_templates/messages.php'; ?>
 				</a>
 			</td>
 			<td>
-				<a class="symbol" title=<?= t('share')?> href="share?file=<?= $filename ?>"></a>
+				<a class="symbol" title="<?= t('share')?>" href="share?file=<?= $filename ?>"></a>
 				<a class="symbol" title="<?= t('rename') ?>" href="rename?file=<?= $filename ?>"></a>
 				<a class="symbol" title="<?= t('delete')?>" href="delete?file=<?= $filename ?>"></a>
 				<?php if (is_image($alias)) { ?>
-				<a class="symbol" title="<?= t('Copy markdown to clipboard') ?>" href="#" onclick="return copyMarkdown(this);"><textarea class="copytext">![<?= t('alt text')?>](<?= getUrl('files','download?file='.$filename)?>)</textarea></a>
-				
+				<a class="symbol" title="<?= t('Copy markdown to clipboard') ?>" href="#" onclick="return copyMarkdown(this);"> <textarea class="copytext">![<?= t('alt text')?>](<?= getUrl('files','download?file='.$filename)?>)</textarea></a>
 				<?php } ?>
 			</td>
 		</tr>
@@ -79,6 +77,8 @@ include '../common_templates/messages.php'; ?>
 			<td></td>
 		</tr>
 	</table>
-	<?php if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(getUrl('files','index?path='.$path))],false,NO_CONVERSSION); ?>	
+	<?php if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(getUrl('files','index?path='.$path))],false,NO_CONVERSSION); ?>
+	<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'files:'.$path],false,NO_CONVERSSION); ?>
+
 </fieldset>
 <?php include '../common_templates/closure.php'; ?>

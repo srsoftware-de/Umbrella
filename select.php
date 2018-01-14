@@ -4,7 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('files');
-$path = param('path','user'.$user->id);
+$path = param('path');
 $target = param('target');
 if ($target === null) redirect('index');
 $entries = list_entries($path);
@@ -28,21 +28,21 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php foreach ($entries['dirs'] as $dir){ 
+	<?php foreach ($entries['dirs'] as $alias => $dir){
 	?>
 	<tr>
 		<td>
-			<a href="?target=<?= $target?>&path=<?= $path.DS.$dir ?>">
-				<span class="symbol"></span> <?= $dir ?>
+			<a href="?target=<?= $target?>&path=<?= $dir ?>">
+				<span class="symbol"></span> <?= $alias ?>
 			</a>
 		</td>
 	</tr>
 	<?php }?>
-	<?php foreach ($entries['files'] as $file){ ?>
+	<?php foreach ($entries['files'] as $alias => $file){ ?>
 	<tr>
 		<td>
-			<a title="select this file" href="<?= $target ?>?file=<?= $path.DS.$file ?>">
-				<span class="symbol"></span> <?= $file ?>
+			<a title="select this file" href="<?= $target ?>?file=<?= $file ?>">
+				<span class="symbol"></span> <?= $alias ?>
 			</a>
 		</td>
 	</tr>

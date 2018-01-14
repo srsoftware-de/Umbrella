@@ -6,7 +6,7 @@
 	const RECURSIVE = true;
 	const STORAGE = '/.storage';
 	const DS = '/';
-	
+
 	static $projects = null;
 	static $companies = null;
 
@@ -20,23 +20,23 @@
 			$db = new PDO('sqlite:db'.DS.'files.db');
 		}
 		return $db;
-		
+
 	}
 
 	function base_dir(){
 		return getcwd().STORAGE;
 	}
-	
+
 	function user_dir(){
 		global $user;
 		return 'user'.DS.$user->id;
 	}
-	
+
 	function path_elements($path,$index = null){
-		$elements = explode(DS, $path);		
+		$elements = explode(DS, $path);
 		return $index!==null ? $elements[$index] : $elements;
 	}
-	
+
 	function projects(){
 		global $projects;
 		if (!$projects) $projects = request('project','json');
@@ -48,10 +48,10 @@
 		if (!$companies) $companies = request('company','json');
 		return $companies;
 	}
-	
+
 	function access_granted($relative_path){
 		if (in_array($relative_path, [user_dir(), 'project', 'company'])) return true;
-		
+
 		switch (path_elements($relative_path,0)){
 			case 'user':
 				if (strpos($relative_path,user_dir().DS)===0) return true; // if path startes with user/<id>/
@@ -65,34 +65,36 @@
 				if (array_key_exists($company_id, companies())) return true;
 				break;
 		}
-		
+
 		$shared_files = shared_files_list();
 		foreach ($shared_files as $entry) {
 			if ($entry['file'] == $relative_path) return true;
 		}
-		
+
 		return false;
 	}
 
 	function list_entries($relative_path = null){
+		global $services;
 		if ($relative_path == null){
 			global $user;
-			return [
+			$result = [
 				'dirs' => [
-					t('private files') => 'user'.DS.$user->id,
-					t('Companies') => 'company',
-					t('Projects') => 'project',
+					t('private files') => 'user'.DS.$user->id
 				],
-				'files'=>[]
+				'files' => []
 			];
-		}		
-		
+			if (isset($services['company'])) $result['dirs'][t('Companies')] = 'company';
+			if (isset($services['project'])) $result['dirs'][t('Projects')] = 'project';
+			return $result;
+		}
+
 		if (access_granted($relative_path)){
 			$dirs = ['..'=>dirname($relative_path)];
 			$files = [];
 
 			switch ($relative_path){
-				
+
 				case ('project'):
 					foreach (projects() as $project) $dirs[$project['name']] = 'project'.DS.$project['id'];
 					break;
@@ -101,7 +103,7 @@
 					break;
 				default:
 					$absolute_path = base_dir().DS.$relative_path;
-					$entries = scandir($absolute_path);
+					$entries = file_exists($absolute_path) ? scandir($absolute_path) : [];
 					foreach ($entries as $entry){
 						if (in_array($entry,['.','..'])) continue;
 						if (is_dir($absolute_path.DS.$entry)) {
@@ -109,7 +111,6 @@
 						} else $files[$entry] = $relative_path.DS.$entry;
 					}
 			}
-			
 			return ['dirs'=>$dirs,'files'=>$files];
 		}
 		return null;
@@ -137,7 +138,7 @@
 		if ($base_folder == 'project'){
 			$project_id = array_shift($dir_parts);
 			$project_user_ids = request('project',$project_id.'/user_list');
-			$users = request('user','list',['ids'=>implode(',',array_keys($project_user_ids))]);
+			$users = request('user','json',['ids'=>array_keys($project_user_ids)]);
 			$sender = $user->email;
 			$subject = t('? uploaded a file to your project',$user->login);
 			$url = getUrl('files','?path='.$dir);
@@ -149,7 +150,7 @@
 		} elseif ($base_folder == 'company'){
 			$company_id = array_shift($dir_parts);
 			$company = request('company','json',['ids'=>$company_id,'single'=>true,'users'=>true],1);
-			$users = request('user','list',['ids'=>implode(',',$company['users'])]);
+			$users = request('user','json',['ids'=>$company['users']]);
 			$sender = $user->email;
 			$subject = t('? uploaded a file for your company',$user->login);
 			$url = getUrl('files','?path='.$dir);
@@ -266,7 +267,7 @@
 		$projects = request('project','list');
 		$project_ids = array_keys($projects);
 		$project_users = request('project','user_list',['id'=>$project_ids]);
-		$user_list = request('user','list');
+		$user_list = request('user','json');
 		return array_intersect_key($user_list, $project_users);		
 	}
 	
