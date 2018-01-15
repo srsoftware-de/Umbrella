@@ -5,11 +5,12 @@
 	function perform_login($login = null, $pass = null){
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM users WHERE login = :login;');
+		$query = $db->prepare('SELECT * FROM users WHERE login = :login OR email = :login;');
 		assert($query->execute(array(':login'=>$login)),'Was not able to request users from database!');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		$hash = sha1($pass);
 		foreach ($results as $user){
-			if (sha1($pass) == $user['pass']){
+			if ($hash == $user['pass']){
 				$token = getOrCreateToken($user);
 				$redirect = param('returnTo');
 				if (!$redirect && $user['id'] == 1) $redirect='index';
