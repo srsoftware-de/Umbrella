@@ -170,4 +170,9 @@
 		
 		info('User has been removed from project.');
 	}
+	
+	function hour($date){
+		if ($date === null||$date == '') return null;
+		return strtotime($date) / 3600;
+	}
 ?>

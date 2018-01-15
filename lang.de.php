@@ -32,6 +32,7 @@ $translations = array(
 		'participant'=>'Mitglied',
 		'Project'=>'Projekt',
 		'Projects'=>'Projekte',
+		'related files'=>'zugehörige Dateien',
 		'== Select a user =='=>'== Nutzer auswählen ==',
 		'show closed projects' => 'geschlossene Projekte anzeigen',
 		'show closed tasks'=>'geschlossene Aufgaben zeigen',

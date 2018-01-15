@@ -127,12 +127,20 @@ if ($project){
 	<?php } ?>
 	<?php if ($tasks) {?>
 	<tr>
-		<th><?= t('Tasks')?></th>
+		<th><?= t('Tasks')?><br/><br/><a href="gantt"><?= t('Gantt chart')?></a></th>
 		<td class="tasks">
 			<?php if (!$show_closed_tasks) { ?>
 			<a href="?closed=show"><?= t('show closed tasks')?></a>
 			<?php } ?>
 			<?php display_tasks($tasks, null); ?>
+		</td>
+	</tr>
+	<?php } ?>
+	<?php if (isset($services['files'])){ ?>
+	<tr>
+		<th><?= t('Files') ?></th>
+		<td>
+			<a href="<?= getUrl('files','?path=project/'.$project_id) ?>"><?= t('related files') ?></a>
 		</td>
 	</tr>
 	<?php } ?>
