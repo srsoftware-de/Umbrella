@@ -15,7 +15,6 @@ $id = param('id');
 assert(is_numeric($id),'No valid invoice id passed to edit!');
 $invoice = reset(Invoice::load($id));
 assert($invoice !== null,'No invoice found or accessible for id = '.$id);
-//debug($invoice,1);
 
 require('lib/fpdf181/fpdf.php');
 
@@ -74,7 +73,25 @@ class PDF extends FPDF{
 		$this->SetFont('Arial','B',8);
 
 		$this->SetXY($x,$y=$y+$dy);
-		$this->Cell(30,4,t('Invoice Number'),NO_FRAME,RIGHT,'L');
+		switch ($this->invoice->type){
+			case Invoice::TYPE_OFFER:
+				$this->Cell(30,4,t('Offer Number'),NO_FRAME,RIGHT,'L');
+				break;
+			case Invoice::TYPE_CONFIRMATION:
+				$this->Cell(30,4,t('Confirmation Number'),NO_FRAME,RIGHT,'L');
+				break;
+			case Invoice::TYPE_INVOICE:
+				$this->Cell(30,4,t('Invoice Number'),NO_FRAME,RIGHT,'L');
+				break;
+			case Invoice::TYPE_REMINDER:
+				$this->Cell(30,4,t('Reminder Number'),NO_FRAME,RIGHT,'L');
+				break;
+			default:
+				$this->Cell(30,4,t('Document Number'),NO_FRAME,RIGHT,'L');
+		}
+		
+		
+		
 		$this->Cell(20,4,$this->invoice->number,NO_FRAME,RIGHT,'R');
 
 		$this->SetFont('Arial','',8);
