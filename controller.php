@@ -146,8 +146,11 @@
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('task').$task_id.'/view','comment'=>t('Task: ?',$name),'tags'=>$tags],1);
+			$url = getUrl('task',$task_id.'/view');
+			request('bookmark','add',['url'=>$url,'comment'=>t('Task: ?',$name),'tags'=>$tags]);			
+			return sha1($url);
 		}
+		return false;
 	}
 
 	function add_task($name,$description = null,$project_id = null,$parent_task_id = null, $start_date = null, $due_date = null, $users = []){
@@ -194,11 +197,13 @@
 		];
 		
 		add_user_to_task($task,['id'=>$user->id,'email'=>$user->email,'login'=>$user->login],TASK_PERMISSION_OWNER);
+		$hash = isset($services['bookmark']) ? setTags($name,$task['id']) : false;
+		
 		foreach ($users as $id => $new_user) {
 			if ($id == $user->id) continue;
 			add_user_to_task($task,$new_user,TASK_PERMISSION_PARTICIPANT);
+			if ($hash) request('bookmark','index',['share_user_id'=>$id,'share_url_hash'=>$hash]);
 		}
-		if (isset($services['bookmark'])) setTags($name,$task_id);
 		return $task;
 	}
 	
