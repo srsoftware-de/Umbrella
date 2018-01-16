@@ -8,3 +8,4 @@
 		<script src="common_templates/js/umbrella.js"></script>
 	</head>
 <body>
+<img id="logo" src="<?= getUrl('user','common_templates/umbrella100px.png') ?>" />

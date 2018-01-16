@@ -6,8 +6,12 @@ a{
 	color: red;
 }
 
-.tasks .pending a{
+.tasks .pending>a{
 	color: gray;
+}
+
+.tasks .started>a{
+	color: #5bc500;
 }
 
 tr{
@@ -18,8 +22,7 @@ tr:nth-child(5n+1){
 }
 
 fieldset {
-    background-color: #101010;
-    border-color: red;
+	border-color: red;
 }
 
 .button,

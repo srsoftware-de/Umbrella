@@ -21,6 +21,13 @@ textarea {
 input[type=text]{
 	width: 100%;
 }
+
+img#logo{
+	position: fixed;
+	top: 10px;
+	right: 10px;
+	z-index: -1;
+}
 #main_menu,
 #main_menu form{
 	display: inline;
@@ -90,14 +97,15 @@ fieldset.add.invoice {
 	text-decoration: line-through;
 }
 
+.description a{
+	text-decoration: underline;
+}
+
 table {
     border-collapse: collapse;
 }
 tr > *{
 	padding: 5px 10px;
-}
-tr:nth-child(5n+1){
-	background-color: #303030;
 }
 
 label.street:after,
@@ -168,7 +176,7 @@ input[type="submit"] {
 
 .right{
 	float: right;
-	margin-left: 5px;
+	margin: 0 0 0 5px;
 }
 
 .tasks .project {
@@ -293,6 +301,48 @@ img[alt$="<"] {
 	right: 0;
 	padding: 3px 5px 0;
 	border-top-left-radius: 7px;
+}
+
+fieldset.scrolling{
+	overflow: scroll;
+	max-height: 80%;
+}
+
+svg#gantt{
+	max-width: unset;
+}
+
+svg .row{
+	fill: none;
+	pointer-events: all;
+}
+
+svg .row:hover{
+	fill: #333333;
+}
+
+svg .duration{
+	fill:rgba(255,0,255,0.4);
+	stroke:none;
+}
+
+svg .schedule{
+	fill:none;
+	stroke-width:1;
+	stroke: yellow;
+}
+
+svg .start{
+	stroke-dasharray: 10,30,40;	
+}
+
+svg .stop{
+	stroke-dasharray: 50,30;	
+}
+
+svg text{
+	stroke: none;
+	fill: red;
 }
 
 @media (max-width:1199px) {

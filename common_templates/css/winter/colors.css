@@ -3,11 +3,15 @@ body{
 	background-color: white;
 }
 a{
-	color: black;
+	color: #151567;
 }
 
-.tasks .pending a{
-	color: black;
+.tasks .pending>a{
+	color: #888888;
+}
+
+.tasks .started>a{
+	color: #53822c;
 }
 
 tr{
@@ -18,7 +22,6 @@ tr:nth-child(5n+1){
 }
 
 fieldset {
-    background-color: #eeeeee;
     border-color: black;
 }
 
