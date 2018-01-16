@@ -5,6 +5,7 @@ include 'controller.php';
 
 require_login('task');
 $task_id = param('id');
+$bookmark = false;
 if ($task_id){
 	if ($task = load_tasks(['ids'=>$task_id])){
 		if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
@@ -182,7 +183,7 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if ($bookmark) { ?>
+	<?php if ($bookmark && !empty($bookmark['tags'])) { ?>
 	<tr>
 		<th><?= t('Tags')?></th>
 		<td>

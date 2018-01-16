@@ -244,15 +244,19 @@
 		];
 		assert($query->execute($args),'Was not able to alter task entry in database');
 		
+		$hash = isset($services['bookmark']) ? setTags($task['name'],$task['id']) : false;
 		// notify
 		$sender = $user->email;
 		foreach ($task['users'] as $uid => $u){
+			if ($uid === $user->id) continue;
 			$reciever = $u['email'];
 			$subject = t('? edited one of your tasks',$user->login);
 			$text = t("The task \"?\" now has the following description:\n\n?\n\n?",[$task['name'],$task['description'],getUrl('task',$task['id'].'/view')]);
 			send_mail($sender, $u['email'], $subject, $text);
+			
+			if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash]);
 		}
-		if (isset($services['bookmark'])) setTags($task['name'],$task['id']);
+		
 	}
 	
 	function set_task_state($task_id, $state){
@@ -342,13 +346,16 @@
 		$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm);');
 		assert($query->execute(array(':tid'=>$task['id'],':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign task to user!');
 		
+		// share tags
+		$url = getUrl('task',$task['id'].'/view');
+		request('bookmark','index',['share_user_id'=>$new_user['id'],'share_url_hash'=>sha1($url)]);
+		
 		// notify
 		$sender = $user->email;
 		$reciever = $new_user['email'];
 		$subject = t('? assigned you to a task',$user->login);
 		$text = t('You have been assigned to the task "?": ?',[$task['name'],getUrl('task',$task['id'].'/view')]);
 		send_mail($sender, $reciever, $subject, $text);
-		
 	}
 	
 	function find_project($task_id){

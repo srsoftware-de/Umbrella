@@ -1,9 +1,12 @@
 <?php
 $translations = array(
+		'add subtask'=>'Unteraufgabe hinzufügen',
 		'Add subtask to "?"'=>'Unteraufgabe zu "?" hinzufügen',
-		'add to timetrack'=>'Zur Zeiterfassung hinzufügen',
+		'add to timetrack'=>'Zur Zeiterfassung hinzufügen',		
+		'add user'=>'Benutzer hinzufügen',
 		'Actions'=>'Aktionen',
 		'all'=>'alle',
+		'All members of this project are already assigned to this task.'=>'Es sind bereits alle Projekt-Nutzer an dieser Aufgabe beteiligt.',
 		'Bookmarks'=>'Lese&shy;zei&shy;chen',
 		'cancel'=>'abbrechen',
 		'Child tasks'=>'Unter&shy;auf&shy;gaben',
@@ -63,7 +66,7 @@ $translations = array(
 		'+three months'=>'+drei Monate',
 		'+six months'=>'+sechs Monate',
 		'+one year'=>'+ein Jahr',
-		'? assigned you to a task'=>'? hat ihnen eine Aufgabe zugewiesen',
+		'? assigned you to a task'=>'? hat Ihnen eine Aufgabe zugewiesen',
 		'? edited one of your tasks'=>'? hat eine Ihrer Aufgaben bearbeitet',
 		
 );
