@@ -26,7 +26,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Add new URL') ?></legend>
 		<fieldset>
 			<legend>URL</legend>
-			<input type="text" name="url" id="url" value="<?= $url ?>" />
+			<input type="text" name="url" id="url" value="<?= $url ?>" autofocus="true"/>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description')?></legend>
