@@ -91,7 +91,7 @@ if ($project){
 	if ($show_confirm_question){ ?>
 <fieldset>
 	<legend><?= t('Confirm removal of "?" from project?',$users[$remove_user_id]['login'])?></legend>
-	<?= t('User will no longer have access to this projects. Task assigned to ? will be assigned to you. Are you sure?',$users[$remove_user_id]['login'])?><br/>
+	<?= t('User will no longer have access to this projects. Task assigned to "?" will be assigned to you. Are you sure?',$users[$remove_user_id]['login'])?><br/>
 	<a class="button" href="?remove_user=<?= $remove_user_id?>&confirm=yes"><?= t('Yes')?></a>
 	<a class="button" href="view"><?= t('No')?></a>
 </fieldset>
