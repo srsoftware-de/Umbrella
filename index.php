@@ -38,8 +38,8 @@ include '../common_templates/messages.php'; ?>
 		<?php }?>
 		<td><?= t(project_state($project['status'])) ?></td>
 		<td>
-		<?php foreach ($project['users'] as $id => $perm) {?>
-		<?= $users[$id]['login']?><br/>
+		<?php foreach ($project['users'] as $uid => $perm) {?>
+		<?= $users[$uid]['login']?><br/>
 		<?php } ?>
 		</td>
 		<td>
