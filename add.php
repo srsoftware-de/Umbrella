@@ -6,8 +6,8 @@ include 'controller.php';
 require_login('project');
 if ($name = post('name')){
 	add_project($name,post('description'),post('company'));
-    header('Location: index');
-    die();
+	header('Location: index');
+	die();
 }
 
 $companies = isset($services['company']) ? request('company','json') : null;
@@ -38,7 +38,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){?>
 		<fieldset>
-        	<legend><?= t('Tags')?></legend>
+			<legend><?= t('Tags')?></legend>
 			<input name="tags" type="text" value="" />
 		</fieldset>
 		<?php }?> 

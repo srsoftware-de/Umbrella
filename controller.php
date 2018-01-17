@@ -21,13 +21,17 @@
 	}
 
 	function add_project($name,$description = null,$company_id=null){
-		global $user;
+		global $user,$services;
 		$db = get_or_create_db();
 		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
 		$query = $db->prepare('INSERT INTO projects (name, company_id, description, status) VALUES (:name, :cid, :desc, :state);');
 		assert($query->execute(array(':cid'=>$company_id,':name'=>$name,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new project entry in  database');
-		$project_id = $db->lastInsertId();
-		add_user_to_project($project_id,$user->id,PROJECT_PERMISSION_OWNER);
+		$project = [
+			'id' => $db->lastInsertId(),
+			'name' => $name,
+			'description'=>$description,
+		];
+		add_user_to_project($project,['id'=>$user->id],PROJECT_PERMISSION_OWNER);
 		
 		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
 			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
@@ -35,7 +39,7 @@
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('project').$project_id.'/view','comment'=>$name,'tags'=>$tags]);
+			request('bookmark','add',['url'=>getUrl('project').$project['id'].'/view','comment'=>$project['name'],'tags'=>$tags]);
 		}
 	}
 
@@ -156,7 +160,7 @@
 		$reciever = $new_user['email'];
 		$subject = t('? added you to a project',$user->login);
 		$text = t('You have been added to the project "?": ?',[$project['name'],getUrl('project',$project['id'].'/view')]);
-		send_mail($sender, $reciever, $subject, $text);
+		if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
 	}
 	
 	function remove_user($project_id,$user_id){
