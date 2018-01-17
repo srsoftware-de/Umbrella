@@ -105,7 +105,7 @@ if ($project){
 				<a class="symbol" title="<?= t('complete')?>" href="complete?redirect=../index"></a>
 				<a class="symbol" title="<?= t('cancel')?>" href="cancel?redirect=../index"></a>
 				<a class="symbol" title="<?= t('edit') ?>" href="edit"></a>
-				<a class="symbol" title="<?= t('add subtask')?>" href="../../task/add_to_project/<?= $project_id ?>"> </a>
+				<a class="symbol" title="<?= t('add task')?>" href="../../task/add_to_project/<?= $project_id ?>"> </a>
 				<a class="symbol" title="<?= t('add user')?>" href="add_user"></a>
 			</span>
 			<h1><?= $project['name'] ?></h1>

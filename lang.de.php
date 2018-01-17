@@ -4,6 +4,7 @@ $translations = array(
 		'Actions' => 'Aktionen',
 		'add new project' => 'neues Projekt',
 		'add subtask' => 'Unteraufgabe hinzufügen',
+		'add task' => 'Aufgabe hinzufügen',
 		'add user' => 'Benutzer hinzufügen',
 		'Add user to ?'=>'Benutzer zu ? hinzufügen',
 		'Bookmarks' => 'Lesezeichen',
