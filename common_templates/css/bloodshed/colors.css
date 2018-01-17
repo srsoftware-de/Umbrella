@@ -15,10 +15,10 @@ a{
 }
 
 tr{
-	background-color: #202020;
+	background-color: #52525270;
 }
 tr:nth-child(5n+1){
-	background-color: #303030;
+	background-color: #a7a7a75c;
 }
 
 fieldset {
