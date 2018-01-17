@@ -89,9 +89,7 @@ class PDF extends FPDF{
 			default:
 				$this->Cell(30,4,t('Document Number'),NO_FRAME,RIGHT,'L');
 		}
-		
-		
-		
+
 		$this->Cell(20,4,$this->invoice->number,NO_FRAME,RIGHT,'R');
 
 		$this->SetFont('Arial','',8);
@@ -104,7 +102,7 @@ class PDF extends FPDF{
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Delivery Date'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$this->invoice->delivery_date(),NO_FRAME,RIGHT,'R');
-		
+
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Tax number'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$this->invoice->tax_number,NO_FRAME,RIGHT,'R');
@@ -112,13 +110,12 @@ class PDF extends FPDF{
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Customer number'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$this->invoice->customer_number,NO_FRAME,NEWLINE,'R');
-		
+
 		if ($this->inTable){
 			$this->tableHead();
 		}
 	}
-	
-	
+
 	function tableHead(){
 		$this->SetFont('Arial','B',9);
 		$this->pos_n_cell(null);
@@ -207,12 +204,12 @@ class PDF extends FPDF{
 			error('No text set for mail!');
 			return false;
 		}
-		
+
 		$attachment = [
 			'name' => $this->invoice->number.' - '.date('c').'.pdf',
 			'content' => $this->Output('S'),
 		];
-		
+
 		return send_mail($sender,$reciever,$subject,$text,$attachment);
 	}
 	

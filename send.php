@@ -1,6 +1,6 @@
-<?php 
+<?php
 	include('pdf.php');
-	
+
 	$pdf = new PDF($invoice);
 	$pdf->generate();
 
@@ -8,24 +8,26 @@
 	$sender = post('sender',$invoice->company()['email']);
 	$subject = post('subject',t('New document from ?',$invoice->company()['name']));
 	$text = post('text',$invoice->mail_text());
-	
+
 	if (isset($_POST['reciever'])){
 		if ($pdf->send($sender,$reciever,$subject,$text)){
 			info('Your email to ? has been sent.',$invoice->customer_email);
 			$invoice->update_mail_text($text);
+			if ($invoice->state == Invoice::STATE_NEW){
+				$invoice->patch(['state'=>Invoice::STATE_SENT]);
+				$invoice->save();
+			}
+			redirect('view');
 		} else {
-			error('Was not able to send mail to ?',$invoice->customer_email);			
-		}		
+			error('Was not able to send mail to ?',$invoice->customer_email);
+		}
 	}
-	
-	
-		
+
 	include '../common_templates/head.php';
 	include '../common_templates/main_menu.php';
 	include 'menu.php';
 	include '../common_templates/messages.php';
-	
-	
+
 ?>
 <form method="POST">
 <fieldset>

@@ -46,6 +46,7 @@ $translations = array(
 		'Files'=>'Dateien',
 		'Footer text'=>'Fußtext',
 		'hours'=>'Stunden',
+		'Go back'=>'Zurück',
 		'Gross sum'=>'Rechnungsbetrag (Brutto, Eur)',
 		'Greeter/Head text'=>'Begrüßung/Kopftext',
 		'invoice' => 'Rechnung',
@@ -103,4 +104,5 @@ $translations = array(
 		'Y-m-d'=>'d.m.Y',
 		'Your invoice ? has been saved.'=>'Rechnung ? wurde gespeichert',
 		'Your invoice settings'=>'Ihre Rechnungs-Einstellungen',
+		'Your email to ? has been sent.'=>'Ihre Nachricht an ? wurde versendet.',
 );

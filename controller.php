@@ -383,12 +383,12 @@ class Invoice {
 			if (!isset($new_invoice->{$field})) $new_invoice->{$field} = $value;	
 		}
 		unset($new_invoice->id);
-		
+
 		$new_invoice->save();
 		$company_settings->save();
-		
+
 		foreach ($this->positions() as $position) $new_position = $position->copy($new_invoice);
-		
+
 		return $new_invoice;
 	}
 
@@ -401,7 +401,7 @@ class Invoice {
 			static::STATE_ERROR => 'error',
 		];
 	}
-	
+
 	static function table(){
 		return [
 			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
@@ -464,11 +464,11 @@ class Invoice {
 			if (!is_array($tids)) $tids = [$tids];
 			$qmarks = str_repeat('?,', count($tids) - 1) . '?';
 			$args = array_merge($args, $tids);
-			$sql .= ' AND id IN (SELECT invoice_id FROM invoice_positions WHERE time_id IN ('.$qmarks.'))';				
+			$sql .= ' AND id IN (SELECT invoice_id FROM invoice_positions WHERE time_id IN ('.$qmarks.'))';
 		}
-		
+
 		$sql .= ' ORDER BY id DESC';
-		
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load invoices!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -482,7 +482,7 @@ class Invoice {
 		}
 		return $invoices;
 	}
-	
+
 	public function save(){
 		global $user,$services;
 		$db = get_or_create_db();
@@ -561,7 +561,7 @@ class Invoice {
 		}
 		return $this->company_settings;
 	}
-	
+
 	public function mail_text(){
 		switch ($this->type){
 			case Invoice::TYPE_OFFER:
@@ -575,10 +575,10 @@ class Invoice {
 		}
 		return 'not implemented';
 	}
-	
+
 	public function update_mail_text($new_text){
 		$settings = $this->company_settings();
-		switch ($this->type){			
+		switch ($this->type){
 			case Invoice::TYPE_OFFER:
 				$settings->patch(['offer_mail_text'=>$new_text]);
 				break;
@@ -594,8 +594,8 @@ class Invoice {
 		}
 		$settings->save();
 	}
-	
-	
+
+
 	public function date(){
 		return date('d.m.Y',$this->date);
 	}
