@@ -28,6 +28,10 @@ img#logo{
 	right: 10px;
 	z-index: -1;
 }
+
+blockquote{
+	font-style: italic;
+}
 #main_menu,
 #main_menu form{
 	display: inline;

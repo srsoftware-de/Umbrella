@@ -1,3 +1,8 @@
+@font-face {
+    font-family: "awesome";
+    src: url("../fontawesome-webfont.woff");
+}
+
 body{
 	margin-left: 160px;
 	margin-top: 25px;
@@ -11,13 +16,9 @@ a{
 
 fieldset{
 	position: relative;
-	background: white;
 	margin-top: 5px;
 }
 
-table{
-	background: white;
-}
 img#logo{
 	position: fixed;
 	top: 10px;
@@ -31,7 +32,9 @@ img[alt$=">"] {
 img[alt$="<"] {
   float:left;
 }
-
+blockquote{
+	font-style: italic;
+}
 span.hover_h {
 	float: right;
 }
@@ -63,6 +66,11 @@ body > a.symbol {
 	margin:5px;
 	border-radius: 5px;
 	border: 1px solid black;
+}
+
+.symbol{
+	font-family: awesome;
+	font-size: 22px;
 }
 
 .right{
