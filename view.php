@@ -24,6 +24,8 @@ if ($project_id = param('id')){
 
 		$users = request('user','json',['ids'=>$user_ids]);
 		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
+		
+		if (param('note_added')) send_note_notification($project,$users);
 
 		if ($project['company_id'] > 0 && isset($services['company'])){
 			$project['company'] = request('company','json',['ids'=>$project['company_id']]);
@@ -31,7 +33,7 @@ if ($project_id = param('id')){
 
 		$title = $project['name'].' - Umbrella';
 		$show_closed_tasks = param('closed') == 'show';
-
+		
 		if (file_exists('../lib/parsedown/Parsedown.php')){
 			include '../lib/parsedown/Parsedown.php';
 			$project['description'] = Parsedown::instance()->parse($project['description']);

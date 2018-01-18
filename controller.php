@@ -179,4 +179,12 @@
 		if ($date === null||$date == '') return null;
 		return strtotime($date) / 3600;
 	}
+	
+	function send_note_notification($project,$users){
+		global $user;
+		$subject = t('? added a note.',$user->login);
+		$text = t("Open the following site to see the note on \"?\":\n\n?",[$project['name'],getUrl('project',$project['id'].'/view')]);
+		foreach ($users as $u) send_mail($user->email, $u['email'], $subject, $text);
+		info('Sent email notification to users of this project.');
+	}
 ?>
