@@ -23,11 +23,15 @@ if ($name = post('name')){
 	if ($start_date = post('start_date')){
 		$modifier = post('start_extension');
 		$task['start_date'] = $modifier ? date('Y-m-d',strtotime($start_date.' '.$modifier)) : $start_date;
+	} else {
+		$task['start_date'] = null;
 	}
 	
 	if ($due_date = post('due_date')){
 		$modifier = post('due_extension');
 		$task['due_date'] = $modifier ? date('Y-m-d',strtotime($due_date.' '.$modifier)) : $due_date;
+	} else {
+		$task['due_date'] = null;
 	}
 
 	if ($description = post('description')) $task['description'] = $description;
