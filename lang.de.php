@@ -34,6 +34,7 @@ $translations = array(
 		'No'=>'Nein',
 		'No extension'=>'keine Verlängerung',
 		'open'=>'offen',
+		"Open the following site to see the note on \"?\":\n\n?"=>"Gehe zur folgenden Seite, um die Anmerkung zu \"?\" zu lesen:\n\n?",
 		'owner'=>'Inhaber',
 		'Parent'=>'über&shy;geordnete Aufgabe',
 		'Parent task'=>'über&shy;geordnete Aufgabe',
@@ -46,6 +47,7 @@ $translations = array(
 		'Requires completion of'=>'Erfordert Abschluss von',
 		'= select parent task ='=>'= übergeordnete Aufgabe auswählen =',
 		'Selection of at least one user is required!'=>'Es muss mindestens ein Benutzer ausgewählt werden!',
+		'Sent email notification to users of this task.'=>'Emailbenachrichtigung wurde an Benutzer der Aufgabe gesendet.',
 		'show closed child tasks'=>'ab&shy;ge&shy;schlos&shy;sene Unter&shy;auf&shy;gaben anzeigen',
 		'start'=>'anfangen',
 		'Start date'=>'Start&shy;datum',
@@ -70,6 +72,7 @@ $translations = array(
 		'+three months'=>'+drei Monate',
 		'+six months'=>'+sechs Monate',
 		'+one year'=>'+ein Jahr',
+		'? added a note.'=>'? hat eine Notiz hinzugefügt',
 		'? assigned you to a task'=>'? hat Ihnen eine Aufgabe zugewiesen',
 		'? edited one of your tasks'=>'? hat eine Ihrer Aufgaben bearbeitet',
 		

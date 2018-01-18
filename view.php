@@ -19,6 +19,8 @@ if ($task_id){
 		$title = $task['name'].' - Umbrella';
 		$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
 		$show_closed_children = param('closed') == 'show';
+		
+		if (param('note_added')) send_note_notification($task);
 
 		if (file_exists('../lib/parsedown/Parsedown.php')){
 			include '../lib/parsedown/Parsedown.php';

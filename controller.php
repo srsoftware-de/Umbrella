@@ -389,4 +389,12 @@
 		$query = $db->prepare('UPDATE tasks_users SET permissions='.TASK_PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
 		assert($query->execute($args),'Was not able to assign user`s tasks to you!');
 	}
+	
+	function send_note_notification($task){
+		global $user;
+		$subject = t('? added a note.',$user->login);
+		$text = t("Open the following site to see the note on \"?\":\n\n?",[$task['name'],getUrl('task',$task['id'].'/view')]);
+		foreach ($task['users'] as $u) send_mail($user->email, $u['email'], $subject, $text);
+		info('Sent email notification to users of this task.');
+	}
 ?>
