@@ -7,7 +7,7 @@ require_login('invoice');
 
 $id = param('id');
 assert(is_numeric($id),'No valid invoice id passed to edit!');
-$invoice = reset(Invoice::load($id));
+$invoice = reset(Invoice::load(['ids'=>$id]));
 if (!$invoice) error('No invoice found or accessible for id ?',$id);
 
 $company_id = $invoice->company_id;

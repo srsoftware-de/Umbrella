@@ -24,7 +24,7 @@ class InvoicePosition{
 		$this->pos = reset($query->fetch(PDO::FETCH_ASSOC)) +1;
 		$this->invoice_id = $invoice->id;
 	}
-	
+
 	public function copy(Invoice $invoice){
 		$new_position = new InvoicePosition($invoice);
 		foreach ($this as $field => $value){
@@ -33,7 +33,7 @@ class InvoicePosition{
 		}
 		return $new_position->save();
 	}
-	
+
 	public function patch($data = array(),$set_dirty = true){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -42,7 +42,7 @@ class InvoicePosition{
 		}
 		return $this;
 	}
-	
+
 	public function save(){
 		global $services;
 		$db = get_or_create_db();
@@ -352,7 +352,7 @@ class Invoice {
 	const STATE_DELAYED = 3;
 	const STATE_PAYED = 4;
 	const STATE_ERROR = 99;
-	
+
 	const TYPE_OFFER = 1;
 	const TYPE_CONFIRMATION = 2;
 	const TYPE_INVOICE = 3;
@@ -443,7 +443,7 @@ class Invoice {
 		if ($user_company_ids !== null){
 			if (!is_array($user_company_ids)) $user_company_ids = [ $user_company_ids ];
 			$qmarks = str_repeat('?,', count($user_company_ids) - 1) . '?';
-			$args = $user_company_ids;			
+			$args = $user_company_ids;
 		}
 		$sql = 'SELECT * FROM invoices WHERE company_id IN ('.$qmarks.')';
 
@@ -456,9 +456,9 @@ class Invoice {
 			}
 			$qmarks = str_repeat('?,', count($ids) - 1) . '?';
 			$args = array_merge($args, $ids);
-			$sql .= ' AND id IN ('.$qmarks.')';			
+			$sql .= ' AND id IN ('.$qmarks.')';
 		}
-		
+
 		if (isset($options['times'])){
 			$tids = $options['times'];
 			if (!is_array($tids)) $tids = [$tids];

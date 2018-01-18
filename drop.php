@@ -8,7 +8,7 @@ require_login('invoice');
 $invoice_id = param('id');
 $index = param('pos');
 
-$invoice = reset(Invoice::load($invoice_id));
+$invoice = reset(Invoice::load(['ids'=>$invoice_id]));
 $positions = $invoice->positions();
 if (isset($positions[$index])) $positions[$index]->delete();
 redirect('view');
