@@ -32,7 +32,7 @@
 			'description'=>$description,
 		];
 		add_user_to_project($project,['id'=>$user->id],PROJECT_PERMISSION_OWNER);
-		
+
 		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
 			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
 			$tags = [];
@@ -41,6 +41,7 @@
 			}
 			request('bookmark','add',['url'=>getUrl('project').$project['id'].'/view','comment'=>$project['name'],'tags'=>$tags]);
 		}
+		return $project;
 	}
 
 	function update_project($id,$name,$description = null,$company_id = null){

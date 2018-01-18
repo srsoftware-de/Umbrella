@@ -5,9 +5,9 @@ include 'controller.php';
 
 require_login('project');
 if ($name = post('name')){
-	add_project($name,post('description'),post('company'));
-	header('Location: index');
-	die();
+	$project = add_project($name,post('description'),post('company'));
+	if (param('from') == 'task') die(json_encode($project)); // used for task-to-project conversion
+	redirect(getUrl('project',$project['id'].'/view'));
 }
 
 $companies = isset($services['company']) ? request('company','json') : null;
@@ -17,11 +17,12 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend><?= t('Create new Project')?></legend>
+	<fieldset><legend><?= t('Create new project')?></legend>
 		<?php if ($companies) { ?>
 		<fieldset>
 			<legend><?= t('Company')?></legend>
 			<select name="company">
+				<option value=""><?= t('no company')?></option>
 			<?php foreach($companies as $company) { ?>
 				<option value="<?= $company['id'] ?>"><?= $company['name'] ?></a>
 			<?php } ?>
@@ -41,8 +42,8 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Tags')?></legend>
 			<input name="tags" type="text" value="" />
 		</fieldset>
-		<?php }?> 
-		<input type="submit" />
+		<?php }?>
+		<button type="submit"><?= t('Create new project')?></button>
 	</fieldset>
 </form>
 

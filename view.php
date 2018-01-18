@@ -65,7 +65,7 @@ function display_tasks($task_list,$parent_task_id){
 			<?php } if ($task['status'] != TASK_STATUS_CANCELED) { ?>
 			<a class="symbol" title="<?= t('cancel') ?>"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } if ($task['status'] != TASK_STATUS_OPEN) { ?>
-			<a class="symbol" title="<?= t('open') ?>"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a class="symbol" title="<?= t('open') ?>"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } if ($task['status'] != TASK_STATUS_PENDING) { ?>
 			<a class="symbol" title="<?= t('wait') ?>"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } ?>
