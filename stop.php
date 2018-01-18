@@ -42,7 +42,7 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('State')?></legend>
 			<select name="state">
 			<?php foreach (TIME_STATES as $k => $v) { ?>
-				<option value="<?= $k?>" <?= $time['state'] == $k?'selected="true"':''?>><?= t($v)?></option>
+				<option value="<?= $k?>" <?= $k == TIME_STATUS_OPEN?'selected="true"':''?>><?= t($v)?></option>
 			<?php }?>
 			</select>
 		</fieldset>

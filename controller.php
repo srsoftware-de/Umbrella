@@ -3,10 +3,10 @@
 	const TIME_PERMISSION_OWNER = 1;
 	const TIME_PERMISSION_PARTICIPANT = 2;
 	
-	const TIME_STATUS_OPEN = 10;
-	const TIME_STATUS_STARTED = 20;
-	const TIME_STATUS_PENDING = 40;
-	const TIME_STATUS_COMPLETE = 60;
+	const TIME_STATUS_OPEN = 10; // time tracking concluded. not invoiced
+	const TIME_STATUS_STARTED = 20; // time tracking started
+	const TIME_STATUS_PENDING = 40; // time track used in unsent invoice
+	const TIME_STATUS_COMPLETE = 60; // time track used in sent invoice
 	const TIME_STATUS_CANCELED = 100;
 	
 	const TIME_STATES = [TIME_STATUS_CANCELED => 'canceled',

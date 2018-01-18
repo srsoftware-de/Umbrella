@@ -70,9 +70,9 @@ if (!$show_complete){ ?>
 		<td><a href="<?= $id ?>/edit"><?= t(TIME_STATES[$time['state']]) ?></a></td>
 		<td>
 			<?php if ($time['end_time']) { ?>
-			<a class="symbol" title="edit" href="<?= $id ?>/edit"></a>
+			<a class="symbol" title="<?= t('edit') ?>" href="<?= $id ?>/edit"></a>
 			<?php } ?>
-			<a class="symbol" title="drop" href="<?= $id ?>/drop"></a>
+			<a class="symbol" title="<?= t('drop') ?>" href="<?= $id ?>/drop"></a>
 		</td>
 	</tr>
 <?php } ?>
