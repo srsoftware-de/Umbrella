@@ -27,7 +27,7 @@ include '../common_templates/messages.php'; ?>
 		<?php } ?>
 	</table>
 </div>
-<table class="tasklist">
+<table class="tasks">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
 		<th><a href="?order=parent_task_id"><?= t('Parent Task')?></a></th>
@@ -51,7 +51,7 @@ include '../common_templates/messages.php'; ?>
 	$parent_id = $task['parent_task_id'];
 	?>
 	<tr class="project_<?= $task['project_id']?>">
-		<td><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
+		<td class="<?= task_state($task['status'])?>"><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
 		<td>
 			<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
 			<a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a>
