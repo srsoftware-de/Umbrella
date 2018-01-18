@@ -35,7 +35,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Edit Project')?></legend>
 		<?php if ($companies) { ?>
 		<fieldset>
-			<legend>Company</legend>
+			<legend><?= t('Company') ?></legend>
 			<select name="company">
 				<option value="0"><?= t('== no company assigned =='); ?></option>
 				<?php foreach($companies as $company) { ?>
@@ -58,7 +58,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
 		</fieldset>
 		<?php } ?>
-		<input type="submit" />
+	<button type="submit"><?= t('Update project') ?></button>
 	</fieldset>
 </form>
 
