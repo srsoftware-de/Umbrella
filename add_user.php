@@ -42,9 +42,9 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; 
 
 if ($allowed){ ?>
-<h1>Add user to <?= $task['name']?></h1>
+<h1><?= t('Add user to "?"',$task['name']) ?></h1>
 <form method="POST">
-	<fieldset><legend>Add user to task</legend>
+	<fieldset><legend><?= t('Add user to task') ?></legend>
 		<fieldset>
 			<select name="new_user">
 				<?php if (count($project_users)>1) { ?>
@@ -55,7 +55,7 @@ if ($allowed){ ?>
 				<?php }?>
 			</select>
 			<label>
-			<input type="checkbox" name="permissions" value="<?= TASK_PERMISSION_PARTICIPANT ?>" checked="true">Participant
+			<input type="checkbox" name="permissions" value="<?= TASK_PERMISSION_PARTICIPANT ?>" checked="true"><?= t('Participant') ?>
 			</label>	
 		</fieldset>
 		<input type="submit" />

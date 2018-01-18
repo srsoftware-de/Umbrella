@@ -104,7 +104,7 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend><?= t('Parent task')?></legend>
 			<select name="parent_task_id">
-			<option value="">= select parent task =</option>
+			<option value=""><?= t('= select parent task =') ?></option>
 			<?php foreach ($project_tasks as $id => $project_task) {
 				if ($project_task['status']==TASK_STATUS_CANCELED)continue;
 				if ($project_task['parent_task_id'] == null) show_project_task_option($project_tasks,$id); 

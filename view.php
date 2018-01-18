@@ -108,7 +108,7 @@ include '../common_templates/messages.php'; ?>
 	<?php if ($task['description']){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td><?= $task['description']; ?></td>
+		<td class="description"><?= $task['description']; ?></td>
 	</tr>
 	<?php } ?>
 	<?php if (
