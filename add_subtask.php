@@ -66,7 +66,7 @@ include '../common_templates/messages.php'; ?>
         	<legend><?= t('Due date')?></legend>
 			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
 		</fieldset>
-		<input type="submit" />		
+		<button type="submit"><?= t('add subtask'); ?></button>
 	</fieldset>
 </form>
 

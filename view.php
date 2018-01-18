@@ -19,7 +19,7 @@ if ($task_id){
 		$title = $task['name'].' - Umbrella';
 		$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
 		$show_closed_children = param('closed') == 'show';
-		
+
 		if (param('note_added')) send_note_notification($task);
 
 		if (file_exists('../lib/parsedown/Parsedown.php')){
@@ -88,7 +88,7 @@ include '../common_templates/messages.php'; ?>
 				<a title="<?= t('open')?>"     href="open"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('wait')?>"     href="wait"     class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('delete')?>"   href="delete"   class="symbol"></a>
-
+				<a title="<?= t('convert to project'); ?>" href="convert" class="symbol"></a>
 				<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
 				<?php } ?>

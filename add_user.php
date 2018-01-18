@@ -26,7 +26,7 @@ if ($allowed){
 		warn('All members of this project are already assigned to this task.');
 		redirect('view');
 	}
-	
+
 	if ($new_user = param('new_user')){
 		if (array_key_exists($new_user, $project_users)){
 			add_user_to_task($task,$project_users[$new_user],post('permissions'));
@@ -39,7 +39,7 @@ if ($allowed){
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 if ($allowed){ ?>
 <h1><?= t('Add user to "?"',$task['name']) ?></h1>
@@ -48,7 +48,7 @@ if ($allowed){ ?>
 		<fieldset>
 			<select name="new_user">
 				<?php if (count($project_users)>1) { ?>
-					<option value="" selected="true">= Select a user =</option>
+					<option value="" selected="true"><?= t('= Select a user =') ?>'</option>
 				<?php }
 					foreach ($project_users as $id => $u){ ?>
 				<option value="<?= $id ?>"><?= $u['login']?></option>
@@ -56,9 +56,9 @@ if ($allowed){ ?>
 			</select>
 			<label>
 			<input type="checkbox" name="permissions" value="<?= TASK_PERMISSION_PARTICIPANT ?>" checked="true"><?= t('Participant') ?>
-			</label>	
+			</label>
 		</fieldset>
-		<input type="submit" />
+		<button type="submit"><?= t('add user') ?></button>
 	</fieldset>
 </form>
 <?php }

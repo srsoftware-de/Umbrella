@@ -4,8 +4,12 @@ include '../bootstrap.php';
 include 'controller.php';
 require_login('task');
 
-$task_id = param('id');
-if (!$task_id) error('No task id passed!');
+if ($task_id = param('id');
+if (!$task_id) {
+	error('No task id passed!');
+	redirect(getUrl('task'));
+}
+
 $task = load_tasks(['ids'=>$task_id]);
 if ($task){
 	$target = param('redirect');

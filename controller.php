@@ -28,27 +28,27 @@
 		}
 		return $db;
 	}
-	
+
 	function update_task_requirements($id,$required_task_ids){
 		$db = get_or_create_db();
-		
+
 		if (empty($required_task_ids)) {
 			$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :tid');
-			$query->execute([':tid'=>$id]);			
+			$query->execute([':tid'=>$id]);
 			return;
 		}
 		$required_task_ids = array_keys($required_task_ids);
-		
-		$qmarks = implode(',', array_fill(0, count($required_task_ids), '?'));		
+
+		$qmarks = implode(',', array_fill(0, count($required_task_ids), '?'));
 		$args = $required_task_ids;
 		$args[] = $id;
-		
+
 		$query = $db->prepare('DELETE FROM task_dependencies WHERE required_task_id NOT IN ('.$qmarks.') AND task_id = ?');
 		$query->execute($args);
 		$query = $db->prepare('INSERT INTO task_dependencies (task_id, required_task_id) VALUES (:id, :req);');
 		foreach ($required_task_ids as $rid)$query->execute([':id'=>$id,':req'=>$rid]);
 	}
-	
+
 	function update_task_states($db){
 		$date = '"'.date('Y-m-d').'"';
 		$db->exec('UPDATE tasks SET status = '.TASK_STATUS_OPEN.' WHERE status = '.TASK_STATUS_PENDING.' AND start_date != "" AND start_date <= '.$date);
@@ -206,20 +206,20 @@
 		}
 		return $task;
 	}
-	
+
 	function update_task($task){
 		global $services,$user;
-		
+
 		// check
 		assert(array_key_exists('id',$task),'$task does not contain "id"');
 		assert(array_key_exists('name',$task)       && (trim($task['name']) != ''),'Task name must be set!');
 		assert(array_key_exists('project_id',$task) && is_numeric($task['project_id']),'Task must reference project!');
-		
+
 		// calculate
 		if (isset($task['start_date']) && trim($task['start_date']) != ''){
 			$start_stamp = strtotime($task['start_date']);
 			assert($start_stamp !== false,'Start date is not a valid date!');
-		}		
+		}
 		if (isset($task['due_date']) && trim($task['due_date']) != ''){
 			$due_stamp = strtotime($task['due_date']);
 			assert($due_stamp !== false,'Due date is not a valid date!');
@@ -227,10 +227,10 @@
 				$task['start_date'] = $task['due_date'];
 				warn('Start date adjusted to match due date!');
 			}
-		}		
-		
+		}
+
 		// save
-		$db = get_or_create_db();		
+		$db = get_or_create_db();
 		$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, est_time = :est, start_date = :start, due_date = :due WHERE id = :id;');
 		$args = [
 			':id'=>$task['id'],
@@ -243,7 +243,7 @@
 			':due'=>$task['due_date']
 		];
 		assert($query->execute($args),'Was not able to alter task entry in database');
-		
+
 		$hash = isset($services['bookmark']) ? setTags($task['name'],$task['id']) : false;
 		// notify
 		$sender = $user->email;
@@ -253,12 +253,12 @@
 			$subject = t('? edited one of your tasks',$user->login);
 			$text = t("The task \"?\" now has the following description:\n\n?\n\n?",[$task['name'],$task['description'],getUrl('task',$task['id'].'/view')]);
 			send_mail($sender, $u['email'], $subject, $text);
-			
+
 			if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash]);
 		}
-		
+
 	}
-	
+
 	function set_task_state($task_id, $state){
 		$db = get_or_create_db();
 		assert(is_numeric($task_id),'invalid task id passed!');
