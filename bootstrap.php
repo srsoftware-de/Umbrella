@@ -289,16 +289,13 @@ function revoke_token($token){
  * checks if a user is logged in and forces a login of not.
  */
 function require_login($service_name = null){
-	global $services,$user,$theme;
-	
-	$revoke = param('revoke');
-	if ($revoke) die(revoke_token($revoke));
-	
+	global $services,$user,$theme;	
+	if ($revoke = param('revoke')) die(revoke_token($revoke));	
 	assert($service_name !== null,'require_login called without a service name!');
-	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
+	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	$user = getLocallyFromToken();
 	if ($user === null) validateToken($service_name);
-	if ($user === null) redirect(getUrl('user','login?returnTo='.location()));
+	if ($user === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	if (isset($user->theme)) $theme = $user->theme;
 }
 
@@ -325,7 +322,7 @@ function init(){
 	$user = null;
 	session_start();
 	if ($token_param = param('token')) $_SESSION['token'] = $token_param;
-	if (isset($_GET['token'])) redirect(location(true)); // if token was appended to url: set cookie and reload
+	if (isset($_GET['token'])) redirect(location('token')); // if token was appended to url: set cookie and reload
 }
 
 function objectFrom($entity){

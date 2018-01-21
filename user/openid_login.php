@@ -9,7 +9,7 @@ $login_services = get_login_services();
 $login_service = $_SESSION['login_service_name'] ? $login_services[$_SESSION['login_service_name']] : null;
 
 if (isset($_SESSION['redirect'])){
-	$_POST['returnTo'] = $_SESSION['redirect'];
+	$_POST['returnTo'] = $_SESSION['redirect'];	
 	unset($_SESSION['redirect']);
 } elseif ($redirect = param('returnTo')){
 	$_SESSION['redirect'] = $redirect;
@@ -24,9 +24,7 @@ include 'lib/OpenIDConnectClient.php';
 if ($login_service){
 	$oidc = new OpenIDConnectClient($login_service['url'],$login_service['client_id'],$login_service['client_secret']);
 	
-	if ($redirect = param('returnTo')){
-		$_SESSION['redirect'] = $redirect;		
-	}
+	if ($redirect = param('returnTo'))$_SESSION['redirect'] = $redirect;
 	
 	if ($oidc->authenticate()){
 		$info = $oidc->requestUserInfo();
