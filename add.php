@@ -31,14 +31,23 @@ if (access_granted($dir) && !in_array($dir,['company','project'])){
 	error('You are not allowed to add files to "?"!',$dir);
 	redirect(getUrl('files','?path='.$dir));
 }
+
+$realm = array_shift(explode(DS,$dir));
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST" enctype="multipart/form-data">
-	<fieldset>
+	<fieldset class="file">
 		<legend><?= t('Upload new file'); ?></legend>
 		<input type="file" name="file" />
+		<?php if ($realm != 'user') { ?>		
+		<label>
+			<input type="checkbox" checked="true" name="notify" />
+			<?= t("Notifiy $realm users after upload")?>
+		</label>
+		<?php } ?>
 		<button type="submit"><?= t('Save') ?></button>
 	</fieldset>
 </form>

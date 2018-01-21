@@ -135,30 +135,28 @@
 		$dir_parts = explode(DS, $dir);
 		$base_folder = array_shift($dir_parts);
 		
+		$users = false;
 		if ($base_folder == 'project'){
 			$project_id = array_shift($dir_parts);
 			$project_user_ids = request('project',$project_id.'/user_list');
 			$users = request('user','json',['ids'=>array_keys($project_user_ids)]);
-			$sender = $user->email;
 			$subject = t('? uploaded a file to your project',$user->login);
-			$url = getUrl('files','?path='.$dir);
-			$text = t('The file "?" has been uploaded to ?.',[$file_data['name'],$url]);
-			foreach ($users as $u){
-				$reciever = $u['email']; 
-				send_mail($sender, $reciever, $subject, $text);
-			}			
 		} elseif ($base_folder == 'company'){
 			$company_id = array_shift($dir_parts);
 			$company = request('company','json',['ids'=>$company_id,'single'=>true,'users'=>true],1);
 			$users = request('user','json',['ids'=>$company['users']]);
-			$sender = $user->email;
 			$subject = t('? uploaded a file for your company',$user->login);
+		}
+
+		if ($users && param('notify')){
+			$sender = $user->email;
 			$url = getUrl('files','?path='.$dir);
 			$text = t('The file "?" has been uploaded to ?.',[$file_data['name'],$url]);
 			foreach ($users as $u){
 				$reciever = $u['email'];
 				send_mail($sender, $reciever, $subject, $text);
 			}
+			info('Notifications were sent.');
 		}
 		
 		if (!rename($file_data['tmp_name'], $filename)) return t('Was not able to move file to ?!',$directory);
