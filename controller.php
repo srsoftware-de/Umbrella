@@ -251,7 +251,7 @@
 			if ($uid === $user->id) continue;
 			$reciever = $u['email'];
 			$subject = t('? edited one of your tasks',$user->login);
-			$text = t("The task \"?\" now has the following description:\n\n?\n\n?",[$task['name'],$task['description'],getUrl('task',$task['id'].'/view')]);
+			$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$task['name'],$task['description']]).getUrl('task',$task['id'].'/view');
 			send_mail($sender, $u['email'], $subject, $text);
 
 			if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash]);
@@ -354,7 +354,7 @@
 		$sender = $user->email;
 		$reciever = $new_user['email'];
 		$subject = t('? assigned you to a task',$user->login);
-		$text = t('You have been assigned to the task "?": ?',[$task['name'],getUrl('task',$task['id'].'/view')]);
+		$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
 		send_mail($sender, $reciever, $subject, $text);
 	}
 	
