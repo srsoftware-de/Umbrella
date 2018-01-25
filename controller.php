@@ -548,10 +548,9 @@ class Invoice {
 		}
 	}
 	
-	public function company(){
-		if (!isset($this->company)){
-			$this->company = request('company','json',['ids'=>$this->company_id,'single'=>true]);
-		}
+	public function company($field = null){
+		if (!isset($this->company)) $this->company = request('company','json',['ids'=>$this->company_id,'single'=>true]);
+		if ($field !== null) return $this->company[$field];
 		return $this->company;
 	}
 	

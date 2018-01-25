@@ -60,8 +60,8 @@ class PDF extends FPDF{
 	    foreach ($sender as $line){
 	    	$this->Cell(70,4,utf8_decode($line),NO_FRAME,DOWN,'R');
 	    }
-	    $this->Cell(70,4,$this->invoice->company()['phone'],NO_FRAME,DOWN,'R');
-	    $this->Cell(70,4,$this->invoice->company()['email'],NO_FRAME,DOWN,'R');
+	    $this->Cell(70,4,$this->invoice->company('phone'),NO_FRAME,DOWN,'R');
+	    $this->Cell(70,4,$this->invoice->company('email'),NO_FRAME,DOWN,'R');
 	}
 
 	function Header(){
@@ -139,7 +139,7 @@ class PDF extends FPDF{
 	    $this->Cell(0,5,utf8_decode(t('Local court: ?',$this->invoice->court)),NO_FRAME,NEWLINE,'L');
 	    
 	    $this->SetY(-15);
-	    $this->Cell(0,10,'Page '.$this->PageNo().'/{nb}',NO_FRAME,0,'R');
+	    $this->Cell(0,10,t('Page ?/?',[$this->PageNo(),'{nb}']),NO_FRAME,0,'R');
 	}
 	
 	function firstPage(){
@@ -244,13 +244,17 @@ class PDF extends FPDF{
 		}
 	}
 	
+	function format_value($v){
+		return number_format(round($v/100),2,$this->invoice->company('decimal_separator'),$this->invoice->company('thousands_separator'));
+	}
+	
 	function s_pr_cell($i){
-		$i=($i===null)?t('Single price'):round(($i/100),2);
+		$i=($i===null)?t('Single price'):$this->format_value($i);
 		$this->Cell(20,7,utf8_decode($i),NO_FRAME,RIGHT,'R');
 	}
 	
 	function price_cell($i){
-		$i=($i===null)?t('Price'):round(($i/100),2);
+		$i=($i===null)?t('Price'):$this->format_value($i);
 		$this->Cell(20,7,utf8_decode($i),NO_FRAME,NEWLINE,'R');
 	}
 	

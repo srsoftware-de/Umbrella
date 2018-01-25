@@ -70,6 +70,7 @@ $translations = array(
 		'offer date'=>'Angebotsdatum',
 		'offer number'=>'Angebotnummer',
 		'Offer Number'=>'Angebotnummer',
+		'Page ?/?' => 'Seite ?/?',
 		'payed' => 'bezahlt',
 		'Positions' => 'Posten',
 		'Projects'=>'Projekte',
