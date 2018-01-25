@@ -1,7 +1,9 @@
-<?php $title = 'Umbrella Contact Management';
+<?php 
 
 include '../bootstrap.php';
 include 'controller.php';
+
+$title = t('Umbrella: Contacts');
 
 require_login('contact');
 if (post('EMAIL')){

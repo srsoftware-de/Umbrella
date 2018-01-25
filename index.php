@@ -1,8 +1,9 @@
-<?php $title = 'Umbrella Contacts';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Contacts');
 require_login('contact');
 
 $vcards = VCard::load();
@@ -21,9 +22,8 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('phones') ?></th>
 			<th><?= t('emails') ?></th>
 			<th><?= t('actions') ?></th>
-			
 		</tr>
-		<?php foreach ($vcards as $id => $vcard){ 
+		<?php foreach ($vcards as $id => $vcard){
 			$addresses = $vcard->addresses();
 			$emails    = $vcard->emails();
 			$phones    = $vcard->phones();
@@ -47,9 +47,9 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 			</td>
 			<td>
-				<a class="symbol" title="download" href="<?= $id?>/download"></a>
-				<a class="symbol" title="edit" href="<?= $id?>/edit"></a>
-				<a class="symbol" title="assign with me" href="<?= $id?>/assign_with_me"></a>
+				<a class="symbol" title="<?= t('download') ?>" href="<?= $id?>/download"></a>
+				<a class="symbol" title="<?= t('edit') ?>" href="<?= $id?>/edit"></a>
+				<a class="symbol" title="<?= t('assign with me') ?>" href="<?= $id?>/assign_with_me"></a>
 			</td>
 		</tr>
 		<?php } ?>

@@ -1,8 +1,9 @@
-<?php $title = 'Umbrella Contacts';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Contacts');
 require_login('contact');
 
 $id = param('id');
