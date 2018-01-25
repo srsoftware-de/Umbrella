@@ -420,6 +420,7 @@ class Invoice {
 			'court'				=> 'TEXT',
 			'customer'			=> 'TEXT',
 			'customer_number'	=> 'INT',
+			'customer_tax_number'=> ['VARCHAR'=>255],
 			'customer_email'	=> ['VARCHAR'=>255],
 			'type'				=> ['INT','NOT NULL','DEFAULT'=>static::TYPE_INVOICE],
 		];

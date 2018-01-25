@@ -1,8 +1,9 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Invoice Management');
 require_login('invoice');
 
 $companies = request('company','json');
@@ -21,6 +22,7 @@ if ($customer_contact_id = post('customer')){
 	$customer_vcard  = $contacts[$customer_contact_id];
 	$_POST['customer'] = address_from_vcard($customer_vcard);
 	$_POST['customer_number'] = isset($customer_vcard['X-CUSTOMER-NUMBER']) ? $customer_vcard['X-CUSTOMER-NUMBER'] : null;
+	$_POST['customer_tax_number'] = isset($customer_vcard['X-TAX-NUMBER']) ? $customer_vcard['X-TAX-NUMBER'] : null;
 	if (isset($customer_vcard['EMAIL'])){
 		$email = $customer_vcard['EMAIL'];
 		while (is_array($email)){
@@ -71,7 +73,7 @@ include '../common_templates/messages.php'; ?>
 			<legend>Sender</legend>
 			<textarea name="sender"><?= $company['address'] ?></textarea>			
 			<fieldset>
-				<legend>Tax number</legend>
+				<legend><?= t('Tax number') ?></legend>
 				<input name="tax_number" value="<?= $company['tax_number'] ?>" />
 			</fieldset>
 			<fieldset>

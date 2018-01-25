@@ -43,7 +43,7 @@ class PDF extends FPDF{
 		$this->Cell(0,8,utf8_decode($sender),NO_FRAME,DOWN,'L');
 
 		$this->SetFont('Arial','',10);
-		$customer = explode("\n", $this->invoice->customer);
+		$customer = explode("\n", $this->invoice->customer);		
 		foreach ($customer as $line){
 			$this->Cell(0,5,utf8_decode($line),NO_FRAME,DOWN,'L');
 		}
@@ -111,6 +111,12 @@ class PDF extends FPDF{
 		$this->Cell(30,4,t('Customer number'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$this->invoice->customer_number,NO_FRAME,NEWLINE,'R');
 
+		if ($this->invoice->customer_tax_number){
+		    $this->SetXY($x,$y=$y+$dy);
+		    $this->Cell(30,4,t('Customer tax number'),NO_FRAME,RIGHT,'L');
+		    $this->Cell(20,4,$this->invoice->customer_tax_number,NO_FRAME,NEWLINE,'R');
+		}
+		
 		if ($this->inTable){
 			$this->tableHead();
 		}

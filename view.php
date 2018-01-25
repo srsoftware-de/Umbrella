@@ -1,8 +1,9 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Invoice Management');
 require_login('invoice');
 
 $id = param('id');
@@ -126,6 +127,10 @@ include '../common_templates/messages.php'; ?>
 			<fieldset>
 				<legend><?= t('Customer number')?></legend>
 				<input name="invoice[customer_number]" value="<?= $invoice->customer_number ?>" />
+			</fieldset>
+			<fieldset>
+				<legend><?= t('Customer tax number')?></legend>
+				<input name="invoice[customer_tax_number]" value="<?= $invoice->customer_tax_number ?>" />
 			</fieldset>
 			<fieldset>
 				<legend><?= t('Customer email')?></legend>

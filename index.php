@@ -1,8 +1,9 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Invoice Management');
 require_login('invoice');
 $invoices = Invoice::load();
 $companies = request('company','json');
