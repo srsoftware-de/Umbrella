@@ -19,8 +19,8 @@ foreach ($companies as $company){ ?>
 <fieldset class="company">
 	<legend>
 		<span>
-			<a href="<?= $company->id ?>/edit" class="symbol"></a>
-			<a href="<?= $company->id ?>/add_user" class="symbol"></a>
+			<a href="<?= $company->id ?>/edit" class="symbol" title="<?= t('edit')?>"></a>
+			<a href="<?= $company->id ?>/add_user" class="symbol" title="<?= t('add user') ?>"></a>
 		</span>
 		<?= $company->name ?>
 	</legend>

@@ -2,7 +2,9 @@
 
 $translations = array(
 		'add new company'=>'Neue Firma hinzufügen',
+		'add company'=>'Firma hinzufügen',
 		'address'=>'Adresse',
+		'add user'=>'Nutzer hinzufügen',
 		'bank_account'=>'Bank&shy;ver&shy;bin&shy;dung',
 		'Bookmarks'=>'Lesezeichen',
 		'Company'=>'Firma',
@@ -12,6 +14,7 @@ $translations = array(
 		'current users'=>'derzeitige Benutzer',
 		'decimals'=>'Nachkommastellen',
 		'decimal_separator'=>'Dezimal&shy;trenn&shy;zeichen',
+		'edit'=>'Bearbeiten',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
 		'logo'=>'Logo',
