@@ -80,7 +80,8 @@ class Note{
 		return [ 'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'user_id' => ['INT','NOT NULL'],
 			'uri' => ['VARCHAR'=>255, 'NOT NULL'],
-			'note' => ['TEXT','NOT NULL']
+			'note' => ['TEXT','NOT NULL'],
+			'timestamp' => 'INT',
 		];
 	}
 	
@@ -103,8 +104,8 @@ class Note{
 		global $user;
 		$db = get_or_create_db();
 
-		$sql = 'INSERT INTO notes (user_id, uri, note) VALUES (:uid, :uri, :note);';
-		$args = [':uid'=>$user->id, ':uri'=>$this->uri, ':note'=>$this->note];
+		$sql = 'INSERT INTO notes (user_id, uri, note, timestamp) VALUES (:uid, :uri, :note, :time);';
+		$args = [':uid'=>$user->id, ':uri'=>$this->uri, ':note'=>$this->note, ':time'=>time()];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to  save note!');
 

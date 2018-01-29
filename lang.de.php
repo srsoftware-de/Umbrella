@@ -18,5 +18,6 @@ $translations = array(
 		'Timetrack'=>'Zeiterfassung',
 		'Users'=>'Benutzer',
 		'Yes'=>'Ja',
+		'Y-m-d H:i:s'=>'d.m.Y H:i:s',
 		
 );
