@@ -34,7 +34,7 @@ if ($login_service){
 		if ($user_id) {
 			perform_id_login($user_id);
 		} else {
-			error('Your login provider successfully athenticated you, but the account there is not linked to any umbrella account!');
+			error('Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!');
 			redirect('login');
 		}
 	}

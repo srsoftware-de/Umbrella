@@ -41,6 +41,7 @@ $translations = array(
 	'theme'=>'Thema',
 	'Timetrack'=>'Zeiterfassung',
 	'The default username/password is admin/admin.'=>'Standard-Nutzername/-Passwort ist admin/admin.',
+	'The provided username/password combination is not valid!'=>'Die angegebene Nutzer/Passwort-Kombination ist nicht gültig',
 	'Type'=>'Typ',
 	'Umbrella is an online project management system developed by Stephan Richter.'=>'Umbrella ist eine Online-Projektverwaltung und wird von Stephan Richter entwickelt.',
 	'User id field in response'=>'Nutzer-ID-Feld in antwort',
@@ -49,4 +50,5 @@ $translations = array(
 	'Users'=>'Benutzer',
 	'User data has been updated.'=>'Daten wurden aktualisiert.',
 	'? invited you to Umbrella'=>'? hat dich zu Umbrella eingeladen',
+	'Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!'=>'Ihr Login-Servie hat Sie erfolgreich identifiziert, aber ihr Account dort ist mit keinem Account hier verknüpft!',
 );

@@ -5,9 +5,9 @@ include 'controller.php';
 
 require_user_login();
 
-if ($email = post('email')){ // defined in bootstrap.php
+if ($login = post('login')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
-		if (add_user($email,$pass)){ // defined in controller.php
+		if (add_user($login,$pass)){ // defined in controller.php
 			header('Location: index');
 			die();
 		}
@@ -20,8 +20,8 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset><legend><?= t('Create new user') ?></legend>
-		<fieldset><legend><?= t('Email') ?></legend>
-		<input type="text" name="email" />
+		<fieldset><legend><?= t('Login Name') ?></legend>
+		<input type="text" name="login" />
 		</fieldset>
 		<fieldset><legend><?= t('Password') ?></legend>
 		<input type="password" name="pass" />

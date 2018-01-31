@@ -15,16 +15,17 @@ include 'lib/OpenIDConnectClient.php';
 if ($login_service){
 	$oidc = new OpenIDConnectClient($login_service['url'],$login_service['client_id'],$login_service['client_secret']);
 	try  {
-		if ($$test = $oidc->authenticate()){
-			$oidc->setRedirectURL(location());
+		if ($test = $oidc->authenticate()){
+			$oidc->setRedirectURL(getUrl('user','add_openid_login'));
 			$info = $oidc->requestUserInfo();
 			$id = $_SESSION['login_service_name'].':'.$info->{$login_service['user_info_field']};
-			unset($_SESSION['login_service_name']);		
+			unset($_SESSION['login_service_name']);
 			assign_user_service($id);
 		} 
 	} catch (OpenIDConnectClientException $e){
 		error($e->getMessage());
 	}
+	unset($_SESSION['login_service_name']);
 }
 
 include '../common_templates/head.php';
