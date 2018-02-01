@@ -25,6 +25,7 @@ $translations = array(
 		'Log out ?'=>'? ausloggen',
 		'New Url'=>'Neue Url:',
 		'No'=>'Nein',
+		'Notes'=>'Notizen',
 		'Projects'=>'Projekte',
 		'Select file with links'=>'Datei mit Hyperlinks auswählen',
 		'select user'=>'Nutzer auswählen',
