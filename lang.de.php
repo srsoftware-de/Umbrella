@@ -27,6 +27,7 @@ $translations = array(
 		'Files: ?'=>'Dateien: ?',
 		'File shares of file ?'=>'Freigaben für Datei ?',
 		'Invoices'=>'Rechnungen',
+		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
 		'move one level up'=>'eine Ebene nach oben gehen',
 		'NO'=>'Nein',
