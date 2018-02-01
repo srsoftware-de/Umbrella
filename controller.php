@@ -16,6 +16,11 @@
 						 TIME_STATUS_STARTED => 'started'
 						];
 	$TIME_PERMISSIONS = array(TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant');
+	
+	function state_text($state){
+		$t = TIME_STATES;
+		return $t[$state];
+	}
 
 	function get_or_create_db(){
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create time/db directory!');

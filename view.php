@@ -52,7 +52,7 @@ include '../common_templates/messages.php';
 	</tr>
 	<tr>
 		<th>
-			<?= t('State')?></th><td><?= t(TIME_STATES[$time['state']]); ?>
+			<?= t('State')?></th><td><?= t(state_text($time['state'])); ?>
 			<?php if ($time['end_time']) { ?>
 			<span class="change_state">&rarr;
 				<a href="update_state?OPEN=2&returnTo=<?= location('*') ?>"><?= t('open')?></a> | 
