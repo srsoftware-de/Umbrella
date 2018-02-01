@@ -31,6 +31,7 @@ $translations = array(
 		'Log out ?'=>'? ausloggen',
 		'move one level up'=>'eine Ebene nach oben gehen',
 		'NO'=>'Nein',
+		'Notes'=>'Notizen',
 		'Notifications were sent.'=>'Benachrichtigungen wurden versendet.',
 		'Notifiy project users after upload'=>'Projekt-Benutzer über Datei-Upload informieren',
 		'Notifiy company users after upload'=>'Firmen-Mitglieder über Datei-Upload informieren',
