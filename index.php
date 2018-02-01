@@ -1,11 +1,12 @@
-<?php $title = 'Umbrella Task Management';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Task Management');
 require_login('task');
 
-$tasks = load_tasks(['order'=>param('oder','due_date')]);
+$tasks = load_tasks(['order'=>param('order','due_date')]);
 $projects = request('project','list');
 $show_closed = param('closed') == 'show';
 
@@ -30,7 +31,7 @@ include '../common_templates/messages.php'; ?>
 <table class="tasks">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
-		<th><a href="?order=parent_task_id"><?= t('Parent Task')?></a></th>
+		<th><a href="?order=parent_task_id"><?= t('Parent task')?></a></th>
 		<th><a href="?order=project_id"><?= t('Project')?></a></th>
 		<th><a href="?order=status"><?= t('Status')?></a></th>
 		<th><a href="?order=start_date"><?= t('Start')?></a></th>

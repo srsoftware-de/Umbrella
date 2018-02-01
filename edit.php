@@ -1,8 +1,9 @@
-<?php $title = 'Umbrella Task Management';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Task Management');
 require_login('task');
 
 $task_id = param('id');
@@ -84,7 +85,7 @@ function show_project_task_option($list, $id, $space=''){
 	$project_task = $list[$id];?>
 	<option value="<?= $id ?>" <?= ($id == $task['parent_task_id'])?'selected="selected"':''?>><?= $space.$project_task['name']?></option>
 		<?php foreach ($list as $sub_id => $sub_task) {
-			if ($sub_task['status']==TASK_STATUS_CANCELED)continue;
+			if (in_array($sub_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
 			if ($sub_task['parent_task_id'] == $id) show_project_task_option($list,$sub_id,$space.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
 		}
 		?>
@@ -110,8 +111,8 @@ include '../common_templates/messages.php'; ?>
 			<select name="parent_task_id">
 			<option value=""><?= t('= select parent task =') ?></option>
 			<?php foreach ($project_tasks as $id => $project_task) {
-				if ($project_task['status']==TASK_STATUS_CANCELED)continue;
-				if ($project_task['parent_task_id'] == null) show_project_task_option($project_tasks,$id); 
+				if (in_array($project_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+				if ($project_task['parent_task_id'] == null) show_project_task_option($project_tasks,$id);
 			} ?>
 			</select>
 		</fieldset>
