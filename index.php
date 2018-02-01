@@ -27,14 +27,22 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($invoices as $id => $invoice){
-			if ($invoice->company_id != $cid) continue; ?>
+			if ($invoice->company_id != $cid) continue; 
+			$options = [
+				Invoice::TYPE_OFFER=>'create confirmation',
+				Invoice::TYPE_CONFIRMATION=>'create invoice',
+				Invoice::TYPE_INVOICE=>'create reminder',
+				Invoice::TYPE_REMINDER=>'add reminder'
+			];?>
 		<tr>
 			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->number ?></a></td>
 			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->sum().' '.$invoice->currency ?></a></td>
 			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->date() ?></a></td>
 			<td><a href="<?= $invoice->id ?>/view"><?= t($invoice->state()) ?></a></td>
 			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->customer_short()?></a></td>
-			<td><a href="<?= $invoice->id ?>/step"><?= t([Invoice::TYPE_OFFER=>'create confirmation',Invoice::TYPE_CONFIRMATION=>'create invoice',Invoice::TYPE_INVOICE=>'create reminder',Invoice::TYPE_REMINDER=>'add reminder'][$invoice->type])?></a></td>
+			<td><?php if ($invoice->state != Invoice::STATE_PAYED) { ?>
+				<a href="<?= $invoice->id ?>/step"><?= t($options[$invoice->type])?></a>
+				<?php } ?>
 			</td>
 		</tr>
 		<?php } ?>
@@ -43,4 +51,4 @@ include '../common_templates/messages.php'; ?>
 </fieldset>
 <?php }
 
-include '../common_templates/closure.php'; ?>
+include '../common_templates/closure.php';?>

@@ -57,6 +57,7 @@ $translations = array(
 		'invoice date: ?'=>'Rechnungsdatum: ?',
 		'invoice number'=>'Rechnungsnummer',
 		'Invoice Number'=>'Rechnungsnummer',
+		'Items'=>'Artikel',
 		'Local court'=>'Amtsgericht',
 		'Local court: ?'=>'Amtsgericht: ?',
 		'Log out ?'=>'? ausloggen',

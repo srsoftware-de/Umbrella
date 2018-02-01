@@ -37,7 +37,7 @@ if ($services['time']){
 			foreach ($selected_times as $time_id => $dummy){
 
 				$time = $times[$time_id];
-				$duration = ($time['end_time']-$time['start_time'])/3600;
+				$duration = round(($time['end_time']-$time['start_time'])/3600,2); // TODO: make decimals adjustable
 				$description = $time['description'];
 				if ($description === null || trim($description) == ''){
 					$description = '';
@@ -114,7 +114,12 @@ if (isset($services['bookmark'])){
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php'; 
+
+$texts1 = [Invoice::TYPE_OFFER=>'offer date',Invoice::TYPE_CONFIRMATION=>'confirmation date',Invoice::TYPE_INVOICE=>'invoice date',Invoice::TYPE_REMINDER=>'reminder date'];
+$texts2 = [Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'confirmation number',Invoice::TYPE_INVOICE=>'invoice number',Invoice::TYPE_REMINDER=>'reminder number'];
+
+?>
 
 
 
@@ -149,13 +154,13 @@ include '../common_templates/messages.php'; ?>
 
 		<fieldset class="dates">
 			<legend><?= t('Dates')?></legend>
-			<label><?= t([Invoice::TYPE_OFFER=>'offer date',Invoice::TYPE_CONFIRMATION=>'confirmation date',Invoice::TYPE_INVOICE=>'invoice date',Invoice::TYPE_REMINDER=>'reminder date'][$invoice->type])?>
+			<label><?= t($texts1[$invoice->type])?>
 				<input name="invoice[date]" value="<?= $invoice->date() ?>" />
 			</label>
 			<label><?= t('Delivery Date')?>
 				<input name="invoice[delivery_date]" value="<?= $invoice->delivery_date() ?>" />
 			</label>
-			<label><?= t([Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'confirmation number',Invoice::TYPE_INVOICE=>'invoice number',Invoice::TYPE_REMINDER=>'reminder number'][$invoice->type])?>
+			<label><?= t($texts2[$invoice->type])?>
 				<input name="invoice[number]" value="<?= $invoice->number ?>" />
 			</label>
 			<label><?= t('State'); ?>

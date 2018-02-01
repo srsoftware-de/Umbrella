@@ -8,6 +8,6 @@ require_login('invoice');
 $invoice_id = param('id');
 $position = param('pos');
 
-$invoice = reset(Invoice::load(['ids'=>$invoice_id']));
+$invoice = reset(Invoice::load(['ids'=>$invoice_id]));
 $invoice->elevate($position);
 redirect('view');

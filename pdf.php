@@ -215,8 +215,10 @@ class PDF extends FPDF{
 			'name' => $this->invoice->number.' - '.date('c').'.pdf',
 			'content' => $this->Output('S'),
 		];
+		
+		$recievers = [ $sender, $reciever]; // send mail to both reciever and sender
 
-		return send_mail($sender,$reciever,$subject,$text,$attachment);
+		return send_mail($sender,$recievers,$subject,$text,$attachment);
 	}
 	
 	function pos_n_cell($i){
@@ -251,7 +253,7 @@ class PDF extends FPDF{
 	}
 	
 	function format_value($v){
-		return number_format(round($v/100),2,$this->invoice->company('decimal_separator'),$this->invoice->company('thousands_separator'));
+		return number_format($v/100,2,$this->invoice->company('decimal_separator'),$this->invoice->company('thousands_separator'));
 	}
 	
 	function s_pr_cell($i){
@@ -265,13 +267,14 @@ class PDF extends FPDF{
 	}
 	
 	function positions(){
-
+		$debug = param('debug','false') == 'true';
 		$this->inTable=true;
 		
 		$this->SetFont('Arial','',9);
 		$sum = 0;
 		$taxes = array();
 		foreach ($this->invoice->positions() as $pos => $position){
+			$str = 'Pos '.$pos.': ';
 			$this->pos_n_cell($pos);
 			$this->amount_cell($position->amount);			
 			$this->unit_cell($position->unit);							
@@ -280,8 +283,11 @@ class PDF extends FPDF{
 			$y = $this->GetY();
 			$this->setX($x+93);
 			
+			$str .= $position->amount . ' x ' . $position->single_price . ' = ';
+			
 			$this->s_pr_cell($position->single_price);
 			$tot = $position->amount*$position->single_price;
+			$str .= $tot. ', ';
 			$sum += $tot;
 			$this->price_cell($tot);
 			$this->setY($y);
@@ -289,22 +295,27 @@ class PDF extends FPDF{
 			$this->desc_cell($position->title,$position->description);
 			
 			$tax = $position->tax;
+			$str .= $tax. '% Ust. = '.$tot*$tax/100;
 			if ($tax){
 				if (!isset($taxes[$tax])) $taxes[$tax]=0;
 				$taxes[$tax] += $tot*$tax/100;
-			}			
+			}
+			if ($debug) debug($str);
 		}
 		
+		if ($debug) debug('Netto: '.$sum);
 		
 		$this->Cell(40+93+25+12,5,utf8_decode(t('Net sum')),NO_FRAME,RIGHT,'R');
 		$this->price_cell($sum);
 		
 		foreach ($taxes as $percent => $tax){
 			$this->Cell(40+93+25+12,5,utf8_decode(t('Tax ?%',$percent)),NO_FRAME,RIGHT,'R');
+			if ($debug) debug($percent.'% Ust: '.$tax);
 			$this->price_cell($tax);
 			$sum += $tax;
 		}
-		
+			
+		if ($debug) debug('Summe: '.$sum,1);
 		$this->SetFont('Arial','B',9);		
 		
 		$this->Cell(40+93+25+12,7,utf8_decode(t('Gross sum')),NO_FRAME,RIGHT,'R');
