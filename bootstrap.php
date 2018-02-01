@@ -133,7 +133,7 @@ function save_file($filename,$file_contents,$mime){
 }
 
 function send_mail($sender, $reciever, $subject, $text, $attachment = null){
-	if ($sender == $reciever) return false;
+	if (!is_array($reciever)) $reciever = [$reciever];
 	if ($attachment){
 		$filename = $attachment['name'];
 		
@@ -162,7 +162,12 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 		$header = "From: ".$sender;
 		$nmessage = $text;
 	}
-	return mail($reciever, $subject, $nmessage, $header);
+	
+	$good = true;
+	foreach ($reciever as $rec){
+		$good = $good & mail($reciever, $subject, $nmessage, $header);
+	}
+	return $good; 
 }
 
 function post($name,$default = null){
@@ -212,8 +217,16 @@ function debug($object,$die = false){
 }
 
 function query_insert($query,$args){
-	$sql = ($query instanceof PDOStatement) ? $query->queryString : $query; 
-	foreach ($args as $k => $v) $sql = str_replace($k,'"'.$v.'"',$sql);
+	$sql = ($query instanceof PDOStatement) ? $query->queryString : $query;
+	$pos = strpos($sql,'?');
+	if ($pos > 0){
+		while ($pos > 0){
+			$sql = substr_replace($sql,array_shift($args),$pos,1);			
+			$pos = strpos($sql,'?');
+		}		
+	} else {
+		foreach ($args as $k => $v) $sql = str_replace($k,'"'.$v.'"',$sql);
+	}
 	return $sql;
 }
 
