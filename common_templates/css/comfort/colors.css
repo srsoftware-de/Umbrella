@@ -43,14 +43,14 @@ body > a.symbol {
 	color: red;
 }
 
-.infos{
+.infos span{
 	background: lime;
 }
-.warnings{
+.warnings span{
 	background: yellow;
 }
 
-.errors{
+.errors span{
 	background: orange;
 }
 
