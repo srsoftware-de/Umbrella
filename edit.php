@@ -80,16 +80,15 @@ function show_project_task_checkbox($list, $id){
 	<?php	
 }
 
-function show_project_task_option($list, $id, $space=''){
+function show_project_task_option($list, $id, $exclude_id, $space=''){
 	global $task;
+	if ($id == $exclude_id) return;
 	$project_task = $list[$id];?>
 	<option value="<?= $id ?>" <?= ($id == $task['parent_task_id'])?'selected="selected"':''?>><?= $space.$project_task['name']?></option>
-		<?php foreach ($list as $sub_id => $sub_task) {
-			if (in_array($sub_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
-			if ($sub_task['parent_task_id'] == $id) show_project_task_option($list,$sub_id,$space.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
-		}
-		?>
-	<?php	
+	<?php foreach ($list as $sub_id => $sub_task) {
+		if (in_array($sub_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+		if ($sub_task['parent_task_id'] == $id) show_project_task_option($list,$sub_id,$exclude_id,$space.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+	}
 }
 
 include '../common_templates/head.php'; 
@@ -112,7 +111,7 @@ include '../common_templates/messages.php'; ?>
 			<option value=""><?= t('= select parent task =') ?></option>
 			<?php foreach ($project_tasks as $id => $project_task) {
 				if (in_array($project_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
-				if ($project_task['parent_task_id'] == null) show_project_task_option($project_tasks,$id);
+				if ($project_task['parent_task_id'] == null) show_project_task_option($project_tasks,$id,$task_id);
 			} ?>
 			</select>
 		</fieldset>

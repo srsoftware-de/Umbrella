@@ -75,6 +75,10 @@
 	
 	function load_tasks($options = array()){
 		global $user;
+		
+		$db = get_or_create_db();
+		update_task_states($db);
+		
 		$ids_only = isset($options['ids_only']) && $options['ids_only'];
 		
 		$sql = 'SELECT id';
@@ -131,7 +135,6 @@
 				break;
 		}
 	
-		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load tasks!');
 		$rows = $query->fetchAll(INDEX_FETCH);
