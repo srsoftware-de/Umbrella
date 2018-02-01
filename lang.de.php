@@ -20,6 +20,7 @@ $translations = array(
 		'Import tags from delicious'=>'Tags von delicious importieren',
 		'Import tags from file'=>'Tags aus Datei importieren',
 		'Invoices'=>'Rechnungen',
+		'Items'=>'Artikel',
 		'latest bookmarks'=>'neuste Lesezeichen',
 		'Log out ?'=>'? ausloggen',
 		'New Url'=>'Neue Url:',
