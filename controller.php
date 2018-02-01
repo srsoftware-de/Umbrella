@@ -89,7 +89,10 @@ class Item{
 		if (!empty($where)){
 			$sql .= ' WHERE '.implode(' AND ',$where);
 		}
+		if (isset($options['order']) && array_key_exists($options['order'],static::table())) $sql .= ' ORDER BY '.$options['order'].' ASC';
+		
 		$query = $db->prepare($sql);
+
 		assert($query->execute($args),'Was not able to load items for the selected company.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		if (empty($rows)){
