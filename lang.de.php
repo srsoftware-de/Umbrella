@@ -20,6 +20,7 @@ $translations = array(
 		'Items'=>'Artikel',
 		'logo'=>'Logo',
 		'name'=>'Firmenname',
+		'Notes'=>'Notizen',
 		'projects'=>'Projekte',
 		'Projects'=>'Projekte',
 		'Tasks'=>'Aufgaben',
