@@ -17,6 +17,7 @@ $translations = array(
 		'edit'=>'Bearbeiten',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
+		'Items'=>'Artikel',
 		'logo'=>'Logo',
 		'name'=>'Firmenname',
 		'projects'=>'Projekte',
