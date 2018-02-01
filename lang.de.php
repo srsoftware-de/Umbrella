@@ -9,6 +9,7 @@ $translations = array(
 		'Contacts'=>'Kontakte',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
+		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
