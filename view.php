@@ -31,7 +31,7 @@ if ($project_id = param('id')){
 			$project['company'] = request('company','json',['ids'=>$project['company_id']]);
 		}
 
-		$title = $project['name'].' - Umbrella';
+		$title = t('Umprella: Project ?',$project['name']);
 		$show_closed_tasks = param('closed') == 'show';
 		
 		if (file_exists('../lib/parsedown/Parsedown.php')){

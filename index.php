@@ -1,8 +1,9 @@
-<?php $title = 'Umbrella Users';
+<?php
 
 include '../bootstrap.php';
 include 'controller.php';
 
+$title = t('Umbrella: Projects');
 require_login('project');
 $projects = load_projects(['order'=>param('order')]);
 $all_user_ids = load_users($projects);

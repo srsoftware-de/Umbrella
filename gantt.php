@@ -20,7 +20,7 @@ if ($pid = param('id')){
 		$task['start'] = $start;
 		$due   = hour($task['due_date']);
 		$task['due'] = $due;
-
+		
 		if ($start && ($min === null || $start < $min)) $min = $start;
 		if ($start && ($max === null || $start > $max)) $max = $start;
 		if ($due && ($min === null || $due < $min)) $min = $due;
@@ -54,19 +54,19 @@ include '../common_templates/messages.php';
 			if ($task['due']){
 				?><rect x="<?= $task['start']-$min ?>" y="<?= $y?>" width="<?= $task['due']-$task['start'] ?>" height="30" class="schedule" /><?php
 				if ($task['est_time']>0) {
-					?><rect x="<?= $task['start']-$min ?>" y="<?= $y?>" width="<?= $task['est_time'] ?>" height="30" class="duration" /><?php
+					?><rect x="<?= $task['start']-$min ?>" y="<?= $y?>" width="<?= 3*$task['est_time'] ?>" height="30" class="duration" /><?php
 				}
 			} else {
 				?><rect x="<?= $task['start']-$min ?>" y="<?= $y?>" width="10" height="30" class="schedule start" /><?php
 				if ($task['est_time']>0) {
-					?><rect x="<?= $task['start']-$min ?>" y="<?= $y?>" width="<?= $task['est_time'] ?>" height="30" class="duration" /><?php
+					?><rect x="<?= $task['start']-$min ?>" y="<?= $y?>" width="<?= 3*$task['est_time'] ?>" height="30" class="duration" /><?php
 				}
 			}
 		} else {
 			if ($task['due']){
 				?><rect x="<?= $task['due']-$min-10 ?>" y="<?= $y?>" width="10" height="30" class="schedule stop" /><?php
 				if ($task['est_time']>0) {
-					?><rect x="<?= $task['due']-$task['est_time']-$min ?>" y="<?= $y?>" width="<?= $task['est_time'] ?>" height="30" class="duration" /><?php
+					?><rect x="<?= $task['due']-$task['est_time']-$min ?>" y="<?= $y?>" width="<?= 3*$task['est_time'] ?>" height="30" class="duration" /><?php
 				}
 			} else {
 			} 
