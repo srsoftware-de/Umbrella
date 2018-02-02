@@ -1,34 +1,77 @@
 <?php
+function get_or_create_db(){
+	if (!file_exists('db')) assert(mkdir('db'),'Failed to create document/db directory!');
+	assert(is_writable('db'),'Directory document/db not writable!');
+	if (!file_exists('db/documents.db')){
+		$db = new PDO('sqlite:db/documents.db');
 
-class InvoicePosition{
+		$tables = [
+		'documents'=>Document::table(),
+		'document_positions'=>DocumentPosition::table(),
+		'company_settings'=>CompanySettings::table(),
+		'templates'=>Template::table(),
+		];
+
+		foreach ($tables as $table => $fields){
+			$sql = 'CREATE TABLE '.$table.' ( ';
+			foreach ($fields as $field => $props){
+				$sql .= $field . ' ';
+				if (is_array($props)){
+					foreach ($props as $prop_k => $prop_v){
+						switch (true){
+							case $prop_k==='VARCHAR':
+								$sql.= 'VARCHAR('.$prop_v.') '; break;
+							case $prop_k==='DEFAULT':
+								$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
+							case $prop_k==='KEY':
+								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in document/controller.php!');
+								$sql.= 'PRIMARY KEY '; break;
+							default:
+								$sql .= $prop_v.' ';
+						}
+					}
+					$sql .= ", ";
+				} else $sql .= $props.", ";
+			}
+			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+			$query = $db->prepare($sql);
+			assert($db->query($sql),'Was not able to create companies table in companies.db!');
+		}
+	} else {
+		$db = new PDO('sqlite:db/documents.db');
+	}
+	return $db;
+}
+
+class DocumentPosition{
 	static function table(){	
 		return [
-			'invoice_id'	=> ['INTEGER','NOT NULL'],
-			'pos'		=> ['INTEGER','NOT NULL'],
-			'item_code'	=> ['VARCHAR'=>50],
-			'amount'	=> ['INTEGER','NOT NULL','DEFAULT'=>1],
-			'unit'		=> ['VARCHAR'=> 12],
-			'title'		=> ['VARCHAR'=>255],
+			'document_id'	=> ['INTEGER','NOT NULL'],
+			'pos'			=> ['INTEGER','NOT NULL'],
+			'item_code'		=> ['VARCHAR'=>50],
+			'amount'		=> ['INTEGER','NOT NULL','DEFAULT'=>1],
+			'unit'			=> ['VARCHAR'=> 12],
+			'title'			=> ['VARCHAR'=>255],
 			'description'	=> 'TEXT',
 			'single_price'	=> 'INTEGER',
-			'tax'		=> 'INTEGER',
-			'time_id'	=> 'INTEGER',
+			'tax'			=> 'INTEGER',
+			'time_id'		=> 'INTEGER',
 		];
 	}
 
-	function __construct(Invoice $invoice){
+	function __construct(Document $document){
 		$db = get_or_create_db();
 
-		$query = $db->prepare('SELECT max(pos) AS pos FROM invoice_positions WHERE invoice_id = :iid');
-		assert($query->execute([':iid'=>$invoice->id]),'Was not able to read invoice position table');
+		$query = $db->prepare('SELECT max(pos) AS pos FROM document_positions WHERE document_id = :iid');
+		assert($query->execute([':iid'=>$document->id]),'Was not able to read document position table');
 		$this->pos = reset($query->fetch(PDO::FETCH_ASSOC)) +1;
-		$this->invoice_id = $invoice->id;
+		$this->document_id = $document->id;
 	}
 
-	public function copy(Invoice $invoice){
-		$new_position = new InvoicePosition($invoice);
+	public function copy(Document $document){
+		$new_position = new DocumentPosition($document);
 		foreach ($this as $field => $value){
-			if (in_array($field, ['id','invoice_id'])) continue;
+			if (in_array($field, ['id','document_id'])) continue;
 			$new_position->{$field} = $value;
 		}
 		return $new_position->save();
@@ -46,11 +89,11 @@ class InvoicePosition{
 	public function save(){
 		global $services;
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT count(*) AS count FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
-		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able to read from invoice positions table!');
+		$query = $db->prepare('SELECT count(*) AS count FROM document_positions WHERE document_id = :iid AND pos = :pos');
+		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]),'Was not able to read from document positions table!');
 		$count = reset($query->fetch(PDO::FETCH_ASSOC));
 		if ($count == 0){ // new!
-			$known_fields = array_keys(InvoicePosition::table());
+			$known_fields = array_keys(DocumentPosition::table());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){
@@ -59,40 +102,40 @@ class InvoicePosition{
 					$args[':'.$f] = $this->{$f};
 				}
 			}
-			$sql = 'INSERT INTO invoice_positions ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$sql = 'INSERT INTO document_positions ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new row into invoice_positions');
+			assert($query->execute($args),'Was not able to insert new row into document_positions');
 		} else {
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE invoice_positions SET';
-				$args = [':iid'=>$this->invoice_id,':pos'=>$this->pos];
+				$sql = 'UPDATE document_positions SET';
+				$args = [':iid'=>$this->document_id,':pos'=>$this->pos];
 				foreach ($this->dirty as $field){
 					$sql .= ' '.$field.'=:'.$field.',';
 					$args[':'.$field] = $this->{$field};
 				}
 				$this->dirty = [];
-				$sql = rtrim($sql,',').' WHERE invoice_id = :iid AND pos = :pos';
+				$sql = rtrim($sql,',').' WHERE document_id = :iid AND pos = :pos';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update invoice_positions in database!');
+				assert($query->execute($args),'Was no able to update document_positions in database!');
 			}
 		}
 		
 		return $this;
 	}
 	
-	static function load($invoice){
+	static function load($document){
 		$db = get_or_create_db();
-		$sql = 'SELECT pos,* FROM invoice_positions WHERE invoice_id = :iid ORDER BY pos';
-		$args = [':iid'=>$invoice->id];
+		$sql = 'SELECT pos,* FROM document_positions WHERE document_id = :iid ORDER BY pos';
+		$args = [':iid'=>$document->id];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load invoie positions.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$result = [];
 		foreach ($rows as $pos => $row){
-			$invoicePosition = new InvoicePosition($invoice);
-			$invoicePosition->patch($row);
-			$invoicePosition->dirty = [];
-			$result[$pos] = $invoicePosition;
+			$documentPosition = new DocumentPosition($document);
+			$documentPosition->patch($row);
+			$documentPosition->dirty = [];
+			$result[$pos] = $documentPosition;
 		}
 		return $result;
 	}
@@ -100,11 +143,11 @@ class InvoicePosition{
 	public function delete(){
 		global $services;
 		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM invoice_positions WHERE invoice_id = :iid AND pos = :pos');
-		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]),'Was not able to remove entry from invoice positions table!');
+		$query = $db->prepare('DELETE FROM document_positions WHERE document_id = :iid AND pos = :pos');
+		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]),'Was not able to remove entry from document positions table!');
 		
-		$query = $db->prepare('UPDATE invoice_positions SET pos = pos-1 WHERE invoice_id = :iid AND pos > :pos');
-		assert($query->execute([':iid'=>$this->invoice_id,':pos'=>$this->pos]));
+		$query = $db->prepare('UPDATE document_positions SET pos = pos-1 WHERE document_id = :iid AND pos > :pos');
+		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]));
 		if (isset($this->time_id) && $this->time_id !== null && isset($services['time'])){
 			request('time','update_state',['OPEN'=>$this->time_id]);
 		}
@@ -112,51 +155,6 @@ class InvoicePosition{
 		return $this;
 	}
 	
-}
-
-function get_or_create_db(){
-	if (!file_exists('db')) assert(mkdir('db'),'Failed to create invoice/db directory!');
-	assert(is_writable('db'),'Directory invoice/db not writable!');
-	if (!file_exists('db/invoices.db')){
-		$db = new PDO('sqlite:db/invoices.db');
-		
-		$tables = [
-			'invoices'=>Invoice::table(),
-			'invoice_positions'=>InvoicePosition::table(),
-			'company_settings'=>CompanySettings::table(),
-			'templates'=>Template::table(),
-		];
-		
-		foreach ($tables as $table => $fields){		
-			$sql = 'CREATE TABLE '.$table.' ( ';
-			foreach ($fields as $field => $props){
-				$sql .= $field . ' ';
-				if (is_array($props)){
-					foreach ($props as $prop_k => $prop_v){
-						switch (true){
-							case $prop_k==='VARCHAR':
-								$sql.= 'VARCHAR('.$prop_v.') '; break;
-							case $prop_k==='DEFAULT':
-								$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
-							case $prop_k==='KEY':
-								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in invoice/controller.php!');
-								$sql.= 'PRIMARY KEY '; break;
-							default:
-								$sql .= $prop_v.' ';
-						}	
-					}		
-					$sql .= ", ";
-				} else $sql .= $props.", ";
-			}
-			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-			$query = $db->prepare($sql);
-			assert($db->query($sql),'Was not able to create companies table in companies.db!');
-		}
-	} else {
-		$db = new PDO('sqlite:db/invoices.db');
-	}
-	return $db;
-
 }
 
 class CompanySettings{
@@ -177,12 +175,12 @@ class CompanySettings{
 		$this->default_confirmation_footer = '';
 		$this->confirmation_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find our confirmation for your order. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
 		
-		$this->invoice_prefix = 'R';
-		$this->invoice_suffix = '';
-		$this->invoice_number = 1;
-		$this->default_invoice_header = 'We allow us to charge the following items:';
-		$this->default_invoice_footer = 'Due and payable without discounts within 30 days of the invoice date.';
-		$this->invoice_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find an invoice for your order. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
+		$this->document_prefix = 'R';
+		$this->document_suffix = '';
+		$this->document_number = 1;
+		$this->default_document_header = 'We allow us to charge the following items:';
+		$this->default_document_footer = 'Due and payable without discounts within 30 days of the document date.';
+		$this->document_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find an document for your order. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
 		
 
 		$this->reminder_prefix = 'M';
@@ -216,34 +214,34 @@ class CompanySettings{
 		return $this;
 	}
 	
-	function applyTo(Invoice $invoice){
-		//debug($invoice,1);		
-		$invoice->company_id = $this->company_id;
+	function applyTo(Document $document){
+		//debug($document,1);		
+		$document->company_id = $this->company_id;
 
-		switch ($invoice->type){
-			case Invoice::TYPE_OFFER:
-				$invoice->number = $this->offer_prefix.$this->offer_number.$this->offer_suffix;
+		switch ($document->type){
+			case Document::TYPE_OFFER:
+				$document->number = $this->offer_prefix.$this->offer_number.$this->offer_suffix;
 				$this->patch(['offer_number'=>$this->offer_number+1]);
-				$invoice->head = $this->default_offer_header;
-				$invoice->footer = $this->default_offer_footer;
+				$document->head = $this->default_offer_header;
+				$document->footer = $this->default_offer_footer;
 				break;
-			case Invoice::TYPE_CONFIRMATION:
-				$invoice->number = $this->confirmation_prefix.$this->confirmation_number.$this->confirmation_suffix;
+			case Document::TYPE_CONFIRMATION:
+				$document->number = $this->confirmation_prefix.$this->confirmation_number.$this->confirmation_suffix;
 				$this->patch(['confirmation_number'=>$this->confirmation_number+1]);
-				$invoice->head = $this->default_confirmation_header;
-				$invoice->footer = $this->default_confirmation_footer;
+				$document->head = $this->default_confirmation_header;
+				$document->footer = $this->default_confirmation_footer;
 				break;
-			case Invoice::TYPE_INVOICE:
-				$invoice->number = $this->invoice_prefix.$this->invoice_number.$this->invoice_suffix;
-				$this->patch(['invoice_number'=>$this->invoice_number+1]);
-				$invoice->head = $this->default_invoice_header;
-				$invoice->footer = $this->default_invoice_footer;
+			case Document::TYPE_INVOICE:
+				$document->number = $this->document_prefix.$this->document_number.$this->document_suffix;
+				$this->patch(['document_number'=>$this->document_number+1]);
+				$document->head = $this->default_document_header;
+				$document->footer = $this->default_document_footer;
 				break;
-			case Invoice::TYPE_REMINDER:
-				$invoice->number = $this->reminder_prefix.$this->reminder_number.$this->reminder_suffix;
+			case Document::TYPE_REMINDER:
+				$document->number = $this->reminder_prefix.$this->reminder_number.$this->reminder_suffix;
 				$this->patch(['reminder_number'=>$this->reminder_number+1]);
-				$invoice->head = $this->default_reminder_header;
-				$invoice->footer = $this->default_reminder_footer;
+				$document->head = $this->default_reminder_header;
+				$document->footer = $this->default_reminder_footer;
 				break;
 		}		
 	}
@@ -266,12 +264,12 @@ class CompanySettings{
 			'confirmation_number'			=> ['INT','NOT NULL','DEFAULT 1'],
 			'confirmation_mail_text'		=> 'TEXT',
 			
-			'default_invoice_header' 		=> 'TEXT',
-			'default_invoice_footer'		=> 'TEXT',
-			'invoice_prefix'			=> ['TEXT','DEFAULT'=>'R'],
-			'invoice_suffix'			=> ['TEXT','DEFAULT'=>null],
-			'invoice_number'			=> ['INT','NOT NULL','DEFAULT 1'],
-			'invoice_mail_text'			=> 'TEXT',
+			'default_document_header' 		=> 'TEXT',
+			'default_document_footer'		=> 'TEXT',
+			'document_prefix'			=> ['TEXT','DEFAULT'=>'R'],
+			'document_suffix'			=> ['TEXT','DEFAULT'=>null],
+			'document_number'			=> ['INT','NOT NULL','DEFAULT 1'],
+			'document_mail_text'			=> 'TEXT',
 				
 			'default_reminder_header' 		=> 'TEXT',
 			'default_reminder_footer'		=> 'TEXT',
@@ -315,28 +313,28 @@ class CompanySettings{
 		}
 	}
 	
-	function updateFrom(Invoice $invoice){
+	function updateFrom(Document $document){
 		$type = '';
-		switch ($invoice->type){
-			case Invoice::TYPE_INVOICE:
-				$type = 'invoice';
+		switch ($document->type){
+			case Document::TYPE_INVOICE:
+				$type = 'document';
 				break;
-			case Invoice::TYPE_OFFER:
+			case Document::TYPE_OFFER:
 				$type = 'offer';
 				break;
-			case Invoice::TYPE_CONFIRMATION:
+			case Document::TYPE_CONFIRMATION:
 				$type = 'confirmation';
 				break;
-			case Invoice::TYPE_REMINDER:
+			case Document::TYPE_REMINDER:
 				$type = 'reminder';
 				break;
 		}
-		$prefix = preg_replace('/[1-9]+\w*$/', '', $invoice->number);
-		$suffix = preg_replace('/^\w*\d+/', '', $invoice->number);
-		$number = substr($invoice->number,strlen($prefix),strlen($invoice->number)-strlen($prefix)-strlen($suffix))+1;				
+		$prefix = preg_replace('/[1-9]+\w*$/', '', $document->number);
+		$suffix = preg_replace('/^\w*\d+/', '', $document->number);
+		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;				
 		$data = [
-			'default_'.$type.'_header' => $invoice->head,
-			'default_'.$type.'_footer' => $invoice->footer,			
+			'default_'.$type.'_header' => $document->head,
+			'default_'.$type.'_footer' => $document->footer,			
 			$type.'_prefix' => $prefix,
 			$type.'_suffix' => $suffix,
 			$type.'_number' => max($number,$this->{$type.'_number'}),	
@@ -346,7 +344,7 @@ class CompanySettings{
 	}
 }
 
-class Invoice {
+class Document {
 	const STATE_NEW = 1;
 	const STATE_SENT = 2;
 	const STATE_DELAYED = 3;
@@ -366,30 +364,30 @@ class Invoice {
 	}
 	
 	function derive(){
-		$new_invoice = new Invoice();
+		$new_document = new Document();
 		switch ($this->type){
-			case Invoice::TYPE_OFFER:
-				$new_invoice->type = Invoice::TYPE_CONFIRMATION;
+			case Document::TYPE_OFFER:
+				$new_document->type = Document::TYPE_CONFIRMATION;
 				break;
-			case Invoice::TYPE_CONFIRMATION:
-				$new_invoice->type = Invoice::TYPE_INVOICE;
+			case Document::TYPE_CONFIRMATION:
+				$new_document->type = Document::TYPE_INVOICE;
 				break;
 			default:
-				$new_invoice->type = Invoice::TYPE_REMINDER;
+				$new_document->type = Document::TYPE_REMINDER;
 		}
 		$company_settings = CompanySettings::load($this->company_id);
-		$company_settings->applyTo($new_invoice);
+		$company_settings->applyTo($new_document);
 		foreach ($this as $field => $value){
-			if (!isset($new_invoice->{$field})) $new_invoice->{$field} = $value;	
+			if (!isset($new_document->{$field})) $new_document->{$field} = $value;	
 		}
-		unset($new_invoice->id);
+		unset($new_document->id);
 
-		$new_invoice->save();
+		$new_document->save();
 		$company_settings->save();
 
-		foreach ($this->positions() as $position) $new_position = $position->copy($new_invoice);
+		foreach ($this->positions() as $position) $new_position = $position->copy($new_document);
 
-		return $new_invoice;
+		return $new_document;
 	}
 
 	static function states(){
@@ -446,7 +444,7 @@ class Invoice {
 			$qmarks = str_repeat('?,', count($user_company_ids) - 1) . '?';
 			$args = $user_company_ids;
 		}
-		$sql = 'SELECT * FROM invoices WHERE company_id IN ('.$qmarks.')';
+		$sql = 'SELECT * FROM documents WHERE company_id IN ('.$qmarks.')';
 
 		$single = false;
 		if (isset($options['ids'])){
@@ -465,23 +463,23 @@ class Invoice {
 			if (!is_array($tids)) $tids = [$tids];
 			$qmarks = str_repeat('?,', count($tids) - 1) . '?';
 			$args = array_merge($args, $tids);
-			$sql .= ' AND id IN (SELECT invoice_id FROM invoice_positions WHERE time_id IN ('.$qmarks.'))';
+			$sql .= ' AND id IN (SELECT document_id FROM document_positions WHERE time_id IN ('.$qmarks.'))';
 		}
 
 		$sql .= ' ORDER BY id DESC';
 
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load invoices!');
+		assert($query->execute($args),'Was not able to load documents!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		$invoices = [];
+		$documents = [];
 		foreach ($rows as $row){
-			$invoice = new Invoice();
-			$invoice->patch($row,false);
-			//$invoice->company = $user_companies[$invoice->company_id];
-			$invoice->dirty = [];
-			$invoices[$row['id']] = $invoice;
+			$document = new Document();
+			$document->patch($row,false);
+			//$document->company = $user_companies[$document->company_id];
+			$document->dirty = [];
+			$documents[$row['id']] = $document;
 		}
-		return $invoices;
+		return $documents;
 	}
 
 	public function save(){
@@ -489,7 +487,7 @@ class Invoice {
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE invoices SET';
+				$sql = 'UPDATE documents SET';
 				$args = [':id'=>$this->id];
 				foreach ($this->dirty as $field){
 					$sql .= ' '.$field.'=:'.$field.',';
@@ -497,7 +495,7 @@ class Invoice {
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update invoice in database!');
+				assert($query->execute($args),'Was no able to update document in database!');
 				if (in_array('state',$this->dirty) && isset($services['time'])){
 					$time_ids = [];
 					foreach ($this->positions() as $position){
@@ -524,7 +522,7 @@ class Invoice {
 			}
 		} else {
 			if (!isset($this->date)) $this->date = time();
-			$known_fields = array_keys(Invoice::table());
+			$known_fields = array_keys(Document::table());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){
@@ -533,9 +531,9 @@ class Invoice {
 					$args[':'.$f] = $this->{$f};
 				}
 			}			
-			$sql = 'INSERT INTO invoices ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$sql = 'INSERT INTO documents ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new invoice');	
+			assert($query->execute($args),'Was not able to insert new document');	
 			$this->id = $db->lastInsertId();
 		}
 		
@@ -545,7 +543,7 @@ class Invoice {
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('invoice').$this->id.'/view','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
+			request('bookmark','add',['url'=>getUrl('document').$this->id.'/view','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
 		}
 	}
 	
@@ -564,13 +562,13 @@ class Invoice {
 
 	public function mail_text(){
 		switch ($this->type){
-			case Invoice::TYPE_OFFER:
+			case Document::TYPE_OFFER:
 				return $this->company_settings()->offer_mail_text;
-			case Invoice::TYPE_CONFIRMATION:
+			case Document::TYPE_CONFIRMATION:
 				return $this->company_settings()->confirmation_mail_text;
-			case Invoice::TYPE_INVOICE:
-				return $this->company_settings()->invoice_mail_text;
-			case Invoice::TYPE_REMINDER:
+			case Document::TYPE_INVOICE:
+				return $this->company_settings()->document_mail_text;
+			case Document::TYPE_REMINDER:
 				return $this->company_settings()->reminder_mail_text;
 		}
 		return 'not implemented';
@@ -579,16 +577,16 @@ class Invoice {
 	public function update_mail_text($new_text){
 		$settings = $this->company_settings();
 		switch ($this->type){
-			case Invoice::TYPE_OFFER:
+			case Document::TYPE_OFFER:
 				$settings->patch(['offer_mail_text'=>$new_text]);
 				break;
-			case Invoice::TYPE_CONFIRMATION:
+			case Document::TYPE_CONFIRMATION:
 				$settings->patch(['confirmation_mail_text'=>$new_text]);
 				break;
-			case Invoice::TYPE_INVOICE:
-				$settings->patch(['invoice_mail_text'=>$new_text]);
+			case Document::TYPE_INVOICE:
+				$settings->patch(['document_mail_text'=>$new_text]);
 				break;
-			case Invoice::TYPE_REMINDER:
+			case Document::TYPE_REMINDER:
 				$settings>patch(['reminder_mail_text'=>$new_text]);
 				break;
 		}
@@ -607,7 +605,7 @@ class Invoice {
 	
 	
 	public function state(){
-		if (array_key_exists($this->state, Invoice::states())) return Invoice::states()[$this->state];
+		if (array_key_exists($this->state, Document::states())) return Document::states()[$this->state];
 		return t('unknown state');
 	}
 	
@@ -616,21 +614,21 @@ class Invoice {
 	}
 	
 	public function positions(){
-		if (!isset($this->positions)) $this->positions = InvoicePosition::load($this);
+		if (!isset($this->positions)) $this->positions = DocumentPosition::load($this);
 		return $this->positions;
 	}
 	
 	function add_position($code,$title,$description,$amount,$unit,$price,$tax){
 		$db = get_or_create_db();
 	
-		$query = $db->prepare('SELECT MAX(pos) FROM invoice_positions WHERE invoice_id = :id');
-		assert($query->execute(array(':id'=>$invoice_id)),'Was not able to get last invoice position!');
+		$query = $db->prepare('SELECT MAX(pos) FROM document_positions WHERE document_id = :id');
+		assert($query->execute(array(':id'=>$document_id)),'Was not able to get last document position!');
 		$row = $query->fetch(PDO::FETCH_COLUMN);
 		$pos = ($row === null)?1:$row+1;
 	
-		$query = $db->prepare('INSERT INTO invoice_positions (invoice_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
-		$args = array(':id'=>$invoice_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
-		assert($query->execute($args),'Was not able to store new postion for invoice '.$invoice_id.'!');
+		$query = $db->prepare('INSERT INTO document_positions (document_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
+		$args = array(':id'=>$document_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
+		assert($query->execute($args),'Was not able to store new postion for document '.$document_id.'!');
 	}
 	
 	function elevate($position_number){
