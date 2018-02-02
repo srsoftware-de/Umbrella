@@ -6,6 +6,7 @@ include 'controller.php';
 $title = t('Umbrella: Document Management');
 require_login('document');
 
+$doc_types = DocumentType::load();
 $companies = request('company','json');
 
 $company = null;
@@ -13,8 +14,6 @@ if (($company_id = param('company')) && isset($companies[$company_id])){
 	$company = $companies[$company_id];	
 }
 if ($company === null) redirect('.');
-
-$company_settings = CompanySettings::load($company);
 
 $contacts = request('contact','json_list');
 
@@ -36,7 +35,11 @@ if ($customer_contact_id = post('customer')){
 	}	
 	$document = new Document($company);	
 	$document->patch($_POST);
+	
+	$company_settings = CompanySettings::load($company,$document->type_id);
 	$company_settings->applyTo($document);
+	
+	
 	$document->template_id = 0; // TODO impelement by selection
 	$document->save();
 	$company_settings->save();
@@ -54,7 +57,7 @@ include '../common_templates/messages.php'; ?>
 		<fieldset class="customer">		
 			<legend><?= t('Customer') ?></legend>
 			<select name="customer">
-				<option value="">== select a customer ==</option>
+				<option value=""><?= t('== select a customer ==') ?></option>
 				<?php foreach ($contacts as $contact_id => $contact) { ?>
 				<option value="<?= $contact_id ?>" <?= (post('customer')==$contact_id)?'selected="true"':''?>><?= conclude_vcard($contact)?></option>
 				<?php }?>				
@@ -62,11 +65,10 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset class="document_type">		
 			<legend><?= t('Document type') ?></legend>
-			<select name="type">
-				<option value="<?= Document::TYPE_INVOICE?>"><?= t('document')?></option>								
-				<option value="<?= Document::TYPE_OFFER?>"><?= t('offer')?></option>								
-				<option value="<?= Document::TYPE_CONFIRMATION?>"><?= t('confirmation')?></option>								
-				<option value="<?= Document::TYPE_REMINDER?>"><?= t('reminder')?></option>
+			<select name="type_id">
+			<?php foreach ($doc_types as $type_id => $doc_type){ ?>
+				<option value="<?= $type_id ?>"><?= t($doc_type->name)?></option>
+			<?php } ?>
 			</select>			
 		</fieldset>
 		<fieldset class="sender">

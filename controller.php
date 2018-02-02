@@ -8,6 +8,7 @@ function get_or_create_db(){
 		$tables = [
 			'documents'=>Document::table(),
 			'document_positions'=>DocumentPosition::table(),
+			'document_types'=>DocumentType::table(),
 			'company_settings'=>CompanySettings::table(),
 			'customer_prices'=>CustomerPrice::table(),
 			'templates'=>Template::table(),
@@ -170,45 +171,23 @@ class DocumentPosition{
 }
 
 class CompanySettings{
-	function __construct($company_id){
+	function __construct($company_id,$doc_type_id){
 		$this->company_id = $company_id;
-		
-		$this->offer_prefix = 'A';
-		$this->offer_suffix = '';
-		$this->offer_number = 1;
-		$this->default_offer_header = 'We are pleased to offer you the following services:';
-		$this->default_offer_footer = 'This offer is valid until '.date('Y-m-d',time()+14*24*60*60).'.';
-		$this->offer_mail_text = "Dear ladies and gentleman,\nyou can find our offer attached to this email. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
-
-		$this->confirmation_prefix = 'B';
-		$this->confirmation_suffix = '';
-		$this->confirmation_number = 1;
-		$this->default_confirmation_header = 'We are pleased to confirm your order ####:';
-		$this->default_confirmation_footer = '';
-		$this->confirmation_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find our confirmation for your order. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
-		
-		$this->document_prefix = 'R';
-		$this->document_suffix = '';
-		$this->document_number = 1;
-		$this->default_document_header = 'We allow us to charge the following items:';
-		$this->default_document_footer = 'Due and payable without discounts within 30 days of the document date.';
-		$this->document_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find an document for your order. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
-		
-
-		$this->reminder_prefix = 'M';
-		$this->reminder_suffix = '';
-		$this->reminder_number = 1;
-		$this->default_reminder_header = '';
-		$this->default_reminder_footer = '';
-		$this->reminder_mail_text = "Dear ladies and gentleman,\nattached to this email, you can find a reminder for a bill you have not payed, yet. To read it, you will need a PDF viewer.\n\nBest wishes,\n?";
+		$this->document_type_id = $doc_type_id;
+		$this->default_header = 'Please enter a new header.';
+		$this->default_footer = 'Please enter a new footer';
+		$this->type_prefix = '[[';
+		$this->type_suffix = ']]';
+		$this->type_number = 1;
+		$this->type_mail_text = "Dear Ladies and Gentlemen,\n\nAttached to this mail you will find a new ? document. To open it, you need a pdf viewer.";
 	}
 	
-	static function load($company){
+	static function load($company,$doc_type_id){
 		$company_id = is_array($company) ? $company['id'] : $company;
-		$companySettings = new CompanySettings($company_id);
+		$companySettings = new CompanySettings($company_id,$doc_type_id);
 		$db = get_or_create_db();
-		$sql = 'SELECT * FROM company_settings WHERE company_id = :cid';
-		$args = [':cid'=>$company_id];
+		$sql = 'SELECT * FROM company_settings WHERE company_id = :cid and document_type_id = :tid';
+		$args = [':cid'=>$company_id, ':tid'=>$doc_type_id];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load settings for the selected company.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -230,32 +209,10 @@ class CompanySettings{
 		//debug($document,1);		
 		$document->company_id = $this->company_id;
 
-		switch ($document->type){
-			case Document::TYPE_OFFER:
-				$document->number = $this->offer_prefix.$this->offer_number.$this->offer_suffix;
-				$this->patch(['offer_number'=>$this->offer_number+1]);
-				$document->head = $this->default_offer_header;
-				$document->footer = $this->default_offer_footer;
-				break;
-			case Document::TYPE_CONFIRMATION:
-				$document->number = $this->confirmation_prefix.$this->confirmation_number.$this->confirmation_suffix;
-				$this->patch(['confirmation_number'=>$this->confirmation_number+1]);
-				$document->head = $this->default_confirmation_header;
-				$document->footer = $this->default_confirmation_footer;
-				break;
-			case Document::TYPE_INVOICE:
-				$document->number = $this->document_prefix.$this->document_number.$this->document_suffix;
-				$this->patch(['document_number'=>$this->document_number+1]);
-				$document->head = $this->default_document_header;
-				$document->footer = $this->default_document_footer;
-				break;
-			case Document::TYPE_REMINDER:
-				$document->number = $this->reminder_prefix.$this->reminder_number.$this->reminder_suffix;
-				$this->patch(['reminder_number'=>$this->reminder_number+1]);
-				$document->head = $this->default_reminder_header;
-				$document->footer = $this->default_reminder_footer;
-				break;
-		}		
+		$document->number = $this->type_prefix.$this->type_number.$this->type_suffix;
+		$this->patch(['type_number'=>$this->type_number+1]);
+		$document->head = $this->default_header;
+		$document->footer = $this->default_footer;
 	}
 	
 	static function table(){
@@ -306,29 +263,15 @@ class CompanySettings{
 	
 	function updateFrom(Document $document){
 		$type = '';
-		switch ($document->type){
-			case Document::TYPE_INVOICE:
-				$type = 'document';
-				break;
-			case Document::TYPE_OFFER:
-				$type = 'offer';
-				break;
-			case Document::TYPE_CONFIRMATION:
-				$type = 'confirmation';
-				break;
-			case Document::TYPE_REMINDER:
-				$type = 'reminder';
-				break;
-		}
 		$prefix = preg_replace('/[1-9]+\w*$/', '', $document->number);
 		$suffix = preg_replace('/^\w*\d+/', '', $document->number);
 		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;				
 		$data = [
-			'default_'.$type.'_header' => $document->head,
-			'default_'.$type.'_footer' => $document->footer,			
-			$type.'_prefix' => $prefix,
-			$type.'_suffix' => $suffix,
-			$type.'_number' => max($number,$this->{$type.'_number'}),	
+			'default_header' => $document->head,
+			'default_footer' => $document->footer,			
+			'type_prefix' => $prefix,
+			'type_suffix' => $suffix,
+			'type_number' => max($number,$this->{'type_number'}),	
 		];
 		$this->patch($data);
 		$this->save();
@@ -341,11 +284,6 @@ class Document {
 	const STATE_DELAYED = 3;
 	const STATE_PAYED = 4;
 	const STATE_ERROR = 99;
-
-	const TYPE_OFFER = 1;
-	const TYPE_CONFIRMATION = 2;
-	const TYPE_INVOICE = 3;
-	const TYPE_REMINDER = 4;
 	
 	function __construct(array $company = []){
 		if (isset($company['id'])) $this->company_id = $company['id'];
@@ -354,25 +292,28 @@ class Document {
 		$this->date = time();
 	}
 	
+	function type(){
+		if (!isset($this->type)) $this->type = DocumentType::load(['ids' => $this->type_id]);
+		return $this->type;
+	}
+	
 	function derive(){
 		$new_document = new Document();
-		switch ($this->type){
-			case Document::TYPE_OFFER:
-				$new_document->type = Document::TYPE_CONFIRMATION;
-				break;
-			case Document::TYPE_CONFIRMATION:
-				$new_document->type = Document::TYPE_INVOICE;
-				break;
-			default:
-				$new_document->type = Document::TYPE_REMINDER;
+		
+		if ($next_type_id = $this->type()->next_type_id){
+			$new_document->type_id = $next_type_id;
+		} else {
+			error('No successor type defined for documents of type ?',$this->type()->name);
+			redirect(getUrl('document'));
+			die();
 		}
-		$company_settings = CompanySettings::load($this->company_id);
+		
+		$company_settings = CompanySettings::load($this->company_id,$next_type_id);
 		$company_settings->applyTo($new_document);
 		foreach ($this as $field => $value){
-			if (!isset($new_document->{$field})) $new_document->{$field} = $value;	
+			if (array_key_exists($field,Document::table())  && !isset($new_document->{$field})) $new_document->{$field} = $value;	
 		}
 		unset($new_document->id);
-
 		$new_document->save();
 		$company_settings->save();
 
@@ -394,16 +335,16 @@ class Document {
 	static function table(){
 		return [
 			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
+			'type_id'			=> ['INT','NOT NULL'],
 			'company_id'		=> ['INT','NOT NULL'],
-			'date'				=> ['TIMESTAMP','NOT NULL'],
 			'number'			=> ['TEXT','NOT NULL'],
+			'date'				=> ['TIMESTAMP','NOT NULL'],
+			'state'				=> ['INT','NOT NULL','DEFAULT'=>static::STATE_NEW],
+			'template_id'		=> ['INT','NOT NULL'],
 			'delivery_date'		=> ['VARCHAR'=>100],
 			'head'				=> 'TEXT',
 			'footer'			=> 'TEXT',
 			'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
-			'template_id'		=> ['INT','NOT NULL'],
-			'type_id'			=> ['INT','NOT NULL','DEFAULT'=>static::TYPE_INVOICE],
-			'state'				=> ['INT','NOT NULL','DEFAULT'=>static::STATE_NEW],
 			
 			'sender'			=> ['TEXT','NOT NULL'],
 			'tax_number'		=> ['VARCHAR'=>255],
@@ -526,6 +467,7 @@ class Document {
 			}			
 			$sql = 'INSERT INTO documents ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
+			debug(query_insert($query, $args));
 			assert($query->execute($args),'Was not able to insert new document');	
 			$this->id = $db->lastInsertId();
 		}
@@ -650,6 +592,65 @@ class Document {
 	}
 }
 
+class DocumentType{
+	static function table(){
+		return [
+			'id'						=> ['INTEGER','KEY'=>'PRIMARY'],
+			'next_type_id'			 	=> ['INT'],
+			'name'						=> ['VARCHAR'=>255,'NOT NULL'],
+		];
+	}
+	
+	static function addBasicTypes(){
+		$db = get_or_create_db();
+		$db->exec('INSERT INTO document_types (id, next_type_id, name) VALUES (1, 2, "offer"), (2, 3, "confirmation"), (3, 4, "invoice"), (4, 4, "reminder")');
+	}
+
+	static function load($options = []){
+		$types = [];
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM document_types';
+		$args = [];
+		$single = false;
+		
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$ids = [$ids];
+				$single = true;
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+		
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to read document types.');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);		
+		foreach ($rows as $row) {
+			$doc_type = new DocumentType();
+			$doc_type->patch($row);
+			$doc_type->dirty = [];
+			if ($single) return $doc_type;
+			$types[$doc_type->id] = $doc_type;
+		}
+		if (empty($types)) {
+			DocumentType::addBasicTypes();
+			$types = DocumentType::load();
+		}		
+		return $types;
+	}
+	
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+}
+
 class Template{
 	static function table(){
 		return [
@@ -666,7 +667,7 @@ class Template{
 		$sql = 'SELECT * FROM templates WHERE company_id = :cid';
 		$args = [':cid'=>$company_id];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to templates for the selected company.');
+		assert($query->execute($args),'Was not able to read templates for the selected company.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($rows as $row) {
 			$template = new Template();

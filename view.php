@@ -98,7 +98,7 @@ if (isset($_POST['document'])){
 	$document->save();
 	info('Your document ? has been saved.',$document->number);
 
-	$companySettings = CompanySettings::load($document->company_id);
+	$companySettings = CompanySettings::load($document->company_id,$document->type_id);
 	$companySettings->updateFrom($document);
 	info('Company settings have been updated.');
 }
@@ -116,8 +116,8 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; 
 
-$texts1 = [Document::TYPE_OFFER=>'offer date',Document::TYPE_CONFIRMATION=>'confirmation date',Document::TYPE_INVOICE=>'document date',Document::TYPE_REMINDER=>'reminder date'];
-$texts2 = [Document::TYPE_OFFER=>'offer number',Document::TYPE_CONFIRMATION=>'confirmation number',Document::TYPE_INVOICE=>'document number',Document::TYPE_REMINDER=>'reminder number'];
+$texts1 = [1=>'offer date',2=>'confirmation date',3=>'document date',4=>'reminder date'];
+$texts2 = [1=>'offer number',2=>'confirmation number',3=>'document number',4=>'reminder number'];
 
 ?>
 
@@ -154,13 +154,13 @@ $texts2 = [Document::TYPE_OFFER=>'offer number',Document::TYPE_CONFIRMATION=>'co
 
 		<fieldset class="dates">
 			<legend><?= t('Dates')?></legend>
-			<label><?= t($texts1[$document->type])?>
+			<label><?= t($texts1[$document->type_id])?>
 				<input name="document[date]" value="<?= $document->date() ?>" />
 			</label>
 			<label><?= t('Delivery Date')?>
 				<input name="document[delivery_date]" value="<?= $document->delivery_date() ?>" />
 			</label>
-			<label><?= t($texts2[$document->type])?>
+			<label><?= t($texts2[$document->type_id])?>
 				<input name="document[number]" value="<?= $document->number ?>" />
 			</label>
 			<label><?= t('State'); ?>
@@ -328,4 +328,4 @@ $texts2 = [Document::TYPE_OFFER=>'offer number',Document::TYPE_CONFIRMATION=>'co
 </form>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'document:'.$id],false,NO_CONVERSSION);
 
-include '../common_templates/closure.php'; ?>
+include '../common_templates/closure.php'; debug($document)?>

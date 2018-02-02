@@ -6,6 +6,7 @@ include 'controller.php';
 $title = t('Umbrella: Document Management');
 require_login('document');
 $documents = Document::load();
+$doc_types = DocumentType::load();
 $companies = request('company','json');
 
 include '../common_templates/head.php'; 
@@ -28,12 +29,9 @@ include '../common_templates/messages.php'; ?>
 		</tr>
 		<?php foreach ($documents as $id => $document){
 			if ($document->company_id != $cid) continue; 
-			$options = [
-				Document::TYPE_OFFER=>'create confirmation',
-				Document::TYPE_CONFIRMATION=>'create document',
-				Document::TYPE_INVOICE=>'create reminder',
-				Document::TYPE_REMINDER=>'add reminder'
-			];?>
+			$next_type_id = $doc_types[$document->type_id]->next_type_id;
+			$next_type = $next_type_id ? $doc_types[$next_type_id] : null;
+			?>
 		<tr>
 			<td><a href="<?= $document->id ?>/view"><?= $document->number ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->sum().' '.$document->currency ?></a></td>
@@ -41,7 +39,7 @@ include '../common_templates/messages.php'; ?>
 			<td><a href="<?= $document->id ?>/view"><?= t($document->state()) ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->customer_short()?></a></td>
 			<td><?php if ($document->state != Document::STATE_PAYED) { ?>
-				<a href="<?= $document->id ?>/step"><?= t($options[$document->type])?></a>
+				<a href="<?= $document->id ?>/step"><?= t('add ?',$next_type->name)?></a>
 				<?php } ?>
 			</td>
 		</tr>
