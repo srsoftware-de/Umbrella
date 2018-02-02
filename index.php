@@ -5,7 +5,11 @@ include 'controller.php';
 
 $title = t('Umbrella: Document Management');
 require_login('document');
-$documents = Document::load();
+
+$options = [];
+if ($order = param('order')) $options['order'] = $order;
+
+$documents = Document::load($options);
 $doc_types = DocumentType::load();
 $companies = request('company','json');
 
@@ -20,11 +24,12 @@ include '../common_templates/messages.php'; ?>
 	<a href="add?company=<?= $cid?>"><?= t('add document') ?></a>
 	<table class="documents">
 		<tr>
-			<th><?= t('Number')?></th>
+			<th><a href="?order=type_id"><?= t('Document type') ?></a></th>
+			<th><a href="?order=number"><?= t('Number') ?></a></th>
 			<th><?= t('Sum')?></th>
-			<th><?= t('Date')?></th>
-			<th><?= t('State')?></th>
-			<th><?= t('Customer')?></th>
+			<th><a href="?order=date"><?= t('Date') ?></a></th>
+			<th><a href="?order=state"><?= t('State') ?></a></th>
+			<th><a href="?order=customer"><?= t('Customer') ?></a></th>
 			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($documents as $id => $document){
@@ -33,6 +38,7 @@ include '../common_templates/messages.php'; ?>
 			$next_type = $next_type_id ? $doc_types[$next_type_id] : null;
 			?>
 		<tr>
+			<td><a href="<?= $document->id ?>/view"><?= t($doc_types[$document->type_id]->name) ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->number ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->sum().' '.$document->currency ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->date() ?></a></td>

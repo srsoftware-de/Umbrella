@@ -399,8 +399,12 @@ class Document {
 			$args = array_merge($args, $tids);
 			$sql .= ' AND id IN (SELECT document_id FROM document_positions WHERE time_id IN ('.$qmarks.'))';
 		}
-
-		$sql .= ' ORDER BY id DESC';
+		
+		$sql .= ' ORDER BY ';
+		if (isset($options['order']) && array_key_exists($options['order'],Document::table())){
+			$sql .= $options['order'].' DESC, ';
+		}
+		$sql .= 'id DESC';
 
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load documents!');
