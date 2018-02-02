@@ -39,7 +39,7 @@ include '../common_templates/messages.php'; ?>
 			<td><a href="<?= $document->id ?>/view"><?= t($document->state()) ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->customer_short()?></a></td>
 			<td><?php if ($document->state != Document::STATE_PAYED) { ?>
-				<a href="<?= $document->id ?>/step"><?= t('add ?',$next_type->name)?></a>
+				<a href="<?= $document->id ?>/step"><?= t('add '.$next_type->name)?></a>
 				<?php } ?>
 			</td>
 		</tr>
