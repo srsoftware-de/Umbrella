@@ -68,6 +68,7 @@ $translations = array(
 		'New document from ?'=>'Neues Dokument von ?',
 		'No document template selected'=>'Keine Vorlage für Dokument ausgewählt',
 		'No templates have been provided for this company!'=>'Für diese Firma wurde kein Template bereitgestellt!',
+		'Notes'=>'Notizen',
 		'Number'=>'Nummer',
 		'offer'=>'Angebot',
 		'offer date'=>'Angebotsdatum',
