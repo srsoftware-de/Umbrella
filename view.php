@@ -328,4 +328,4 @@ $texts2 = [1=>'offer number',2=>'confirmation number',3=>'document number',4=>'r
 </form>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'document:'.$id],false,NO_CONVERSSION);
 
-include '../common_templates/closure.php'; debug($document)?>
+include '../common_templates/closure.php';?>

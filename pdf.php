@@ -24,6 +24,10 @@ class PDF extends FPDF{
 		$this->document = $document;
 		$this->inTable=false;
 	}
+	
+	function Cell($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link=''){
+		parent::Cell($w, $h, utf8_decode($txt), $border, $ln, $align, $fill, $link);
+	}
 
 	function logo(){
 		if ($template = $this->document->template()){
@@ -40,12 +44,12 @@ class PDF extends FPDF{
 		$this->SetFont('Arial','U',7);
 
 		$sender = str_replace("\n", ', ', $this->document->sender);
-		$this->Cell(0,8,utf8_decode($sender),NO_FRAME,DOWN,'L');
+		$this->Cell(0,8,$sender,NO_FRAME,DOWN,'L');
 
 		$this->SetFont('Arial','',10);
 		$customer = explode("\n", $this->document->customer);		
 		foreach ($customer as $line){
-			$this->Cell(0,5,utf8_decode($line),NO_FRAME,DOWN,'L');
+			$this->Cell(0,5,$line,NO_FRAME,DOWN,'L');
 		}
 	}
 
@@ -55,13 +59,13 @@ class PDF extends FPDF{
 		$this->SetY(30);
 		$this->SetX(130);
 
-	    // Title
-	    $sender = explode("\n", $this->document->sender);
-	    foreach ($sender as $line){
-	    	$this->Cell(70,4,utf8_decode($line),NO_FRAME,DOWN,'R');
-	    }
-	    $this->Cell(70,4,$this->document->company('phone'),NO_FRAME,DOWN,'R');
-	    $this->Cell(70,4,$this->document->company('email'),NO_FRAME,DOWN,'R');
+		// Title
+		$sender = explode("\n", $this->document->sender);
+		foreach ($sender as $line){
+			$this->Cell(70,4,$line,NO_FRAME,DOWN,'R');
+		}
+		$this->Cell(70,4,$this->document->company('phone'),NO_FRAME,DOWN,'R');
+		$this->Cell(70,4,$this->document->company('email'),NO_FRAME,DOWN,'R');
 	}
 
 	function Header(){
@@ -73,22 +77,7 @@ class PDF extends FPDF{
 		$this->SetFont('Arial','B',8);
 
 		$this->SetXY($x,$y=$y+$dy);
-		switch ($this->document->type){
-			case Document::TYPE_OFFER:
-				$this->Cell(30,4,t('Offer Number'),NO_FRAME,RIGHT,'L');
-				break;
-			case Document::TYPE_CONFIRMATION:
-				$this->Cell(30,4,t('Confirmation Number'),NO_FRAME,RIGHT,'L');
-				break;
-			case Document::TYPE_INVOICE:
-				$this->Cell(30,4,t('Document Number'),NO_FRAME,RIGHT,'L');
-				break;
-			case Document::TYPE_REMINDER:
-				$this->Cell(30,4,t('Reminder Number'),NO_FRAME,RIGHT,'L');
-				break;
-			default:
-				$this->Cell(30,4,t('Document Number'),NO_FRAME,RIGHT,'L');
-		}
+		$this->Cell(30,4,t($this->document->type()->name.' number'),NO_FRAME,RIGHT,'L');
 
 		$this->Cell(20,4,$this->document->number,NO_FRAME,RIGHT,'R');
 
@@ -112,9 +101,9 @@ class PDF extends FPDF{
 		$this->Cell(20,4,$this->document->customer_number,NO_FRAME,NEWLINE,'R');
 
 		if ($this->document->customer_tax_number){
-		    $this->SetXY($x,$y=$y+$dy);
-		    $this->Cell(30,4,t('Customer tax number'),NO_FRAME,RIGHT,'L');
-		    $this->Cell(20,4,$this->document->customer_tax_number,NO_FRAME,NEWLINE,'R');
+			$this->SetXY($x,$y=$y+$dy);
+			$this->Cell(30,4,t('Customer tax number'),NO_FRAME,RIGHT,'L');
+			$this->Cell(20,4,$this->document->customer_tax_number,NO_FRAME,NEWLINE,'R');
 		}
 		
 		if ($this->inTable){
@@ -135,17 +124,17 @@ class PDF extends FPDF{
 	
 	// Page footer
 	function Footer(){
-	    // Position at 1.5 cm from bottom
-	    // Arial italic 8
-	    $this->SetFont('Arial','',8);
+		// Position at 1.5 cm from bottom
+		// Arial italic 8
+		$this->SetFont('Arial','',8);
 
-	    $bank_account = str_replace("\n", ", ", $this->document->bank_account);
-	    $this->SetY(-15);
-	    $this->Cell(0,5,utf8_decode(t('Bank account: ?',$bank_account)),NO_FRAME,NEWLINE,'L');
-	    $this->Cell(0,5,utf8_decode(t('Local court: ?',$this->document->court)),NO_FRAME,NEWLINE,'L');
-	    
-	    $this->SetY(-15);
-	    $this->Cell(0,10,t('Page ?/?',[$this->PageNo(),'{nb}']),NO_FRAME,0,'R');
+		$bank_account = str_replace("\n", ", ", $this->document->bank_account);
+		$this->SetY(-15);
+		$this->Cell(0,5,t('Bank account: ?',$bank_account),NO_FRAME,NEWLINE,'L');
+		$this->Cell(0,5,t('Local court: ?',$this->document->court),NO_FRAME,NEWLINE,'L');
+		
+		$this->SetY(-15);
+		$this->Cell(0,10,t('Page ?/?',[$this->PageNo(),'{nb}']),NO_FRAME,0,'R');
 	}
 	
 	function firstPage(){
@@ -160,7 +149,7 @@ class PDF extends FPDF{
 		$this->SetFont('Arial','',10);
 		$head = explode("\n", $this->document->head);
 		foreach ($head as $line){
-			$this->Cell(0,10,utf8_decode($line),NO_FRAME,DOWN,'L');
+			$this->Cell(0,10,$line,NO_FRAME,DOWN,'L');
 		}
 		
 	}
@@ -223,27 +212,27 @@ class PDF extends FPDF{
 	
 	function pos_n_cell($i){
 		if ($i===null) $i = t('Pos');
-		$this->Cell(10,7,utf8_decode($i),NO_FRAME,RIGHT,'R');
+		$this->Cell(10,7,$i,NO_FRAME,RIGHT,'R');
 	}
 	
 	function amount_cell($i){
 		$i = ($i===null)?t('Amount'):round($i,2);
-		$this->Cell(12,7,utf8_decode($i),NO_FRAME,RIGHT,'R');
+		$this->Cell(12,7,$i,NO_FRAME,RIGHT,'R');
 	}
 	
 	function unit_cell($i){
 		if ($i===null) $i=t('Unit');
-		$this->Cell(15,7,utf8_decode(t($i)),NO_FRAME,RIGHT,'L');
+		$this->Cell(15,7,t($i),NO_FRAME,RIGHT,'L');
 	}
 	
 	function code_cell($i){
 		if ($i===null) $i=t('Code');
-		$this->Cell(20,7,utf8_decode($i),NO_FRAME,RIGHT,'C');
+		$this->Cell(20,7,$i,NO_FRAME,RIGHT,'C');
 	}
 	
 	function desc_cell($t,$d){
 		if ($t===null) {
-			$this->Cell(93,7,utf8_decode(t('Description')),NO_FRAME,'L');
+			$this->Cell(93,7,t('Description'),NO_FRAME,'L');
 		} else {
 			$x = $this->GetX();
 			$this->MultiCell(93,7,utf8_decode($t),NO_FRAME,'L');
@@ -258,12 +247,12 @@ class PDF extends FPDF{
 	
 	function s_pr_cell($i){
 		$i=($i===null)?t('Single price'):$this->format_value($i);
-		$this->Cell(20,7,utf8_decode($i),NO_FRAME,RIGHT,'R');
+		$this->Cell(20,7,$i,NO_FRAME,RIGHT,'R');
 	}
 	
 	function price_cell($i){
 		$i=($i===null)?t('Price'):$this->format_value($i);
-		$this->Cell(20,7,utf8_decode($i),NO_FRAME,NEWLINE,'R');
+		$this->Cell(20,7,$i,NO_FRAME,NEWLINE,'R');
 	}
 	
 	function positions(){
@@ -305,11 +294,11 @@ class PDF extends FPDF{
 		
 		if ($debug) debug('Netto: '.$sum);
 		
-		$this->Cell(40+93+25+12,5,utf8_decode(t('Net sum')),NO_FRAME,RIGHT,'R');
+		$this->Cell(40+93+25+12,5,t('Net sum'),NO_FRAME,RIGHT,'R');
 		$this->price_cell($sum);
 		
 		foreach ($taxes as $percent => $tax){
-			$this->Cell(40+93+25+12,5,utf8_decode(t('Tax ?%',$percent)),NO_FRAME,RIGHT,'R');
+			$this->Cell(40+93+25+12,5,t('Tax ?%',$percent),NO_FRAME,RIGHT,'R');
 			if ($debug) debug($percent.'% Ust: '.$tax);
 			$this->price_cell($tax);
 			$sum += $tax;
@@ -318,11 +307,10 @@ class PDF extends FPDF{
 		if ($debug) debug('Summe: '.$sum,1);
 		$this->SetFont('Arial','B',9);		
 		
-		$this->Cell(40+93+25+12,7,utf8_decode(t('Gross sum')),NO_FRAME,RIGHT,'R');
+		$this->Cell(40+93+25+12,7,t('Gross sum'),NO_FRAME,RIGHT,'R');
 		$this->price_cell($sum);
 		$this->inTable=false;
 	}
-	
 }
 
 ?>
