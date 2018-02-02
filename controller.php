@@ -188,12 +188,13 @@ class DocumentPosition{
 				$sql = rtrim($sql,',').' WHERE document_id = :iid AND pos = :pos';
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update document_positions in database!');
+				
+				$customer_price = CustomerPrice::load($this->document->company_id, $this->document->customer_number, $this->item_code);
+				if (!$customer_price) $customer_price = new CustomerPrice();
+				$customer_price->patch(['company_id'=>$this->document->company_id,'customer_number'=>$this->document->customer_number,'item_code'=>$this->item_code,'single_price'=>$this->single_price]);
+				$customer_price->save();				
 			}
 		}
-		$customer_price = CustomerPrice::load($this->document->company_id, $this->document->customer_number, $this->item_code);
-		if (!$customer_price) $customer_price = new CustomerPrice();
-		$customer_price->patch(['company_id'=>$this->document->company_id,'customer_number'=>$this->document->customer_number,'item_code'=>$this->item_code,'single_price'=>$this->single_price]);
-		$customer_price->save();
 		return $this;
 	}
 	
