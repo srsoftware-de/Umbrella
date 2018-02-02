@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Document Management';
 
 include '../bootstrap.php';
 include 'controller.php';
@@ -9,24 +9,24 @@ const DOWN=2;
 const FRAME=1;
 const NO_FRAME=0; // default 0, set this to 1 to enable debugging frames
 
-require_login('invoice');
+require_login('document');
 
 $id = param('id');
-assert(is_numeric($id),'No valid invoice id passed to edit!');
-$invoice = reset(Invoice::load(['ids'=>$id]));
-assert($invoice !== null,'No invoice found or accessible for id = '.$id);
+assert(is_numeric($id),'No valid document id passed to edit!');
+$document = reset(Document::load(['ids'=>$id]));
+assert($document !== null,'No document found or accessible for id = '.$id);
 
 require('lib/fpdf181/fpdf.php');
 
 class PDF extends FPDF{
-	function __construct($invoice){
+	function __construct($document){
 		parent::__construct('P','mm','A4');
-		$this->invoice = $invoice;
+		$this->document = $document;
 		$this->inTable=false;
 	}
 
 	function logo(){
-		if ($template = $this->invoice->template()){
+		if ($template = $this->document->template()){
 
 			$file = $template->file();
 			$type = end(explode('/',mime_content_type($file)));
@@ -39,11 +39,11 @@ class PDF extends FPDF{
 		$this->SetX(10);
 		$this->SetFont('Arial','U',7);
 
-		$sender = str_replace("\n", ', ', $this->invoice->sender);
+		$sender = str_replace("\n", ', ', $this->document->sender);
 		$this->Cell(0,8,utf8_decode($sender),NO_FRAME,DOWN,'L');
 
 		$this->SetFont('Arial','',10);
-		$customer = explode("\n", $this->invoice->customer);		
+		$customer = explode("\n", $this->document->customer);		
 		foreach ($customer as $line){
 			$this->Cell(0,5,utf8_decode($line),NO_FRAME,DOWN,'L');
 		}
@@ -56,12 +56,12 @@ class PDF extends FPDF{
 		$this->SetX(130);
 
 	    // Title
-	    $sender = explode("\n", $this->invoice->sender);
+	    $sender = explode("\n", $this->document->sender);
 	    foreach ($sender as $line){
 	    	$this->Cell(70,4,utf8_decode($line),NO_FRAME,DOWN,'R');
 	    }
-	    $this->Cell(70,4,$this->invoice->company('phone'),NO_FRAME,DOWN,'R');
-	    $this->Cell(70,4,$this->invoice->company('email'),NO_FRAME,DOWN,'R');
+	    $this->Cell(70,4,$this->document->company('phone'),NO_FRAME,DOWN,'R');
+	    $this->Cell(70,4,$this->document->company('email'),NO_FRAME,DOWN,'R');
 	}
 
 	function Header(){
@@ -73,48 +73,48 @@ class PDF extends FPDF{
 		$this->SetFont('Arial','B',8);
 
 		$this->SetXY($x,$y=$y+$dy);
-		switch ($this->invoice->type){
-			case Invoice::TYPE_OFFER:
+		switch ($this->document->type){
+			case Document::TYPE_OFFER:
 				$this->Cell(30,4,t('Offer Number'),NO_FRAME,RIGHT,'L');
 				break;
-			case Invoice::TYPE_CONFIRMATION:
+			case Document::TYPE_CONFIRMATION:
 				$this->Cell(30,4,t('Confirmation Number'),NO_FRAME,RIGHT,'L');
 				break;
-			case Invoice::TYPE_INVOICE:
-				$this->Cell(30,4,t('Invoice Number'),NO_FRAME,RIGHT,'L');
+			case Document::TYPE_INVOICE:
+				$this->Cell(30,4,t('Document Number'),NO_FRAME,RIGHT,'L');
 				break;
-			case Invoice::TYPE_REMINDER:
+			case Document::TYPE_REMINDER:
 				$this->Cell(30,4,t('Reminder Number'),NO_FRAME,RIGHT,'L');
 				break;
 			default:
 				$this->Cell(30,4,t('Document Number'),NO_FRAME,RIGHT,'L');
 		}
 
-		$this->Cell(20,4,$this->invoice->number,NO_FRAME,RIGHT,'R');
+		$this->Cell(20,4,$this->document->number,NO_FRAME,RIGHT,'R');
 
 		$this->SetFont('Arial','',8);
 
-		$date = date(t('Y-m-d'),$this->invoice->date);
+		$date = date(t('Y-m-d'),$this->document->date);
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Date'),NO_FRAME,RIGHT,'L');
 		$this->Cell(20,4,$date,NO_FRAME,RIGHT,'R');
 
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Delivery Date'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,$this->invoice->delivery_date(),NO_FRAME,RIGHT,'R');
+		$this->Cell(20,4,$this->document->delivery_date(),NO_FRAME,RIGHT,'R');
 
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Tax number'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,$this->invoice->tax_number,NO_FRAME,RIGHT,'R');
+		$this->Cell(20,4,$this->document->tax_number,NO_FRAME,RIGHT,'R');
 
 		$this->SetXY($x,$y=$y+$dy);
 		$this->Cell(30,4,t('Customer number'),NO_FRAME,RIGHT,'L');
-		$this->Cell(20,4,$this->invoice->customer_number,NO_FRAME,NEWLINE,'R');
+		$this->Cell(20,4,$this->document->customer_number,NO_FRAME,NEWLINE,'R');
 
-		if ($this->invoice->customer_tax_number){
+		if ($this->document->customer_tax_number){
 		    $this->SetXY($x,$y=$y+$dy);
 		    $this->Cell(30,4,t('Customer tax number'),NO_FRAME,RIGHT,'L');
-		    $this->Cell(20,4,$this->invoice->customer_tax_number,NO_FRAME,NEWLINE,'R');
+		    $this->Cell(20,4,$this->document->customer_tax_number,NO_FRAME,NEWLINE,'R');
 		}
 		
 		if ($this->inTable){
@@ -139,10 +139,10 @@ class PDF extends FPDF{
 	    // Arial italic 8
 	    $this->SetFont('Arial','',8);
 
-	    $bank_account = str_replace("\n", ", ", $this->invoice->bank_account);
+	    $bank_account = str_replace("\n", ", ", $this->document->bank_account);
 	    $this->SetY(-15);
 	    $this->Cell(0,5,utf8_decode(t('Bank account: ?',$bank_account)),NO_FRAME,NEWLINE,'L');
-	    $this->Cell(0,5,utf8_decode(t('Local court: ?',$this->invoice->court)),NO_FRAME,NEWLINE,'L');
+	    $this->Cell(0,5,utf8_decode(t('Local court: ?',$this->document->court)),NO_FRAME,NEWLINE,'L');
 	    
 	    $this->SetY(-15);
 	    $this->Cell(0,10,t('Page ?/?',[$this->PageNo(),'{nb}']),NO_FRAME,0,'R');
@@ -158,7 +158,7 @@ class PDF extends FPDF{
 		
 		$this->setY(95,1);
 		$this->SetFont('Arial','',10);
-		$head = explode("\n", $this->invoice->head);
+		$head = explode("\n", $this->document->head);
 		foreach ($head as $line){
 			$this->Cell(0,10,utf8_decode($line),NO_FRAME,DOWN,'L');
 		}
@@ -168,7 +168,7 @@ class PDF extends FPDF{
 	function foot(){
 		$this->SetFont('Arial','',10);
 		$this->Ln();		
-		$this->MultiCell(0, 10, utf8_decode($this->invoice->footer));
+		$this->MultiCell(0, 10, utf8_decode($this->document->footer));
 	}
 	
 	function generate(){
@@ -185,7 +185,7 @@ class PDF extends FPDF{
 	
 	function store($dir){		
 		$file_contents = $this->Output('S');
-		$filename = $this->invoice->number.' - '.date('c').'.pdf';
+		$filename = $this->document->number.' - '.date('c').'.pdf';
 		save_file($dir.'/'.$filename,$file_contents,'application/pdf');
 		$list = request('files','index',['format'=>'json','path'=>$dir]);
 		assert(array_key_exists($filename, $list['files']),'Something went wrong with the file upload!');
@@ -212,7 +212,7 @@ class PDF extends FPDF{
 		}
 
 		$attachment = [
-			'name' => $this->invoice->number.' - '.date('c').'.pdf',
+			'name' => $this->document->number.' - '.date('c').'.pdf',
 			'content' => $this->Output('S'),
 		];
 		
@@ -253,7 +253,7 @@ class PDF extends FPDF{
 	}
 	
 	function format_value($v){
-		return number_format($v/100,2,$this->invoice->company('decimal_separator'),$this->invoice->company('thousands_separator'));
+		return number_format($v/100,2,$this->document->company('decimal_separator'),$this->document->company('thousands_separator'));
 	}
 	
 	function s_pr_cell($i){
@@ -273,7 +273,7 @@ class PDF extends FPDF{
 		$this->SetFont('Arial','',9);
 		$sum = 0;
 		$taxes = array();
-		foreach ($this->invoice->positions() as $pos => $position){
+		foreach ($this->document->positions() as $pos => $position){
 			$str = 'Pos '.$pos.': ';
 			$this->pos_n_cell($pos);
 			$this->amount_cell($position->amount);			

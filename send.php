@@ -1,25 +1,25 @@
 <?php
 	include('pdf.php');
 
-	$pdf = new PDF($invoice);
+	$pdf = new PDF($document);
 	$pdf->generate();
 
-	$reciever = post('reciever',$invoice->customer_email);
-	$sender = post('sender',$invoice->company()['email']);
-	$subject = post('subject',t('New document from ?',$invoice->company()['name']));
-	$text = post('text',$invoice->mail_text());
+	$reciever = post('reciever',$document->customer_email);
+	$sender = post('sender',$document->company()['email']);
+	$subject = post('subject',t('New document from ?',$document->company()['name']));
+	$text = post('text',$document->mail_text());
 
 	if (isset($_POST['reciever'])){
 		if ($pdf->send($sender,$reciever,$subject,$text)){
-			info('Your email to ? has been sent.',$invoice->customer_email);
-			$invoice->update_mail_text($text);
-			if ($invoice->state == Invoice::STATE_NEW){
-				$invoice->patch(['state'=>Invoice::STATE_SENT]);
-				$invoice->save();
+			info('Your email to ? has been sent.',$document->customer_email);
+			$document->update_mail_text($text);
+			if ($document->state == Document::STATE_NEW){
+				$document->patch(['state'=>Document::STATE_SENT]);
+				$document->save();
 			}
 			redirect('view');
 		} else {
-			error('Was not able to send mail to ?',$invoice->customer_email);
+			error('Was not able to send mail to ?',$document->customer_email);
 		}
 	}
 
@@ -31,7 +31,7 @@
 ?>
 <form method="POST">
 <fieldset>
-	<legend><?= t('Send ? via mail',$invoice->number) ?></legend>
+	<legend><?= t('Send ? via mail',$document->number) ?></legend>
 	<fieldset>
 		<legend><?= t('Reciever')?></legend>
 		<input type="text" name="reciever" value="<?= $reciever ?>" />

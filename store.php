@@ -3,7 +3,7 @@
 
 	if ($path = param('path')){
 
-		$pdf = new PDF($invoice);
+		$pdf = new PDF($document);
 		$pdf->generate();
 		$pdf->store($path);
 	} else {

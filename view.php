@@ -3,17 +3,17 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-$title = t('Umbrella: Invoice Management');
-require_login('invoice');
+$title = t('Umbrella: Document Management');
+require_login('document');
 
 $id = param('id');
-assert(is_numeric($id),'No valid invoice id passed to edit!');
-$invoice = reset(Invoice::load(['ids'=>$id]));
-if (!$invoice) error('No invoice found or accessible for id ?',$id);
+assert(is_numeric($id),'No valid document id passed to edit!');
+$document = reset(Document::load(['ids'=>$id]));
+if (!$document) error('No document found or accessible for id ?',$id);
 
 if ($services['time']){
-	if (isset($invoice->company_id) && $invoice->company_id !== null){
-		$projects = request('project','json',['company_ids'=>$invoice->company_id]); // get all projects of the invoices' company
+	if (isset($document->company_id) && $document->company_id !== null){
+		$projects = request('project','json',['company_ids'=>$document->company_id]); // get all projects of the documents' company
 		$tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
 		$times = request('time','json',['task_ids'=>array_keys($tasks)]); // get all times for tasks of the project
 		$user_ids = [];
@@ -30,7 +30,7 @@ if ($services['time']){
 
 		$users = request('user','json',['ids'=>array_keys($user_ids)]);
 
-		// add times selected by user to invoice
+		// add times selected by user to document
 		if ($selected_times = post('times')){
 			$customer_price = 50*100; // TODO: get customer price
 			$timetrack_tax = 19.0; // TODO: make adjustable
@@ -45,7 +45,7 @@ if ($services['time']){
 						$description .= '- '.$tasks[$tid]['name']."\n";
 					}
 				}
-				$position = new InvoicePosition($invoice);
+				$position = new DocumentPosition($document);
 				$position->patch([
 						'item_code'=>t('timetrack'),
 						'amount'=>$duration,
@@ -63,11 +63,11 @@ if ($services['time']){
 }
 
 if (isset($services['items'])){
-	$items = request('items','json',['company'=>$invoice->company_id]);
+	$items = request('items','json',['company'=>$document->company_id]);
 	if ($selected_items = post('items')){
 		foreach ($selected_items as $item_id => $dummy){
 			$item = $items[$item_id];
-			$position = new InvoicePosition($invoice);
+			$position = new DocumentPosition($document);
 			$position->patch([
 					'item_code'=>$item['code'],
 					'amount'=>1,
@@ -83,7 +83,7 @@ if (isset($services['items'])){
 
 
 if ($position_data = post('position')){
-	$positions = $invoice->positions();
+	$positions = $document->positions();
 	foreach ($position_data as $pos => $data){
 		$data['single_price'] *= 100;// * $data['single_price'];
 		$positions[$pos]->patch($data);
@@ -91,23 +91,23 @@ if ($position_data = post('position')){
 	}
 }
 
-if (isset($_POST['invoice'])){
-	$new_invoice_data = $_POST['invoice'];
-	$new_invoice_data['date'] = strtotime($new_invoice_data['date']);
-	$invoice->patch($new_invoice_data);
-	$invoice->save();
-	info('Your invoice ? has been saved.',$invoice->number);
+if (isset($_POST['document'])){
+	$new_document_data = $_POST['document'];
+	$new_document_data['date'] = strtotime($new_document_data['date']);
+	$document->patch($new_document_data);
+	$document->save();
+	info('Your document ? has been saved.',$document->number);
 
-	$companySettings = CompanySettings::load($invoice->company_id);
-	$companySettings->updateFrom($invoice);
+	$companySettings = CompanySettings::load($document->company_id);
+	$companySettings->updateFrom($document);
 	info('Company settings have been updated.');
 }
 
-$templates = Template::load($invoice->company_id);
+$templates = Template::load($document->company_id);
 if (empty($templates)) warn('No templates have been provided for this company!');
 
 if (isset($services['bookmark'])){
-	$hash = sha1(getUrl('invoice',$id.'/view'));
+	$hash = sha1(getUrl('document',$id.'/view'));
 	$bookmark = request('bookmark','json_get?id='.$hash);
 }
 
@@ -116,57 +116,57 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; 
 
-$texts1 = [Invoice::TYPE_OFFER=>'offer date',Invoice::TYPE_CONFIRMATION=>'confirmation date',Invoice::TYPE_INVOICE=>'invoice date',Invoice::TYPE_REMINDER=>'reminder date'];
-$texts2 = [Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'confirmation number',Invoice::TYPE_INVOICE=>'invoice number',Invoice::TYPE_REMINDER=>'reminder number'];
+$texts1 = [Document::TYPE_OFFER=>'offer date',Document::TYPE_CONFIRMATION=>'confirmation date',Document::TYPE_INVOICE=>'document date',Document::TYPE_REMINDER=>'reminder date'];
+$texts2 = [Document::TYPE_OFFER=>'offer number',Document::TYPE_CONFIRMATION=>'confirmation number',Document::TYPE_INVOICE=>'document number',Document::TYPE_REMINDER=>'reminder number'];
 
 ?>
 
 
 
-<form method="POST" class="invoice">
+<form method="POST" class="document">
 	<fieldset>
-		<legend><?= t('Edit invoice')?></legend>
+		<legend><?= t('Edit document')?></legend>
 		<fieldset class="customer">
 			<legend><?= t('Customer')?></legend>
-			<textarea name="invoice[customer]"><?= $invoice->customer ?></textarea>
+			<textarea name="document[customer]"><?= $document->customer ?></textarea>
 			<fieldset>
 				<legend><?= t('Customer number')?></legend>
-				<input name="invoice[customer_number]" value="<?= $invoice->customer_number ?>" />
+				<input name="document[customer_number]" value="<?= $document->customer_number ?>" />
 			</fieldset>
 			<fieldset>
 				<legend><?= t('Customer tax number')?></legend>
-				<input name="invoice[customer_tax_number]" value="<?= $invoice->customer_tax_number ?>" />
+				<input name="document[customer_tax_number]" value="<?= $document->customer_tax_number ?>" />
 			</fieldset>
 			<fieldset>
 				<legend><?= t('Customer email')?></legend>
-				<input name="invoice[customer_email]" value="<?= $invoice->customer_email ?>" />
+				<input name="document[customer_email]" value="<?= $document->customer_email ?>" />
 			</fieldset>
 
 		</fieldset>
 		<fieldset class="sender">
 			<legend><?= t('Sender')?></legend>
-			<textarea name="invoice[sender]"><?= $invoice->sender ?></textarea>
+			<textarea name="document[sender]"><?= $document->sender ?></textarea>
 			<fieldset>
 				<legend><?= t('Tax number')?></legend>
-				<input name="invoice[tax_number]" value="<?= $invoice->tax_number ?>" />
+				<input name="document[tax_number]" value="<?= $document->tax_number ?>" />
 			</fieldset>
 		</fieldset>
 
 		<fieldset class="dates">
 			<legend><?= t('Dates')?></legend>
-			<label><?= t($texts1[$invoice->type])?>
-				<input name="invoice[date]" value="<?= $invoice->date() ?>" />
+			<label><?= t($texts1[$document->type])?>
+				<input name="document[date]" value="<?= $document->date() ?>" />
 			</label>
 			<label><?= t('Delivery Date')?>
-				<input name="invoice[delivery_date]" value="<?= $invoice->delivery_date() ?>" />
+				<input name="document[delivery_date]" value="<?= $document->delivery_date() ?>" />
 			</label>
-			<label><?= t($texts2[$invoice->type])?>
-				<input name="invoice[number]" value="<?= $invoice->number ?>" />
+			<label><?= t($texts2[$document->type])?>
+				<input name="document[number]" value="<?= $document->number ?>" />
 			</label>
 			<label><?= t('State'); ?>
-				<select name="invoice[state]">
-				<?php foreach (Invoice::states() as $state => $text){ ?>
-					<option value="<?= $state ?>" <?= $invoice->state == $state ? 'selected="true"' :''?> ><?= t($text) ?></option>
+				<select name="document[state]">
+				<?php foreach (Document::states() as $state => $text){ ?>
+					<option value="<?= $state ?>" <?= $document->state == $state ? 'selected="true"' :''?> ><?= t($text) ?></option>
 				<?php } ?>
 				</select>
 			<label>
@@ -176,9 +176,9 @@ $texts2 = [Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'conf
 			<legend>
 				<?= t('Greeter/Head text')?>
 			</legend>
-			<textarea name="invoice[head]"><?= $invoice->head ?></textarea>
+			<textarea name="document[head]"><?= $document->head ?></textarea>
 		</fieldset>
-		<fieldset class="invoice_positions">
+		<fieldset class="document_positions">
 			<legend><?= t('Positions')?></legend>
 			<table>
 				<tr>
@@ -197,7 +197,7 @@ $texts2 = [Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'conf
 				</tr>
 
 				<?php $first = true;
-					foreach ($invoice->positions() as $pos => $position) { ?>
+					foreach ($document->positions() as $pos => $position) { ?>
 				<tr>
 					<td><?= $pos ?></td>
 					<td>
@@ -286,31 +286,31 @@ $texts2 = [Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'conf
 			<legend>
 				<?= t('Footer text')?>
 			</legend>
-			<textarea name="invoice[footer]"><?= $invoice->footer ?></textarea>
+			<textarea name="document[footer]"><?= $document->footer ?></textarea>
 		</fieldset>
 		<fieldset class="bank_account">
 			<legend>
 				<?= t('Bank account')?>
 			</legend>
-			<textarea name="invoice[bank_account]"><?= $invoice->bank_account ?></textarea>
+			<textarea name="document[bank_account]"><?= $document->bank_account ?></textarea>
 		</fieldset>
 		<fieldset class="court">
 			<legend>
 				<?= t('Local court')?>
 			</legend>
-			<input name="invoice[court]" value="<?= $invoice->court ?>"/>
+			<input name="document[court]" value="<?= $document->court ?>"/>
 		</fieldset>
 		<fieldset class="template">
 			<legend>
 				<?= t('Template')?>
 			</legend>
-			<select name="invoice[template_id]">
+			<select name="document[template_id]">
 				<option value=""><?= t('No document template selected')?></option>
 				<?php foreach ($templates as $template) {?>
-				<option value="<?= $template->id ?>" <?= $template->id == $invoice->template_id ? 'selected="true"':'' ?>><?= $template->name ?></option>
+				<option value="<?= $template->id ?>" <?= $template->id == $document->template_id ? 'selected="true"':'' ?>><?= $template->name ?></option>
 				<?php }?>
 			</select>
-			<a href="../templates?company=<?= $invoice->company_id ?>"><span class="symbol"></span><?= t('Manage templates') ?></a>
+			<a href="../templates?company=<?= $document->company_id ?>"><span class="symbol"></span><?= t('Manage templates') ?></a>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset>
@@ -323,9 +323,9 @@ $texts2 = [Invoice::TYPE_OFFER=>'offer number',Invoice::TYPE_CONFIRMATION=>'conf
 		<?php if (isset($services['files'])) { ?>
 		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>
 		<?php } ?>
-		<a class="button" title="<?= t('Send as PDF to ?.',$invoice->customer_email)?>" href="send"><?= t('Send to ?',$invoice->customer_email)?></a>
+		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ?',$document->customer_email)?></a>
 	</fieldset>
 </form>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'invoice:'.$id],false,NO_CONVERSSION);
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'document:'.$id],false,NO_CONVERSSION);
 
 include '../common_templates/closure.php'; ?>

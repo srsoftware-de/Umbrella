@@ -1,9 +1,9 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Document Management';
 
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('invoice');
+require_login('document');
 
 $templates = Template::load(param('company'));
 
@@ -14,7 +14,7 @@ include '../common_templates/messages.php'; ?>
 
 <fieldset>
 	<legend><?= t('Add template')?></legend>
-	<a href="<?= getUrl('files','select?target='.getUrl('invoice','add_template')) ?>"><?= t('Select a file') ?></a>
+	<a href="<?= getUrl('files','select?target='.getUrl('document','add_template')) ?>"><?= t('Select a file') ?></a>
 </fieldset>
 <?php if (!empty($templates)) { ?>
 <fieldset>

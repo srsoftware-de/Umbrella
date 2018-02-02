@@ -1,16 +1,16 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Document Management';
 
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('invoice');
+require_login('document');
 
 $id = param('id');
-assert(is_numeric($id),'No valid invoice id passed to edit!');
-$invoice = reset(Invoice::load(['ids'=>$id]));
-if (!$invoice) error('No invoice found or accessible for id ?',$id);
+assert(is_numeric($id),'No valid document id passed to edit!');
+$document = reset(Document::load(['ids'=>$id]));
+if (!$document) error('No document found or accessible for id ?',$id);
 
-$company_id = $invoice->company_id;
+$company_id = $document->company_id;
 
-$new_doc = $invoice->derive();
+$new_doc = $document->derive();
 redirect('../'.$new_doc->id.'/view');
