@@ -48,11 +48,66 @@ function get_or_create_db(){
 class CustomerPrice{
 	static function table(){
 		return [
-			'company_id'	=> ['INTEGER','NOT NULL'],
+			'company_id'	=> ['INT','NOT NULL'],
 			'customer_number'	=> ['VARCHAR'=>255],
 			'item_code'		=> ['VARCHAR'=>50],
 			'single_price'	=> 'INTEGER',
 		];
+	}
+	
+	static function load($company_id,$customer_number,$item_code){
+		$db = get_or_create_db();
+		$sql = 'SELECT item_code,* FROM customer_prices WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ';
+		$args = [':comp'=>$company_id, ':cust'=>$customer_number, ':item' => $item_code];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load customer prices.');
+		if ($row = $query->fetch(INDEX_FETCH)){
+			$customerPrice = new CustomerPrice();
+			$customerPrice->patch($row);
+			$customerPrice->dirty = [];
+			return $customerPrice;
+		}
+		return null;
+	}
+	
+	public function patch($data = array(),$set_dirty = true){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+		return $this;
+	}
+	
+	public function save(){
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT count(*) AS count FROM customer_prices WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ');
+		$args = [':comp'=>$this->company_id, ':cust'=>$this->customer_number, ':item' => $this->item_code];
+		assert($query->execute($args),'Was not able to count customer_prices!');
+		$count = reset($query->fetch(PDO::FETCH_ASSOC));
+		$query->closeCursor();
+		if ($count == 0){ // new!
+			$known_fields = array_keys(CustomerPrice::table());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$sql = 'INSERT INTO customer_prices ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to insert new row into customer_prices');
+		} else {
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE customer_prices SET single_price = :price WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ';
+				$args[':price'] = $this->single_price;
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update customer_prices in database!');
+				$dirty = [];
+			}
+		}
 	}
 }
 
@@ -78,6 +133,7 @@ class DocumentPosition{
 		$query = $db->prepare('SELECT max(pos) AS pos FROM document_positions WHERE document_id = :iid');
 		assert($query->execute([':iid'=>$document->id]),'Was not able to read document position table');
 		$this->pos = reset($query->fetch(PDO::FETCH_ASSOC)) +1;
+		$this->document = $document;
 		$this->document_id = $document->id;
 	}
 
@@ -102,9 +158,11 @@ class DocumentPosition{
 	public function save(){
 		global $services;
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT count(*) AS count FROM document_positions WHERE document_id = :iid AND pos = :pos');
-		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]),'Was not able to read from document positions table!');
+		$query = $db->prepare('SELECT count(*) AS count FROM document_positions WHERE document_id = :iid AND pos = :pos ');
+		$args = [':iid'=>$this->document->id,':pos'=>$this->pos];
+		assert($query->execute($args),'Was not able to read from document positions table!');
 		$count = reset($query->fetch(PDO::FETCH_ASSOC));
+		$query->closeCursor();
 		if ($count == 0){ // new!
 			$known_fields = array_keys(DocumentPosition::table());
 			$fields = [];
@@ -132,7 +190,10 @@ class DocumentPosition{
 				assert($query->execute($args),'Was no able to update document_positions in database!');
 			}
 		}
-		
+		$customer_price = CustomerPrice::load($this->document->company_id, $this->document->customer_number, $this->item_code);
+		if (!$customer_price) $customer_price = new CustomerPrice();
+		$customer_price->patch(['company_id'=>$this->document->company_id,'customer_number'=>$this->document->customer_number,'item_code'=>$this->item_code,'single_price'=>$this->single_price]);
+		$customer_price->save();
 		return $this;
 	}
 	
@@ -229,6 +290,7 @@ class CompanySettings{
 	}
 	
 	public function save(){
+		debug(['save'=>$this]);
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM company_settings WHERE company_id = :cid');
 		assert($query->execute([':cid'=>$this->company_id]),'Was not able to count settings for company!');
@@ -263,8 +325,8 @@ class CompanySettings{
 	
 	function updateFrom(Document $document){
 		$type = '';
-		$prefix = preg_replace('/[1-9]+\w*$/', '', $document->number);
-		$suffix = preg_replace('/^\w*\d+/', '', $document->number);
+		$prefix = preg_replace('/\d+\D*$/', '', $document->number);
+		$suffix = preg_replace('/^\D*\d+/', '', $document->number);
 		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;				
 		$data = [
 			'default_header' => $document->head,
@@ -471,7 +533,6 @@ class Document {
 			}			
 			$sql = 'INSERT INTO documents ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			debug(query_insert($query, $args));
 			assert($query->execute($args),'Was not able to insert new document');	
 			$this->id = $db->lastInsertId();
 		}
@@ -635,7 +696,10 @@ class DocumentType{
 			$doc_type = new DocumentType();
 			$doc_type->patch($row);
 			$doc_type->dirty = [];
-			if ($single) return $doc_type;
+			if ($single){
+				$query->closeCursor();
+				return $doc_type;
+			}
 			$types[$doc_type->id] = $doc_type;
 		}
 		if (empty($types)) {

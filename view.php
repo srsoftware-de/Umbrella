@@ -9,7 +9,10 @@ require_login('document');
 $id = param('id');
 assert(is_numeric($id),'No valid document id passed to edit!');
 $document = reset(Document::load(['ids'=>$id]));
-if (!$document) error('No document found or accessible for id ?',$id);
+if (!$document) {
+	error('No document found or accessible for id ?',$id);
+	redirect('..');
+}
 
 if ($services['time']){
 	if (isset($document->company_id) && $document->company_id !== null){
@@ -32,7 +35,9 @@ if ($services['time']){
 
 		// add times selected by user to document
 		if ($selected_times = post('times')){
-			$customer_price = 50*100; // TODO: get customer price
+			$item_code = t('timetrack');
+			$customer_price = CustomerPrice::load($document->company_id,$document->customer_number,$item_code);
+			
 			$timetrack_tax = 19.0; // TODO: make adjustable
 			foreach ($selected_times as $time_id => $dummy){
 
@@ -47,12 +52,12 @@ if ($services['time']){
 				}
 				$position = new DocumentPosition($document);
 				$position->patch([
-						'item_code'=>t('timetrack'),
+						'item_code'=>$item_code,
 						'amount'=>$duration,
 						'unit'=>t('hours'),
 						'title'=>$time['subject'],
 						'description'=>$description,
-						'single_price'=>$customer_price,
+						'single_price'=> $customer_price ? $customer_price->single_price : 20*100,
 						'tax'=>$timetrack_tax,
 						'time_id'=>$time_id]);
 				$position->save();
@@ -81,13 +86,12 @@ if (isset($services['items'])){
 	}
 }
 
-
 if ($position_data = post('position')){
 	$positions = $document->positions();
 	foreach ($position_data as $pos => $data){
 		$data['single_price'] *= 100;// * $data['single_price'];
 		$positions[$pos]->patch($data);
-		$positions[$pos]->save();
+		$positions[$pos]->save();		
 	}
 }
 

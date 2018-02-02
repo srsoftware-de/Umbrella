@@ -65,6 +65,7 @@ $translations = array(
 		'Net sum'=>'Summe (Netto)',
 		'new'=>'neu',
 		'New document from ?'=>'Neues Dokument von ?',
+		'No document found or accessible for id ?'=>'Kein Dokument mit der id ? auffindbar, oder Sie haben keine Zugriffsberechtigung',
 		'No document template selected'=>'Keine Vorlage für Dokument ausgewählt',
 		'No templates have been provided for this company!'=>'Für diese Firma wurde kein Template bereitgestellt!',
 		'Notes'=>'Notizen',
