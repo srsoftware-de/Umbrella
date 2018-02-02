@@ -1,9 +1,9 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Document Management';
 
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('invoice');
+require_login('document');
 
 if ($template_data = param('template')){
 	$template = new Template($template_data['file']);

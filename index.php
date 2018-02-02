@@ -3,9 +3,9 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-$title = t('Umbrella: Invoice Management');
-require_login('invoice');
-$invoices = Invoice::load();
+$title = t('Umbrella: Document Management');
+require_login('document');
+$documents = Document::load();
 $companies = request('company','json');
 
 include '../common_templates/head.php'; 
@@ -14,10 +14,10 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <br/>
 <?php foreach ($companies as $cid => $company){ ?>
-<fieldset class="invoice list">
+<fieldset class="document list">
 	<legend><?= $company['name']?></legend>
 	<a href="add?company=<?= $cid?>"><?= t('add document') ?></a>
-	<table class="invoices">
+	<table class="documents">
 		<tr>
 			<th><?= t('Number')?></th>
 			<th><?= t('Sum')?></th>
@@ -26,22 +26,22 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Customer')?></th>
 			<th><?= t('Actions')?></th>
 		</tr>
-		<?php foreach ($invoices as $id => $invoice){
-			if ($invoice->company_id != $cid) continue; 
+		<?php foreach ($documents as $id => $document){
+			if ($document->company_id != $cid) continue; 
 			$options = [
-				Invoice::TYPE_OFFER=>'create confirmation',
-				Invoice::TYPE_CONFIRMATION=>'create invoice',
-				Invoice::TYPE_INVOICE=>'create reminder',
-				Invoice::TYPE_REMINDER=>'add reminder'
+				Document::TYPE_OFFER=>'create confirmation',
+				Document::TYPE_CONFIRMATION=>'create document',
+				Document::TYPE_INVOICE=>'create reminder',
+				Document::TYPE_REMINDER=>'add reminder'
 			];?>
 		<tr>
-			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->number ?></a></td>
-			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->sum().' '.$invoice->currency ?></a></td>
-			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->date() ?></a></td>
-			<td><a href="<?= $invoice->id ?>/view"><?= t($invoice->state()) ?></a></td>
-			<td><a href="<?= $invoice->id ?>/view"><?= $invoice->customer_short()?></a></td>
-			<td><?php if ($invoice->state != Invoice::STATE_PAYED) { ?>
-				<a href="<?= $invoice->id ?>/step"><?= t($options[$invoice->type])?></a>
+			<td><a href="<?= $document->id ?>/view"><?= $document->number ?></a></td>
+			<td><a href="<?= $document->id ?>/view"><?= $document->sum().' '.$document->currency ?></a></td>
+			<td><a href="<?= $document->id ?>/view"><?= $document->date() ?></a></td>
+			<td><a href="<?= $document->id ?>/view"><?= t($document->state()) ?></a></td>
+			<td><a href="<?= $document->id ?>/view"><?= $document->customer_short()?></a></td>
+			<td><?php if ($document->state != Document::STATE_PAYED) { ?>
+				<a href="<?= $document->id ?>/step"><?= t($options[$document->type])?></a>
 				<?php } ?>
 			</td>
 		</tr>

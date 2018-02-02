@@ -1,14 +1,14 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Document Management';
 
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('invoice');
+require_login('document');
 
-$invoice_id = param('id');
+$document_id = param('id');
 $index = param('pos');
 
-$invoice = reset(Invoice::load(['ids'=>$invoice_id]));
-$positions = $invoice->positions();
+$document = reset(Document::load(['ids'=>$document_id]));
+$positions = $document->positions();
 if (isset($positions[$index])) $positions[$index]->delete();
 redirect('view');

@@ -1,13 +1,13 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Document Management';
 
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('invoice');
+require_login('document');
 
-$invoice_id = param('id');
+$document_id = param('id');
 $position = param('pos');
 
-$invoice = reset(Invoice::load(['ids'=>$invoice_id]));
-$invoice->elevate($position);
+$document = reset(Document::load(['ids'=>$document_id]));
+$document->elevate($position);
 redirect('view');

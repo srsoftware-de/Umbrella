@@ -1,10 +1,10 @@
-<?php $title = 'Umbrella Invoice Management';
+<?php $title = 'Umbrella Document Management';
 
 include '../bootstrap.php';
 include 'controller.php';
 
-require_login('invoice');
+require_login('document');
 $options = [];
 if ($times = param('times')) $options['times'] = $times;
 
-die(json_encode(Invoice::load($options)));
+die(json_encode(Document::load($options)));

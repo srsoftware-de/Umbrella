@@ -3,8 +3,8 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-$title = t('Umbrella: Invoice Management');
-require_login('invoice');
+$title = t('Umbrella: Document Management');
+require_login('document');
 
 $companies = request('company','json');
 
@@ -34,13 +34,13 @@ if ($customer_contact_id = post('customer')){
 		}
 		$_POST['customer_email'] = $email;
 	}	
-	$invoice = new Invoice($company);	
-	$invoice->patch($_POST);
-	$company_settings->applyTo($invoice);
-	$invoice->template_id = 0; // TODO impelement by selection
-	$invoice->save();
+	$document = new Document($company);	
+	$document->patch($_POST);
+	$company_settings->applyTo($document);
+	$document->template_id = 0; // TODO impelement by selection
+	$document->save();
 	$company_settings->save();
-	redirect($invoice->id.'/view');
+	redirect($document->id.'/view');
 } 
 
 include '../common_templates/head.php'; 
@@ -48,9 +48,9 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<form method="POST" class="invoice">
+<form method="POST" class="document">
 	<fieldset>
-		<legend><?= t('Create new invoice') ?></legend>
+		<legend><?= t('Create new document') ?></legend>
 		<fieldset class="customer">		
 			<legend><?= t('Customer') ?></legend>
 			<select name="customer">
@@ -63,10 +63,10 @@ include '../common_templates/messages.php'; ?>
 		<fieldset class="document_type">		
 			<legend><?= t('Document type') ?></legend>
 			<select name="type">
-				<option value="<?= Invoice::TYPE_INVOICE?>"><?= t('invoice')?></option>								
-				<option value="<?= Invoice::TYPE_OFFER?>"><?= t('offer')?></option>								
-				<option value="<?= Invoice::TYPE_CONFIRMATION?>"><?= t('confirmation')?></option>								
-				<option value="<?= Invoice::TYPE_REMINDER?>"><?= t('reminder')?></option>
+				<option value="<?= Document::TYPE_INVOICE?>"><?= t('document')?></option>								
+				<option value="<?= Document::TYPE_OFFER?>"><?= t('offer')?></option>								
+				<option value="<?= Document::TYPE_CONFIRMATION?>"><?= t('confirmation')?></option>								
+				<option value="<?= Document::TYPE_REMINDER?>"><?= t('reminder')?></option>
 			</select>			
 		</fieldset>
 		<fieldset class="sender">

@@ -6,10 +6,11 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/documents.db');
 
 		$tables = [
-		'documents'=>Document::table(),
-		'document_positions'=>DocumentPosition::table(),
-		'company_settings'=>CompanySettings::table(),
-		'templates'=>Template::table(),
+			'documents'=>Document::table(),
+			'document_positions'=>DocumentPosition::table(),
+			'company_settings'=>CompanySettings::table(),
+			'customer_prices'=>CustomerPrice::table(),
+			'templates'=>Template::table(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -41,6 +42,17 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/documents.db');
 	}
 	return $db;
+}
+
+class CustomerPrice{
+	static function table(){
+		return [
+			'company_id'	=> ['INTEGER','NOT NULL'],
+			'customer_number'	=> ['VARCHAR'=>255],
+			'item_code'		=> ['VARCHAR'=>50],
+			'single_price'	=> 'INTEGER',
+		];
+	}
 }
 
 class DocumentPosition{
@@ -249,34 +261,13 @@ class CompanySettings{
 	static function table(){
 		return [
 			'company_id'				=> ['INTEGER','KEY'=>'PRIMARY'],
-			
-			'default_offer_header' 			=> 'TEXT',
-			'default_offer_footer'			=> 'TEXT',
-			'offer_prefix'				=> ['TEXT','DEFAULT'=>'A'],
-			'offer_suffix'				=> ['TEXT','DEFAULT'=>null],
-			'offer_number'				=> ['INT','NOT NULL','DEFAULT 1'],
-			'offer_mail_text'			=> 'TEXT',
-			
-			'default_confirmation_header'	 	=> 'TEXT',
-			'default_confirmation_footer'		=> 'TEXT',
-			'confirmation_prefix'			=> ['TEXT','DEFAULT'=>'B'],
-			'confirmation_suffix'			=> ['TEXT','DEFAULT'=>null],
-			'confirmation_number'			=> ['INT','NOT NULL','DEFAULT 1'],
-			'confirmation_mail_text'		=> 'TEXT',
-			
-			'default_document_header' 		=> 'TEXT',
-			'default_document_footer'		=> 'TEXT',
-			'document_prefix'			=> ['TEXT','DEFAULT'=>'R'],
-			'document_suffix'			=> ['TEXT','DEFAULT'=>null],
-			'document_number'			=> ['INT','NOT NULL','DEFAULT 1'],
-			'document_mail_text'			=> 'TEXT',
-				
-			'default_reminder_header' 		=> 'TEXT',
-			'default_reminder_footer'		=> 'TEXT',
-			'reminder_prefix'			=> ['TEXT','DEFAULT'=>'M'],
-			'reminder_suffix'			=> ['TEXT','DEFAULT'=>null],
-			'reminder_number'			=> ['INT','NOT NULL','DEFAULT 1'],
-			'reminder_mail_text'			=> 'TEXT',
+			'document_type_id'			=> ['INT','NOT NULL'],
+			'default_header' 			=> 'TEXT',
+			'default_footer'			=> 'TEXT',
+			'type_prefix'				=> ['TEXT','DEFAULT'=>'A'],
+			'type_suffix'				=> ['TEXT','DEFAULT'=>null],
+			'type_number'				=> ['INT','NOT NULL','DEFAULT 1'],
+			'type_mail_text'			=> 'TEXT',
 		];
 	}
 	
@@ -403,24 +394,26 @@ class Document {
 	static function table(){
 		return [
 			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
+			'company_id'		=> ['INT','NOT NULL'],
 			'date'				=> ['TIMESTAMP','NOT NULL'],
 			'number'			=> ['TEXT','NOT NULL'],
 			'delivery_date'		=> ['VARCHAR'=>100],
 			'head'				=> 'TEXT',
 			'footer'			=> 'TEXT',
-			'company_id'		=> ['INT','NOT NULL'],
 			'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
 			'template_id'		=> ['INT','NOT NULL'],
+			'type_id'			=> ['INT','NOT NULL','DEFAULT'=>static::TYPE_INVOICE],
 			'state'				=> ['INT','NOT NULL','DEFAULT'=>static::STATE_NEW],
+			
 			'sender'			=> ['TEXT','NOT NULL'],
 			'tax_number'		=> ['VARCHAR'=>255],
 			'bank_account'		=> 'TEXT',
 			'court'				=> 'TEXT',
+			
 			'customer'			=> 'TEXT',
-			'customer_number'	=> 'INT',
+			'customer_number'	=> ['VARCHAR'=>255],
 			'customer_tax_number'=> ['VARCHAR'=>255],
 			'customer_email'	=> ['VARCHAR'=>255],
-			'type'				=> ['INT','NOT NULL','DEFAULT'=>static::TYPE_INVOICE],
 		];
 	}
 
