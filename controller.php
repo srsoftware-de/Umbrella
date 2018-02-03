@@ -666,7 +666,7 @@ class DocumentType{
 			'name'						=> ['VARCHAR'=>255,'NOT NULL'],
 		];
 	}
-	
+
 	static function addBasicTypes(){
 		$db = get_or_create_db();
 		$db->exec('INSERT INTO document_types (id, next_type_id, name) VALUES (1, 2, "offer"), (2, 3, "confirmation"), (3, 4, "invoice"), (4, 4, "reminder")');
@@ -678,7 +678,7 @@ class DocumentType{
 		$sql = 'SELECT * FROM document_types';
 		$args = [];
 		$single = false;
-		
+
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
@@ -689,10 +689,10 @@ class DocumentType{
 			$sql .= ' WHERE id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to read document types.');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);		
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($rows as $row) {
 			$doc_type = new DocumentType();
 			$doc_type->patch($row);
@@ -706,16 +706,48 @@ class DocumentType{
 		if (empty($types)) {
 			DocumentType::addBasicTypes();
 			$types = DocumentType::load();
-		}		
+		}
 		return $types;
 	}
-	
+
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
 			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
+		}
+	}
+
+	public function save(){
+		global $user;
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE document_types SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update document type in database!');
+			}
+		} else {
+			$known_fields = array_keys(DocumentType::table());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$sql = 'INSERT INTO document_types ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to insert new document type');
+			$this->id = $db->lastInsertId();
 		}
 	}
 }
