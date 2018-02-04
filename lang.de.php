@@ -5,6 +5,7 @@ $translations = array(
 		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
 		'Description'=>'Beschreibung',
+		'Documents'=>'Dokumente',
 		'Edit item of ?'=>'Item von ? bearbeiten',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
