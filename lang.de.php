@@ -13,6 +13,7 @@ $translations = array(
 		'Delicious tags'=>'Tags bei Delicious',
 		'Delicious user name'=>'Nutzername bei Delicious',
 		'Description'=>'Beschreibung',
+		'Documents'=>'Dokumente',
 		'edit bookmark'=>'Lesezeichen bearbeiten',
 		'Edit URL ?'=>'URL ? bearbeiten',
 		'Files'=>'Dateien',
