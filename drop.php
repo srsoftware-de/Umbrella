@@ -24,8 +24,11 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<h2><?= t('This will remove the time "?". Are you sure?',$time['subject'])?></h2>
-<a href="?confirm=yes<?= $target?('&redirect='.$target):''?>" class="button"><?= t('Yes')?></a>
-<a href="view" class="button"><?= t('No')?></a>
+<fieldset>
+	<legend><?= t('This will remove the time "?"',$time['subject']) ?></legend>
+	<?= t('Are you sure?')?>
+	<a href="?confirm=yes" class="button"><?= t('Yes')?></a>
+	<a href="view" class="button"><?= t('No')?></a>
+</fieldset>
 
 <?php include '../common_templates/closure.php';?>
