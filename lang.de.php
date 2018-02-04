@@ -41,6 +41,7 @@ $translations = array(
 		'Document type'=>'Dokumenttentyp',
 		'Document types'=>'Dokumenttentypen',
 		'Document Number'=>'Dokumentennmmer',
+		'Documents'=>'Dokumente',
 		'Download/Preview PDF'=>'PDF herunterladen/anschauen',
 		'edit'=>'bearbeiten',
 		'Edit document'=>'Rechnung bearbeiten',
