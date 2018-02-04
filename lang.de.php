@@ -14,6 +14,7 @@ $translations = array(
 		'current users'=>'derzeitige Benutzer',
 		'decimals'=>'Nachkommastellen',
 		'decimal_separator'=>'Dezimal&shy;trenn&shy;zeichen',
+		'Documents'=>'Dokumente',
 		'edit'=>'Bearbeiten',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
