@@ -7,6 +7,7 @@ $translations = array(
 		'Bookmarks' => 'Lesezeichen',
 		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
+		'Documents'=>'Dokumente',
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
