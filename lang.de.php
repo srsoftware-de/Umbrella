@@ -13,6 +13,7 @@ $translations = array(
 		'Contacts'=>'Kontakte',
 		'Country'=>'Land',
 		'Create new contact'=>'Neuen Kontakt anlegen',
+		'Documents'=>'Dokumente',
 		'download'=>'herunterladen',
 		'Edit Contact'=>'Kontakt bearbeiten',
 		'edit'=>'bearbeiten',
