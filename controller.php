@@ -98,7 +98,7 @@ class CustomerPrice{
 			}
 			$sql = 'INSERT INTO customer_prices ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new row into customer_prices');
+			assert($query->execute($args),'Was not able to insert new row into customer_prices: '.$query->errorInfo()[2]);
 		} else {
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE customer_prices SET single_price = :price WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ';
@@ -112,6 +112,9 @@ class CustomerPrice{
 }
 
 class DocumentPosition{
+	const UPDATE_REMAINING = true;
+	const SKIP_UPDATE = false;
+	
 	static function table(){	
 		return [
 			'document_id'	=> ['INTEGER','NOT NULL'],
@@ -215,18 +218,19 @@ class DocumentPosition{
 		return $result;
 	}
 	
-	public function delete(){
+	public function delete($update_remaining = DocumentPosition::UPDATE_REMAINING){
 		global $services;
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM document_positions WHERE document_id = :iid AND pos = :pos');
 		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]),'Was not able to remove entry from document positions table!');
 		
-		$query = $db->prepare('UPDATE document_positions SET pos = pos-1 WHERE document_id = :iid AND pos > :pos');
-		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]));
-		if (isset($this->time_id) && $this->time_id !== null && isset($services['time'])){
-			request('time','update_state',['OPEN'=>$this->time_id]);
+		if ($update_remaining){
+			$query = $db->prepare('UPDATE document_positions SET pos = pos-1 WHERE document_id = :iid AND pos > :pos');
+			assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]));
+			if (isset($this->time_id) && $this->time_id !== null && isset($services['time'])){
+				request('time','update_state',['OPEN'=>$this->time_id]);
+			}
 		}
-
 		return $this;
 	}
 	
@@ -279,7 +283,7 @@ class CompanySettings{
 	
 	static function table(){
 		return [
-			'company_id'				=> ['INTEGER','KEY'=>'PRIMARY'],
+			'company_id'				=> ['INT','NOT NULL'],
 			'document_type_id'			=> ['INT','NOT NULL'],
 			'default_header' 			=> 'TEXT',
 			'default_footer'			=> 'TEXT',
@@ -287,14 +291,14 @@ class CompanySettings{
 			'type_suffix'				=> ['TEXT','DEFAULT'=>null],
 			'type_number'				=> ['INT','NOT NULL','DEFAULT 1'],
 			'type_mail_text'			=> 'TEXT',
+			'PRIMARY KEY'				=> '(company_id, document_type_id)',
 		];
 	}
 	
 	public function save(){
-		debug(['save'=>$this]);
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT count(*) AS count FROM company_settings WHERE company_id = :cid');
-		assert($query->execute([':cid'=>$this->company_id]),'Was not able to count settings for company!');
+		$query = $db->prepare('SELECT count(*) AS count FROM company_settings WHERE company_id = :cid AND document_type_id = :dtid');
+		assert($query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id]),'Was not able to count settings for company!');
 		$count = reset($query->fetch(PDO::FETCH_ASSOC));
 		if ($count == 0){ // new!
 			$known_fields = array_keys(CompanySettings::table());
@@ -312,12 +316,12 @@ class CompanySettings{
 		} else {
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE company_settings SET';
-				$args = [':cid'=>$this->company_id];
+				$args = [':cid'=>$this->company_id,':dtid'=>$this->document_type_id];
 				foreach ($this->dirty as $field){
 					$sql .= ' '.$field.'=:'.$field.',';
 					$args[':'.$field] = $this->{$field};
 				}
-				$sql = rtrim($sql,',').' WHERE company_id = :cid';
+				$sql = rtrim($sql,',').' WHERE company_id = :cid AND document_type_id = :dtid';
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update company_settings in database!');
 			}
@@ -326,7 +330,7 @@ class CompanySettings{
 	
 	function updateFrom(Document $document){
 		$type = '';
-		$prefix = preg_replace('/\d+\D*$/', '', $document->number);
+		$prefix = preg_replace('/[1-9]+\D*$/', '', $document->number);
 		$suffix = preg_replace('/^\D*\d+/', '', $document->number);
 		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;				
 		$data = [
@@ -596,7 +600,7 @@ class Document {
 
 
 	public function date(){
-		return date('d.m.Y',$this->date);
+		return date('Y-m-d',$this->date);
 	}
 	
 	public function delivery_date(){
@@ -635,8 +639,8 @@ class Document {
 	function elevate($position_number){
 		if ($position_number<2) return;
 		$positions = $this->positions();
-		$a = $this->positions[$position_number]->delete();
-		$b = $this->positions[$position_number-1]->delete();
+		$a = $positions[$position_number]->delete(DocumentPosition::SKIP_UPDATE);
+		$b = $positions[$position_number-1]->delete(DocumentPosition::SKIP_UPDATE);
 		$a->patch(['pos'=>$position_number-1])->save();
 		$b->patch(['pos'=>$position_number])->save();
 	}

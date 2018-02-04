@@ -27,7 +27,7 @@ class PDF extends FPDF{
 	
 	function Cell($w, $h=0, $txt='', $border=0, $ln=0, $align='', $fill=false, $link=''){
 		parent::Cell($w, $h, utf8_decode($txt), $border, $ln, $align, $fill, $link);
-	}
+	}	
 
 	function logo(){
 		if ($template = $this->document->template()){
@@ -157,7 +157,7 @@ class PDF extends FPDF{
 	function foot(){
 		$this->SetFont('Arial','',10);
 		$this->Ln();		
-		$this->MultiCell(0, 10, utf8_decode($this->document->footer));
+		$this->MultiCell(0, 10, $this->document->footer);
 	}
 	
 	function generate(){
@@ -235,9 +235,9 @@ class PDF extends FPDF{
 			$this->Cell(93,7,t('Description'),NO_FRAME,'L');
 		} else {
 			$x = $this->GetX();
-			$this->MultiCell(93,7,utf8_decode($t),NO_FRAME,'L');
+			$this->MultiCell(93,7,$t,NO_FRAME,'L');
 			$this->SetX($x);
-			$this->MultiCell(93,4,utf8_decode($d),NO_FRAME,'L');
+			$this->MultiCell(93,4,$d,NO_FRAME,'L');
 		}
 	}
 	

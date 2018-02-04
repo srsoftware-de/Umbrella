@@ -1,0 +1,1 @@
+<a class="symbol" href="<?= getUrl('document','types') ?>"></a>

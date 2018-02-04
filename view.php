@@ -42,7 +42,7 @@ if ($services['time']){
 			foreach ($selected_times as $time_id => $dummy){
 
 				$time = $times[$time_id];
-				$duration = round(($time['end_time']-$time['start_time'])/3600,2); // TODO: make decimals adjustable
+				$duration = ($time['end_time']-$time['start_time'])/3600; // TODO: make decimals adjustable
 				$description = $time['description'];
 				if ($description === null || trim($description) == ''){
 					$description = '';
@@ -89,14 +89,14 @@ if (isset($services['items'])){
 if ($position_data = post('position')){
 	$positions = $document->positions();
 	foreach ($position_data as $pos => $data){
-		$data['single_price'] *= 100;// * $data['single_price'];
+		$data['single_price'] = str_replace(',','.',$data['single_price'])*100;// * $data['single_price'];
 		$positions[$pos]->patch($data);
 		$positions[$pos]->save();		
 	}
 }
 
 if (isset($_POST['document'])){
-	$new_document_data = $_POST['document'];
+	$new_document_data = $_POST['document'];	
 	$new_document_data['date'] = strtotime($new_document_data['date']);
 	$document->patch($new_document_data);
 	$document->save();
@@ -118,12 +118,7 @@ if (isset($services['bookmark'])){
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; 
-
-$texts1 = [1=>'offer date',2=>'confirmation date',3=>'document date',4=>'reminder date'];
-$texts2 = [1=>'offer number',2=>'confirmation number',3=>'document number',4=>'reminder number'];
-
-?>
+include '../common_templates/messages.php'; ?>
 
 
 
@@ -158,13 +153,13 @@ $texts2 = [1=>'offer number',2=>'confirmation number',3=>'document number',4=>'r
 
 		<fieldset class="dates">
 			<legend><?= t('Dates')?></legend>
-			<label><?= t($texts1[$document->type_id])?>
-				<input name="document[date]" value="<?= $document->date() ?>" />
+			<label><?= t($document->type()->name.' date')?>
+				<input type="date" name="document[date]" value="<?= $document->date() ?>" />
 			</label>
 			<label><?= t('Delivery Date')?>
 				<input name="document[delivery_date]" value="<?= $document->delivery_date() ?>" />
 			</label>
-			<label><?= t($texts2[$document->type_id])?>
+			<label><?= t($document->type()->name.' number')?>
 				<input name="document[number]" value="<?= $document->number ?>" />
 			</label>
 			<label><?= t('State'); ?>

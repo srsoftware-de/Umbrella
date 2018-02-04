@@ -24,12 +24,12 @@ include '../common_templates/messages.php'; ?>
 	<a href="add?company=<?= $cid?>"><?= t('add document') ?></a>
 	<table class="documents">
 		<tr>
-			<th><a href="?order=type_id"><?= t('Document type') ?></a></th>
 			<th><a href="?order=number"><?= t('Number') ?></a></th>
 			<th><?= t('Sum')?></th>
 			<th><a href="?order=date"><?= t('Date') ?></a></th>
 			<th><a href="?order=state"><?= t('State') ?></a></th>
 			<th><a href="?order=customer"><?= t('Customer') ?></a></th>
+			<th><a href="?order=type_id"><?= t('Document type') ?></a></th>
 			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($documents as $id => $document){
@@ -38,12 +38,12 @@ include '../common_templates/messages.php'; ?>
 			$next_type = $next_type_id ? $doc_types[$next_type_id] : null;
 			?>
 		<tr>
-			<td><a href="<?= $document->id ?>/view"><?= t($doc_types[$document->type_id]->name) ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->number ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->sum().' '.$document->currency ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->date() ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= t($document->state()) ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->customer_short()?></a></td>
+			<td><a href="<?= $document->id ?>/view"><?= t($doc_types[$document->type_id]->name) ?></a></td>
 			<td><?php if ($document->state != Document::STATE_PAYED) { ?>
 				<a href="<?= $document->id ?>/step"><?= t('add '.$next_type->name)?></a>
 				<?php } ?>
