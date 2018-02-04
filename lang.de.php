@@ -17,6 +17,7 @@ $translations = array(
 		'current folder: ?'=>'aktueller Ordner: ?',
 		'delete'=>'löschen',
 		'Directory'=>'Verzeichnis',
+		'Documents'=>'Dokumente',
 		'download file'=>'Datei herunterladen',
 		'Enter new name for ?'=>'Neuen Namen für ? eingeben',
 		'File'=>'Datei',
