@@ -19,6 +19,7 @@ $translations = array(
 		'delete'=>'löschen',
 		'Description'=>'Beschreibung',
 		'Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Spickzettel für Markdown und erweitertes Markdown hier</a>',
+		'Documents'=>'Dokumente',
 		'edit'=>'bearbeiten',
 		'Edit Project'=>'Projekt bearbeiten',
 		'Estimated time'=>'Erwartete Zeit',
