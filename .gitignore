@@ -1,11 +1,11 @@
 *.db
+bookmark
 company
 config.php
 contact
-bookmark
+document
 files
 importer
-invoice
 item
 notes
 project

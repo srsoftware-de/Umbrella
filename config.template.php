@@ -5,7 +5,7 @@ $services['project']	=array('name'=>'Projects',	'path'=>'https://umbrella.keawe.
 $services['time']		=array('name'=>'Timetrack',	'path'=>'https://umbrella.keawe.de/time/');
 $services['task']		=array('name'=>'Tasks',		'path'=>'https://umbrella.keawe.de/task/');
 $services['user']		=array('name'=>'Users',		'path'=>'https://umbrella.keawe.de/user/');
-$services['invoice']	=array('name'=>'Invoices',	'path'=>'https://umbrella.keawe.de/invoice/');
+$services['document']   = [ 'name' => 'Documents',	'path'=>'https://umbrella.keawe.de/document/'];
 $services['items']  	=array('name'=>'Items',		'path'=>'https://umbrella.keawe.de/item/');
 $services['contact']	=array('name'=>'Contacts',	'path'=>'https://umbrella.keawe.de/contact/');
 $services['bookmark']	=array('name'=>'Bookmarks',	'path'=>'https://umbrella.keawe.de/bookmark/');
