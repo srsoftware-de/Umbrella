@@ -79,10 +79,12 @@ blockquote{
 	max-height: 9999px;
 }
 
-fieldset.add.invoice:hover {
+fieldset.add.invoice:hover,
+fieldset.add.document:hover {
 	max-height: unset;
 }
 
+fieldset.add.document,
 fieldset.add.invoice {
 	max-height: 5px;
 	overflow: hidden;
@@ -129,9 +131,11 @@ table.time h2{
 }
 
 .file label,
+.document .dates label,
 .invoice .dates label{
 	display: block
 }
+.document .header,
 .invoice .header{
 	clear: both;
 }
@@ -142,6 +146,13 @@ fieldset {
 }
 
 .contacts fieldset,
+.document .customer,
+.document .document_type,
+.document .sender,
+.document .court,
+.document .dates,
+.document .template,
+
 .invoice .customer,
 .invoice .document_type,
 .invoice .sender,
@@ -151,10 +162,12 @@ fieldset {
 fieldset.del_note,
 fieldset.login_service_list,
 fieldset.userlist,
+fieldset.document.list,
 fieldset.invoice.list{
 	float: left;
 }
 
+.document .dates label,
 .invoice .dates label{
 	text-align: right;
 }
@@ -224,6 +237,7 @@ input[type="submit"] {
 	display: inherit;
 }
 
+form.document textarea,
 form.invoice textarea {
     font-weight: bold;
     min-height: 90px;
@@ -231,15 +245,19 @@ form.invoice textarea {
 }
 
 .pos_price,
+form.document input.price,
+form.document input.amount,
 form.invoice input.price,
 form.invoice input.amount{
 	max-width: 60px;
 	text-align: right;
 }
 
+form.document .tax,
 form.invoice .tax{
 	min-width: 70px;
 }
+form.document .tax input,
 form.invoice .tax input{
 	max-width: 40px;
 	text-align: right;
