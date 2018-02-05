@@ -4,10 +4,11 @@ RewriteEngine On
 # Turn off discovery of file extensions
 Options -MultiViews
 
-# if (uri points to file OR uri points to dir) AND uri contains "/.xxxxx", then deny access
+# if (uri points to file OR uri points to dir) AND uri contains "/.xxxxx" AND uri starts not with "/.well-known/", then deny access
 RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -f [OR]
 RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
 RewriteCond %{REQUEST_URI} /\..*$
+RewriteCond %{REQUEST_URI} !/\.well-known/.*$
 RewriteRule .* - [F]
 
 # map task/add_to_project/1 to task/add_to_project.php?id=1 
