@@ -225,7 +225,10 @@ function query_insert($query,$args){
 			$pos = strpos($sql,'?');
 		}		
 	} else {
-		foreach ($args as $k => $v) $sql = str_replace($k,'"'.$v.'"',$sql);
+		foreach ($args as $k => $v){
+			$sql = str_replace($k.',','"'.$v.'",',$sql);
+			$sql = str_replace($k.' ','"'.$v.'" ',$sql);
+		}
 	}
 	return $sql;
 }
