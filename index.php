@@ -25,8 +25,8 @@
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
 	<legend>Ich möchte Umbrella testen</legend>
-	<p>Es wird demnächst eine Demo-Instanz geben, an welcher man sich ohne vorherige Registrierung anmelden kann.</p>
-	<p>Diese wird täglich zurückgesetzt und wird eine kleine Auswahl an Beispielbenutzern mit verschiedenen Berechtigungen umfassen</p>	
+	<p>Unter <a class="button" href="https://umbrella-demo.keawe.de/project/3/view">https://umbrella-demo.keawe.de</a> gibt es eine Demo-Installation, an welcher man sich ohne vorherige Registrierung anmelden kann.</p>
+	<p>Diese wird täglich zurückgesetzt und umfasst eine Auswahl an Beispielbenutzern mit verschiedenen Projekten, Aufgaben, Notizen und Berechtigungen umfassen</p>	
 </fieldset>
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
