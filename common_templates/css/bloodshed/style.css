@@ -79,13 +79,11 @@ blockquote{
 	max-height: 9999px;
 }
 
-fieldset.add.invoice:hover,
 fieldset.add.document:hover {
 	max-height: unset;
 }
 
-fieldset.add.document,
-fieldset.add.invoice {
+fieldset.add.document {
 	max-height: 5px;
 	overflow: hidden;
 }
@@ -131,12 +129,10 @@ table.time h2{
 }
 
 .file label,
-.document .dates label,
-.invoice .dates label{
+.document .dates label{
 	display: block
 }
-.document .header,
-.invoice .header{
+.document .header{
 	clear: both;
 }
 
@@ -162,13 +158,11 @@ fieldset {
 fieldset.del_note,
 fieldset.login_service_list,
 fieldset.userlist,
-fieldset.document.list,
-fieldset.invoice.list{
+fieldset.document.list{
 	float: left;
 }
 
-.document .dates label,
-.invoice .dates label{
+.document .dates label{
 	text-align: right;
 }
 
@@ -237,8 +231,7 @@ input[type="submit"] {
 	display: inherit;
 }
 
-form.document textarea,
-form.invoice textarea {
+form.document textarea {
     font-weight: bold;
     min-height: 90px;
     width: 100%;
@@ -246,19 +239,15 @@ form.invoice textarea {
 
 .pos_price,
 form.document input.price,
-form.document input.amount,
-form.invoice input.price,
-form.invoice input.amount{
+form.document input.amount{
 	max-width: 60px;
 	text-align: right;
 }
 
-form.document .tax,
-form.invoice .tax{
+form.document .tax{
 	min-width: 70px;
 }
-form.document .tax input,
-form.invoice .tax input{
+form.document .tax input{
 	max-width: 40px;
 	text-align: right;
 }
@@ -369,25 +358,25 @@ svg text{
 }
 
 @media (max-width:1199px) {
-	.tasklist tr>*:nth-child(2){
+	.tasks tr>*:nth-child(2){
 		display: none;
 	}
 }
 
 @media (max-width: 900px){
-	.tasklist tr>*:nth-child(5){
+	.tasks tr>*:nth-child(5){
 		display: none;
 	}
 }
 
 @media (max-width: 800px){
-	.tasklist tr>*:nth-child(4){
+	.tasks tr>*:nth-child(4){
 		display: none;
 	}
 }
 
 @media (max-width: 700px){
-	.tasklist tr>*:nth-child(6){
+	.tasks tr>*:nth-child(6){
 		display: none;
 	}
 	fieldset.bookmark > fieldset{
@@ -397,7 +386,7 @@ svg text{
 
 @media (max-width: 600px){
 	.project-view tr>*:nth-child(1),
-	.tasklist tr>*:nth-child(3){
+	.tasks tr>*:nth-child(3){
 		display: none;
 	}
 }

@@ -79,11 +79,11 @@ blockquote{
 	max-height: 9999px;
 }
 
-fieldset.add.invoice:hover {
+fieldset.add.document:hover {
 	max-height: unset;
 }
 
-fieldset.add.invoice {
+fieldset.add.document {
 	max-height: 5px;
 	overflow: hidden;
 }
@@ -129,10 +129,10 @@ table.time h2{
 }
 
 .file label,
-.invoice .dates label{
+.document .dates label{
 	display: block
 }
-.invoice .header{
+.document .header{
 	clear: both;
 }
 
@@ -151,11 +151,11 @@ fieldset {
 fieldset.del_note,
 fieldset.login_service_list,
 fieldset.userlist,
-fieldset.invoice.list{
+fieldset.document.list{
 	float: left;
 }
 
-.invoice .dates label{
+.document .dates label{
 	text-align: right;
 }
 
@@ -224,23 +224,23 @@ input[type="submit"] {
 	display: inherit;
 }
 
-form.invoice textarea {
+form.document textarea {
     font-weight: bold;
     min-height: 90px;
     width: 100%;
 }
 
 .pos_price,
-form.invoice input.price,
-form.invoice input.amount{
+form.document input.price,
+form.document input.amount{
 	max-width: 60px;
 	text-align: right;
 }
 
-form.invoice .tax{
+form.document .tax{
 	min-width: 70px;
 }
-form.invoice .tax input{
+form.document .tax input{
 	max-width: 40px;
 	text-align: right;
 }
@@ -308,26 +308,68 @@ img[alt$="<"] {
 	border-top-left-radius: 7px;
 }
 
+fieldset.scrolling{
+	overflow: scroll;
+	max-height: 80%;
+}
+
+svg#gantt{
+	max-width: unset;
+}
+
+svg .row{
+	fill: none;
+	pointer-events: all;
+}
+
+svg .row:hover{
+	fill: #333333;
+}
+
+svg .duration{
+	fill:rgba(255,0,255,0.4);
+	stroke:none;
+}
+
+svg .schedule{
+	fill:none;
+	stroke-width:1;
+	stroke: yellow;
+}
+
+svg .start{
+	stroke-dasharray: 10,30,40;	
+}
+
+svg .stop{
+	stroke-dasharray: 50,30;	
+}
+
+svg text{
+	stroke: none;
+	fill: red;
+}
+
 @media (max-width:1199px) {
-	.tasklist tr>*:nth-child(2){
+	.tasks tr>*:nth-child(2){
 		display: none;
 	}
 }
 
 @media (max-width: 900px){
-	.tasklist tr>*:nth-child(5){
+	.tasks tr>*:nth-child(5){
 		display: none;
 	}
 }
 
 @media (max-width: 800px){
-	.tasklist tr>*:nth-child(4){
+	.tasks tr>*:nth-child(4){
 		display: none;
 	}
 }
 
 @media (max-width: 700px){
-	.tasklist tr>*:nth-child(6){
+	.tasks tr>*:nth-child(6){
 		display: none;
 	}
 	fieldset.bookmark > fieldset{
@@ -337,7 +379,7 @@ img[alt$="<"] {
 
 @media (max-width: 600px){
 	.project-view tr>*:nth-child(1),
-	.tasklist tr>*:nth-child(3){
+	.tasks tr>*:nth-child(3){
 		display: none;
 	}
 }
