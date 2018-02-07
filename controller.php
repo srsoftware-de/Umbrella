@@ -24,6 +24,7 @@
 	}
 
 	function perform_id_login($id){
+		global $services;
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM users WHERE id = :id;');
 		assert($query->execute(array(':id'=>$id)),'Was not able to request users from database!');
@@ -39,7 +40,13 @@
 				}
 			}
 			if (!$redirect && $user['id'] == 1) $redirect='index';
-			if (!$redirect)	$redirect = getUrl('task');
+			if (!$redirect)	{
+				$tests = ['task','project','bookmarks','files'];
+				foreach ($tests as $test){
+					if (isset($services[$test])) $redirect = getUrl($test);
+				}
+				
+			}
 			if (!$redirect)	$redirect = $user['id'].'/view';
 			redirect($redirect);
 			break;
