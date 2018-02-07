@@ -192,7 +192,7 @@ include '../common_templates/messages.php'; ?>
 		<td>
 		<?php $base_url = getUrl('bookmark');
 		foreach ($bookmark['tags'] as $tag){ ?>
-			<a class="button" href="<?= $base_url.'/'.$tag.'/view' ?>"><?= $tag ?></a>
+			<a class="button" href="<?= $base_url.$tag.'/view' ?>"><?= $tag ?></a>
 		<?php } ?>
 		</td>
 	</tr>
