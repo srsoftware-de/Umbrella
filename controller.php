@@ -400,4 +400,15 @@
 		foreach ($task['users'] as $u) send_mail($user->email, $u['email'], $subject, $text);
 		info('Sent email notification to users of this task.');
 	}
+	
+	function getRandomTaskId(){
+		global $user;
+		$db = get_or_create_db();
+		$sql = 'SELECT id,status FROM tasks_users LEFT JOIN tasks ON id=task_id WHERE user_id = :uid AND status < '.TASK_STATUS_COMPLETE.' ORDER BY RANDOM() LIMIT 1';
+		$query = $db->prepare($sql);
+		assert($query->execute([':uid'=>$user->id]),'Was not able to read tasks table.');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$query->closeCursor();
+		return reset(array_keys($rows));
+	}
 ?>

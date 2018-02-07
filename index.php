@@ -12,6 +12,7 @@ $show_closed = param('closed') == 'show';
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
+include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <div class="hover right-fix">
@@ -51,7 +52,7 @@ include '../common_templates/messages.php'; ?>
 	$project = $projects[$task['project_id']];
 	$parent_id = $task['parent_task_id'];
 	?>
-	<tr class="project_<?= $task['project_id']?>">
+	<tr class="project<?= $task['project_id']?>">
 		<td class="<?= task_state($task['status'])?>"><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
 		<td>
 			<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
@@ -60,8 +61,7 @@ include '../common_templates/messages.php'; ?>
 		</td>
 		<td>
 			<span class="hover_h">
-			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a>
-			<a href="#" class="symbol" onclick="return toggle('.project_<?= $task['project_id'] ?>');"></a>
+			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a>&nbsp;<a href="#" class="symbol" onclick="return toggle('.project<?= $task['project_id'] ?>');"></a>&nbsp;<a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $task['project_id'] ?>)')"></a>
 			</span>
 		</td>
 		<td><?= t(task_state($task['status'])) ?></td>
