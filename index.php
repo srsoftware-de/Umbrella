@@ -35,7 +35,11 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<td><a href="<?= $id ?>/view"><?= $project['name'] ?></a></td>
 		<?php if ($companies) { ?>
-		<td><a href="<?= $id ?>/view"><?= isset($companies[$project['company_id']])?$companies[$project['company_id']]['name']:'' ?></a></td>
+		<td><?php if (isset($companies[$project['company_id']])) {
+			$company = $companies[$project['company_id']]; ?>
+			<a href="<?= getUrl('company',$company['id'].'/view') ?>"><?= $company['name'] ?></a>
+			<?php } ?>
+		</td>
 		<?php }?>
 		<td><?= t(project_state($project['status'])) ?></td>
 		<td>

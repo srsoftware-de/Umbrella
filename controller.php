@@ -45,11 +45,20 @@
 	}
 
 	function update_project($id,$name,$description = null,$company_id = null){
+		global $services;
 		$db = get_or_create_db();
 		assert(is_numeric($id),'invalid project id passed!');
 		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
 		$query = $db->prepare('UPDATE projects SET company_id = :cid, name = :name, description = :desc WHERE id = :id;');
 		assert($query->execute(array(':id' => $id, ':cid'=>$company_id, ':name'=>$name,':desc'=>$description)),'Was not able to alter project entry in database');
+		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
+			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+			$tags = [];
+			foreach ($raw_tags as $tag){
+				if (trim($tag) != '') $tags[]=$tag;
+			}
+			request('bookmark','add',['url'=>getUrl('project',$id.'/view'),'comment'=>$project['name'],'tags'=>$tags]);
+		}
 	}
 
 	function set_project_state($project_id, $state){

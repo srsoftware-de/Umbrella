@@ -39,7 +39,7 @@ include '../common_templates/messages.php'; ?>
 			<select name="company">
 				<option value="0"><?= t('== no company assigned =='); ?></option>
 				<?php foreach($companies as $company) { ?>
-				<option value="<?= $company['id'] ?>" <?= $company['id'] == $project['company_id']?'selected="true"':''?>><?= $company['name'] ?></a>
+				<option value="<?= $company['id'] ?>" <?= $company['id'] == $project['company_id']?'selected="true"':''?>><?= $company['name'] ?></option>
 				<?php } ?>
 			</select>
 		</fieldset>
