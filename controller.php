@@ -338,7 +338,7 @@
 	}
 	
 	function add_user_to_task($task,$new_user = null,$permission = null){
-		global $user;
+		global $user,$services;
 		// check
 		assert(array_key_exists('id',$task),'$task array does not contain "id"');
 		assert(array_key_exists('id', $new_user),'$new_user array does not contain "id"');
@@ -349,9 +349,12 @@
 		$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm);');
 		assert($query->execute(array(':tid'=>$task['id'],':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign task to user!');
 		
+		
 		// share tags
-		$url = getUrl('task',$task['id'].'/view');
-		request('bookmark','index',['share_user_id'=>$new_user['id'],'share_url_hash'=>sha1($url)]);
+		if (isset($services['bookmark'])){
+			$url = getUrl('task',$task['id'].'/view');
+			request('bookmark','index',['share_user_id'=>$new_user['id'],'share_url_hash'=>sha1($url)]);
+		}
 		
 		// notify
 		$sender = $user->email;
