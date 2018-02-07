@@ -21,7 +21,7 @@
 							est_time DOUBLE DEFAULT NULL,
 							start_date DATE,
 							due_date DATE);');
-			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT '.self::TASK_PERMISSION_OWNER.', PRIMARY KEY(task_id, user_id));');
+			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT '.TASK_PERMISSION_OWNER.', PRIMARY KEY(task_id, user_id));');
 			$db->query('CREATE TABLE task_dependencies (task_id INT NOT NULL, required_task_id INT NOT NULL, PRIMARY KEY(task_id, required_task_id));');
 		} else {
 			$db = new PDO('sqlite:db/tasks.db');
