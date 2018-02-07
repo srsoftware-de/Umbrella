@@ -20,31 +20,29 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add new Company') ?></legend>
+		<legend><?= t('Edit company') ?></legend>
 		<?php foreach (Company::fields() as $field => $props) {
 			if (!is_array($props)) $props = [$props];
-		?>
+			if ($field === 'id') { ?>
+			<input type="hidden" name="company[<?= $field ?>]" value="<?= $company->id ?>"/>
+			<?php continue; } ?>
 		<fieldset>
 			<legend><?= t($field)?></legend>
-			
-			<?php if ($field === 'id') { ?>
-			
-			<input type="hidden" name="company[<?= $field ?>]" value="<?= $company->id ?>"/><?= $company->id ?>
-			<?php } ?>
-			
-			
+
+
+
 			<?php if (in_array('TEXT',$props)) { ?>
 			<textarea name="company[<?= $field ?>]"><?= $company->{$field} ?></textarea>
 			<?php } ?>
-			
+
 			<?php if (array_key_exists('VARCHAR',$props)) { ?>
 			<input type="text" maxlength="<?= $props['VARCHAR'] ?>" name="company[<?= $field ?>]" value="<?= $company->{$field} ?>" />
 			<?php } ?>
-			
+
 			<?php if (in_array('INT',$props)) { ?>
 			<input type="number" name="company[<?= $field ?>]" value="<?= $company->{$field} ?>" />
 			<?php } ?>
-			
+
 		</fieldset>
 		<?php }?>
 		<input type="submit" />

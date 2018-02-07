@@ -28,15 +28,15 @@ include '../common_templates/messages.php'; ?>
 			<?php if (in_array('TEXT',$props)) { ?>
 			<textarea name="company[<?= $field ?>]"></textarea>
 			<?php } ?>
-			
+
 			<?php if (array_key_exists('VARCHAR',$props)) { ?>
 			<input type="text" maxlength="<?= $props['VARCHAR'] ?>" name="company[<?= $field ?>]" value="<?= array_key_exists('DEFAULT',$props)?$props['DEFAULT']:'' ?>" />
 			<?php } ?>
-			
+
 			<?php if (in_array('INT',$props)) { ?>
 			<input type="number" name="company[<?= $field ?>]" value="<?= array_key_exists('DEFAULT',$props)?$props['DEFAULT']:'' ?>" />
 			<?php } ?>
-			
+
 		</fieldset>
 		<?php }?>
 		<input type="submit" />
