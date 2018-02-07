@@ -57,7 +57,7 @@
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('project',$id.'/view'),'comment'=>$project['name'],'tags'=>$tags]);
+			request('bookmark','add',['url'=>getUrl('project',$id.'/view'),'comment'=>$name,'tags'=>$tags]);
 		}
 	}
 
