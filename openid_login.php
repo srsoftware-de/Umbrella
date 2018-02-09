@@ -38,6 +38,6 @@ if ($login_service){
 			redirect('login');
 		}
 	}
-}
+} else redirect(getUrl('user','login'));
 
 include '../common_templates/closure.php'; ?>

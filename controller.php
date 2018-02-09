@@ -85,6 +85,8 @@
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			foreach ($rows as $row) file_get_contents($row['domain'].'?revoke='.$token);
 		}
+		$query = $db->prepare('DELETE FROM token_uses WHERE token = :token');
+		assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
 	}
 
 	function generateRandomString(){
