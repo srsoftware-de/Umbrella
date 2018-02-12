@@ -361,7 +361,7 @@
 		$reciever = $new_user['email'];
 		$subject = t('? assigned you to a task',$user->login);
 		$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
-		send_mail($sender, $reciever, $subject, $text);
+		if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
 	}
 	
 	function find_project($task_id){
@@ -402,7 +402,7 @@
 		$text = t("Open the following site to see the note on \"?\":\n\n?",[$task['name'],getUrl('task',$task['id'].'/view')]);
 		$recipients = [];
 		foreach ($task['users'] as $u){
-			if ($u['email'] != $user->mail) $recipients[] = $u['email'];
+			if ($u['email'] != $user->email) $recipients[] = $u['email'];
 		}
 		send_mail($user->email, $recipients, $subject, $text);
 		info('Sent email notification to users of this task.');

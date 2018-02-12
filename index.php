@@ -29,7 +29,7 @@ include '../common_templates/messages.php'; ?>
 		<?php } ?>
 	</table>
 </div>
-<table class="tasks">
+<table class="tasks list">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
 		<th><a href="?order=parent_task_id"><?= t('Parent task')?></a></th>
