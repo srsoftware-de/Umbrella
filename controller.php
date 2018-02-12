@@ -400,7 +400,11 @@
 		global $user;
 		$subject = t('? added a note.',$user->login);
 		$text = t("Open the following site to see the note on \"?\":\n\n?",[$task['name'],getUrl('task',$task['id'].'/view')]);
-		foreach ($task['users'] as $u) send_mail($user->email, $u['email'], $subject, $text);
+		$recipients = [];
+		foreach ($task['users'] as $u){
+			if ($u['email'] != $user->mail) $recipients[] = $u['email'];
+		}
+		send_mail($user->email, $recipients, $subject, $text);
 		info('Sent email notification to users of this task.');
 	}
 	
