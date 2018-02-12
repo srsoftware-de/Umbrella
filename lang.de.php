@@ -40,4 +40,7 @@ $translations = array(
 		'Yes'=>'Ja',
 		'Your bookmark has been shared.'=>'Dein Lesezeichen wurde geteilt',
 		'You can select a comment from the site here'=>'Hier kannst du einen Kommentar von der Seite wählen',
+		'You have been invited to have a look at ?. Visit ? to see all your bookmarks.'=>'Du wurdest eingeladen, dir ? anzuschauen. Gehe zu ? für eine Liste aller deiner Lesezeichen.',
+		'? has shared a bookmark with you.'=>'? hat ein Lesezeichen mit dir geteilt.',
+		
 );

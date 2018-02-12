@@ -139,22 +139,24 @@
 		return $tag;
 	}
 	
-	function load_url($hash){
+	function load_url($hash,$load_details = true){
 		global $user;
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM urls WHERE hash = :hash;');
 		$query->execute([':hash'=>$hash]);
 		$url = $query->fetch(PDO::FETCH_ASSOC);
 
-		$query = $db->prepare('SELECT comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash = :hash AND user_id = :uid;');
-		$query->execute([':hash'=>$hash,':uid'=>$user->id]);
-		$row = $query->fetch(PDO::FETCH_ASSOC);
-		if ($row) $url['comment']= $row['comment'];
-
-		$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND url_hash = :hash ORDER BY TAG COLLATE NOCASE');
-		$query->execute([':hash'=>$hash,':uid'=>$user->id]);
-		$tags = $query->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($tags as $tag) $url['tags'][] = $tag['tag'];
+		if ($load_details){
+			$query = $db->prepare('SELECT comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash = :hash AND user_id = :uid;');
+			$query->execute([':hash'=>$hash,':uid'=>$user->id]);
+			$row = $query->fetch(PDO::FETCH_ASSOC);
+			if ($row) $url['comment']= $row['comment'];
+	
+			$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND url_hash = :hash ORDER BY TAG COLLATE NOCASE');
+			$query->execute([':hash'=>$hash,':uid'=>$user->id]);
+			$tags = $query->fetchAll(PDO::FETCH_ASSOC);
+			foreach ($tags as $tag) $url['tags'][] = $tag['tag'];
+		}
 		return $url;
 	}
 
@@ -204,7 +206,12 @@
 		if (!empty($comment_hashes)){
 			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:url_hash, :comment_hash, :uid)');
 			foreach ($comment_hashes as $comment_hash) $query->execute([':url_hash'=>$url_hash,':comment_hash'=>$comment_hash,':uid'=>$user_id]);
-		}
+		}		
 		info('Your bookmark has been shared.');
+		
+		$url = load_url($url_hash);
+		
+		$recipient = request('user','json',['ids'=>$user_id]);
+		send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$recipient['login']),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$url['url'],getUrl('bookmark')]));
 	}
 ?>
