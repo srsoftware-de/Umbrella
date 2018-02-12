@@ -164,9 +164,7 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 	}
 	
 	$good = true;
-	foreach ($reciever as $rec){
-		$good = $good & mail($reciever, $subject, $nmessage, $header);
-	}
+	foreach ($reciever as $rec) $good = $good & mail($rec, $subject, $nmessage, $header);
 	return $good; 
 }
 
