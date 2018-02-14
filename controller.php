@@ -205,7 +205,7 @@
 		foreach ($users as $id => $new_user) {
 			if ($id == $user->id) continue;
 			add_user_to_task($task,$new_user,TASK_PERMISSION_PARTICIPANT);
-			if ($hash) request('bookmark','index',['share_user_id'=>$id,'share_url_hash'=>$hash]);
+			if ($hash) request('bookmark','index',['share_user_id'=>$id,'share_url_hash'=>$hash,'notify'=>false]);
 		}
 		return $task;
 	}
@@ -257,7 +257,7 @@
 			$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$task['name'],$task['description']]).getUrl('task',$task['id'].'/view');
 			send_mail($sender, $u['email'], $subject, $text);
 
-			if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash]);
+			if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
 		}
 
 	}
