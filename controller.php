@@ -192,7 +192,7 @@
 		return request('user','json',['ids'=>array_keys($user_ids)]);
 	}
 
-	function share_bookmark($user_id,$url_hash){
+	function share_bookmark($user_id,$url_hash,$notify_user = true){
 		global $user;
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT tag FROM tags WHERE url_hash = :hash AND user_id = :uid');
@@ -209,9 +209,10 @@
 		}		
 		info('Your bookmark has been shared.');
 		
-		$url = load_url($url_hash);
-		
-		$recipient = request('user','json',['ids'=>$user_id]);
-		send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$recipient['login']),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$url['url'],getUrl('bookmark')]));
+		if ($notify_user){
+			$url = load_url($url_hash);
+			$recipient = request('user','json',['ids'=>$user_id]);
+			send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$recipient['login']),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$url['url'],getUrl('bookmark')]));
+		}
 	}
 ?>
