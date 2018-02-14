@@ -148,13 +148,6 @@ fieldset {
 .document .court,
 .document .dates,
 .document .template,
-
-.invoice .customer,
-.invoice .document_type,
-.invoice .sender,
-.invoice .court,
-.invoice .dates,
-.invoice .template,
 fieldset.del_note,
 fieldset.login_service_list,
 fieldset.userlist,
@@ -358,7 +351,7 @@ svg text{
 }
 
 @media (max-width:1199px) {
-	.tasks tr>*:nth-child(2){
+	.tasks.list tr>*:nth-child(2){
 		display: none;
 	}
 }
