@@ -5,7 +5,11 @@ include 'controller.php';
 
 require_login('notes');
 
-$notes = Note::load();
+$options = [];
+if ($order = param('order')) $options['order'] = $order;
+if (($limit = param('limit')) !== null) $options['limit'] = $limit;
+
+$notes = Note::load($options);
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
@@ -20,7 +24,7 @@ include '../common_templates/messages.php';
 ?>
 <table class="notes">
 	<tr>
-		<th><?= t('URL') ?></th>
+		<th><a href="<?= getUrl('notes','?order=uri&limit=0')?>"><?= t('URI') ?></a></th>
 		<th><?= t('note') ?></th>
 	</tr>
 <?php foreach ($notes as $n) { 

@@ -67,11 +67,25 @@ class Note{
 				$entities = request($module,'json',['ids'=>$id]);
 				if (empty($entities)) return [];
 			}
-			$sql = 'SELECT * FROM notes WHERE uri = :uri';
-			$args = [':uri' => $uri];
+			$sql = 'SELECT * FROM notes WHERE uri = ?';
+			$args = [$uri];
 		}
-
-		$query = $db->prepare($sql);
+		
+		$order = isset($options['order']) ? $options['order'] : 'di';
+		
+		switch ($order){
+			case 'di': $sql.= ' ORDER BY id DESC'; break;
+			case 'id': $sql.= ' ORDER BY id'; break;
+			case 'uri': $sql.= ' ORDER BY uri'; break;
+		}
+		
+		$limit = isset($options['limit']) ? $options['limit'] : '20';
+		
+		if ($limit > 0){
+			$sql .= ' LIMIT ?';
+			$args[] = $limit;
+		}
+		$query = $db->prepare($sql);		
 		assert($query->execute($args),'Was not able to load notes');
 		return $query->fetchAll(INDEX_FETCH);
 	}
