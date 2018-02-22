@@ -251,7 +251,7 @@
 		// notify
 		$sender = $user->email;
 		foreach ($task['users'] as $uid => $u){
-			if ($uid === $user->id) continue;
+			if ($uid == $user->id) continue;
 			$reciever = $u['email'];
 			$subject = t('? edited one of your tasks',$user->login);
 			$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$task['name'],$task['description']]).getUrl('task',$task['id'].'/view');
@@ -259,7 +259,6 @@
 
 			if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
 		}
-
 	}
 
 	function set_task_state($task_id, $state){
