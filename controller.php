@@ -138,7 +138,7 @@
 		$users = false;
 		if ($base_folder == 'project'){
 			$project_id = array_shift($dir_parts);
-			$project_user_ids = request('project',$project_id.'/user_list');
+			$project_user_ids = request('project','json',['ids'=>$project_id,'users'=>'only']);
 			$users = request('user','json',['ids'=>array_keys($project_user_ids)]);
 			$subject = t('? uploaded a file to your project',$user->login);
 		} elseif ($base_folder == 'company'){
