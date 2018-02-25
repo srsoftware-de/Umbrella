@@ -110,6 +110,7 @@
 		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
 		$args = array();
 
+		$single = false;
 		if ($ids !== null){
 			if (!is_array($ids)){
 				$single = true;
@@ -123,6 +124,7 @@
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to request user list!');
 		$results = $query->fetchAll(INDEX_FETCH);
+		if ($single) return reset($results);
 		return $results;
 	}
 
