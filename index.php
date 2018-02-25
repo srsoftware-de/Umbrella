@@ -83,12 +83,12 @@ if ($state == STATE_READY){
 }
 
 if ($state == STATE_READY){
-	$all_users = request('user','list');
+	$all_users = request('user','json');
 	if (!$all_users || empty($all_users)){
 		error('Was not able to load user list Make sure you are logged in to umbrella.');
 		$state = STATE_NOT_LOGGED_IN;		
 	}
-	$user_ids = request('project','user_list',['id'=>$target['project']]);
+	$user_ids = request('project','json',['ids'=>$target['project'],'users'=>'only']);
 	if (!$user_ids || empty($user_ids)){
 		error('No users found in target project. Imported tasks need to be assigned to at least one user. Thus, you need to add at least one user to the target project.');
 		$state = STATE_NO_TARGET_USERS;
