@@ -39,13 +39,24 @@
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('project').$project['id'].'/view','comment'=>$project['name'],'tags'=>$tags]);
+			
+			$url = getUrl('project',$id.'/view');
+			$hash = sha1($url);
+				
+			request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$name),'tags'=>$tags]);
+
+			$users = connected_users(['ids'=>$id]);
+			
+			foreach ($users as $uid => $u){
+				if ($uid == $user->id) continue;			
+				request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
+			}
 		}
 		return $project;
 	}
 
 	function update_project($id,$name,$description = null,$company_id = null){
-		global $services;
+		global $services,$user;
 		$db = get_or_create_db();
 		assert(is_numeric($id),'invalid project id passed!');
 		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
@@ -57,7 +68,18 @@
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('project',$id.'/view'),'comment'=>$name,'tags'=>$tags]);
+			
+			$url = getUrl('project',$id.'/view');
+			$hash = sha1($url);
+				
+			request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$name),'tags'=>$tags]);
+
+			$users = connected_users(['ids'=>$id]);
+			
+			foreach ($users as $uid => $u){
+				if ($uid == $user->id) continue;			
+				request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
+			}
 		}
 	}
 
