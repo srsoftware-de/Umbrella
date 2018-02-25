@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title><?= $title?$title:'Umbrella' ?></title>
+		<title><?= isset($title)?$title:'Umbrella' ?></title>
 		<link rel="stylesheet" type="text/css" href="../common_templates/css/<?= isset($theme)?$theme:'comfort' ?>/style.css" />
 		<link rel="stylesheet" type="text/css" href="../common_templates/css/<?= isset($theme)?$theme:'comfort' ?>/colors.css" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
