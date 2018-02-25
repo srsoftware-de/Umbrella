@@ -11,7 +11,7 @@ if (!$task_id) error('No task id passed!');
 $task = load_tasks(['ids'=>$task_id]);
 
 // get a map from user ids to permissions
-$project_user_permissions = request('project','user_list',['id'=>$task['project_id']]);
+$project_user_permissions = request('project','json',['ids'=>$task['project_id'],'users'=>'only']);
 $project_users = request('user','json',['ids'=>array_keys($project_user_permissions)]);
 load_users($task,$project_users); // add users to task
 
