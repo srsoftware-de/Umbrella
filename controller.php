@@ -110,6 +110,12 @@
 			$args = array_merge($args, $ids);
 		}
 		
+		if (isset($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$where[] = '(name LIKE ? OR description LIKE ?)';
+			$args = array_merge($args, [$key,$key]);
+		}
+		
 		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 		
 		if (!isset($options['order'])) $options['order'] = 'due_date';
