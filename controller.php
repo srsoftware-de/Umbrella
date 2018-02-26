@@ -135,6 +135,12 @@
 			$sql .= ' AND company_id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);			
 		}
+		
+		if (isset($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$sql .= ' AND (name LIKE ? OR description LIKE ?)';
+			$args = array_merge($args, [$key,$key]);
+		}
 
 		if (isset($options['order'])){
 			switch ($options['order']){
