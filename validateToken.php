@@ -3,7 +3,8 @@
 include 'controller.php';
 
 assert(isset($_POST['token']),'No token set!');
-$token = $_POST['token'];
+$token = trim($_POST['token']);
+assert($token != '','Token must not be empty!');
 $domain = isset($_POST['domain']) ? $_POST['domain'] :  null;  
 $db = get_or_create_db();
 // the following lines fetch the user id from the token table

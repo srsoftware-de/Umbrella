@@ -30,6 +30,7 @@ $translations = array(
 	'Items'=>'Artikel',
 	'new password (leave empty to not change you password)'=>'neues Passwort (leer lassen um das Passwort nicht zu ändern)',
 	'Note: this link can only be used once!'=>'Hinweis: dieser Link kann nur einmal verwendet werden!',
+	'Notes'=>'Notizen',
 	'Number'=>'Nummer',
 	'Password'=>'Passwort',
 	'Phone numbers'=>'Telefonnummern',
