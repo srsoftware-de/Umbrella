@@ -24,7 +24,7 @@ include '../common_templates/messages.php';
 ?>
 <table class="notes">
 	<tr>
-		<th><a href="<?= getUrl('notes','?order=uri&limit=0')?>"><?= t('URI') ?></a></th>
+		<th><a href="<?= getUrl('notes','?order=uri&limit=0')?>"><?= t('Use&nbsp;/ URI') ?></a></th>
 		<th><?= t('note') ?></th>
 	</tr>
 <?php foreach ($notes as $n) { 

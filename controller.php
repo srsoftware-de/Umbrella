@@ -57,6 +57,12 @@ class Note{
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
+		if (isset($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$sql .= ' AND note LIKE ?';
+			$args = array_merge($args, [$key]);
+		}
 
 		if (isset($options['uri'])){
 			$uri = $options['uri'];
