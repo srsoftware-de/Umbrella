@@ -350,6 +350,19 @@ svg text{
 	fill: red;
 }
 
+.search{
+	display: inline-block;
+	max-width: 150px;
+}
+
+.search input{
+	display: none;
+}
+
+.search:hover input{
+	display: initial;
+}
+
 @media (max-width:1199px) {
 	.tasks.list tr>*:nth-child(2){
 		display: none;

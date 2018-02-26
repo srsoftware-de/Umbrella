@@ -3,6 +3,12 @@
 	<a class="button" href="<?= $service['path'] ?>"><?= t($service['name']) ?></a>
 <?php } 
 if (isset($user)) { ?>
+	<div class="search">
+	<form action="<?= getUrl('user','search')?>" method="POST">
+	<input type="text" name="search" />
+	<button type="submit" class="symbol"></button>
+	</form>
+	</div>
 	<a class="button" href="<?= $services['user']['path'].'logout?returnTo='.location() ?>"><?= t('Log out ?',$user->login) ?></a>
 <?php }?>
 </div>
