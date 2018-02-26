@@ -3,7 +3,7 @@
 include 'config.php';
 
 define('INDEX_FETCH',PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
-const NO_CONVERSSION = 1;
+const NO_CONVERSION = 1;
 const ARRAY_CONVERSION = 2;
 const OBJECT_CONVERSION = 3;
 
