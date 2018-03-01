@@ -88,6 +88,12 @@
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
+		if (isset($options['key'])){
+			$key = '%'.$key.'%';
+			$where[] = ' (subject LIKE ? OR description LIKE ?)';
+			$args = array_merge($args,[$key,$key]);
+		}
 	
 		if ($select_by_task_ids){
 			$ids = $options['task_ids'];

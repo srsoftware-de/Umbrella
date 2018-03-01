@@ -52,15 +52,18 @@ if (!$show_complete){ ?>
 	
 <?php foreach ($times as $id => $time){ 
 	if (!$show_complete && $time['state'] == TIME_STATUS_COMPLETE) continue;
-?>
-	<tr>
+	$time_projects=[];
+	foreach ($time['task_ids'] as $task_id){
+		$pid = $tasks[$task_id]['project_id'];
+		$time_projects[$pid] = $projects[$pid]['name'];
+	} ?>
+	<tr class="project<?= implode(' project',array_keys($time_projects))?>">
 		<td>
-			<?php $time_projects=[]; 
-			foreach ($time['task_ids'] as $task_id){
-				$pid = $tasks[$task_id]['project_id'];
-				$time_projects[$pid] = $projects[$pid]['name']; ?>
-				<a href="<?= getUrl('project',$pid.'/view') ?>"><?= $projects[$pid]['name']?></a>
-			<?php }?>
+		<?php foreach ($time_projects as $pid => $name){?>
+			<span class="hover_h">
+				<a href="<?= getUrl('project',$pid.'/view') ?>"><?= $name ?></a>&nbsp;<a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $pid ?>)')"></a>
+			</span>
+		<?php }?>
 		</td>
 		<td><a href="<?= $id ?>/view"><?= $time['subject'] ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= $time['description'] ?></a></td>
