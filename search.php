@@ -11,24 +11,14 @@ if ($key = param('key')){
 	if (!empty($projects)){ ?>
 		<table class="project-index">
 		<tr>
-		<th><a href="?order=name"><?= t('Name')?></a></th>
-				<?php if ($companies) { ?>
-				<th><a href="?order=company"><?= t('Company') ?></a></th>
-				<?php } ?>
-				<th><a href="?order=status"><?= t('Status')?></a></th>
+		<th><?= t('Name')?></a></th>
+				<th><?= t('Status')?></a></th>
 				<th><?= t('Users')?></th>
 				<th><?= t('Actions')?></th>
 			</tr>
 		<?php foreach ($projects as $id => $project){ ?>
 			<tr>
 				<td><a href="<?= $url.$id ?>/view"><?= $project['name'] ?></a></td>
-				<?php if ($companies) { ?>
-				<td><?php if (isset($companies[$project['company_id']])) {
-					$company = $companies[$project['company_id']]; ?>
-					<a href="<?= getUrl('company',$company['id'].'/view') ?>"><?= $company['name'] ?></a>
-					<?php } ?>
-				</td>
-				<?php }?>
 				<td><?= t(project_state($project['status'])) ?></td>
 				<td>
 				<?php foreach ($project['users'] as $uid => $perm) {?>
