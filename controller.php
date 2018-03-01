@@ -90,7 +90,7 @@
 		}
 		
 		if (isset($options['key'])){
-			$key = '%'.$key.'%';
+			$key = '%'.$options['key'].'%';
 			$where[] = ' (subject LIKE ? OR description LIKE ?)';
 			$args = array_merge($args,[$key,$key]);
 		}
