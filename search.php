@@ -11,12 +11,12 @@ if ($key = param('key')){
 
 	<table class="tasks list">
 	<tr>
-		<th><a href="?order=name"><?= t('Name')?></a></th>
-		<th><a href="?order=parent_task_id"><?= t('Parent task')?></a></th>
-		<th><a href="?order=project_id"><?= t('Project')?></a></th>
-		<th><a href="?order=status"><?= t('Status')?></a></th>
-		<th><a href="?order=start_date"><?= t('Start')?></a></th>
-		<th><a href="?order=due_date"><?= t('Due')?></a></th>
+		<th><?= t('Name')?></th>
+		<th><?= t('Parent task')?></th>
+		<th><?= t('Project')?></th>
+		<th><?= t('Status')?></th>
+		<th><?= t('Start')?></th>
+		<th><?= t('Due')?></th>
 		<th><?= t('Actions') ?></th>
 	</tr>
 	
