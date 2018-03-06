@@ -1,6 +1,7 @@
 <?php
 
 const MULTILINE=true;
+const BEAUTY = true;
 
 function get_or_create_db(){
 	if (!file_exists('db')){
@@ -15,198 +16,6 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/contacts.db');
 	}
 	return $db;
-}
-
-function create_vcard($data){
-	$vcard = array();
-	$vcard['BEGIN'] = 'VCARD';
-	$vcard['VERSION'] = '4.0';
-	foreach ($data as $key => $value) {
-		if (is_array($value)){
-			ksort($value); // die Werte vom Formular kommen nicht unbedingt in der durch den Index angezeigten Reihenfolge. Deshalb: nach index sortieren
-			
-			// Es kann sein, dass das Formular nicht für alle Felder, welche die VCard-Spezifikation vorsieht, Werte liefert.
-			// Entsprechend werden alle nicht bedienten Felder mit leeren Werten belegt:
-			$lastkey = array_pop(array_keys($value));
-			if (is_numeric($lastkey)){
-				for ($index = 1; $index<$lastkey; $index++) {
-					if (!isset($value[$index])) $value[$index] = '';
-				}
-				ksort($value);
-			}
-			$value = implode(';', $value);
-		}
-		$value = str_replace(array("\r\n","\r","\n"), ';', $value);		
-		$vcard[$key] = $value;
-	}
-	$vcard['END'] = 'VCARD';
-	return $vcard;
-}
-
-
-function convert_val($key,$value){
-	if ($key == 'N') return $value['surname'].';'.$value['given'].';'.$value['additional'].';'.$value['prefix'].';'.$value['suffix'];
-	if ($key == 'ADR') return ';;'.$value['street'].';'.$value['locality'].';'.$value['region'].';'.$value['pcode'].';'.$value['country'];
-	if (is_array($value)) debug('Multi-part entry could not be processed!',true);	
-	return $value;
-}
-
-function update_vcard($vcard,$data=null){
-	if ($data === null) $data = $_POST;
-	//debug($vcard);
-	//debug($data);
-	foreach ($data as $key => $value) {
-		if (is_array($value)){
-			foreach ($value as $k => $v){
-				if (is_numeric($k) || strpos($k, '=')){
-					if (is_array($v)){
-						foreach ($v as $a => $b){
-							if (is_numeric($a) || strpos($a, '=')){
-								if (is_array($b)) {
-									debug('data['.$key.']['.$k.']['.$a.'] is array:');
-									debug($b,1);
-								}
-								$vcard[$key][$k][$a] = $b;
-							} else {
-								$mp = convert_val($key, $v);
-								//debug('Multipart: '.$mp);
-								$vcard[$key][$k] = $mp;
-								break;								
-							}
-						}
-					} else {
-						$vcard[$key][$k] = $v;
-					}
-				} else { // multipart!
-					$mp = convert_val($key, $value);
-					//debug('Multipart: '.$mp);
-					$vcard[$key] = $mp;
-					break;					
-				}
-			}
-		} else {
-			$vcard[$key] = $value;
-		}
-	}
-	//debug($vcard,1);
-	return $vcard;
-}
-
-function store_vcard($vcard = null, $id = null){
-	global $user;
-	assert(is_array($vcard),'No vcard data passsed to store_vcard');
-
-	$data = serialize_vcard($vcard);
-	
-	$db = get_or_create_db();
-	if (is_int($id)){
-		$query  = $db->prepare('UPDATE contacts SET data=:data WHERE id = :id');
-		assert($query->execute(array(':id'=>$id, ':data'=>$data)),'Was not able to update contact!');
-	} else {
-		$query = $db->prepare('INSERT INTO contacts (data) VALUES (:data)');
-		assert($query->execute(array(':data'=>$data)),'Was not able to create new contact!');
-		$id = $db->lastInsertId();
-		$query =$db->prepare('INSERT INTO contacts_users (contact_id, user_id) VALUES (:cid, :uid)');
-		assert($query->execute(array(':cid'=>$id,':uid'=>$user->id)),'Was not able to assign new contact to user');
-	}
-}
-
-function break_lines($value){
-	$value = str_replace(["\r\n","\r","\n"], '\n', $value);
-	$result = '';
-	$l=80;
-	while (strlen($value)>$l){
-		$result.=substr($value, 0,$l)."\n ";
-		$value = substr($value,$l);
-	}
-	return $result.$value;  
-}
-
-function serialize_vcard($vcard){
-	$result = '';
-	foreach ($vcard as $key => $value){
-		if (is_array($value)){
-			foreach ($value as $k => $val){
-				if (!is_numeric($k)) {
-					if (is_array($val)){
-						foreach ($val as $v) $result .= $key.';'.$k.':'.break_lines($v)."\r\n";
-					} else $result .= $key.';'.$k.':'.break_lines($val)."\r\n";
-				} else $result .= $key.':'.break_lines($val)."\r\n";
-			}
-			continue;
-		}
-		if (trim($value) == '') continue;
-		$result .= $key.':'.break_lines($value)."\r\n";
-	}
-	return $result;	
-}
-
-function unserialize_vcard($raw){
-	$raw = str_replace("\n ",'',$raw);
-	$raw = str_replace("\r\n","\n",$raw);
-	$lines = explode("\n", $raw);
-	$vcard = array();	
-	foreach ($lines as $line){
-		if (empty($line)) continue;	
-		
-		$map = explode(':', $line,2);
-		$key = $map[0];		
-		$val = $map[1];
-		
-		if ($val == null || trim(str_replace(";", '', $val))=='') continue;
-		$val = str_replace('\n', "\n", $val);
-		
-		$params = null;
-		if (strpos($key, ';') !== false){ // key contains parameter
-			$params = explode(';', $key);
-			$key = array_shift($params);
-			$params = implode(';', $params);
-		}
-		
-		if ($params){			
-			if (!isset($vcard[$key])) $vcard[$key]=array();
-			if (!is_array($vcard[$key])) $vcard[$key] = array($vcard[$key]);
-			if (isset($vcard[$key][$params])){
-				$vcard[$key][$params] = array($vcard[$key][$params]);
-				$vcard[$key][$params][] = $val;
-			} else {			
-				$vcard[$key][$params] = $val;
-			}				
-		} else {
-			if (isset($vcard[$key])){
-				if (is_array($vcard[$key])) {
-					$vcard[$key][] = $val;
-				} else {
-					$vcard[$key] = array($vcard[$key],$val);
-				}
-			} else {
-				$vcard[$key] = $val;
-			}
-		}
-		
-	}
-	return $vcard;
-}
-
-function read_contacts($ids = null){
-	global $user;
-	if ($ids !== null && !is_array($ids)) $ids = array($ids);
-	$db = get_or_create_db();
-	$sql = 'SELECT * FROM contacts WHERE id IN (SELECT contact_id FROM contacts_users WHERE user_id = ?)';
-	$args = array($user->id);
-	if (is_array($ids)){		
-		$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-		$sql .= ' AND id IN ('.$qMarks.')';
-		$args = array_merge($args, $ids);
-	}
-	$query = $db->prepare($sql);
-	assert($query->execute($args),'Was not able to query contacts for you!');	
-	$results = $query->fetchAll(INDEX_FETCH);
-	$contacts = array();
-	foreach ($results as $id => $columns){
-		$contacts[$id] = unserialize_vcard($columns['DATA']);
-	}
-	return $contacts;	
 }
 
 function read_assigned_contact(){
@@ -234,17 +43,26 @@ function assign_contact($id){
 
 class Address{
 	function __construct($data){
-		assert(isset($data['val']),'No value set in address data');
-		$parts = explode(';',$data['val']);
-		$this->post_box = array_shift($parts);
-		$this->ext_addr = array_shift($parts);
-		$this->street   = array_shift($parts);
-		$this->locality = array_shift($parts);
-		$this->region   = array_shift($parts);
-		$this->post_code= array_shift($parts);
-		$this->country  = array_shift($parts);
-		if (isset($data['param'])) $this->param = $data['param'];
+		if (is_array($data)){
+			$this->post_box = $data[1];
+			$this->ext_addr = $data[2];
+			$this->street   = $data[3];
+			$this->locality = $data[4];
+			$this->region   = $data[5];
+			$this->post_code= $data[6];
+			$this->country  = $data[7];
+		} else {
+			$parts = explode(';',$data);
+			$this->post_box = array_shift($parts);
+			$this->ext_addr = array_shift($parts);
+			$this->street   = array_shift($parts);
+			$this->locality = array_shift($parts);
+			$this->region   = array_shift($parts);
+			$this->post_code= array_shift($parts);
+			$this->country  = array_shift($parts);
+		}
 	}
+
 	function __toString(){
 		return trim($this->ext_addr . "\n" . $this->street . "\n" . $this->post_code . ' ' . $this->locality . "\n" . $this->region . "\n" . $this->country);
 	}
@@ -255,25 +73,142 @@ class Address{
 }
 
 class Name{
-	function __construct($data){		
-		assert(isset($data['val']),'No value set in name data');
-		$parts = explode(';',$data['val']);
-		$this->family = array_shift($parts);
-		$this->given = array_shift($parts);
-		$this->additional = array_shift($parts);
-		$this->prefixes = array_shift($parts);
-		$this->suffixes = array_shift($parts);
+	function __construct($data){
+		if (is_array($data)){
+			$this->family = $data[1];
+			$this->given = $data[2];
+			$this->additional = $data[3];
+			$this->prefixes = $data[4];
+			$this->suffixes = $data[5];
+		} else {
+			$parts = explode(';',$data);
+			$this->family = array_shift($parts);
+			$this->given = array_shift($parts);
+			$this->additional = array_shift($parts);
+			$this->prefixes = array_shift($parts);
+			$this->suffixes = array_shift($parts);
+		}
 	}
 
 	function __toString(){
-		return trim($this->prefixes . ' ' . $this->given . ' ' . $this->family . ' ' . $this->suffixes);
+		return trim(implode(';',[
+			$this->family,
+			$this->given,
+			$this->additional,
+			$this->prefixes,
+			$this->suffixes
+		]));
+	}
+
+	function beauty(){
+		return $this->given.' '.$this->family;
 	}
 }
 
 class VCard{
 
+	/*
+	 * VCard constructor only stores VCard-as-string
+	 * Any work on members is done in separate methods
+	 */
+
 	function __construct($data){
-		$this->code = str_replace(["\r\n ","\r\n\t"],"",$data);
+		if (is_array($data)){
+			$this->patch($data);
+		} else {
+			$this->parse($data);
+		}
+	}
+
+	function parse($code){
+		// remove in-line line breaks
+		$code = str_replace(["\r\n ","\r\n\t"],"",$code);
+
+		$lines = explode("\r\n",$code);
+		foreach ($lines as $line) $this->patch($line,true);
+	}
+
+	function patch($data = array(), $add = false){
+		if (!is_array($data)){
+			$main_parts = explode(':',trim($data),2);
+			$val = $main_parts[1];
+
+			$key_parts = explode(';',$main_parts[0]);
+			$key = array_shift($key_parts);
+
+			switch ($key){
+				case '':
+				case 'BEGIN':
+				case 'END':
+				case 'VERSION':
+				case 'PRODID':
+					return;
+					break;
+			}
+			$data = [$key => $val];
+		}
+		if (!isset($this->dirty)) $this->dirty = [];
+
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			switch ($key){
+				case 'ADR':
+					$val = new Address($val);
+					break;
+				case 'N':
+					$val = new Name($val);
+					break;
+			}
+
+			if (isset($this->{$key})){
+				if ($add){ // add values
+					if (is_array($this->{$key})){
+						$this->{$key}[] = $val;
+					} else {
+						$this->{$key} = [ $this->{$key}, $val];
+					}
+				} else { // replace values
+					$this->{$key} = $val;
+				}
+			} else {
+				$this->{$key} = $val;
+				$this->dirty[] = $key;
+			}
+		}
+	}
+
+	function as_array(){
+		$vcard = array();
+		$vcard['BEGIN'] = 'VCARD';
+		$vcard['VERSION'] = '4.0';
+		foreach ($this as $key => $value) {
+			if (in_array($key,['dirty','id'])) continue;
+			if (is_array($value)){
+				ksort($value); // die Werte vom Formular kommen nicht unbedingt in der durch den Index angezeigten Reihenfolge. Deshalb: nach index sortieren
+
+				// Es kann sein, dass das Formular nicht für alle Felder, welche die VCard-Spezifikation vorsieht, Werte liefert.
+				// Entsprechend werden alle nicht bedienten Felder mit leeren Werten belegt:
+				$lastkey = array_pop(array_keys($value));
+				if (is_numeric($lastkey)){
+					for ($index = 1; $index<$lastkey; $index++) {
+						if (!isset($value[$index])) $value[$index] = '';
+					}
+					ksort($value);
+				}
+				$value = implode(';', $value);
+			}
+			$value = str_replace(array("\r\n","\r","\n"), ';', $value);
+			$vcard[$key] = $value;
+		}
+		$vcard['END'] = 'VCARD';
+		return $vcard;
+	}
+
+	function __toString(){
+		$arr = $this->as_array();
+		$code = '';
+		foreach ($arr as $key => $val) $code .= $key.':'.$val."\r\n";
+		return $code;
 	}
 
 	static function load($options = []){
@@ -281,92 +216,77 @@ class VCard{
 		$db = get_or_create_db();
 		$sql = 'SELECT * FROM contacts WHERE id IN (SELECT contact_id FROM contacts_users WHERE user_id = ?)';
 		$args = [$user->id];
+
+		$single = false;
+
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$ids = [$ids];
+				$single = true;
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' AND id IN ('.$qMarks.')';
+			$args = array_merge($args,$ids);
+		}
+
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to query contacts for you!');	
+		assert($query->execute($args),'Was not able to query contacts for you!');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$cards = [];
 		foreach ($rows as $id => $columns){
-			$cards[$id] = new VCard($columns['DATA']);
+			$card = new VCard($columns['DATA']);
+			unset($card->dirty);
+			$card->id = $id;
+			if ($single) return $card;
+			$cards[$id] = $card;
 		}
 		return $cards;
 	}
 
-	function fields(){
-		if (!isset($this->fields) || $this->fields == null){
-			$this->fields = [];
-			$lines = explode("\r\n",$this->code);
-			foreach ($lines as $line){
-				$parts = explode(':',trim($line),2);
-
-				$key_parts = explode(';',$parts[0]);
-				$key = array_shift($key_parts);
-				if (in_array($key,['','BEGIN','VERSION','PRODID'])) continue;
-
-				$val = $parts[1];
-
-				$param = [];
-				foreach ($key_parts as $key_part){
-					$parts = explode('=',$key_part,2);
-					$k = array_shift($parts);
-					$v = end($parts);
-					if (isset($param[$k])){
-						$param[$k] = [$param[$k]];
-						$param[$k][] = $v;
-					} else $param[$k] = $v;
-				}
-
-				$field_val = [ 'val' => $val ];
-				if (!empty($param)) $field_val['param'] = $param;
-
-				if (isset($this->fields[$key])){
-					if (isset($this->fields[$key]['val'])) $this->fields[$key] = [$this->fields[$key]];
-					$this->fields[$key][] = $field_val;
-				} else {
-					$this->fields[$key] = $field_val;
-				}		
-			}
-		}
-		return $this->fields;
-	}
-
 	function addresses(){
-		if (!isset($this->addresses) || $this->addresses == null){
-			$this->addresses = [];
-			if (isset($this->fields()['ADR'])) {
-				if (isset($this->fields['ADR']['val'])){
-					$this->addresses[] = new Address($this->fields['ADR']);
-				} else foreach ($this->fields['ADR'] as $adr_data) $this->addresses[] = new Address($adr_data);
-			}
+		if (isset($this->ADR)) {
+			if (is_array($this->ADR)) return $this->ADR;
+			return [ $this->ADR ];
 		}
-		return $this->addresses;
+		return [];
 	}
 
-	function name(){
-		if (!isset($this->name) || $this->name == null){
-			$this->name = (isset($this->fields()['N']))? new Name($this->fields['N']) : null;			
-		}
-		return $this->name;
+	function name($beauty = false){
+		if (isset($this->N)) return $beauty ? $this->N->beauty() : $this->N;
+		return null;
 	}
 
 	function phones(){
-		if (!isset($this->phones) || $this->phones == null){
-			if (isset($this->fields['TEL'])){
-				if (isset($this->fields['TEL']['val'])){
-					$this->phones = [ $this->fields['TEL'] ];
-				} else $this->phones = $this->fields['TEL'];
-			} else $this->phones = null;
+		if (isset($this->TEL)){
+			if (is_array($this->TEL)) return $this->TEL;
+			return [ $this->TEL ];
 		}
-		return $this->phones;
+		return [];
 	}
+
 	function emails(){
-		if (!isset($this->emails) || $this->emails == null){
-			if (isset($this->fields['EMAIL'])){
-				if (isset($this->fields['EMAIL']['val'])){
-					$this->emails = [ $this->fields['EMAIL'] ];
-				} else $this->emails = $this->fields['EMAIL'];
-			} else $this->emails = null;
+		if (isset($this->EMAIL)){
+			if (is_array($this->EMAIL)) return $this->EMAIL;
+			return [ $this->EMAIL ];
 		}
-		return $this->emails;
+		return [];
+	}
+
+	public function save(){
+		global $user;
+
+		$db = get_or_create_db();
+		if (is_int($this->id)){
+			$query  = $db->prepare('UPDATE contacts SET data=:data WHERE id = :id');
+			assert($query->execute(array(':id'=>$this->id, ':data'=>(string)$this)),'Was not able to update contact!');
+		} else {
+			$query = $db->prepare('INSERT INTO contacts (data) VALUES (:data)');
+			assert($query->execute(array(':data'=>(string)$this)),'Was not able to create new contact!');
+			$this->id = $db->lastInsertId();
+			$query =$db->prepare('INSERT INTO contacts_users (contact_id, user_id) VALUES (:cid, :uid)');
+			assert($query->execute(array(':cid'=>$this->id,':uid'=>$user->id)),'Was not able to assign new contact to user');
+		}
 	}
 }
 

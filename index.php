@@ -7,7 +7,7 @@ $title = t('Umbrella: Contacts');
 require_login('contact');
 
 $vcards = VCard::load();
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -19,8 +19,8 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('short') ?></th>
 			<th><?= t('name') ?></th>
 			<th><?= t('addresses') ?></th>
-			<th><?= t('phones') ?></th>
 			<th><?= t('emails') ?></th>
+			<th><?= t('phones') ?></th>
 			<th><?= t('actions') ?></th>
 		</tr>
 		<?php foreach ($vcards as $id => $vcard){
@@ -29,8 +29,8 @@ include '../common_templates/messages.php'; ?>
 			$phones    = $vcard->phones();
 		?>
 		<tr>
-			<td><?= isset($vcard->fields['FN']) ? $vcard->fields['FN']['val'] :'' ?></td>
-			<td><?= (string)$vcard->name() ?></td>
+			<td><?= isset($vcard->FN) ? $vcard->FN :'' ?></td>
+			<td><?= $vcard->name(BEAUTY) ?></td>
 			<td>
 			<?php while (!empty($addresses)) { ?>
 				<p><?= array_shift($addresses)->get() ?></p>
@@ -38,13 +38,14 @@ include '../common_templates/messages.php'; ?>
 			</td>
 			<td>
 			<?php while (!empty($emails)) { ?>
-				<p><?= array_shift($emails)['val'] ?></p>
+				<p><?= array_shift($emails) ?></p>
 			<?php } ?>
 			</td>
 			<td>
 			<?php while(!empty($phones)) { ?>
-				<p><?= array_shift($phones)['val'] ?></p>
+				<p><?= array_shift($phones) ?></p>
 			<?php } ?>
+				<a class="symbol" title="<?= t('add phone number') ?>" href="<?= $id?>/add_phone"></a>
 			</td>
 			<td>
 				<a class="symbol" title="<?= t('download') ?>" href="<?= $id?>/download"></a>

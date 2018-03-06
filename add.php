@@ -1,18 +1,18 @@
-<?php 
-
+<?php
 include '../bootstrap.php';
 include 'controller.php';
 
+require_login('contact');
+
 $title = t('Umbrella: Contacts');
 
-require_login('contact');
 if (post('EMAIL')){
-	$vcard = create_vcard($_POST);
-	store_vcard($vcard);
+	$vcard = new VCard($_POST);
+	$vcard->save();
 	redirect('index');
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -27,11 +27,11 @@ include '../common_templates/messages.php'; ?>
 			</label>
 			<label><?= t('Last Name') ?>
 				<input type="text" name="N[1]" <?= ($name = post('N'))?'value="'.$name['1'].'"':''?> />
-			</label>						
+			</label>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('(primary) Email') ?></legend>
-			<input type="text" name="EMAIL"<?= ($email = post('EMAIL'))?'value="'.$email.'"':''?>  />									
+			<input type="text" name="EMAIL"<?= ($email = post('EMAIL'))?'value="'.$email.'"':''?>  />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Organization') ?></legend>
@@ -47,17 +47,15 @@ include '../common_templates/messages.php'; ?>
 			</label>
 			<label class="location"><?= t('Location') ?>
 				<input type="text" name="ADR[4]" <?= ($adr = post('ADR'))?'value="'.$adr['4'].'"':''?>/>
-			</label>			
+			</label>
 			<label class="region"><?= t('Region') ?>
 				<input type="text" name="ADR[5]" <?= ($adr = post('ADR'))?'value="'.$adr['5'].'"':''?>/>
 			</label>
 			<label><?= t('Country') ?>
 				<input type="text" name="ADR[7]" <?= ($adr = post('ADR'))?'value="'.$adr['7'].'"':''?>/>
-			</label>			
-						
+			</label>
 		</fieldset>
 		<button type="submit"><?= t('Save') ?></button>
 	</fieldset>
 </form>
-
 <?php include '../common_templates/closure.php'; ?>
