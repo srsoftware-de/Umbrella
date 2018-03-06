@@ -7,72 +7,69 @@ $title = t('Umbrella: Contacts');
 require_login('contact');
 
 $id = param('id');
-$contact = read_contacts($id);
-assert($contact !== null,'Was not able to lod this vcard from the database');
-$vcard = $contact[$id];
+$vcard = VCard::load(['ids'=>$id]);
+
 if (post('N')){
-	$vcard = update_vcard($vcard);	
-	store_vcard($vcard,(int)$id);
+	$vcard->patch($_POST);
+	$vcard->save();
 	redirect('../index');
 }
 
-if (!isset($vcard['ADR'])) $vcard['ADR'] = ['street','locality','region','pcode','country'];
+/*if (!isset($vcard['ADR'])) $vcard['ADR'] = ['street','locality','region','pcode','country'];
 if (!isset($vcard['X-BANK-ACCOUNT'])) $vcard['X-BANK-ACCOUNT'] = '';
 if (!isset($vcard['X-CUSTOMER-NUMBER'])) $vcard['X-CUSTOMER-NUMBER'] = '';
 if (!isset($vcard['X-TAX-NUMBER'])) $vcard['X-TAX-NUMBER'] = '';
 if (!isset($vcard['ORG'])) $vcard['ORG'] = '';
-if (!isset($vcard['X-COURT'])) $vcard['X-COURT'] = '';
+if (!isset($vcard['X-COURT'])) $vcard['X-COURT'] = '';*/
 
 
-function createAddressField($value,$param = null,$index = null){
+function createAddressField($adr,$param = null,$index = null){
 	$name = 'ADR';
-	$adr = explode(';', $value);
 	if ($param !== null){
-		$name.='['.$param.']';		
+		$name.='['.$param.']';
 	}
-	
+
 	if ($index !== null){
 		$name.='['.$index.']';
 	}
-	
+
 	return '<fieldset>
 	<legend>'.t('Address').($param?' ('.$param.')':'').'</legend>
 	<label class="street">'.t('Street').'
-					<input type="text" name="'.$name.'[street]" value="'.$adr['2'].'" />
+					<input type="text" name="'.$name.'[street]" value="'.$adr->street.'" />
 				</label>
 				<label>'.t('Post Code').'
-					<input type="text" name="'.$name.'[pcode]" value="'.$adr['5'].'" />
+					<input type="text" name="'.$name.'[post_code]" value="'.$adr->post_code.'" />
 				</label>
 				<label class="location">'.t('City').'
-					<input type="text" name="'.$name.'[locality]" value="'.$adr['3'].'" />
-				</label>			
+					<input type="text" name="'.$name.'[locality]" value="'.$adr->locality.'" />
+				</label>
 				<label class="region">'.t('Region').'
-					<input type="text" name="'.$name.'[region]" value="'.$adr['4'].'" />
+					<input type="text" name="'.$name.'[region]" value="'.$adr->region.'" />
 				</label>
 				<label>'.t('Country').'
-					<input type="text" name="'.$name.'[country]" value="'.$adr['6'].'" />
-				</label>	
+					<input type="text" name="'.$name.'[country]" value="'.$adr->country.'" />
+				</label>
 			</fieldset>';
 }
 
 function createNameField($name){
-	$name = explode(';', $name);
 	return '<fieldset>
 				<legend>'.t('Name').'</legend>
 				<label>'.t('Prefix').'
-					<input type="text" name="N[prefix]" value="'.$name['3'].'"/>
+					<input type="text" name="N[prefix]" value="'.$name->prefixes.'"/>
 				</label>
 				<label>'.t('First Name').'
-					<input type="text" name="N[given]" value="'.$name['1'].'"/>
+					<input type="text" name="N[given]" value="'.$name->given.'"/>
 				</label>
 				<label>'.t('Additional names').'
-					<input type="text" name="N[additional]" value="'.$name['2'].'"/>
+					<input type="text" name="N[additional]" value="'.$name->additional.'"/>
 				</label>
 				<label>'.t('Last Name').'
-					<input type="text" name="N[surname]" value="'.$name['0'].'"/>
+					<input type="text" name="N[family]" value="'.$name->family.'"/>
 				</label>
 				<label>'.t('Suffix').'
-					<input type="text" name="N[suffix]" value="'.$name['4'].'"/>
+					<input type="text" name="N[suffix]" value="'.$name->suffixes.'"/>
 				</label>
 			</fieldset>';
 }
@@ -80,7 +77,7 @@ function createNameField($name){
 function createOtherField($key,$value,$param,$index = null,$multiline=false){
 	$result= '<fieldset>
 				<legend>'.t($key).($param?' ('.$param.')':'').'</legend>';
-	
+
 	if ($multiline){
 		$result.='<textarea name="'.$key;
 		if ($param) $result.='['.$param.']';
@@ -97,7 +94,7 @@ function createOtherField($key,$value,$param,$index = null,$multiline=false){
 }
 
 function createField($key,$value,$param = null,$index = null){
-	if (is_array($value)){		
+	if (is_array($value)){
 		$result = '';
 		foreach ($value as $k => $v){
 			if (strpos($k, '=') === false){
@@ -106,7 +103,7 @@ function createField($key,$value,$param = null,$index = null){
 			} else {
 				$result .= createField($key, $v, $k, null);
 			}
-		}		
+		}
 		return $result;
 	}
 	if ($key == 'N') return createNameField($value);
@@ -120,11 +117,11 @@ function createField($key,$value,$param = null,$index = null){
 }
 
 function createFieldset($key,$value){
-	if (in_array($key, ['BEGIN','END','VERSION', 'PRODID','UID','REV'])) return;	
-	return createField($key,$value,$key_parts);
+	if (in_array($key, ['id','BEGIN','END','VERSION', 'PRODID','UID','REV'])) return;
+	return createField($key,$value);
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -132,7 +129,7 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset>
 		<legend><?= t('Edit Contact') ?></legend>
-		<?php if (!isset($vcard['FN'])) echo createFieldset('FN', '')?>
+		<?php if (!isset($vcard->FN)) echo createFieldset('FN', '')?>
 		<?php foreach($vcard as $key => $value){
 			echo createFieldset($key,$value);
 		}?>

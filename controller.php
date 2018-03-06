@@ -43,23 +43,21 @@ function assign_contact($id){
 
 class Address{
 	function __construct($data){
+
+		$fields = [
+			1=>'post_box',
+			2=>'ext_addr',
+			3=>'street',
+			4=>'locality',
+			5=>'region',
+			6=>'post_code',
+			7=>'country'
+		];
 		if (is_array($data)){
-			$this->post_box = $data[1];
-			$this->ext_addr = $data[2];
-			$this->street   = $data[3];
-			$this->locality = $data[4];
-			$this->region   = $data[5];
-			$this->post_code= $data[6];
-			$this->country  = $data[7];
+			foreach ($fields as $index => $name) $this->{$name} = isset($data[$name]) ? $data[$name] : $data[$index];
 		} else {
 			$parts = explode(';',$data);
-			$this->post_box = array_shift($parts);
-			$this->ext_addr = array_shift($parts);
-			$this->street   = array_shift($parts);
-			$this->locality = array_shift($parts);
-			$this->region   = array_shift($parts);
-			$this->post_code= array_shift($parts);
-			$this->country  = array_shift($parts);
+			foreach ($fields as $name) $this->{$name} = array_shift($parts);
 		}
 	}
 
@@ -74,19 +72,19 @@ class Address{
 
 class Name{
 	function __construct($data){
+		$fields = [
+			1 => 'family',
+			2 => 'given',
+			3 => 'additional',
+			4 => 'prefixes',
+			5 => 'suffixes'
+		];
+
 		if (is_array($data)){
-			$this->family = $data[1];
-			$this->given = $data[2];
-			$this->additional = $data[3];
-			$this->prefixes = $data[4];
-			$this->suffixes = $data[5];
+			foreach ($fields as $index => $name) $this->{$name} = isset($data[$name]) ? $data[$name] : $data[$index];
 		} else {
 			$parts = explode(';',$data);
-			$this->family = array_shift($parts);
-			$this->given = array_shift($parts);
-			$this->additional = array_shift($parts);
-			$this->prefixes = array_shift($parts);
-			$this->suffixes = array_shift($parts);
+			foreach ($fields as $name) $this->{$name} = array_shift($parts);
 		}
 	}
 
@@ -163,17 +161,11 @@ class VCard{
 			if (isset($this->{$key})){
 				if ($add){ // add values
 					if (is_array($this->{$key})){
-						$this->{$key}[] = $val;
-					} else {
-						$this->{$key} = [ $this->{$key}, $val];
-					}
-				} else { // replace values
-					$this->{$key} = $val;
-				}
-			} else {
-				$this->{$key} = $val;
-				$this->dirty[] = $key;
-			}
+						$this->{$key}[] = $val; // add new element to existing array
+					} else $this->{$key} = [ $this->{$key}, $val]; // convert to array and add new element
+				} else $this->{$key} = $val; // replace values
+			} else $this->{$key} = $val; // create new field
+			$this->dirty[] = $key;
 		}
 	}
 
