@@ -14,13 +14,12 @@ if (post('N')){
 	$vcard->save();
 	redirect('../index');
 }
-
-/*if (!isset($vcard['ADR'])) $vcard['ADR'] = ['street','locality','region','pcode','country'];
-if (!isset($vcard['X-BANK-ACCOUNT'])) $vcard['X-BANK-ACCOUNT'] = '';
-if (!isset($vcard['X-CUSTOMER-NUMBER'])) $vcard['X-CUSTOMER-NUMBER'] = '';
-if (!isset($vcard['X-TAX-NUMBER'])) $vcard['X-TAX-NUMBER'] = '';
-if (!isset($vcard['ORG'])) $vcard['ORG'] = '';
-if (!isset($vcard['X-COURT'])) $vcard['X-COURT'] = '';*/
+if (!isset($vcard->ADR)) $vcard->patch('ADR:post_box;extended;street;locality;region;postal code;country');
+if (!isset($vcard->{'X-BANK-ACCOUNT'})) $vcard->{'X-BANK-ACCOUNT'} = '';
+if (!isset($vcard->{'X-CUSTOMER-NUMBER'})) $vcard->{'X-CUSTOMER-NUMBER'} = '';
+if (!isset($vcard->{'X-TAX-NUMBER'})) $vcard->{'X-TAX-NUMBER'} = '';
+if (!isset($vcard->ORG)) $vcard->ORG = '';
+if (!isset($vcard->{'X-COURT'})) $vcard->{'X-COURT'} = '';
 
 
 function createAddressField($adr,$param = null,$index = null){
@@ -117,7 +116,7 @@ function createField($key,$value,$param = null,$index = null){
 }
 
 function createFieldset($key,$value){
-	if (in_array($key, ['id','BEGIN','END','VERSION', 'PRODID','UID','REV'])) return;
+	if (in_array($key, ['dirty','id','BEGIN','END','VERSION', 'PRODID','UID','REV'])) return;
 	return createField($key,$value);
 }
 
