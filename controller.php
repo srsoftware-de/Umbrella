@@ -22,29 +22,6 @@ function get_or_create_db(){
 	return $db;
 }
 
-function read_assigned_contact(){
-	global $user;
-	$db = get_or_create_db();
-	$query = $db->prepare('SELECT * FROM contacts WHERE id IN (SELECT contact_id FROM contacts_users WHERE user_id = :uid AND assigned = 1)');
-	assert($query->execute(array(':uid'=>$user->id)),'Was not able to query contact for you!');
-	$contacts = $query->fetchAll(INDEX_FETCH);
-	$contact=reset($contacts);
-	if ($contact) return unserialize_vcard($contact['DATA']); 
-	return null;
-}
-
-function assign_contact($id){
-	global $user;
-	$contact = read_contacts($id);
-	assert(!empty($contact),'No such contact or access to contact denied!');
-	$contact = $contact[$id];
-	$db = get_or_create_db();
-	$query = $db->prepare('UPDATE contacts_users SET assigned = 0 WHERE user_id = :uid');
-	assert($query->execute(array(':uid'=>$user->id)),'Was not able to un-assign contacts with user');
-	$query = $db->prepare('UPDATE contacts_users SET assigned = 1 WHERE contact_id = :cid AND user_id = :uid');
-	assert($query->execute(array(':cid'=>$id,':uid'=>$user->id)),'Was not able to assign contact with user');
-}
-
 class Address{
 	const fields = [
 		1=>'post_box',
@@ -58,7 +35,15 @@ class Address{
 	
 	function __construct($data, $param = null){
 		if (is_array($data)){
-			foreach (static::fields as $index => $name) $this->{$name} = isset($data[$name]) ? $data[$name] : $data[$index];
+			foreach (static::fields as $index => $name) {
+				if (isset($data[$name])) {
+					$this->{$name} = $data[$name];
+				} elseif (isset($data[$index])) {
+					$this->{$name} = $data[$index];
+				} else {
+					$this->{$name} = '';
+				}
+			}
 		} else {
 			$parts = explode(';',$data);
 			foreach (static::fields as $name) $this->{$name} = array_shift($parts);
@@ -71,7 +56,7 @@ class Address{
 		if ($separator) return str_replace("\n",$separator,$this->__toString());
 		 
 		$str  = 'ADR';
-		if (is_array($this->param)){			
+		if (isset($this->param) && is_array($this->param)){			
 			foreach ($this->param as $key => $val) {
 				if (is_array($val)){
 					foreach ($val as $v) $str .= ';'.$key.'='.$v;					
@@ -219,6 +204,15 @@ class VCard{
 		return [];
 	}
 	
+	function assign_with_current_user(){
+		global $user;
+		$db = get_or_create_db();
+		$query = $db->prepare('UPDATE contacts_users SET assigned = 0 WHERE user_id = :uid');
+		assert($query->execute(array(':uid'=>$user->id)),'Was not able to un-assign contacts with user');
+		$query = $db->prepare('UPDATE contacts_users SET assigned = 1 WHERE contact_id = :cid AND user_id = :uid');
+		assert($query->execute(array(':cid'=>$this->id,':uid'=>$user->id)),'Was not able to assign contact with user');
+	}
+	
 	function emails(){
 		if (isset($this->EMAIL)){
 			if (is_array($this->EMAIL)) return $this->EMAIL;
@@ -258,7 +252,11 @@ class VCard{
 	}
 
 	function patch($data = array(), $add = false){
+		$param = null;
+			
 		if (!is_array($data)){
+			$data = trim($data);
+			if ($data == '') return;
 			$main_parts = explode(':',trim($data),2);
 			$val = $main_parts[1];
 
@@ -275,7 +273,6 @@ class VCard{
 					break;
 			}
 			$data = [$key => $val];
-			$param = null;
 			if (count($key_parts)) {
 				foreach ($key_parts as $part){
 					$dummy = explode('=',$part,2);

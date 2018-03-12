@@ -56,7 +56,7 @@ function createNameField($name){
 	return '<fieldset>
 				<legend>'.t('Name').'</legend>
 				<label>'.t('Prefix').'
-					<input type="text" name="N[prefix]" value="'.$name->prefixes.'"/>
+					<input type="text" name="N[prefix]" value="'.$name->prefix.'"/>
 				</label>
 				<label>'.t('First Name').'
 					<input type="text" name="N[given]" value="'.$name->given.'"/>
@@ -68,7 +68,7 @@ function createNameField($name){
 					<input type="text" name="N[family]" value="'.$name->family.'"/>
 				</label>
 				<label>'.t('Suffix').'
-					<input type="text" name="N[suffix]" value="'.$name->suffixes.'"/>
+					<input type="text" name="N[suffix]" value="'.$name->suffix.'"/>
 				</label>
 			</fieldset>';
 }

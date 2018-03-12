@@ -4,4 +4,5 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('contact');
-echo json_encode(read_contacts());
+$vcards = VCard::load();
+echo json_encode($vcards);

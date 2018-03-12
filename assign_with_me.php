@@ -5,5 +5,7 @@ include 'controller.php';
 
 require_login('contact');
 
-assign_contact(param('id'));
-redirect('../index');
+if ($id = param('id')){
+	VCard::load(['ids'=>$id])->assign_with_current_user();
+	redirect('../index');
+}
