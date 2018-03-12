@@ -9,4 +9,4 @@ $id = param('id');
 $vcard = VCard::load(['ids'=>$id]);
 header('Content-Type: text/vcard');
 header('Content-Disposition: attachment; filename="contact_'.$id.'.cvf"');
-print_r((string)$vcard);
+print_r($vcard->format());

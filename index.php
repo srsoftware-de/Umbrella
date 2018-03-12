@@ -33,7 +33,7 @@ include '../common_templates/messages.php'; ?>
 			<td><?= $vcard->name(BEAUTY) ?></td>
 			<td>
 			<?php while (!empty($addresses)) { ?>
-				<p><?= array_shift($addresses)->get() ?></p>
+				<p><?= array_shift($addresses)->format(' / ') ?></p>
 			<?php } ?>
 			</td>
 			<td>
