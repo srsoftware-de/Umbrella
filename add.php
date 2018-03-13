@@ -10,28 +10,20 @@ $doc_types = DocumentType::load();
 $companies = request('company','json');
 
 $company = null;
-if (($company_id = param('company')) && isset($companies[$company_id])){
-	$company = $companies[$company_id];	
-}
+if (($company_id = param('company')) && isset($companies[$company_id])) $company = $companies[$company_id];
 if ($company === null) redirect('.');
 
-$contacts = request('contact','json_list');
+$contacts = request('contact','json',null,false,OBJECT_CONVERSION);
 
 if ($customer_contact_id = post('customer')){
-	$customer_vcard  = $contacts[$customer_contact_id];
+	$customer_vcard  = $contacts->{$customer_contact_id};
 	$_POST['customer'] = address_from_vcard($customer_vcard);
-	$_POST['customer_number'] = isset($customer_vcard['X-CUSTOMER-NUMBER']) ? $customer_vcard['X-CUSTOMER-NUMBER'] : null;
-	$_POST['customer_tax_number'] = isset($customer_vcard['X-TAX-NUMBER']) ? $customer_vcard['X-TAX-NUMBER'] : null;
-	if (isset($customer_vcard['EMAIL'])){
-		$email = $customer_vcard['EMAIL'];
-		while (is_array($email)){
-			if (isset($email['TYPE=work'])) {
-				$email = $email['TYPE=work'];
-			} else {
-				$email = reset($email);
-			}
-		}
-		$_POST['customer_email'] = $email;
+	$_POST['customer_number'] = isset($customer_vcard->{'X-CUSTOMER-NUMBER'}) ? $customer_vcard->{'X-CUSTOMER-NUMBER'} : null;
+	$_POST['customer_tax_number'] = isset($customer_vcard->{'X-TAX-NUMBER'}) ? $customer_vcard->{'X-TAX-NUMBER'} : null;
+	if (isset($customer_vcard->EMAIL)){
+		$email = $customer_vcard->EMAIL;		
+		while (is_array($email)) $email = reset($email);		
+		$_POST['customer_email'] = $email->val;
 	}	
 	$document = new Document($company);	
 	$document->patch($_POST);
