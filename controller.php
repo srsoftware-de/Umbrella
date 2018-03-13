@@ -33,6 +33,8 @@ class Address{
 		7=>'country'
 	];
 	
+	static $index = 0;
+	
 	function __construct($data, $param = null){
 		if (is_array($data)){
 			foreach (static::fields as $index => $name) {
@@ -51,6 +53,22 @@ class Address{
 
 		if (is_array($param))$this->param = $param;
 	}
+
+	function editFields(){
+		$result  = "<fieldset>\n";
+		$result .= '<legend>'.t('Address')."</legend>\n";
+		foreach (Address::fields as $field) $result .= t($field).' <input type="text" name="ADR#'.Address::$index.'['.$field.']" value="'.$this->{$field}.'" />'."\n";
+		if (isset($this->param['TYPE'])){
+			 $types = $this->param['TYPE'];
+			 if (!is_array($types)) $types = [$types];
+			 foreach ($types as $index => $type){
+			 	$result .= '<label><input type="checkbox" name="ADR#'.Address::$index.'[param][TYPE]['.$index.']" value="'.$type.'" checked="true"/> '.t($type).'</label><br/>';
+			 }
+		}
+		$result .= "</fieldset>\n";
+		Address::$index++;
+		return $result;
+	}
 	
 	function format($separator = null){
 		if ($separator) return str_replace("\n",$separator,$this->__toString());
@@ -64,6 +82,13 @@ class Address{
 			}
 		}		
 		return $str . ':'.implode(';',[$this->post_box,$this->ext_addr,$this->street,$this->locality,$this->region,$this->post_code,$this->country]);
+	}
+	
+	static function in($data = array()){
+		foreach (Address::fields as $field){
+			if (array_key_exists($field, $data)) return true;
+		}
+		return false;
 	}
 
 	function __toString(){
@@ -83,10 +108,41 @@ class Address{
 }
 
 class GenericField{
+	
+	static $index = 0;
+	
 	function __construct($key, $val, $param = null){
 		$this->key = $key;
 		$this->val = $val;
 		$this->param = $param;
+	}
+	
+	function editFields(){
+		$result  = "<fieldset>\n";
+		$result .= '<legend>'.t($this->key)."</legend>\n";
+		$result .= '<input type="text" name="'.$this->key.'#'.GenericField::$index.'[val]" value="'.$this->val.'" />'."\n";
+		
+		$index = -1;
+		$common_types = ['home'=>true,'work'=>true];
+		
+		if (isset($this->param['TYPE'])){
+			 $types = $this->param['TYPE'];
+			 if (!is_array($types)) $types = [$types];
+			 
+			 foreach ($types as $index => $type){
+			 	$result .= '<label><input type="checkbox" name="'.$this->key.'#'.GenericField::$index.'[param][TYPE]['.$index.']" value="'.$type.'" checked="true"/> '.t($type).'</label><br/>';
+			 	unset($common_types[$type]);
+			 }
+		}
+		
+		foreach ($common_types as $type => $dummy){
+			$index++;
+			$result .= '<label><input type="checkbox" name="'.$this->key.'#'.GenericField::$index.'[param][TYPE]['.$index.']" value="'.$type.'" /> '.t($type).'</label><br/>';
+		}
+		
+		$result .= "</fieldset>\n";
+		GenericField::$index++;
+		return $result;
 	}
 
 	function format(){
@@ -120,9 +176,8 @@ class Name{
 		4 => 'prefix',
 		5 => 'suffix'
 	];
+	
 	function __construct($data,$param = null){
-		
-
 		if (is_array($data)){
 			foreach (static::fields as $index => $name) $this->{$name} = isset($data[$name]) ? $data[$name] : $data[$index];
 		} else {
@@ -131,6 +186,21 @@ class Name{
 		}
 
 		if (is_array($param))$this->param = $param;
+	}
+	
+	function editFields(){
+		$result  = "<fieldset>\n";
+		$result .= '<legend>'.t('Name')."</legend>\n";
+		foreach (Name::fields as $field) $result .= t($field).' <input type="text" name="N['.$field.']" value="'.$this->{$field}.'" />'."\n";
+		if (isset($this->param['TYPE'])){
+			 $types = $this->param['TYPE'];
+			 if (!is_array($types)) $types = [$types];
+			 foreach ($types as $index => $type){
+			 	$result .= '<label><input type="checkbox" name="'.$this->key.'[param][TYPE]['.$index.']" value="'.$type.'" checked="true"/> '.t($type).'</label><br/>';
+			 }
+		}
+		$result .= "</fieldset>\n";
+		return $result;
 	}
 
 	function format(){
@@ -159,18 +229,25 @@ class VCard{
 
 	function __construct($data){
 		if (is_array($data)){
-			$this->patch($data);
+			$this->patch($data,true);
 		} else $this->parse($data);
 	}
 	
 	static function load($options = []){
 		global $user;
 		$db = get_or_create_db();
-		$sql = 'SELECT * FROM contacts WHERE id IN (SELECT contact_id FROM contacts_users WHERE user_id = ?)';
-		$args = [$user->id];
-	
 		$single = false;
-	
+		
+		$subquery = 'SELECT contact_id FROM contacts_users WHERE user_id = ?';
+		$args = [$user->id];
+		
+		if (isset($options['assigned']) && $options['assigned'] == true) {
+			$subquery .= ' AND assigned = 1';
+			$single = true;
+		}
+		
+		$sql = 'SELECT * FROM contacts WHERE id IN ('.$subquery.')';
+		
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
@@ -257,12 +334,13 @@ class VCard{
 		if (!is_array($data)){
 			$data = trim($data);
 			if ($data == '') return;
-			$main_parts = explode(':',trim($data),2);
-			$val = $main_parts[1];
+			
+			$main_parts = explode(':',trim($data),2); // ADR#1;TYPE=work:A;B;C;D;E => [ 'ADR#1;TYPE=work', 'A;B;C;D;E' ] // the dot in ADR#1 max result from a form
+			$val = $main_parts[1]; // 'A;B;C;D;E'
 
-			$key_parts = explode(';',$main_parts[0]);
-			$key = array_shift($key_parts);
-
+			$key_parts = explode(';',$main_parts[0]); // ADR#1;TYPE=work => [ 'ADR#1', 'TYPE=work' ]
+			$key = array_shift($key_parts); // ADR#1
+			
 			switch ($key){
 				case '':
 				case 'BEGIN':
@@ -293,13 +371,23 @@ class VCard{
 		if (!isset($this->dirty)) $this->dirty = [];
 
 		foreach ($data as $key => $val){
+			$key = explode('#',$key,2)[0]; // ADR#1 => ADR
+			
 			if ($key === 'id' && isset($this->id)) continue;
+				
+			if (isset($val['param'])) {
+				$param = $val['param'];
+				unset($val['param']);
+			}
+			if (isset($val['val']))	$val = $val['val'];
+
 			switch ($key){
 				case 'ADR':
 					$val = new Address($val,$param);
 					break;
 				case 'EMAIL':
 				case 'TEL':
+					// these can hyve params like TYPE
 					$val = new GenericField($key,$val,$param);
 					break;
 				case 'N':
@@ -308,7 +396,7 @@ class VCard{
 			}
 
 			if (isset($this->{$key})){
-				if ($add){ // add values
+				if ($add){ // add values					
 					if (is_array($this->{$key})){
 						$this->{$key}[] = $val; // add new element to existing array
 					} else $this->{$key} = [ $this->{$key}, $val]; // convert to array and add new element
@@ -316,6 +404,7 @@ class VCard{
 			} else $this->{$key} = $val; // create new field
 			$this->dirty[] = $key;
 		}
+		$this->dirty = array_unique($this->dirty);
 	}
 
 	function phones(){
