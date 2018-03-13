@@ -262,6 +262,11 @@ class VCard{
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args,$ids);
 		}
+		
+		if (isset($options['key'])){
+			$sql .= ' AND DATA like ?';
+			$args[] = '%'.$options['key'].'%';
+		}
 	
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to query contacts for you!');
