@@ -24,7 +24,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Edit Time')?></legend>
 		<fieldset>
 			<legend><?= t('Subject')?></legend>
-			<input type="text" name="subject" value="<?= $time['subject']; ?>"/>
+			<input type="text" name="subject" value="<?= htmlspecialchars($time['subject']); ?>"/>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description')?></legend>
