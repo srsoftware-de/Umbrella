@@ -102,7 +102,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Task')?></legend>
-			<input type="text" name="name" value="<?= $task['name'] ?>" autofocus="true"/>
+			<input type="text" name="name" value="<?= htmlspecialchars($task['name']) ?>" autofocus="true"/>
 		</fieldset>
 		<?php if ($project_tasks){?>
 		<fieldset>
@@ -124,18 +124,18 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend><?= t('Estimated time')?></legend>
 			<label>
-				<?= t('? hours','<input type="number" name="est_time" value="'.$task['est_time'].'" />')?>				 
+				<?= t('? hours','<input type="number" name="est_time" value="'.htmlspecialchars($task['est_time']).'" />')?>				 
 			</label>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset>
 			<legend><?= t('Tags')?></legend>
-			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
+			<input type="text" name="tags" value="<?= $bookmark ? htmlspecialchars(implode(' ', $bookmark['tags'])) : ''?>" />
 		</fieldset>
 		<?php } ?>
 		<fieldset>
 			<legend><?= t('Start date')?></legend>
-			<input name="start_date" type="date" value="<?= $task['start_date'] ?>" />
+			<input name="start_date" type="date" value="<?= htmlspecialchars($task['start_date']) ?>" />
 			<?php if ($task['start_date']) { ?>
 			<select name="start_extension">
 				<option value=""><?= t('No extension') ?></option>
@@ -150,7 +150,7 @@ include '../common_templates/messages.php'; ?>
 			</fieldset>
 		<fieldset>
 			<legend><?= t('Due date')?></legend>
-			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" />
+			<input name="due_date" type="date" value="<?= htmlspecialchars($task['due_date']) ?>" />
 			<?php if ($task['due_date']) { ?>
 			<select name="due_extension">
 				<option value=""><?= t('No extension') ?></option>
