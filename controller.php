@@ -57,7 +57,7 @@ class Address{
 	function editFields(){
 		$result  = "<fieldset>\n";
 		$result .= '<legend>'.t('Address')."</legend>\n";
-		foreach (Address::fields as $field) $result .= t($field).' <input type="text" name="ADR#'.Address::$index.'['.$field.']" value="'.$this->{$field}.'" />'."\n";
+		foreach (Address::fields as $field) $result .= t($field).' <input type="text" name="ADR#'.htmlspecialchars(Address::$index.'['.$field).']" value="'.htmlspecialchars($this->{$field}).'" />'."\n";
 		
 		$index = -1;
 		$common_types = ['home'=>true,'work'=>true];
@@ -66,14 +66,14 @@ class Address{
 			 $types = $this->param['TYPE'];
 			 if (!is_array($types)) $types = [$types];
 			 foreach ($types as $index => $type){
-			 	$result .= '<label><input type="checkbox" name="ADR#'.Address::$index.'[param][TYPE]['.$index.']" value="'.$type.'" checked="true"/> '.t($type).'</label><br/>';
+			 	$result .= '<label><input type="checkbox" name="ADR#'.htmlspecialchars(Address::$index.'[param][TYPE]['.$index).']" value="'.htmlspecialchars($type).'" checked="true"/> '.t($type).'</label><br/>';
 			 	unset($common_types[$type]);
 			 }
 		}
 		
 		foreach ($common_types as $type => $dummy){
 			$index++;
-			$result .= '<label><input type="checkbox" name="ADR#'.Address::$index.'[param][TYPE]['.$index.']" value="'.$type.'" /> '.t($type).'</label><br/>';
+			$result .= '<label><input type="checkbox" name="ADR#'.htmlspecialchars(Address::$index.'[param][TYPE]['.$index).']" value="'.htmlspecialchars($type).'" /> '.t($type).'</label><br/>';
 		}
 		
 		$result .= "</fieldset>\n";
@@ -131,7 +131,7 @@ class GenericField{
 	function editFields(){
 		$result  = "<fieldset>\n";
 		$result .= '<legend>'.t($this->key)."</legend>\n";
-		$result .= '<input type="text" name="'.$this->key.'#'.GenericField::$index.'[val]" value="'.$this->val.'" />'."\n";
+		$result .= '<input type="text" name="'.htmlspecialchars($this->key.'#'.GenericField::$index).'[val]" value="'.htmlspecialchars($this->val).'" />'."\n";
 		
 		$index = -1;
 		$common_types = ['home'=>true,'work'=>true];
@@ -141,14 +141,14 @@ class GenericField{
 			 if (!is_array($types)) $types = [$types];
 			 
 			 foreach ($types as $index => $type){
-			 	$result .= '<label><input type="checkbox" name="'.$this->key.'#'.GenericField::$index.'[param][TYPE]['.$index.']" value="'.$type.'" checked="true"/> '.t($type).'</label><br/>';
+			 	$result .= '<label><input type="checkbox" name="'.htmlspecialchars($this->key.'#'.GenericField::$index.'[param][TYPE]['.$index).']" value="'.htmlspecialchars($type).'" checked="true"/> '.t($type).'</label><br/>';
 			 	unset($common_types[$type]);
 			 }
 		}
 		
 		foreach ($common_types as $type => $dummy){
 			$index++;
-			$result .= '<label><input type="checkbox" name="'.$this->key.'#'.GenericField::$index.'[param][TYPE]['.$index.']" value="'.$type.'" /> '.t($type).'</label><br/>';
+			$result .= '<label><input type="checkbox" name="'.htmlspecialchars($this->key.'#'.GenericField::$index.'[param][TYPE]['.$index).']" value="'.htmlspecialchars($type).'" /> '.t($type).'</label><br/>';
 		}
 		
 		$result .= "</fieldset>\n";
@@ -202,7 +202,7 @@ class Name{
 	function editFields(){
 		$result  = "<fieldset>\n";
 		$result .= '<legend>'.t('Name')."</legend>\n";
-		foreach (Name::fields as $field) $result .= t($field).' <input type="text" name="N['.$field.']" value="'.$this->{$field}.'" />'."\n";
+		foreach (Name::fields as $field) $result .= t($field).' <input type="text" name="N['.htmlspecialchars($field).']" value="'.htmlspecialchars($this->{$field}).'" />'."\n";
 		$result .= "</fieldset>\n";
 		return $result;
 	}

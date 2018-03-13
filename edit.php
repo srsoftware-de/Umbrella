@@ -31,7 +31,7 @@ function createField($key,$value){
 	if (is_object($value)) return $value->editFields();
 	$result  = "<fieldset>\n";
 	$result .= '<legend>'.t($key)."</legend>\n";
-	$result .= '<input type="text" name="'.$key.'" value="'.$value.'"/>'."\n";
+	$result .= '<input type="text" name="'.htmlspecialchars($key).'" value="'.htmlspecialchars($value).'"/>'."\n";
 	$result .= "</fieldset>\n";
 	return $result;
 }
@@ -55,4 +55,4 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 </form>
 
-<?php debug($vcard); include '../common_templates/closure.php'; ?>
+<?php include '../common_templates/closure.php'; ?>
