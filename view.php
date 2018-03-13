@@ -166,7 +166,7 @@ if ($project){
 	<?php } ?>
 </table>
 <?php
-if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSSION); 
-if (isset($services['notes'])) echo request('notes','html',['uri'=>'project:'.$project_id],false,NO_CONVERSSION);
+if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSION); 
+if (isset($services['notes'])) echo request('notes','html',['uri'=>'project:'.$project_id],false,NO_CONVERSION);
 }
 include '../common_templates/closure.php'; ?>
