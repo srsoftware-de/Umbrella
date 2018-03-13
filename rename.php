@@ -25,7 +25,7 @@ if ($rel_file){?>
 <form method="POST">
 	<fieldset>
 		<legend><?= t('Enter new name for ?',basename($rel_file))?></legend>
-		<input type="text" name="new_name" value="<?= basename($rel_file)?>" />
+		<input type="text" name="new_name" value="<?= htmlspecialchars(basename($rel_file))?>" />
 		<input type="submit" />
 	</fieldset>
 </form>
