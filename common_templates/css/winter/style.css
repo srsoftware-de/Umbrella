@@ -101,6 +101,7 @@ fieldset.add.document {
 	text-decoration: line-through;
 }
 
+p a,
 .description a{
 	text-decoration: underline;
 }

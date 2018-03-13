@@ -44,6 +44,17 @@ span.hover_h {
 	float: right;
 }
 
+label{
+	display: block;
+	width: 400px;
+	position: relative;
+}
+
+label input[type=text]{
+	position: absolute;
+	right: 0;	
+}
+
 legend{
 	padding: 0 5px;
 	border-radius: 5px;
@@ -52,6 +63,10 @@ legend{
 body > a.symbol {
 	padding: 5px;
 	border-radius: 5px;
+}
+
+body > h2{
+	color: #67a05f;
 }
 #main_menu{
 	position: fixed;
@@ -76,6 +91,11 @@ body > a.symbol {
 .symbol{
 	font-family: awesome;
 	font-size: 22px;
+}
+
+.search input {
+	margin: 5px;
+	width: 95px;
 }
 
 .right{
@@ -149,4 +169,16 @@ body > a.symbol {
 
 .errors span{
 	background: orange;
+}
+
+.tasks li{
+	margin: 5px;
+	padding-right: 80px;
+}
+.project-view{
+	min-width: 100%;
+}
+.project-view span.hover_h{
+	position: absolute;
+	right: 0;
 }

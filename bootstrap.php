@@ -342,38 +342,34 @@ function init(){
 function objectFrom($entity){
 	if (is_array($entity)){
 		$obj = new stdClass();
-		foreach ($entity as $key => $val){
-			$obj->$key = objectFrom($val);
-		}
+		foreach ($entity as $key => $val) $obj->$key = objectFrom($val);
 		return $obj;
 	}
 	return $entity;
 }
 
 function conclude_vcard($vcard){
-	$short = '';
-	if (isset($vcard['FN'])) return $vcard['FN'];
-	if (isset($vcard['N'])){
-		$names = explode(';',$vcard['N']);
-		return $names[1].' '.$names[0];
-	}
+	$result = '';	
+	if (isset($vcard->FN)) $result = trim($vcard->FN);
+	if ($result != '') return $result;
+	if (isset($vcard->N)) $result = trim($vcard->N->given.' '.$vcard->N->family);
+	if ($result != '') return $result;
 	debug('error in conclude_vcard: no name set',true);
 }
 
 function address_from_vcard($vcard){
-	$result = conclude_vcard($vcard)."\n";
-	$address = $vcard['ADR'];
-	if (is_array($address)){
-		$address = reset($address);
-	}
-	$address = split(';', $address);
-	if (!empty($address[0])) $result .= t('Postbox: ',$address[0])."\n"; // Postfach
-	if (!empty($address[1])) $result .= $address[1]."\n";				// Adresszusatz
-	if (!empty($address[2])) $result .=	$address[2]."\n";				// Straße
-	if (!empty($address[5])) $result .=	$address[5]." ";				// Postleitzahl
-	if (!empty($address[3])) $result .=	$address[3]."\n";				// Ort
-	if (!empty($address[4])) $result .=	$address[4]." / ";				// Region
-	if (!empty($address[6])) $result .=	$address[6];				// Land
+	$result = '';
+	if (isset($vcard->FN)) $result .= $vcard->FN."\n";
+	if (isset($vcard->N)) $result .= trim($vcard->N->given.' '.$vcard->N->family) . "\n";
+	$address = $vcard->ADR;
+	if (is_array($address)) $address = reset($address);
+	if (!isset($address->post_box)) $result .= t('Postbox: ?',$address->post_box)."\n"; // Postfach
+	if (!empty($address->ext_addr)) $result .= $address->ext_addr."\n";				// Adresszusatz
+	if (!empty($address->street)) $result .=	$address->street."\n";				// Straße
+	if (!empty($address->post_code)) $result .=	$address->post_code." ";				// Postleitzahl
+	if (!empty($address->locality)) $result .=	$address->locality."\n";				// Ort
+	if (!empty($address->region)) $result .=	$address->region." / ";				// Region
+	if (!empty($address->county)) $result .=	$address->country;				// Land
 	
 	return $result;
 }
