@@ -36,11 +36,11 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 
 			<?php if (array_key_exists('VARCHAR',$props)) { ?>
-			<input type="text" maxlength="<?= $props['VARCHAR'] ?>" name="company[<?= $field ?>]" value="<?= $company->{$field} ?>" />
+			<input type="text" maxlength="<?= $props['VARCHAR'] ?>" name="company[<?= $field ?>]" value="<?= htmlspecialchars($company->{$field}) ?>" />
 			<?php } ?>
 
 			<?php if (in_array('INT',$props)) { ?>
-			<input type="number" name="company[<?= $field ?>]" value="<?= $company->{$field} ?>" />
+			<input type="number" name="company[<?= $field ?>]" value="<?= htmlspecialchars($company->{$field}) ?>" />
 			<?php } ?>
 
 		</fieldset>
