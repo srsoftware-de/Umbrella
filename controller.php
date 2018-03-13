@@ -566,35 +566,13 @@ class Document {
 	}
 
 	public function mail_text(){
-		switch ($this->type){
-			case Document::TYPE_OFFER:
-				return $this->company_settings()->offer_mail_text;
-			case Document::TYPE_CONFIRMATION:
-				return $this->company_settings()->confirmation_mail_text;
-			case Document::TYPE_INVOICE:
-				return $this->company_settings()->document_mail_text;
-			case Document::TYPE_REMINDER:
-				return $this->company_settings()->reminder_mail_text;
-		}
-		return 'not implemented';
+		$company_settings = CompanySettings::load($this->company,$this->type->id);
+		return $company_settings->type_mail_text;
 	}
 
 	public function update_mail_text($new_text){
-		$settings = $this->company_settings();
-		switch ($this->type){
-			case Document::TYPE_OFFER:
-				$settings->patch(['offer_mail_text'=>$new_text]);
-				break;
-			case Document::TYPE_CONFIRMATION:
-				$settings->patch(['confirmation_mail_text'=>$new_text]);
-				break;
-			case Document::TYPE_INVOICE:
-				$settings->patch(['document_mail_text'=>$new_text]);
-				break;
-			case Document::TYPE_REMINDER:
-				$settings>patch(['reminder_mail_text'=>$new_text]);
-				break;
-		}
+		$settings = CompanySettings::load($this->company,$this->type->id);
+		$settings->patch(['type_mail_text'=>$new_text]);		
 		$settings->save();
 	}
 
