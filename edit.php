@@ -48,7 +48,7 @@ if ($allowed){
 		if (in_array($field, ['id','theme','pass','dirty'])) continue; ?>
 	<fieldset>
 		<legend><?= t($field) ?></legend>
-		<input type="test" name="<?= $field ?>" value="<?= $value ?>" />
+		<input type="text" name="<?= $field ?>" value="<?= htmlspecialchars($value) ?>" />
 	</fieldset>
 	
 	<?php }?>
