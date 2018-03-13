@@ -58,13 +58,24 @@ class Address{
 		$result  = "<fieldset>\n";
 		$result .= '<legend>'.t('Address')."</legend>\n";
 		foreach (Address::fields as $field) $result .= t($field).' <input type="text" name="ADR#'.Address::$index.'['.$field.']" value="'.$this->{$field}.'" />'."\n";
+		
+		$index = -1;
+		$common_types = ['home'=>true,'work'=>true];
+
 		if (isset($this->param['TYPE'])){
 			 $types = $this->param['TYPE'];
 			 if (!is_array($types)) $types = [$types];
 			 foreach ($types as $index => $type){
 			 	$result .= '<label><input type="checkbox" name="ADR#'.Address::$index.'[param][TYPE]['.$index.']" value="'.$type.'" checked="true"/> '.t($type).'</label><br/>';
+			 	unset($common_types[$type]);
 			 }
 		}
+		
+		foreach ($common_types as $type => $dummy){
+			$index++;
+			$result .= '<label><input type="checkbox" name="ADR#'.Address::$index.'[param][TYPE]['.$index.']" value="'.$type.'" /> '.t($type).'</label><br/>';
+		}
+		
 		$result .= "</fieldset>\n";
 		Address::$index++;
 		return $result;
@@ -192,13 +203,6 @@ class Name{
 		$result  = "<fieldset>\n";
 		$result .= '<legend>'.t('Name')."</legend>\n";
 		foreach (Name::fields as $field) $result .= t($field).' <input type="text" name="N['.$field.']" value="'.$this->{$field}.'" />'."\n";
-		if (isset($this->param['TYPE'])){
-			 $types = $this->param['TYPE'];
-			 if (!is_array($types)) $types = [$types];
-			 foreach ($types as $index => $type){
-			 	$result .= '<label><input type="checkbox" name="'.$this->key.'[param][TYPE]['.$index.']" value="'.$type.'" checked="true"/> '.t($type).'</label><br/>';
-			 }
-		}
 		$result .= "</fieldset>\n";
 		return $result;
 	}
