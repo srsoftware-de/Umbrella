@@ -11,7 +11,7 @@ $vcard = VCard::load(['ids'=>$id]);
 
 if (post('N')){
 	$vcard = new VCard(['id'=>(int)$id]);
-	$vcard->patch($_POST);
+	$vcard->patch($_POST,true);
 	$vcard->save();
 	redirect('../index');
 }

@@ -10,7 +10,7 @@ $id = param('id');
 $vcard = VCard::load(['ids'=>$id]);
 assert($vcard !== null,'Was not able to lod this vcard from the database');
 
-if ($tel = param('TEL')) {
+if ($tel = param('EMAIL')) {
 	$vcard->patch($_POST,true);
 	$vcard->save();
 	redirect(getUrl('contact'));
@@ -24,23 +24,15 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add phone number to ?',$vcard->name(BEAUTY)) ?></legend>
-		<input type="text" name="TEL[val]" />
+		<legend><?= t('Add email address to ?',$vcard->name(BEAUTY)) ?></legend>
+		<input type="text" name="EMAIL[val]" />
 		<label>
-			<input type="checkbox" name="TEL[param][TYPE][]" value="cell" />
-			<?= t('mobile phone')?>
+			<input type="checkbox" name="EMAIL[param][TYPE][]" value="home" />
+			<?= t('home')?>
 		</label>
 		<label>
-			<input type="checkbox" name="TEL[param][TYPE][]" value="home" />
-			<?= t('home phone')?>
-		</label>
-		<label>
-			<input type="checkbox" name="TEL[param][TYPE][]" value="work" />
-			<?= t('work phone')?>
-		</label>
-		<label>
-			<input type="checkbox" name="TEL[param][TYPE][]" value="fax" />
-			<?= t('fax')?>
+			<input type="checkbox" name="EMAIL[param][TYPE][]" value="work" />
+			<?= t('work')?>
 		</label>
 		<button type="submit"><?= t('Save') ?></button>
 	</fieldset>

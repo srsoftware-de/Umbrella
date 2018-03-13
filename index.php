@@ -35,11 +35,13 @@ include '../common_templates/messages.php'; ?>
 			<?php while (!empty($addresses)) { ?>
 				<p><?= array_shift($addresses)->format(' / ') ?></p>
 			<?php } ?>
+				<a class="symbol" title="<?= t('add address') ?>" href="<?= $id?>/add_address"></a>
 			</td>
 			<td>
 			<?php while (!empty($emails)) { ?>
 				<p><?= array_shift($emails) ?></p>
 			<?php } ?>
+				<a class="symbol" title="<?= t('add email') ?>" href="<?= $id?>/add_email"></a>
 			</td>
 			<td>
 			<?php while(!empty($phones)) { ?>
