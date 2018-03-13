@@ -4,6 +4,7 @@ $translations = array(
 	'add user'=>'Nutzer hinzufügen',
 	'assigned logins'=>'verknüpfte Konten',
 	'Bookmarks'=>'Lese&shy;zeichen',
+	'cell'=>'mobil',
 	"Click the following link and set a password to join:\n?"=>"Klicke auf den folgenden Link und setze ein Passwort, um loszulegen:\n?",
 	'Client Appliance ID'=>'Client-Anwendungs-ID',
 	'Client Appliance secret'=>'Client-Anwendungs-Kennwort',
@@ -54,4 +55,5 @@ $translations = array(
 	'User data has been updated.'=>'Daten wurden aktualisiert.',
 	'? invited you to Umbrella'=>'? hat dich zu Umbrella eingeladen',
 	'Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!'=>'Ihr Login-Servie hat Sie erfolgreich identifiziert, aber ihr Account dort ist mit keinem Account hier verknüpft!',
+	'Your search provided the following results:'=>'Ihre Suche lieferte die folgenden Ergebnisse:',
 );
