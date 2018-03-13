@@ -46,7 +46,7 @@ include '../common_templates/messages.php'; ?>
 		<?php } ?>
 		<fieldset>
 			<legend><?= t('Name')?></legend>
-			<input type="text" name="name" value="<?= $project['name']; ?>"/>
+			<input type="text" name="name" value="<?= htmlspecialchars($project['name']); ?>"/>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
@@ -55,7 +55,7 @@ include '../common_templates/messages.php'; ?>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset>
 			<legend><?= t('Tags')?></legend>
-			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
+			<input type="text" name="tags" value="<?= $bookmark ? htmlspecialchars(implode(' ', $bookmark['tags'])) : ''?>" />
 		</fieldset>
 		<?php } ?>
 	<button type="submit"><?= t('Update project') ?></button>
