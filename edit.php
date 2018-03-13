@@ -36,7 +36,8 @@ if ($name = post('name')){
 	}
 
 	if ($description = post('description')) $task['description'] = $description;
-	if ($parent = post('parent_task_id')) $task['parent_task_id'] = $parent;
+	$parent = post('parent_task_id');
+	if ($parent !== null) $task['parent_task_id'] = ($parent == 0) ? null : $parent;
 	
 	update_task($task);
 	update_task_requirements($task['id'],post('required_tasks'));
