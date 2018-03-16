@@ -10,7 +10,11 @@ if ($text = param('message')){
 	die(''.$message->time);
 }
 if ($time = param('time')){
-	$message = Message::load(['from'=>$time]);
+	if (param('echo') == 'true'){
+		$message = Message::load(['from'=>$time,'echo'=>true]);
+	} else {
+		$message = Message::load(['from'=>$time]);
+	}
 	die(json_encode($message));
 }
 die(''.Message::time());

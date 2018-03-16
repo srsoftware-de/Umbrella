@@ -58,9 +58,11 @@ class Message{
 
 		if (isset($options['from'])) {
 			$where['time > :from'] 	= [':from' => $options['from']];
-			$where['ip != :ip']		= [':ip' => $_SERVER['HTTP_X_REAL_IP']];
 			$limit = ' LIMIT 1';
 			$single = true;
+		}
+		if (!isset($options['echo'])){ // if echo is set: return messages to sender, too
+			$where['ip != :ip']		= [':ip' => $_SERVER['HTTP_X_REAL_IP']];				
 		}
 		
 		if (!empty($where)){
