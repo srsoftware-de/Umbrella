@@ -17,13 +17,64 @@ include '../common_templates/main_menu.php'; ?>
 
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script type="text/javascript">
+
+class Message {
+	constructor() {
+		this.servertime = null;
+	}
+	
+	poll(){
+		var msg = this;
+		if (this.servertime == null){
+			$.ajax({
+				url: '<?= getUrl('rtc','server')?>',
+				success: function(time) { msg.servertime = time; msg.poll(); }
+			});
+		} else {
+			$.ajax({
+				url: '<?= getUrl('rtc','server')?>',
+				method: 'POST',
+				data: { time: msg.servertime },
+				success: function(data) {
+					if (data == 'null') {
+						setTimeout(function(){ msg.poll() },1000);
+					} else {
+						var json = JSON.parse(data);
+						msg.servertime = json.time;
+						var signal = JSON.parse(json.text);
+						console.log(signal);
+						msg.recieved(signal);
+						
+						setTimeout(function(){ msg.poll() },50);
+					} 
+ 				}
+			});
+		}
+	}
+
+	recieved(signal){
+		console.log('recieved signal:');
+		console.log(signal);
+	}
+
+	send(json){
+		$.ajax({
+			async: false,
+			url: '<?= getUrl('rtc','server')?>',
+			method: 'POST',
+			data: {
+				message: JSON.stringify(json)
+			},
+		});
+	}
+}
+
 var localVideo;
 var localStream;
 var remoteVideo;
 var peerConnection;
 var uuid;
-var servertime = null;
-var waiting = false;
+var message = null;
 
 var peerConnectionConfig = {
 	'iceServers': [
@@ -37,7 +88,7 @@ function createdDescription(description) {
 
 	peerConnection.setLocalDescription(description).then(function() {
 		logtrace('Sending loacl description');
-		postMessage({'sdp': peerConnection.localDescription, 'uuid': uuid});
+		message.send({'sdp': peerConnection.localDescription, 'uuid': uuid});
 	}).catch(errorHandler);
 }
 
@@ -63,7 +114,7 @@ function getUserMediaSuccess(stream) {
 function gotIceCandidate(event) {
 	if(event.candidate != null) {
 		logtrace('Sending ice candidate');
-		postMessage({'ice': event.candidate, 'uuid': uuid});
+		message.send({'ice': event.candidate, 'uuid': uuid});
 	}
 }
 
@@ -74,7 +125,7 @@ function gotRemoteStream(event) {
 }
 
 function gotSignalFromServer(signal) {
-	logtrace('Signal: ');
+	logtrace('Got signal from server: ');
 	console.log(signal);
 	if(!peerConnection) start(false);
 
@@ -93,20 +144,13 @@ function gotSignalFromServer(signal) {
 	}
 }
 
-function messageRecieved(data){
-	servertime = data.time;
-	logtrace('recieved message from '+data.ip);
-	
-	signal = JSON.parse(data.text);
-	gotSignalFromServer(signal);
-}
-
 function pageReady() {
 	uuid = createUUID();
 
 	localVideo = document.getElementById('localVideo');
 	remoteVideo = document.getElementById('remoteVideo');
 
+	
 	var constraints = {
 		video: true,
 		audio: true,
@@ -118,51 +162,10 @@ function pageReady() {
 		alert('Your browser does not support getUserMedia API');
 	}
 
-	poll();
-}
-
-function poll(){
-	if (servertime == null){
-		$.ajax({
-			url: '<?= getUrl('rtc','server')?>',
-			success: function(data){
-				logtrace('Got server time: '+data);
-				servertime = data;
-				poll();
-			}
-		});
-	} else {
-		$.ajax({
-			url: '<?= getUrl('rtc','server')?>',
-			method: 'POST',
-			data: {
-				time: servertime
-			},
-			success: function(data){
-				
-				if (data == 'null') {
-					setTimeout(poll,1000);
-				} else {
-					setTimeout(poll,50);
-					messageRecieved(JSON.parse(data));
-}
-			}
-		});
-	}
-}
-
-function postMessage(json){
-	$.ajax({
-		async: false,
-		url: '<?= getUrl('rtc','server')?>',
-		method: 'POST',
-		data: {
-			message: JSON.stringify(json)
-		},
-		success: function(data){
-			servertime = data;
-		}
-	});
+	message = new Message(); // create message object and start polling
+	message.recieved = gotSignalFromServer;
+	message.poll();
+	
 }
 
 function start(isCaller) {
@@ -178,7 +181,7 @@ function start(isCaller) {
 }
 
 function logtrace(text){
-	console.log(servertime+' - '+text);
+	console.log(message.servertime+' - '+text);
 }
 
 pageReady();
