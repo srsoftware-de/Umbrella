@@ -4,13 +4,16 @@ include '../bootstrap.php';
 
 require_login('rtc'); 
 
-include '../common_templates/head.php'; ?> 
+include '../common_templates/head.php';
+include '../common_templates/main_menu.php'; ?> 
 
-<video id="localVideo" autoplay muted style="width:40%;"></video>
-<video id="remoteVideo" autoplay style="width:40%;"></video>
-<br />
-<input type="button" id="start" onclick="start(true)" value="Start Video"></input>
-
+<fieldset>
+	<legend><?= t('WebRTC') ?></legend>
+	<video id="localVideo" autoplay muted style="width:300px;"></video>
+	<video id="remoteVideo" autoplay style="width:300px;"></video>
+	<br />
+	<input type="button" id="start" onclick="start(true)" value="Start Video"></input>
+</fieldset>
 
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script type="text/javascript">
