@@ -14,9 +14,9 @@ include '../common_templates/messages.php'; ?>
 
 <?php foreach ($services as $service => $data){
 	if ($service == 'user') continue;	
-	$result = request($service,'search',['key'=>param('search')],false,NO_CONVERSION);
+	$result = request($service,'search',['key'=>param('key')],false,NO_CONVERSION);
 	if ($result){ ?>
-<fieldset>
+<fieldset class="<?= $service ?>">
 	<legend><?= t($data['name'])?></legend>
 	<?= $result ?>
 </fieldset>
