@@ -37,18 +37,19 @@ include '../common_templates/messages.php'; ?>
 			<textarea name="description"><?= $description; ?></textarea>
 		</fieldset>
 		<fieldset>
+			<legend><?= t('Estimated time')?></legend>
+			<label>
+				<?= t('? hours','<input type="number" name="est_time" />')?>
+			</label>
+		</fieldset>
+		<fieldset>
 			<legend><?= t('Users') ?></legend>
 			<select name="users[]" multiple="true">
 			<?php foreach ($project_users as $id => $u){ ?>
 				<option value="<?= $id ?>" <?= ($id == $user->id)?'selected="true"':''?>><?= $u['login'] ?></option>
 			<?php } ?>
 			</select>
-		</fieldset>
-		<fieldset>
-			<legend><?= t('Estimated time')?></legend>
-			<label>
-				<?= t('? hours','<input type="number" name="est_time" />')?>
-			</label>
+			<?= t('Only selected users will be able to access the task!') ?>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){?>
 		<fieldset><legend><?= t('Tags')?></legend>

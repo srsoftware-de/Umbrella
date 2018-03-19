@@ -52,6 +52,7 @@ include '../common_templates/messages.php'; ?>
 				<option value="<?= $id ?>" <?= ($id == $user->id)?'selected="true"':''?>><?= $u['login'] ?></option>
 			<?php } ?>
 			</select>
+			<?= t('Only selected users will be able to access the task!') ?>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){?>
 		<fieldset><legend><?= t('Tags')?></legend>
