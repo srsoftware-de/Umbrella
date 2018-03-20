@@ -254,16 +254,18 @@
 		assert($query->execute($args),'Was not able to alter task entry in database');
 
 		$hash = isset($services['bookmark']) ? setTags($task['name'],$task['id']) : false;
-		// notify
-		$sender = $user->email;
-		foreach ($task['users'] as $uid => $u){
-			if ($uid == $user->id) continue;
-			$reciever = $u['email'];
-			$subject = t('? edited one of your tasks',$user->login);
-			$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$task['name'],$task['description']]).getUrl('task',$task['id'].'/view');
-			send_mail($sender, $u['email'], $subject, $text);
-
-			if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
+		
+		if (param('silent') != 'on'){ // notify task users
+			$sender = $user->email;
+			foreach ($task['users'] as $uid => $u){
+				if ($uid == $user->id) continue;
+				$reciever = $u['email'];
+				$subject = t('? edited one of your tasks',$user->login);
+				$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$task['name'],$task['description']]).getUrl('task',$task['id'].'/view');
+				send_mail($sender, $u['email'], $subject, $text);
+	
+				if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
+			}
 		}
 	}
 

@@ -100,7 +100,9 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Project')?></th>
 		<td class="project">
 			<a href="<?= getUrl('project',$task['project_id'].'/view'); ?>"><?= $task['project']['name']?></a>
-		</td>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="<?= getUrl('files').'?path=project/'.$task['project_id'] ?>" class="symbol" title="show project files" target="_blank"></a>
+			</td>
 	</tr>
 	<?php if ($task['parent_task_id']) { ?>
 	<tr>
@@ -199,5 +201,5 @@ include '../common_templates/messages.php'; ?>
 	<?php } ?>
 </table>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSION);
-} // if task
+} // if task 
 include '../common_templates/closure.php'; ?>

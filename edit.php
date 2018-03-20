@@ -100,6 +100,8 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend><?= t('Project')?></legend>
 			<a href="<?= getUrl('project',$task['project']['id'].'/view')?>" ><?= $task['project']['name']?></a>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="<?= getUrl('files').'?path=project/'.$task['project_id'] ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Task')?></legend>
@@ -174,6 +176,9 @@ include '../common_templates/messages.php'; ?>
 			</ul>
 		</fieldset>
 		<?php } ?>
+		<label class="silent_box">
+			<input type="checkbox" name="silent" /> <?= t("Don't notify users") ?>
+		</label>
 		<input type="submit" />
 	</fieldset>
 </form>
