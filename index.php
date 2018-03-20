@@ -4,7 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('time');
-$times = load_times(['order'=>param('order')]);
+$times = load_times(['order'=>param('order','state')]);
 $task_ids = [];
 
 $parsedown = null;
