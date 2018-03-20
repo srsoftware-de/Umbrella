@@ -40,10 +40,19 @@
 		}
 		return $db;
 	}
+	
+	function appendDescription($time_id, $description){
+		$db = get_or_create_db();
+		$query = $db->prepare('UPDATE times SET description = IFNULL(description,"") || :desc WHERE id = :tid');
+		$args = [ ':desc' => $description, ':tid'=>$time_id];
+		if (!$query->execute($args)) warn('Was not able to update timetrack description.');
+	}
 
 	function assign_task($task_id = null,$time_id = null){
 		assert(is_numeric($task_id),'No valid task id passed to assign_task.');
 		assert(is_numeric($time_id),'No valid time id passed to assign_task.');
+		$task = request('task','json',['ids'=>$task_id]);
+		appendDescription($time_id, "\n\n# ".$task['name']."\n\n".$task['description']);
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT OR IGNORE INTO task_times (task_id, time_id) VALUES (:task, :time)');
 		assert($query->execute(array(':task'=>$task_id,':time'=>$time_id)),'Was not able to assign task to timetrack.');
