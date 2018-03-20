@@ -38,7 +38,7 @@ include '../common_templates/messages.php'; ?>
 		<tr>
 			<td>
 				<a href="?path=<?= $dir ?>">
-					<span class="symbol"></span> <?= $alias ?>
+					<span class="symbol"></span> <?= $alias ?>
 				</a>
 			</td>
 			<td>
@@ -71,7 +71,7 @@ include '../common_templates/messages.php'; ?>
 		<tr>
 			<td>
 				<a href="shared">
-					<span class="symbol"></span> <?= t('shared files')?>
+					<span class="symbol"></span> <?= t('shared files')?>
 				</a>
 			</td>
 			<td></td>
