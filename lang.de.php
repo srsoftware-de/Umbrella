@@ -22,6 +22,7 @@ $translations = array(
 		'Description'=>'Be&shy;schrei&shy;bung',
 		'Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Spickzettel für Markdown und erweitertes Markdown hier</a>',
 		'Documents'=>'Dokumente',
+		"Don't notify users"=>'Nutzer nicht benachrichtigen',
 		'Due'=>'Fällig',
 		'Due date'=>'Fällig&shy;keits&shy;datum',
 		'edit'=>'bearbeiten',
