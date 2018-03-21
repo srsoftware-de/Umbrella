@@ -43,7 +43,10 @@
 			if (!$redirect)	{
 				$tests = ['task','project','bookmarks','files'];
 				foreach ($tests as $test){
-					if (isset($services[$test])) $redirect = getUrl($test);
+					if (isset($services[$test])) {
+						$redirect = getUrl($test);
+						break;
+					}
 				}
 				
 			}
