@@ -128,13 +128,16 @@ if ($project){
 	</tr>
 	<?php } ?>
 	<tr>
-		<th><?= t('Tasks')?><br/><br/><a href="gantt"><?= t('Gantt chart')?></a></th>
+		<th>
+			<?= t('Tasks')?>
+			<?php if (!$show_closed_tasks) { ?>
+			<a class="symbol" href="?closed=show" title="<?= t('show closed tasks')?>"></a>
+			<?php } ?>
+			<br/>
+			<br/><a href="gantt"><?= t('Gantt chart')?></a></th>
 		<td class="tasks">
 			<?php if ($tasks) {
-				if (!$show_closed_tasks) { ?>
-			<a href="?closed=show"><?= t('show closed tasks')?></a>
-				<?php }
-			display_tasks($tasks, null);
+				display_tasks($tasks, null);
 			} else { ?>
 			<a class="symbol" href="<?= getUrl('task','add_to_project/'.$project_id) ?>"></a>
 			<a href="<?= getUrl('task','add_to_project/'.$project_id) ?>"><?= t('add task') ?></a>
@@ -145,7 +148,7 @@ if ($project){
 	<tr>
 		<th><?= t('Files') ?></th>
 		<td>
-			<a href="<?= getUrl('files','?path=project/'.$project_id) ?>"><?= t('related files') ?></a>
+			<a href="<?= getUrl('files','?path=project/'.$project_id) ?>"><span class="symbol"></span> <?= t('related files') ?></a>
 		</td>
 	</tr>
 	<?php } ?>
