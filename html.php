@@ -5,6 +5,7 @@ include 'controller.php';
 require_login('notes');
 
 $uri = param('uri');
+$form = param('form',true);
 assert($uri !== null,'Called notes/json without uri');
 $notes = Note::load(['uri'=>$uri,'limit'=>0,'order'=>'id']);
 $users = request('user','json');
@@ -24,7 +25,9 @@ foreach ($notes as $nid => $note){ ?>
 		<?php }?>
 		<?= $parsedown?$parsedown->parse($note['note']):str_replace("\n", "<br/>", $note['note']) ?>
 	</fieldset>
-	<?php } ?>
+<?php } ?>
+	
+<?php if ($form) { ?>
 	<form action="<?= getUrl('notes','add') ?>" method="POST">
 		<input type="hidden" name="uri" value="<?= $uri ?>" />
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
@@ -34,3 +37,4 @@ foreach ($notes as $nid => $note){ ?>
 			<button type="submit"><?= t('add note') ?></button>		
 		</fieldset>
 	</form>
+<?php } ?>
