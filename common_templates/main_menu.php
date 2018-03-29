@@ -4,8 +4,8 @@
 <?php } 
 if (isset($user)) { ?>
 	<div class="search">
-	<form action="<?= getUrl('user','search')?>" method="POST">
-	<input type="text" name="search" />
+	<form action="<?= getUrl('user','search')?>" method="GET">
+	<input type="text" name="key" />
 	<button type="submit" class="symbol"></button>
 	</form>
 	</div>

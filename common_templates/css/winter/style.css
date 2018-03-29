@@ -51,7 +51,7 @@ blockquote{
 }
 
 .hidden{
-	display: none;
+	display: none !important;
 }
 
 .emphasized{
@@ -170,8 +170,10 @@ button {
     display: inline-block;
 }
 
+label.silent_box,
 .change_state,
 input[type="submit"] {
+	clear: both;
     float: right;
 }
 
