@@ -36,8 +36,14 @@ if ($customer_contact_id = post('customer')){
 	$document->save();
 	$company_settings->save();
 	redirect($document->id.'/view');
-} 
+}
 
+$contacts_sorted = [];
+foreach ($contacts as $contact){
+	$short = conclude_vcard($contact);
+	$contacts_sorted[$short] = $contact;
+}
+ksort($contacts_sorted,SORT_FLAG_CASE|SORT_STRING);
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -50,8 +56,8 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Customer') ?></legend>
 			<select name="customer">
 				<option value=""><?= t('== select a customer ==') ?></option>
-				<?php foreach ($contacts as $contact_id => $contact) { ?>
-				<option value="<?= $contact_id ?>" <?= (post('customer')==$contact_id)?'selected="true"':''?>><?= conclude_vcard($contact)?></option>
+				<?php foreach ($contacts_sorted as $short => $contact) { ?>
+				<option value="<?= $contact->id ?>" <?= (post('customer')==$contact->id)?'selected="true"':''?>><?= $short ?></option>
 				<?php }?>				
 			</select>			
 		</fieldset>
