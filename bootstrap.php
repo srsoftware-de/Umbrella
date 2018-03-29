@@ -369,7 +369,7 @@ function address_from_vcard($vcard){
 	if (!empty($address->post_code)) $result .=	$address->post_code." ";				// Postleitzahl
 	if (!empty($address->locality)) $result .=	$address->locality."\n";				// Ort
 	if (!empty($address->region)) $result .=	$address->region." / ";				// Region
-	if (!empty($address->county)) $result .=	$address->country;				// Land
+	if (!empty($address->country)) $result .=	$address->country;				// Land
 	
 	return $result;
 }
