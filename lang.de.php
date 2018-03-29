@@ -1,6 +1,7 @@
 <?php
 
 $translations = array(
+		'Add entry to items of ?'=>'Eintrag zu den Artikeln von ? hinzufügen',
 		'Bookmarks' => 'Lesezeichen',
 		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
@@ -16,6 +17,7 @@ $translations = array(
 		'Log out ?'=>'? ausloggen',
 		'Notes'=>'Notizen',
 		'Price per unit'=>'Preis pro Einheit',
+		'Save'=>'Speichern',
 		'Select a company'=>'Firma auswählen',
 		'Tags'=>'Stichworte',
 		'Tasks'=>'Aufgaben',

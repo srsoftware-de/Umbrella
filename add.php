@@ -72,7 +72,7 @@ include '../common_templates/messages.php'; ?>
 			<input	type="text"	name="tags" />
 		</fieldset>
 		
-		<button type="submit"><?= t('Submit')?></button>
+		<button type="submit"><?= t('Save')?></button>
 	</fieldset>
 </form>
 <?php include '../common_templates/closure.php'; ?>
