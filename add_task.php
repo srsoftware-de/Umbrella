@@ -6,19 +6,20 @@ require_login('time');
 
 $task_id = param('tid');
 if (!$task_id) error('No task id passed!');
+
+$task = request('task','json',['ids'=>$task_id]);
+
 if ($selected = post('timetrack')){
-	assign_task($task_id,$selected);
+	assign_task($task,$selected);
 	redirect($selected.'/view');
 }
 $tracks = get_open_tracks($user->id);
 $count = count($tracks);
 if ($count < 1) error(t('No open time track existing!'));
 if ($count == 1) {
-	assign_task($task_id,key($tracks));
+	assign_task($task,key($tracks));
 	redirect(key($tracks).'/view');
 }
-
-$task = request('task','json',['ids'=>$task_id]);
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
