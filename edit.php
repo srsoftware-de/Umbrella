@@ -32,11 +32,11 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Start')?></legend>
-			<input type="text" name="start" value="<?= date('Y-m-d H:i',$time['start_time']?$time['start_time']:time());?>" />
+			<input type="text" name="start" value="<?= date('Y-m-d H:i',$time['start_time']?$time['start_time']:'');?>" />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('End')?></legend>
-			<input type="text" name="end" value="<?= date('Y-m-d H:i',$time['end_time']?$time['end_time']:time());?>" />
+			<input type="text" name="end" value="<?= date('Y-m-d H:i',$time['end_time']?$time['end_time']:'');?>" />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('State')?></legend>
