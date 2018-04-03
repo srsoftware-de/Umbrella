@@ -7,5 +7,5 @@
 		<script src="common_templates/js/jquery-3.2.1.min.js"></script>
 		<script src="common_templates/js/umbrella.js"></script>
 	</head>
-<body>
+<body class="<?= trim(str_replace('/',' ',$_SERVER['REDIRECT_URL'])); ?>">
 <img id="logo" src="<?= getUrl('user','common_templates/umbrella100px.png') ?>" />
