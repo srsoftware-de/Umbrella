@@ -27,6 +27,7 @@ $translations = array(
 		'New Url'=>'Neue Url:',
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
+		'Notification has been sent to user.'=>'Nutzer wurde benachrichtigt.',
 		'Projects'=>'Projekte',
 		'Select file with links'=>'Datei mit Hyperlinks auswählen',
 		'select user'=>'Nutzer auswählen',

@@ -5,7 +5,7 @@ include 'controller.php';
 
 require_login('bookmark');
 
-if ($share_user = param('share_user_id')) share_bookmark($share_user,param('share_url_hash'),param('notify',false));
+if ($share_user = param('share_user_id')) share_bookmark($share_user,param('share_url_hash'),param('notify',true));
 
 
 
