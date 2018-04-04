@@ -20,7 +20,7 @@ $translations = array(
 		'Create new task'=>'Neue Aufgabe anlegen',
 		'delete'=>'entfernen',
 		'Description'=>'Be&shy;schrei&shy;bung',
-		'Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Spickzettel für Markdown und erweitertes Markdown hier</a>',
+		'Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Markdown wird unterstützt ↗Spickzettel</a>',
 		'Documents'=>'Dokumente',
 		"Don't notify users"=>'Nutzer nicht benachrichtigen',
 		'Due'=>'Fällig',

@@ -121,7 +121,7 @@ include '../common_templates/messages.php'; ?>
 		
 		<?php }?>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
+			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $task['description']?></textarea>
 		</fieldset>
 		<fieldset>

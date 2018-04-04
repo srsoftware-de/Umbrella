@@ -33,7 +33,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="name" value="<?= $name ?>" autofocus="true"/>
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $description; ?></textarea>
 		</fieldset>
 		<fieldset>
