@@ -5,7 +5,7 @@ include 'controller.php';
 
 require_login('bookmark');
 
-if ($share_user = param('share_user_id')) share_bookmark($share_user,param('share_url_hash'),param('notify',true));
+if ($share_user = param('share_user_id')) share_bookmark($share_user,param('share_url_hash'),param('notify',false));
 
 
 
@@ -40,6 +40,7 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('share')?></legend>
 			<form method="POST">
 				<input type="hidden" name="share_url_hash" value="<?= $hash?>" />
+				<input type="hidden" name="notify" value="1" />
 				<select name="share_user_id">
 				<option value=""><?= t('select user')?></option>
 				<?php foreach ($users as $uid => $some_user) {
