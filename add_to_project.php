@@ -11,9 +11,8 @@ $name = post('name');
 $description = post('description');
 $user_ids = param('users');
 
-$project_permissions = request('project','json',['ids'=>$project_id,'users'=>'only']);
-$project_users = request('user','json',['ids'=>array_keys($project_permissions)]);
-
+$project = request('project','json',['ids'=>$project_id,'users'=>'true']);
+$project_users = request('user','json',['ids'=>array_keys($project['users'])]);
 
 if ($name){
 	if (is_array($user_ids) && !empty($user_ids)){
@@ -29,6 +28,12 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset><legend><?= t('Create new task')?></legend>
+		<fieldset>
+			<legend><?= t('Project')?></legend>
+			<a href="<?= getUrl('project',$project_id.'/view')?>" ><?= $project['name']?></a>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="<?= getUrl('files').'?path=project/'.$project_id ?>" class="symbol" title="show project files" target="_blank"></a>
+		</fieldset>
 		<fieldset><legend><?= t('Name')?></legend>
 			<input type="text" name="name" value="<?= $name ?>" autofocus="true"/>
 		</fieldset>

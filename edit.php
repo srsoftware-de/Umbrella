@@ -11,12 +11,12 @@ if (!$task_id) error('No task id passed!');
 $task = load_tasks(['ids'=>$task_id]);
 
 // get a map from user ids to permissions
-$project_user_permissions = request('project','json',['ids'=>$task['project_id'],'users'=>'only']);
-$project_users = request('user','json',['ids'=>array_keys($project_user_permissions)]);
+$project_id = $task['project_id'];
+$task['project'] = request('project','json',['ids'=>$project_id,'users'=>'true','single'=>true]);
+$project_users = request('user','json',['ids'=>array_keys($task['project']['users'])]);
 load_users($task,$project_users); // add users to task
 
 load_requirements($task);
-$project_id = $task['project_id'];
 
 if ($name = post('name')){
 	$task['name'] = $name;
@@ -48,8 +48,6 @@ if ($name = post('name')){
 		redirect('view');
 	}
 }
-
-$task['project'] = request('project','json',['ids'=>$project_id,'single'=>true]);
 
 if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
 
