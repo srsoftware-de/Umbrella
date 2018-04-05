@@ -37,12 +37,6 @@ blockquote{
 	display: inline;
 }
 
-#main_menu .button:hover {
-	font-size: inherit;
-	font-weight: inherit;
-	margin-top: initial;
-}
-
 #main_menu .button {
 	font-size: 12px;
 	font-weight: normal;
@@ -180,6 +174,10 @@ input[type="submit"] {
 .symbol{
 	font-family: awesome;
 	font-size: 22px;
+}
+
+#main_menu .symbol{
+	font-size: 14px;
 }
 
 .right{

@@ -58,3 +58,8 @@ form.invoice textarea {
 #announce{
 	background-color: white;
 }
+
+#main_menu .button:hover {
+	color: white;
+	background-color: gray;
+}
