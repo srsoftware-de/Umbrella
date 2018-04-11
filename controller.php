@@ -71,6 +71,32 @@ class Endpoint{
 }
 
 class Model{
+	static function load($options = []){
+		global $user;
+		$db = get_or_create_db();
+
+		assert(isset($options['projects']),'No projects passed to Model::load()!');
+
+		$project_ids = $options['projects'];
+		if (!is_array($project_ids)) $project_ids = [ $project_ids ];
+
+		$qMarks = str_repeat('?,', count($project_ids)-1).'?';
+		$sql = 'SELECT * FROM models WHERE project_id IN ('.$qMarks.')';
+		$args = $project_ids;
+
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) $ids = [$ids];
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' AND id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load models');
+		return $query->fetchAll(INDEX_FETCH);
+	}
+
 	static function table(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
@@ -79,7 +105,28 @@ class Model{
 			'description' => ['TEXT'],
 		];
 	}
-}class Process{
+
+	function __construct($project_id = null, $name = null, $description = null){
+		$this->project_id = $project_id;
+		$this->name = $name;
+		$this->description = $description;
+	}
+
+	function save(){
+		$db = get_or_create_db();
+
+		$sql = 'INSERT INTO models (project_id, name, description) VALUES (:pid, :name, :desc);';
+		$args = [
+			':pid'=>$this->project_id,
+			':name'=>$this->name,
+			':desc'=>$this->description,
+		];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to save model!');
+	}
+}
+
+class Process{
 	static function table(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
