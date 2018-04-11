@@ -72,14 +72,11 @@ class Endpoint{
 
 class Model{
 	static function load($options = []){
-		global $user;
+		global $projects;
 		$db = get_or_create_db();
 
-		assert(isset($options['projects']),'No projects passed to Model::load()!');
-
-		$project_ids = $options['projects'];
-		if (!is_array($project_ids)) $project_ids = [ $project_ids ];
-
+		if (!isset($projects)) $projects = request('project','json');
+		$project_ids = array_keys($projects);
 		$qMarks = str_repeat('?,', count($project_ids)-1).'?';
 		$sql = 'SELECT * FROM models WHERE project_id IN ('.$qMarks.')';
 		$args = $project_ids;
@@ -94,7 +91,15 @@ class Model{
 
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load models');
-		return $query->fetchAll(INDEX_FETCH);
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$models = [];
+		foreach ($rows as $id => $row){
+			$model = new Model($row['project_id'],$row['name'],$row['description']);
+			$model->id = $id;
+			$model->project = $projects[$row['project_id']];
+			$models[$id] = $model;
+		}
+		return $models;
 	}
 
 	static function table(){

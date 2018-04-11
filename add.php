@@ -1,4 +1,4 @@
-<?php $title = 'Umbrella Notes Management';
+<?php $title = 'Umbrella Model Management';
 
 include '../bootstrap.php';
 include 'controller.php';
