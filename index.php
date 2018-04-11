@@ -8,8 +8,12 @@ require_login('model');
 $projects = request('project','json');
 $project_ids = array_keys($projects);
 
+if ($project_id = param('project')){
+	if (array_key_exists($project_id,$project_ids)) $projects = [$project_id => $projects[$project_id]];
+}
+
+
 $models = Model::load(['projects'=>$project_ids]);
-debug($models);
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';

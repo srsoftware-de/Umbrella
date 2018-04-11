@@ -11,6 +11,7 @@ $translations = array(
 		'Log out ?'=>'? ausloggen',
 		'Models' => 'Modelle',
 		'Notes'=>'Notizen',
+		'Project: ?'=>'Projekt: ?',
 		'Projects'=>'Projekte',
 		'Tasks'=>'Aufgaben',
 		'Timetrack'=>'Zeiterfassung',
