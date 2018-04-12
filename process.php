@@ -6,19 +6,19 @@ include 'controller.php';
 require_login('model');
 
 $model_id = param('id1');
-$terminal_id = param('id2');
+$process_id = param('id2');
 
 if (!$model_id){
 	error('No model id passed to terminal.');
 	redirect(getUrl('model'));
 }
-if (!$terminal_id){
+if (!$process_id){
 	error('No terminal id passed to terminal.');
 	redirect(getUrl('model'));
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$terminal = $model->terminals($terminal_id);
+$process = $model->terminals($process_id);
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
@@ -26,11 +26,11 @@ include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
-<table class="vertical terminal">
+<table class="vertical process">
 	<tr>
-		<th><?= t('Terminal')?></th>
+		<th><?= t('Process')?></th>
 		<td>
-			<h1><?= $terminal->name ?></h1>
+			<h1><?= $process->name ?></h1>
 		</td>
 	</tr>
 	<tr>
@@ -47,10 +47,10 @@ include '../common_templates/messages.php'; ?>
 			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 			</td>
 	</tr>
-	<?php if ($terminal->description){ ?>
+	<?php if ($process->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $terminal->description; ?></td>
+		<td class="description"><?= $process->description; ?></td>
 	</tr>
 	<?php } ?>
 </table>

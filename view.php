@@ -26,6 +26,7 @@ include '../common_templates/messages.php'; ?>
 			<span class="right">
 				<a title="<?= t('edit')?>"	href="edit"		class="symbol"></a>
 				<a title="<?= t('add terminal')?>" href="add_terminal" class="symbol"></a>
+				<a title="<?= t('add process')?>" href="add_process" class="symbol"></a>
 			</span>
 		</td>
 	</tr>
@@ -50,6 +51,16 @@ include '../common_templates/messages.php'; ?>
 		<td class="terminals">
 		<?php foreach ($model->terminals() as $terminal){ ?>
 		<a class="button" href="terminal/<?= $terminal->id ?>"><?= $terminal->name ?></a> 
+		<?php } ?>
+		</td>
+	</tr>
+	<?php } ?>
+	<?php if ($model->processes()){ ?>
+	<tr>
+		<th><?= t('Processes')?></th>
+		<td class="processes">
+		<?php foreach ($model->processes() as $process){ ?>
+		<a class="button" href="process/<?= $process->id ?>"><?= $process->name ?></a> 
 		<?php } ?>
 		</td>
 	</tr>

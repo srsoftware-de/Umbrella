@@ -175,10 +175,17 @@ class Model{
 		if ($id) return $this->terminals[$id];
 		return $this->terminals;
 	}
+	
+	public function processes($id = null){
+		if (!isset($this->processes)) $this->processes = Process::load(['model_id'=>$this->id]);
+		if ($id) return $this->processes[$id];
+		return $this->processes;
+	}
 }
 
 class Process{
-	static function table(){
+	/** static functions **/
+	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'model_id' => ['INT','NOT NULL'],
@@ -187,6 +194,92 @@ class Process{
 			'description' => ['TEXT'],
 		];
 	}
+	
+	static function load($options = []){
+	
+		$db = get_or_create_db();
+	
+		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+	
+		$sql = 'SELECT * FROM processes WHERE model_id = ?';
+		$args = [$options['model_id']];
+	
+		$single = false;
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load processes');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$processes = [];
+	
+		foreach ($rows as $row){
+			$process = new Process($row['name'],$row['model_id']);
+			$process->patch($row);
+			$process->dirty=[];
+			if ($single) return $process;
+			$processes[$process->id] = $process;
+		}
+	
+		return $processes;
+	}
+	
+	/** instance functions **/
+	function __construct($name,$model_id,$description = null,$parent_id = null){
+		$this->model_id = $model_id;
+		$this->name = $name;
+		$this->description = $description;
+		$this->parent_id = $parent_id;
+	}
+	
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+	
+	public function save(){
+		global $user;
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE processes SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update process in database!');
+			}
+		} else {
+			$known_fields = array_keys(Terminal::fields());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO processes ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new process');
+	
+			$this->id = $db->lastInsertId();
+		}
+	}
+	
 }
 class Terminal{
 	const TERMINAL = 0;
@@ -207,7 +300,7 @@ class Terminal{
 		
 		$db = get_or_create_db();
 		
-		assert(isset($options['model_id']),'No model id passed to Terminals::load()!');
+		assert(isset($options['model_id']),'No model id passed to Terminal::load()!');
 		
 		$sql = 'SELECT * FROM terminals WHERE model_id = ?';
 		$args = [$options['model_id']];
