@@ -344,7 +344,7 @@
 		$task['users'] = $users;		
 	}
 	
-	function add_user_to_task($task,$new_user = null,$permission = null){
+	function add_user_to_task($task,$new_user = null,$permission = TASK_PERMISSION_PARTICIPANT){
 		global $user,$services;
 		// check
 		assert(array_key_exists('id',$task),'$task array does not contain "id"');
@@ -364,11 +364,13 @@
 		}
 		
 		// notify
-		$sender = $user->email;
-		$reciever = $new_user['email'];
-		$subject = t('? assigned you to a task',$user->login);
-		$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
-		if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
+		if (param('notify') == 'on'){
+			$sender = $user->email;
+			$reciever = $new_user['email'];
+			$subject = t('? assigned you to a task',$user->login);
+			$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
+			if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
+		}
 	}
 	
 	function find_project($task_id){

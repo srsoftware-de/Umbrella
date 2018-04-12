@@ -38,6 +38,7 @@ $translations = array(
 		'No'=>'Nein',
 		'No extension'=>'keine Verlängerung',
 		'Notes'=>'Notizen',
+		'notify user'=>'Benutzer benachrichtigen',
 		'Only selected users will be able to access the task!'=>'Nur die ausgewählten Benuter können diese Aufgabe sehen!',
 		'open'=>'offen',
 		"Open the following site to see the note on \"?\":\n\n?"=>"Gehe zur folgenden Seite, um die Anmerkung zu \"?\" zu lesen:\n\n?",

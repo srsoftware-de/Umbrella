@@ -54,7 +54,13 @@ include '../common_templates/messages.php'; ?>
 				<option value="<?= $id ?>" <?= ($id == $user->id)?'selected="true"':''?>><?= $u['login'] ?></option>
 			<?php } ?>
 			</select>
+			<label>
+				<input type="checkbox" name="notify" checked="true" />
+				<?= t('notify users') ?>
+			</label>
+			<p>
 			<?= t('Only selected users will be able to access the task!') ?>
+			</p>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){?>
 		<fieldset><legend><?= t('Tags')?></legend>
