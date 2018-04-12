@@ -39,16 +39,16 @@
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			
+
 			$url = getUrl('project',$id.'/view');
 			$hash = sha1($url);
-				
+
 			request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$name),'tags'=>$tags]);
 
 			$users = connected_users(['ids'=>$id]);
-			
+
 			foreach ($users as $uid => $u){
-				if ($uid == $user->id) continue;			
+				if ($uid == $user->id) continue;
 				request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
 			}
 		}
@@ -127,7 +127,7 @@
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids); 
 		}
-		
+
 		if (isset($options['company_ids'])){
 			$ids = $options['company_ids'];
 			if (!is_array($ids)) $ids = [$ids];
@@ -135,7 +135,7 @@
 			$sql .= ' AND company_id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);			
 		}
-		
+
 		if (isset($options['key'])){
 			$key = '%'.$options['key'].'%';
 			$sql .= ' AND (name LIKE ? OR description LIKE ?)';
@@ -158,6 +158,9 @@
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load projects!');
 		$projects = $query->fetchAll(INDEX_FETCH);
+		if (isset($options['users'])){
+			foreach ($projects as $pid => &$proj) $proj['users'] = connected_users(['ids'=>$pid]);
+		}
 		if ($single) return reset($projects);
 		return $projects;
 	}
@@ -186,19 +189,21 @@
 		return array_keys($user_ids);
 	}
 
-	function add_user_to_project($project = null,$new_user = null,$permission = null){
+	function add_user_to_project($project = null,$new_user = null,$permission = PROJECT_PERMISSION_PARTICIPANT){
 		global $user;
 		assert(is_array($project),'project id must be numeric, is '.$project_id);
-		assert(is_array($new_user),'user id must be numeric, is '.$user_id);
+		assert(is_array($new_user),'$new_user must be user object, is '.$new_user);
 		assert(is_numeric($permission),'permission must be numeric, is '.$permission);
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
 		assert($query->execute(array(':pid'=>$project['id'],':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign project to user!');
-		$sender = $user->email;
-		$reciever = $new_user['email'];
-		$subject = t('? added you to a project',$user->login);
-		$text = t('You have been added to the project "?": ?',[$project['name'],getUrl('project',$project['id'].'/view')]);
-		if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
+		if (param('notify') == 'on'){
+			$sender = $user->email;
+			$reciever = $new_user['email'];
+			$subject = t('? added you to a project',$user->login);
+			$text = t('You have been added to the project "?": ?',[$project['name'],getUrl('project',$project['id'].'/view')]);
+			if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
+		}
 	}
 	
 	function remove_user($project_id,$user_id){
