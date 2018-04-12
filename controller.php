@@ -108,13 +108,13 @@ class Model{
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$models = [];
 	
-		foreach ($rows as $id => $row){
+		foreach ($rows as $row){
 			$model = new Model();
 			$model->patch($row);
 			$model->dirty=[];
 			$model->project = $projects[$model->project_id];
 			if ($single) return $model;
-			$models[$id] = $model;
+			$models[$model->id] = $model;
 		}
 	
 		return $models;
@@ -170,8 +170,9 @@ class Model{
 		}
 	}
 	
-	public function terminals(){
+	public function terminals($id = null){
 		if (!isset($this->terminals)) $this->terminals = Terminal::load(['model_id'=>$this->id]);
+		if ($id) return $this->terminals[$id];
 		return $this->terminals;
 	}
 }
@@ -227,12 +228,12 @@ class Terminal{
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$terminals = [];
 	
-		foreach ($rows as $id => $row){
+		foreach ($rows as $row){
 			$terminal = new Terminal($row['name'],$row['model_id']);
 			$terminal->patch($row);
 			$terminal->dirty=[];
 			if ($single) return $terminal;
-			$terminals[$id] = $terminal;
+			$terminals[$terminal->id] = $terminal;
 		}
 	
 		return $terminals;

@@ -5,12 +5,20 @@ include 'controller.php';
 
 require_login('model');
 
-if ($model_id = param('id')){
-	$model = Model::load(['ids'=>$model_id]);
-} else {
-	error('No model id passed!');
+$model_id = param('id1');
+$terminal_id = param('id2');
+
+if (!$model_id){
+	error('No model id passed to terminal.');
 	redirect(getUrl('model'));
 }
+if (!$terminal_id){
+	error('No terminal id passed to terminal.');
+	redirect(getUrl('model'));
+}
+
+$model = Model::load(['ids'=>$model_id]);
+$terminal = $model->terminals($terminal_id);
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
@@ -20,13 +28,19 @@ include '../common_templates/messages.php'; ?>
 
 <table class="vertical model">
 	<tr>
-		<th><?= t('Model')?></th>
+		<th><?= t('Terminal')?></th>
 		<td>
-			<h1><?= $model->name ?></h1>
+			<h1><?= $terminal->name ?></h1>
 			<span class="right">
 				<a title="<?= t('edit')?>"	href="edit"		class="symbol"></a>
 				<a title="<?= t('add terminal')?>" href="add_terminal" class="symbol"></a>
 			</span>
+		</td>
+	</tr>
+	<tr>
+		<th><?= t('Model')?></th>
+		<td class="model">
+			<a href="<?= getUrl('model',$model->id.'/view'); ?>"><?= $model->name ?></a>
 		</td>
 	</tr>
 	<tr>
@@ -37,21 +51,10 @@ include '../common_templates/messages.php'; ?>
 			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 			</td>
 	</tr>
-	<?php if ($model->description){ ?>
+	<?php if ($terminal->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $model->description; ?></td>
-	</tr>
-	<?php } ?>
-	
-	<?php if ($model->terminals()){ ?>
-	<tr>
-		<th><?= t('Terminals')?></th>
-		<td class="terminals">
-		<?php foreach ($model->terminals() as $terminal){ ?>
-		<a class="button" href="terminal/<?= $terminal->id ?>"><?= $terminal->name ?></a> 
-		<?php } ?>
-		</td>
+		<td class="description"><?= $terminal->description; ?></td>
 	</tr>
 	<?php } ?>
 </table>
