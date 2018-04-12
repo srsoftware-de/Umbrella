@@ -1,5 +1,4 @@
 <?php
-
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create company/db directory!');
 	assert(is_writable('db'),'Directory company/db not writable!');
@@ -28,8 +27,7 @@ function get_or_create_db(){
 		$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 		$query = $db->prepare($sql);
 		assert($db->query($sql),'Was not able to create companies table in companies.db!');
-		assert($db->query('CREATE TABLE companies_users (company_id INT NOT NULL, user_id INT NOT NULL)'),
-			'Was not able to create table companies_users.');
+		assert($db->query('CREATE TABLE companies_users (company_id INT NOT NULL, user_id INT NOT NULL)'),'Was not able to create table companies_users.');
 	} else {
 		$db = new PDO('sqlite:db/companies.db');
 	}

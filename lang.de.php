@@ -3,6 +3,7 @@
 $translations = array(
 		'add new company'=>'Neue Firma hinzufügen',
 		'add company'=>'Firma hinzufügen',
+		'Add user to Project "?"'=>'Nutzer zu Projekt "?" hinzufügen',
 		'address'=>'Adresse',
 		'add user'=>'Nutzer hinzufügen',
 		'bank_account'=>'Bank&shy;ver&shy;bin&shy;dung',

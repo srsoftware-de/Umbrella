@@ -34,7 +34,7 @@ include '../common_templates/messages.php';
 	</ul>
 </fieldset>
 <form method="POST">
-	<fieldset><legend>Add user to Project</legend>
+	<fieldset><legend><?=  t('Add user to Project "?"',$company->name) ?></legend>
 		<fieldset>
 			<select name="new_user">
 				<option value="" selected="true">= Select a user =</option>
