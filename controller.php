@@ -6,11 +6,11 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/models.db');
 
 		$tables = [
-						'flows'=>    Flow::table(),
-						'endpoint'=> Endpoint::table(),
-			'models'=>   Model::table(),
-						'processes'=>Process::table(),
-						'terminals'=>Terminal::table(),
+			'flows'=>    Flow::table(),
+			'endpoint'=> Endpoint::table(),
+			'models'=>   Model::fields(),
+			'processes'=>Process::table(),
+			'terminals'=>Terminal::table(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -91,18 +91,20 @@ class Model{
 
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load models');
-		$rows = $query->fetchAll(INDEX_FETCH);
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$models = [];
+		
 		foreach ($rows as $id => $row){
-			$model = new Model($row['project_id'],$row['name'],$row['description']);
-			$model->id = $id;
-			$model->project = $projects[$row['project_id']];
+			$model = new Model();
+			$model->patch($row);
+			$model->dirty=[];
 			$models[$id] = $model;
 		}
+		
 		return $models;
 	}
 
-	static function table(){
+	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'project_id' => ['INT','NOT NULL'],
@@ -110,24 +112,54 @@ class Model{
 			'description' => ['TEXT'],
 		];
 	}
+	
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
 
 	function __construct($project_id = null, $name = null, $description = null){
 		$this->project_id = $project_id;
 		$this->name = $name;
 		$this->description = $description;
-	}
+	}	
 
-	function save(){
+	public function save(){
+		global $user;
 		$db = get_or_create_db();
-
-		$sql = 'INSERT INTO models (project_id, name, description) VALUES (:pid, :name, :desc);';
-		$args = [
-			':pid'=>$this->project_id,
-			':name'=>$this->name,
-			':desc'=>$this->description,
-		];
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to save model!');
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE models SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update model in database!');
+				redirect('../index');
+			}
+		} else {
+			$known_fields = array_keys(Company::fields());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO models ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new model');
+	
+			$this->id = $db->lastInsertId();
+			redirect('index');
+		}
 	}
 }
 
