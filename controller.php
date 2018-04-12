@@ -15,7 +15,7 @@
 			$db = new PDO('sqlite:db/tags.db');
 		}
 		return $db;
-	}	
+	}
 
 	function get_tag_list(){
 		global $user;
