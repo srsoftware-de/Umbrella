@@ -5,9 +5,8 @@ include 'controller.php';
 
 require_login('model');
 
-if ($id = param('id')){
-	$models = Model::load(['ids'=>$id]);
-	$model = reset($models);
+if ($model_id = param('model_id')){
+	$model = Model::load(['ids'=>$model_id]);
 } else {
 	error('No model id passed!');
 	redirect(getUrl('model'));
@@ -45,12 +44,15 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 	
-	<?php if ($model->terminals){ ?>
+	<?php if ($model->terminals()){ ?>
 	<tr>
 		<th><?= t('Terminals')?></th>
-		<td class="terminals"><?php debug($model->terminals) ?></td>
+		<td class="terminals">
+		<?php foreach ($model->terminals() as $terminal){ ?>
+		<a class="button" href="terminal/<?= $terminal->id ?>"><?= $terminal->name ?></a> 
+		<?php } ?>
+		</td>
 	</tr>
 	<?php } ?>
 </table>
-
 <?php include '../common_templates/closure.php';

@@ -3,6 +3,7 @@
 $translations = array(
 		'add model'=>'Modell hinzufügen',
 		'Add model to project:'=>'Modellzu Projekt hinzufügen:',
+		'Add Terminal to "?"'=>'Terminal zu "?" hinzufügen',
 		'Bookmarks' => 'Lesezeichen',
 		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
