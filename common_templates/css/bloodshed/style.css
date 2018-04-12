@@ -1,6 +1,6 @@
 @font-face {
-	font-family: "awesome";
-	src: url("../fontawesome-webfont.woff");
+    font-family: "awesome";
+    src: url("../fontawesome-webfont.woff");
 }
 *{
 	max-width:100%;
@@ -14,8 +14,8 @@ a{
 	text-decoration: none;
 }
 textarea {
-	width: 100%;
-	min-height: 100px;
+    width: 100%;
+    min-height: 100px;
 }
 
 input[type=text]{
@@ -101,7 +101,7 @@ p a,
 }
 
 table {
-	border-collapse: collapse;
+    border-collapse: collapse;
 }
 tr > *{
 	padding: 5px 10px;
@@ -109,8 +109,8 @@ tr > *{
 
 label.street:after,
 label.location::after {
-	content: "\a ";
-	white-space: pre;
+    content: "\a ";
+    white-space: pre;
 }
 
 .company > fieldset,
@@ -132,8 +132,8 @@ table.time h2{
 }
 
 fieldset {
-	border-radius: 10px;
-	border-width: 1px;
+    border-radius: 10px;
+    border-width: 1px;
 }
 
 .contacts fieldset,
@@ -157,11 +157,11 @@ fieldset.document.list{
 .button,
 input,
 button {
-	border: 0 none;
-	font-weight: bold;
-	margin: 2px 0;
-	padding: 3px;
-	display: inline-block;
+    border: 0 none;
+    font-weight: bold;
+    margin: 2px 0;
+    padding: 3px;
+    display: inline-block;
 }
 
 label.silent_box,
@@ -287,6 +287,10 @@ fieldset.bookmark > fieldset:hover{
 	min-width: auto;
 }
 
+.bookmark>fieldset>a.button{
+	display: inline-block;
+}
+
 .copytext{
 	position:fixed;
 	width: 100px;
@@ -295,10 +299,12 @@ fieldset.bookmark > fieldset:hover{
 
 img[alt$=">"] {
   float:right;
+  margin: 5px 0 5px 5px;
 }
 
 img[alt$="<"] {
   float:left;
+  margin: 5px 5px 5px 0;
 }
 
 #announce{
@@ -351,16 +357,16 @@ svg text{
 	fill: red;
 }
 
-.search{
+div.search{
 	display: inline-block;
 	max-width: 150px;
 }
 
-.search input{
+div.search input{
 	display: none;
 }
 
-.search:hover input{
+div.search:hover input{
 	display: initial;
 }
 
@@ -387,7 +393,7 @@ svg text{
 		display: none;
 	}
 	fieldset.bookmark > fieldset{
-			max-height: 50px;
+	        max-height: 50px;
 	}
 }
 

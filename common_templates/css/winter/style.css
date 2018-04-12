@@ -15,7 +15,7 @@ a{
 }
 textarea {
     width: 100%;
-	min-height: 100px;
+    min-height: 100px;
 }
 
 input[type=text]{
@@ -283,8 +283,12 @@ fieldset.bookmark > fieldset:hover{
 }
 .bookmark>fieldset>a{
 	word-wrap: break-word;
-	display: block;	
+	display: block;
 	min-width: auto;
+}
+
+.bookmark>fieldset>a.button{
+	display: inline-block;
 }
 
 .copytext{
@@ -295,10 +299,12 @@ fieldset.bookmark > fieldset:hover{
 
 img[alt$=">"] {
   float:right;
+  margin: 5px 0 5px 5px;
 }
 
 img[alt$="<"] {
   float:left;
+  margin: 5px 5px 5px 0;
 }
 
 #announce{
@@ -351,16 +357,16 @@ svg text{
 	fill: red;
 }
 
-.search{
+div.search{
 	display: inline-block;
 	max-width: 150px;
 }
 
-.search input{
+div.search input{
 	display: none;
 }
 
-.search:hover input{
+div.search:hover input{
 	display: initial;
 }
 

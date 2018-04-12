@@ -97,26 +97,25 @@ function request($service = null,$path,$data = array(), $debug = false,$decode =
 
 function save_file($filename,$file_contents,$mime){
 	$url = getUrl('files','add');
-	
+
 	$boundary = '--------------------------'.microtime(true);
 	$br = "\r\n";
-	
-	
+
 	$content =  '--'.$boundary.$br.
 				'Content-Disposition: form-data; name="file"; filename="'.basename($filename).'"'.$br.
 				'Content-Type: '.$mime.$br.$br.$file_contents.$br;
-	
+
 	$content .=	'--'.$boundary.$br.
 				'Content-Disposition: form-data; name="token"'.$br.$br.$_SESSION['token'].$br;
 
 	$content .=	'--'.$boundary.$br.
 				'Content-Disposition: form-data; name="dir"'.$br.$br.dirname($filename).$br;
-	
-	
+
+
 	$content .= "--".$boundary.'--'.$br;
-	
+
 	$ssl_options = ['verify_peer' => false]; // TODO: this is rather bad. we need to sort this out!!!
-	
+
 	$http_options = array();
 	$http_options['method'] = 'POST';
 	$http_options['header'] = 'Content-Type: multipart/form-data; boundary='.$boundary;	
@@ -126,9 +125,9 @@ function save_file($filename,$file_contents,$mime){
 			'ssl' => $ssl_options,
 			'http'=> $http_options,
 	];
-	
+
 	$context = stream_context_create($options);	
-	
+
 	$response = file_get_contents($url,false,$context);
 }
 
@@ -136,17 +135,17 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 	if (!is_array($reciever)) $reciever = [$reciever];
 	if ($attachment){
 		$filename = $attachment['name'];
-		
+
 		$content = $attachment['content'];
 		$content = chunk_split(base64_encode($content));
 		$uid = md5(uniqid(time()));
-		
+
 		// header
 		$header = "From: ".$sender." <".$sender.">\r\n";
 		$header .= "Reply-To: ".$sender."\r\n";
 		$header .= "MIME-Version: 1.0\r\n";
 		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n";
-		
+
 		// message & attachment
 		$nmessage = "--".$uid."\r\n";
 		$nmessage .= "Content-type:text/plain; charset=utf-8\r\n";
@@ -162,10 +161,10 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 		$header = "From: ".$sender;
 		$nmessage = $text;
 	}
-	
+
 	$good = true;
 	foreach ($reciever as $rec) $good = $good & mail($rec, $subject, $nmessage, $header);
-	return $good; 
+	return $good;
 }
 
 function post($name,$default = null){
@@ -219,9 +218,9 @@ function query_insert($query,$args){
 	$pos = strpos($sql,'?');
 	if ($pos > 0){
 		while ($pos > 0){
-			$sql = substr_replace($sql,array_shift($args),$pos,1);			
+			$sql = substr_replace($sql,array_shift($args),$pos,1);
 			$pos = strpos($sql,'?');
-		}		
+		}
 	} else {
 		foreach ($args as $k => $v){
 			$sql = str_replace($k.',','"'.$v.'",',$sql);
@@ -303,8 +302,8 @@ function revoke_token($token){
  * checks if a user is logged in and forces a login of not.
  */
 function require_login($service_name = null){
-	global $services,$user,$theme;	
-	if ($revoke = param('revoke')) die(revoke_token($revoke));	
+	global $services,$user,$theme;
+	if ($revoke = param('revoke')) die(revoke_token($revoke));
 	assert($service_name !== null,'require_login called without a service name!');
 	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	$user = getLocallyFromToken();
@@ -370,7 +369,7 @@ function address_from_vcard($vcard){
 	if (!empty($address->locality)) $result .=	$address->locality."\n";				// Ort
 	if (!empty($address->region)) $result .=	$address->region." / ";				// Region
 	if (!empty($address->country)) $result .=	$address->country;				// Land
-	
+
 	return $result;
 }
 
