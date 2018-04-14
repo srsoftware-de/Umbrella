@@ -99,7 +99,7 @@ class Connector{
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
 			if ($key === 'direction') $val = $val == 'in'||$val==1;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
@@ -156,7 +156,7 @@ class Flow{
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
@@ -254,7 +254,7 @@ class Model{
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
@@ -372,7 +372,7 @@ class Process{
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
@@ -475,7 +475,7 @@ class Terminal{
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
