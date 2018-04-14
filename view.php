@@ -35,7 +35,7 @@ include '../common_templates/messages.php'; ?>
 		<td class="project">
 			<a href="<?= getUrl('project',$model->project_id.'/view'); ?>"><?= $model->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
+			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
 			</td>
 	</tr>
 	<?php if ($model->description){ ?>

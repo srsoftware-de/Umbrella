@@ -30,6 +30,9 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><?= t('Terminal')?></th>
 		<td>
+			<span class="right symbol">
+				<a href="../edit_terminal/<?= $terminal->id ?>"></a>
+			</span>
 			<h1><?= $terminal->name ?></h1>
 		</td>
 	</tr>

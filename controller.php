@@ -7,9 +7,9 @@ function get_or_create_db(){
 
 		$tables = [
 			'flows'=>    Flow::table(),
-			'endpoint'=> Endpoint::table(),
+			'connections'=> Connection::fields(),
 			'models'=>   Model::fields(),
-			'processes'=>Process::table(),
+			'processes'=>Process::fields(),
 			'terminals'=>Terminal::fields(),
 		];
 
@@ -44,6 +44,105 @@ function get_or_create_db(){
 	return $db;
 }
 
+class Connection{
+	/* static functions */
+	static function fields(){
+		return [
+			'id' => ['INTEGER','KEY'=>'PRIMARY'],
+			'process_id' => ['INT','NOT NULL'],
+			'direction' => ['BOOLEAN'],
+			'name' => ['VARCHAR'=>255, 'NOT NULL'],
+			'description' => ['TEXT'],
+		];
+	}
+
+	/* instance methods */
+	function __construct($process_id,$name,$description,$inbound=true){
+		$this->process_id = $process_id;
+		$this->name = $name;
+		$this->description = $description;
+		$this->direction = $inbound;
+	}
+
+	static function load($options = []){
+
+		$db = get_or_create_db();
+
+		assert(isset($options['process_id']),'No process id passed to Connection::load()!');
+
+		$sql = 'SELECT * FROM connections WHERE process_id = ?';
+		$args = [$options['process_id']];
+
+		$single = false;
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load connections');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$connections = [];
+
+		foreach ($rows as $row){
+			$connection = new Connection();
+			$connection->patch($row);
+			$connection->dirty=[];
+			if ($single) return $connection;
+			$connections[$connection->id] = $connection;
+		}
+
+		return $connections;
+	}
+
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+
+	public function save(){
+		debug($this);
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE connections SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update connection in database!');
+			}
+		} else {
+			$known_fields = array_keys(Connection::fields());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO connections ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			debug(query_insert($query,$args));
+			assert($query->execute($args),'Was not able to insert new connection');
+
+			$this->id = $db->lastInsertId();
+		}
+	}
+}
+
 class Flow{
 	static function table(){
 		return [
@@ -58,20 +157,9 @@ class Flow{
 		];
 	}
 }
-class Endpoint{
-	static function table(){
-		return [
-			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'process_id' => ['INT','NOT NULL'],
-			'direction' => ['BOOLEAN'],
-			'name' => ['VARCHAR'=>255, 'NOT NULL'],
-			'description' => ['TEXT'],
-		];
-	}
-}
 
 class Model{
-	/** static functions **/	
+	/** static functions **/
 	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
@@ -80,17 +168,17 @@ class Model{
 			'description' => ['TEXT'],
 		];
 	}
-	
+
 	static function load($options = []){
 		global $projects;
 		$db = get_or_create_db();
-	
+
 		if (!isset($projects)) $projects = request('project','json');
 		$project_ids = array_keys($projects);
 		$qMarks = str_repeat('?,', count($project_ids)-1).'?';
 		$sql = 'SELECT * FROM models WHERE project_id IN ('.$qMarks.')';
 		$args = $project_ids;
-	
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -102,12 +190,12 @@ class Model{
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-	
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load models');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$models = [];
-	
+
 		foreach ($rows as $row){
 			$model = new Model();
 			$model->patch($row);
@@ -116,16 +204,16 @@ class Model{
 			if ($single) return $model;
 			$models[$model->id] = $model;
 		}
-	
+
 		return $models;
 	}
-	
-	/** instance functions **/	
+
+	/** instance functions **/
 	function __construct($project_id = null, $name = null, $description = null){
 		$this->project_id = $project_id;
 		$this->name = $name;
 		$this->description = $description;
-	}	
+	}
 
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
@@ -137,7 +225,6 @@ class Model{
 	}
 
 	public function save(){
-		global $user;
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
@@ -150,7 +237,6 @@ class Model{
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update model in database!');
-				redirect('../index');
 			}
 		} else {
 			$known_fields = array_keys(Model::fields());
@@ -164,18 +250,17 @@ class Model{
 			}
 			$query = $db->prepare('INSERT INTO models ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 			assert($query->execute($args),'Was not able to insert new model');
-	
+
 			$this->id = $db->lastInsertId();
-			redirect('index');
 		}
 	}
-	
+
 	public function terminals($id = null){
 		if (!isset($this->terminals)) $this->terminals = Terminal::load(['model_id'=>$this->id]);
 		if ($id) return $this->terminals[$id];
 		return $this->terminals;
 	}
-	
+
 	public function processes($id = null){
 		if (!isset($this->processes)) $this->processes = Process::load(['model_id'=>$this->id]);
 		if ($id) return $this->processes[$id];
@@ -194,16 +279,16 @@ class Process{
 			'description' => ['TEXT'],
 		];
 	}
-	
+
 	static function load($options = []){
-	
+
 		$db = get_or_create_db();
-	
+
 		assert(isset($options['model_id']),'No model id passed to Process::load()!');
-	
+
 		$sql = 'SELECT * FROM processes WHERE model_id = ?';
 		$args = [$options['model_id']];
-	
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -219,7 +304,7 @@ class Process{
 		assert($query->execute($args),'Was not able to load processes');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$processes = [];
-	
+
 		foreach ($rows as $row){
 			$process = new Process($row['name'],$row['model_id']);
 			$process->patch($row);
@@ -227,10 +312,10 @@ class Process{
 			if ($single) return $process;
 			$processes[$process->id] = $process;
 		}
-	
+
 		return $processes;
 	}
-	
+
 	/** instance functions **/
 	function __construct($name,$model_id,$description = null,$parent_id = null){
 		$this->model_id = $model_id;
@@ -238,7 +323,12 @@ class Process{
 		$this->description = $description;
 		$this->parent_id = $parent_id;
 	}
-	
+
+	function connections(){
+		if (!isset($this->connections)) $this->connections = Connection::load(['process_id'=>$this->id]);
+		return $this->connections;
+	}
+
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -247,9 +337,8 @@ class Process{
 			$this->{$key} = $val;
 		}
 	}
-	
+
 	public function save(){
-		global $user;
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
@@ -275,11 +364,11 @@ class Process{
 			}
 			$query = $db->prepare('INSERT INTO processes ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 			assert($query->execute($args),'Was not able to insert new process');
-	
+
 			$this->id = $db->lastInsertId();
 		}
 	}
-	
+
 }
 class Terminal{
 	const TERMINAL = 0;
@@ -295,16 +384,16 @@ class Terminal{
 			'description' => ['TEXT'],
 		];
 	}
-	
+
 	static function load($options = []){
-		
+
 		$db = get_or_create_db();
-		
+
 		assert(isset($options['model_id']),'No model id passed to Terminal::load()!');
-		
+
 		$sql = 'SELECT * FROM terminals WHERE model_id = ?';
 		$args = [$options['model_id']];
-	
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -320,7 +409,7 @@ class Terminal{
 		assert($query->execute($args),'Was not able to load terminals');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$terminals = [];
-	
+
 		foreach ($rows as $row){
 			$terminal = new Terminal($row['name'],$row['model_id']);
 			$terminal->patch($row);
@@ -328,10 +417,10 @@ class Terminal{
 			if ($single) return $terminal;
 			$terminals[$terminal->id] = $terminal;
 		}
-	
+
 		return $terminals;
 	}
-	
+
 	/** instance functions **/
 	function __construct($name,$model_id,$description = null,$type = null){
 		$this->model_id = $model_id;
@@ -339,7 +428,7 @@ class Terminal{
 		$this->description = $description;
 		$this->type = $type;
 	}
-	
+
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -348,9 +437,8 @@ class Terminal{
 			$this->{$key} = $val;
 		}
 	}
-	
+
 	public function save(){
-		global $user;
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
