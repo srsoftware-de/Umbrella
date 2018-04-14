@@ -18,7 +18,7 @@ include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
-<table class="vertical model">
+<table class="vertical model" style="width: 100%">
 	<tr>
 		<th><?= t('Model')?></th>
 		<td>
@@ -44,13 +44,22 @@ include '../common_templates/messages.php'; ?>
 		<td class="description"><?= $model->description; ?></td>
 	</tr>
 	<?php } ?>
-	
 	<?php if ($model->terminals()){ ?>
 	<tr>
 		<th><?= t('Terminals')?></th>
 		<td class="terminals">
-		<?php foreach ($model->terminals() as $terminal){ ?>
-		<a class="button" href="terminal/<?= $terminal->id ?>"><?= $terminal->name ?></a> 
+		<?php foreach ($model->terminals() as $terminal){ if ($terminal->type) continue; ?>
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a> 
+		<?php } ?>
+		</td>
+	</tr>
+	<tr>
+		<th><?= t('Databases')?></th>
+		<td class="databases">
+		<?php foreach ($model->terminals() as $terminal){ if (!$terminal->type) continue;?>
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description ?>">
+			<?= $terminal->name ?>
+		</a>
 		<?php } ?>
 		</td>
 	</tr>
@@ -60,10 +69,46 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
 		<?php foreach ($model->processes() as $process){ ?>
-		<a class="button" href="process/<?= $process->id ?>"><?= $process->name ?></a> 
+		<a class="button" href="process/<?= $process->id ?>" title="<?= $process->description ?>"><?= $process->name ?></a> 
 		<?php } ?>
 		</td>
 	</tr>
 	<?php } ?>
+	<tr>
+		<th><?= t('Display') ?></th>
+		<td>
+			<svg width="60%" viewbox="0 0 <?= 1000*count($model->processes()) ?> 1000">
+				<?php $x = 500;
+				foreach ($model->processes() as $process){ ?>
+				<a xlink:href="process/<?= $process->id ?>">
+					<circle
+							class="process"
+							cx="<?= $x ?>"
+							cy="500"
+							r="400">
+						<title><?= $process->description ?></title>
+					</circle>
+				</a>
+				<text x="<?= $x ?>" y="500" fill="red"><?= $process->name ?></text>
+
+				<?php foreach ($process->connectors() as $conn){ ?>
+				<a xlink:href="flow_<?= $conn->direction ? 'to':'from' ?>_connector/<?= $process->id ?>.<?= $conn->id ?>">
+					<circle
+							class="connector"
+							cx="<?= $x ?>"
+							cy="100"
+							r="10"
+							transform="rotate(<?= $conn->angle ?>,<?= $x ?>,500)">
+						<title><?= $conn->name ?></title>
+					</circle>
+				</a>
+				<?php } ?>
+
+				<?php $x+=1000; } // foreach process?>
+			</svg>
+		</td>
+	</tr>
 </table>
-<?php include '../common_templates/closure.php';
+<?php
+debug($model);
+include '../common_templates/closure.php';

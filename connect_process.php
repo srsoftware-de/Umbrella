@@ -18,9 +18,10 @@ if (!$process_id){
 }
 
 if ($name = param('name')){
-	$connection = new Connection($process_id,$name,param('description'),param('direction')=='in');
-	$connection->save();
-	debug($connection,1);
+	$connector = new Connector();
+	$connector->patch($_POST);
+	$connector->save();
+	redirect('../process/'.$process_id);
 }
 
 $model = Model::load(['ids'=>$model_id]);
@@ -35,26 +36,31 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Add connection to process "?"',$process->name)?>
+			<?= t('Add connector to process "?"',$process->name)?>
 		</legend>
+		<input type="hidden" name="process_id" value="<?= $process_id ?>" />
 		<label>
-			<?= t('Connection name') ?>
+			<?= t('Connector name') ?>
 			<input type="text" name="name" value="" />
 		</label>
 		<label>
-			<?= t('Connection description') ?>
+			<?= t('Connector description') ?>
 			<textarea name="description"></textarea>
 		</label>
 		<p>
 			<label>
 				<input type="radio" name="direction" value="in" checked="checked">
-				<?= t('inbound connection') ?>
+				<?= t('inbound connector') ?>
 			</label>
 			<label>
 				<input type="radio" name="direction" value="out">
-				<?= t('outbound connection') ?>
+				<?= t('outbound connector') ?>
 			</label>
 		</p>
+		<label>
+			<?= t('Position') ?>
+			<input type="number" value="0" name="angle" />°
+		</label>
 		<button type="submit">
 			<?= t('Save'); ?>
 		</button>

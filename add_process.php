@@ -24,7 +24,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add Process to "?"',$model->name); ?></legend>
+	<legend><?= t('Add process to "?"',$model->name); ?></legend>
 	<form method="POST">
 	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 	<fieldset>

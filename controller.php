@@ -6,8 +6,8 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/models.db');
 
 		$tables = [
-			'flows'=>    Flow::table(),
-			'connections'=> Connection::fields(),
+			'flows'=>    Flow::fields(),
+			'connectors'=> Connector::fields(),
 			'models'=>   Model::fields(),
 			'processes'=>Process::fields(),
 			'terminals'=>Terminal::fields(),
@@ -44,7 +44,7 @@ function get_or_create_db(){
 	return $db;
 }
 
-class Connection{
+class Connector{
 	/* static functions */
 	static function fields(){
 		return [
@@ -53,24 +53,18 @@ class Connection{
 			'direction' => ['BOOLEAN'],
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
 			'description' => ['TEXT'],
+			'angle'=>['INT'],
 		];
 	}
 
 	/* instance methods */
-	function __construct($process_id,$name,$description,$inbound=true){
-		$this->process_id = $process_id;
-		$this->name = $name;
-		$this->description = $description;
-		$this->direction = $inbound;
-	}
-
 	static function load($options = []){
 
 		$db = get_or_create_db();
 
-		assert(isset($options['process_id']),'No process id passed to Connection::load()!');
+		assert(isset($options['process_id']),'No process id passed to Connector::load()!');
 
-		$sql = 'SELECT * FROM connections WHERE process_id = ?';
+		$sql = 'SELECT * FROM connectors WHERE process_id = ?';
 		$args = [$options['process_id']];
 
 		$single = false;
@@ -85,19 +79,77 @@ class Connection{
 			$args = array_merge($args, $ids);
 		}
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load connections');
+		assert($query->execute($args),'Was not able to load connectors');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		$connections = [];
+		$connectors = [];
 
 		foreach ($rows as $row){
-			$connection = new Connection();
-			$connection->patch($row);
-			$connection->dirty=[];
-			if ($single) return $connection;
-			$connections[$connection->id] = $connection;
+			$connector = new Connector();
+			$connector->patch($row);
+			$connector->dirty=[];
+			if ($single) return $connector;
+			$connectors[$connector->id] = $connector;
 		}
 
-		return $connections;
+		return $connectors;
+	}
+
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if ($key === 'direction') $val = $val == 'in'||$val==1;
+			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+
+	public function save(){
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE connectors SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update connector in database!');
+			}
+		} else {
+			$known_fields = array_keys(Connector::fields());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO connectors ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new connector');
+
+			$this->id = $db->lastInsertId();
+		}
+	}
+}
+
+class Flow{
+	const ENDS_IN_CONNECTOR= 0;
+	const ENDS_IN_TERMINAL = 1;
+	static function fields(){
+		return [
+			'id' => ['INTEGER','KEY'=>'PRIMARY'],
+			'start_type' => ['INT','NOT NULL','DEFAULT 0'],
+			'start_id' => ['INT','NOT NULL'],
+			'end_type' => ['INT','NOT NULL','DEFAULT 0'],
+			'end_id' => ['INT','NOT NULL'],
+			'name' => ['VARCHAR'=>255, 'NOT NULL'],
+			'description' => ['TEXT'],
+			'definition' => ['TEXT'],
+		];
 	}
 
 	function patch($data = array()){
@@ -110,11 +162,10 @@ class Connection{
 	}
 
 	public function save(){
-		debug($this);
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE connections SET';
+				$sql = 'UPDATE flows SET';
 				$args = [':id'=>$this->id];
 				foreach ($this->dirty as $field){
 					$sql .= ' '.$field.'=:'.$field.',';
@@ -122,10 +173,10 @@ class Connection{
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update connection in database!');
+				assert($query->execute($args),'Was no able to update flow in database!');
 			}
 		} else {
-			$known_fields = array_keys(Connection::fields());
+			$known_fields = array_keys(Flow::fields());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){
@@ -134,27 +185,11 @@ class Connection{
 					$args[':'.$f] = $this->{$f};
 				}
 			}
-			$query = $db->prepare('INSERT INTO connections ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
-			debug(query_insert($query,$args));
-			assert($query->execute($args),'Was not able to insert new connection');
+			$query = $db->prepare('INSERT INTO flows ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new flow');
 
 			$this->id = $db->lastInsertId();
 		}
-	}
-}
-
-class Flow{
-	static function table(){
-		return [
-			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'start_type' => ['INT','NOT NULL','DEFAULT 0'],
-			'start_id' => ['INT','NOT NULL'],
-			'end_type' => ['INT','NOT NULL','DEFAULT 0'],
-			'end_id' => ['INT','NOT NULL'],
-			'name' => ['VARCHAR'=>255, 'NOT NULL'],
-			'description' => ['TEXT'],
-			'definition' => ['TEXT'],
-		];
 	}
 }
 
@@ -274,9 +309,12 @@ class Process{
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'model_id' => ['INT','NOT NULL'],
-			'parent_id' => ['INT'],
+			'parent_id' => 'INT',
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
-			'description' => ['TEXT'],
+			'description' => 'TEXT',
+			'r' => 'INT',
+			'x' => 'INT',
+			'y' => 'INT',
 		];
 	}
 
@@ -324,9 +362,10 @@ class Process{
 		$this->parent_id = $parent_id;
 	}
 
-	function connections(){
-		if (!isset($this->connections)) $this->connections = Connection::load(['process_id'=>$this->id]);
-		return $this->connections;
+	function connectors($id = null){
+		if (!isset($this->connectors)) $this->connectors = Connector::load(['process_id'=>$this->id]);
+		if ($id) return $this->connectors[$id];
+		return $this->connectors;
 	}
 
 	function patch($data = array()){
@@ -379,9 +418,12 @@ class Terminal{
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'model_id' => ['INT','NOT NULL'],
-			'type' => ['INT'],
+			'type' => 'INT',
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
-			'description' => ['TEXT'],
+			'description' => 'TEXT',
+			'w' => 'INT',
+			'x' => 'INT',
+			'y' => 'INT',
 		];
 	}
 
@@ -464,8 +506,7 @@ class Terminal{
 			}
 			$query = $db->prepare('INSERT INTO terminals ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 			assert($query->execute($args),'Was not able to insert new terminal');
-	
 			$this->id = $db->lastInsertId();
 		}
-	}	
+	}
 }

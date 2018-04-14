@@ -20,7 +20,7 @@ if (!$process_id){
 $model = Model::load(['ids'=>$model_id]);
 $process = $model->processes($process_id);
 
-$connections = $process->connections();
+$connectors = $process->connectors();
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
@@ -34,7 +34,7 @@ include '../common_templates/messages.php'; ?>
 		<td>
 			<span class="right symbol">
 				<a href="../edit_process/<?= $process->id ?>" title="<?= t('edit')?>"></a>
-				<a href="../connect_process/<?= $process->id ?>" title="<?= t('add connection')?>"></a>
+				<a href="../connect_process/<?= $process->id ?>" title="<?= t('add connector')?>"></a>
 			</span>
 			<h1><?= $process->name ?></h1>
 		</td>
@@ -59,13 +59,13 @@ include '../common_templates/messages.php'; ?>
 		<td class="description"><?= $process->description; ?></td>
 	</tr>
 	<?php } ?>
-	<?php if ($process->connections()){ ?>
+	<?php if ($process->connectors()){ ?>
 	<tr>
-		<th><?= t('Connections')?></th>
-		<td class="connections">
+		<th><?= t('Connectors')?></th>
+		<td class="connectors">
 			<ul>
-			<?php foreach ($process->connections() as $connection) { ?>
-				<li title="<?= $connection->description ?>"><span class="symbol"><?= $connection->direction?'':''?></span> <?= $connection->name ?></li>
+			<?php foreach ($process->connectors() as $conn) { ?>
+				<li title="<?= $conn->description ?>"><span class="symbol"><?= $conn->direction?'':''?></span> <?= $conn->name ?></li>
 			<?php } ?>
 			</ul>
 		</td>
