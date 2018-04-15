@@ -45,6 +45,11 @@ include '../common_templates/messages.php'; ?>
 			<?= t('Terminal description') ?>
 			<textarea name="description"><?= $terminal->description ?></textarea>
 		</label>
+		<label>
+			<?= t('Position') ?>
+			<input type="number" min="0" step="1" name="x" value="<?= round($terminal->x) ?>" />
+			<input type="number" min="0" step="1" name="y" value="<?= round($terminal->y)	 ?>" />
+		</label>
 		<button type="submit">
 			<?= t('Save'); ?>
 		</button>

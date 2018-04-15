@@ -79,6 +79,9 @@ function updateElement(elem,data){
 		url: script,
 		method: 'POST',
 		data: data,
+		complete: function(a,b){
+			location.reload();
+		}
 	});
 }
 
@@ -86,6 +89,7 @@ function Grab(evt){
 	// you cannot drag the background itself, so ignore any attempts to mouse down on it
 	if (evt.target == BackDrop) return;
 
+	if (evt.target.getAttribute('class') == 'connector') return;
 	//set the item moused down on as the element to be dragged
 	DragTarget = evt.target;
 

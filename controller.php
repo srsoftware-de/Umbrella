@@ -57,11 +57,8 @@ class Connector{
 		];
 	}
 
-	/* instance methods */
 	static function load($options = []){
-
 		$db = get_or_create_db();
-
 		assert(isset($options['process_id']),'No process id passed to Connector::load()!');
 
 		$sql = 'SELECT * FROM connectors WHERE process_id = ?';
@@ -92,6 +89,12 @@ class Connector{
 		}
 
 		return $connectors;
+	}
+
+	/* instance methods */
+	function flows(){
+		if (!isset($this->flows)) $this->flows = Flow::load(['connector'=>$this->id]);
+		return $this->flows;
 	}
 
 	function patch($data = array()){
@@ -137,6 +140,7 @@ class Connector{
 }
 
 class Flow{
+	/** static **/
 	const ENDS_IN_CONNECTOR= 0;
 	const ENDS_IN_TERMINAL = 1;
 	static function fields(){
@@ -150,6 +154,42 @@ class Flow{
 			'description' => ['TEXT'],
 			'definition' => ['TEXT'],
 		];
+	}
+
+	/** instance methods **/
+		static function load($options = []){
+		$db = get_or_create_db();
+		assert(isset($options['connector']),'No connector id passed to Connector::load()!');
+
+		$sql = 'SELECT * FROM flows
+				WHERE (start_type = '.Flow::ENDS_IN_CONNECTOR.' AND start_id = ?)
+				   OR (end_type = '.Flow::ENDS_IN_CONNECTOR.' AND end_id = ?)';
+		$args = [$options['connector'],$options['connector']];
+
+		$single = false;
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load flows');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$flows = [];
+
+		foreach ($rows as $row){
+			$flow = new Flow();
+			$flow->patch($row);
+			$flow->dirty=[];
+			if ($single) return $flow;
+			$flows[$flow->id] = $flow;
+		}
+		return $flows;
 	}
 
 	function patch($data = array()){

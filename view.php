@@ -12,6 +12,8 @@ if ($model_id = param('id')){
 	redirect(getUrl('model'));
 }
 
+$rad = 0.01745329;
+
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
@@ -89,6 +91,32 @@ include '../common_templates/messages.php'; ?>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
 				<?php foreach ($model->processes() as $process){ ?>
+
+					<?php foreach ($process->connectors() as $conn){ ?>
+
+					<?php foreach ($conn->flows() as $flow){
+						$x1 = 0;
+						$y1 = 0;
+						if ($flow->start_type == Flow::ENDS_IN_TERMINAL){
+							$terminal = $model->terminals($flow->start_id);
+							$x1 = $terminal->x + $terminal->w/2;
+							$y1 = $terminal->y + 15;
+						}
+						$x2 = $process->x + sin($conn->angle*$rad)*$process->r;
+						$y2 = $process->y - cos($conn->angle*$rad)*$process->r;
+					?>
+					  <line
+							x1="<?= $x1 ?>"
+							y1="<?= $y1 ?>"
+							x2="<?= $x2 ?>"
+							y2="<?= $y2 ?>"
+							style="stroke:rgb(255,0,0);stroke-width:2" />
+
+					<?php } // foreach flow
+					} // foreach connector
+				} // foreach process?>
+
+				<?php foreach ($model->processes() as $process){ ?>
 				<g>
 					<circle
 							class="process"
@@ -111,7 +139,8 @@ include '../common_templates/messages.php'; ?>
 							<title><?= $conn->name ?></title>
 						</circle>
 					</a>
-					<?php } ?>
+
+					<?php } // foreach connector ?>
 				</g>
 				<?php } // foreach process?>
 
