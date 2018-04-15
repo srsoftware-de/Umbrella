@@ -158,7 +158,13 @@ include '../common_templates/messages.php'; ?>
 					</rect>
 					<text x="<?= $term->x + $term->w/2 ?>" y="<?= $term->y + 15 ?>" fill="red"><?= $term->name ?></text>
 					<?php } else { ?>
-					<ellipse cx="<?= $term->x + $term->w/2 ?>" cy="<?= $term->y + 40 ?>" rx="<?= $term->w/2?>" ry="15" />
+					<ellipse
+							 cx="<?= $term->x + $term->w/2 ?>"
+							 cy="<?= $term->y + 40 ?>"
+							 rx="<?= $term->w/2?>"
+							 ry="15">
+						<title><?= $term->description ?></title>
+					</ellipse>
 					<rect
 							class="terminal"
 							x="<?= $term->x?>"
@@ -169,7 +175,13 @@ include '../common_templates/messages.php'; ?>
 							id="terminal_<?= $term->id ?>">
 						<title><?= $term->description ?></title>
 					</rect>
-					<ellipse cx="<?= $term->x + $term->w/2 ?>" cy="<?= $term->y ?>" rx="<?= $term->w/2?>" ry="15" />//-->
+					<ellipse
+							 cx="<?= $term->x + $term->w/2 ?>"
+							 cy="<?= $term->y ?>"
+							 rx="<?= $term->w/2?>"
+							 ry="15">
+						<title><?= $term->description ?></title>
+					</ellipse>
 					<text x="<?= $term->x + $term->w/2 ?>" y="<?= $term->y + 30 ?>" fill="red"><?= $term->name ?></text>
 					<?php } ?>
 
@@ -179,6 +191,4 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 </table>
-<?php
-debug($model);
-include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php';
