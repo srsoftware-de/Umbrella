@@ -15,8 +15,5 @@ $conn_id = array_shift($id2);
 $model = Model::load(['ids'=>$model_id]);
 $process = $model->processes($process_id);
 $conn = $process->connectors($conn_id);
-debug($conn);
 $conn->patch($_POST);
-debug($conn);
 $conn->save();
-debug($conn);

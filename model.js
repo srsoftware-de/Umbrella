@@ -45,6 +45,31 @@ function Wheel(evt){
 			elem.setAttribute('transform','rotate('+a+','+x+','+y+')');
 			updateElement(elem,{angle: a});
 		}
+	} else {
+		var cls = elem.getAttribute('class');
+		if (cls == 'terminal'){
+			evt.preventDefault();
+			var d = -evt.deltaY/3;
+			var w = +elem.getAttribute('width')+d;
+			if (w>10) {
+				elem.setAttribute('width',w);
+
+
+				var texts = elem.parentNode.getElementsByTagName('text');
+				if (texts.length > 0){
+					var text = texts[0];
+					text.setAttribute('x',+text.getAttribute('x')+d/2);
+				}
+				var ellipses = elem.parentNode.getElementsByTagName('ellipse');
+				for (var i=0; i<ellipses.length;i++){
+					var ellipse = ellipses[i];
+					ellipse.setAttribute('cx',+ellipse.getAttribute('cx')+d/2)
+					ellipse.setAttribute('rx',+ellipse.getAttribute('rx')+d/2)
+					elem.setAttribute('stroke-dasharray','0,'+w+',40,'+w+',40');
+				}
+				updateElement(elem,{w: w});
+			}
+		}
 	}
 }
 
@@ -114,8 +139,10 @@ function Drop(evt){
 		DragTarget.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
 		var elem = getMainComponent(DragTarget);
 		if (elem != null){
-			var x = Math.round(+elem.getAttribute('cx') + TrueCoords.x - GrabPoint.x);
-			var y = Math.round(+elem.getAttribute('cy') + TrueCoords.y - GrabPoint.y);
+			var x = elem.hasAttribute('x') ? +elem.getAttribute('x') : +elem.getAttribute('cx');
+			var y = elem.hasAttribute('y') ? +elem.getAttribute('y') : +elem.getAttribute('cy');
+			x += TrueCoords.x - GrabPoint.x;
+			y += TrueCoords.y - GrabPoint.y;
 			updateElement(elem,{x: x, y: y});
 		}
 		DragTarget = null;

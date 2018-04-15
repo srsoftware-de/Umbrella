@@ -13,15 +13,11 @@ if (!$model_id){
 	redirect(getUrl('model'));
 }
 if (!$process_id){
-	error('No terminal id passed to terminal.');
+	error('No process id passed to terminal.');
 	redirect(getUrl('model'));
 }
 
 $model = Model::load(['ids'=>$model_id]);
 $process = $model->processes($process_id);
-debug($process);
-
 $process->patch($_POST);
-debug($process);
 $process->save();
-debug($process);
