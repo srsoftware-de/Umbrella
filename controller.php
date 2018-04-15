@@ -312,9 +312,9 @@ class Process{
 			'parent_id' => 'INT',
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
 			'description' => 'TEXT',
-			'r' => 'INT',
-			'x' => 'INT',
-			'y' => 'INT',
+			'r' => ['INT','DEFAULT 30'],
+			'x' => ['INT','DEFAULT 100'],
+			'y' => ['INT','DEFAULT 100'],
 		];
 	}
 
@@ -344,7 +344,7 @@ class Process{
 		$processes = [];
 
 		foreach ($rows as $row){
-			$process = new Process($row['name'],$row['model_id']);
+			$process = new Process();
 			$process->patch($row);
 			$process->dirty=[];
 			if ($single) return $process;
@@ -355,12 +355,6 @@ class Process{
 	}
 
 	/** instance functions **/
-	function __construct($name,$model_id,$description = null,$parent_id = null){
-		$this->model_id = $model_id;
-		$this->name = $name;
-		$this->description = $description;
-		$this->parent_id = $parent_id;
-	}
 
 	function connectors($id = null){
 		if (!isset($this->connectors)) $this->connectors = Connector::load(['process_id'=>$this->id]);
@@ -392,7 +386,7 @@ class Process{
 				assert($query->execute($args),'Was no able to update process in database!');
 			}
 		} else {
-			$known_fields = array_keys(Terminal::fields());
+			$known_fields = array_keys(Process::fields());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){

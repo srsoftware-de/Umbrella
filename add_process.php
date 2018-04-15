@@ -13,7 +13,8 @@ if ($model_id = param('id')){
 }
 
 if ($name = param('name')){
-	$process = new Process($name,$model_id,param('description'),param('parent_id'));
+	$process = new Process();
+	$process->patch($_POST);
 	$process->save();
 	redirect('view');
 }

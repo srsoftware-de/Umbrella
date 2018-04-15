@@ -77,33 +77,41 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><?= t('Display') ?></th>
 		<td>
-			<svg width="60%" viewbox="0 0 <?= 1000*count($model->processes()) ?> 1000">
+			<svg
+				 width="100%"
+				 viewbox="0 0 1000 1000"
+				 onload="Init(evt)"
+				 onmousedown="Grab(evt)"
+				 onmousemove="Drag(evt)"
+				 onmouseup="Drop(evt)"
+				 onmousewheel="Wheel(evt)">
+				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
+				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
+
 				<?php $x = 500;
 				foreach ($model->processes() as $process){ ?>
-				<a xlink:href="process/<?= $process->id ?>">
+				<g>
 					<circle
 							class="process"
-							cx="<?= $x ?>"
-							cy="500"
-							r="400">
+							cx="<?= $process->x ?>"
+							cy="<?= $process->y ?>"
+							r="<?= $process->r ?>"
+							id="process_<?= $process->id ?>">
 						<title><?= $process->description ?></title>
 					</circle>
-				</a>
-				<text x="<?= $x ?>" y="500" fill="red"><?= $process->name ?></text>
-
-				<?php foreach ($process->connectors() as $conn){ ?>
-				<a xlink:href="flow_<?= $conn->direction ? 'to':'from' ?>_connector/<?= $process->id ?>.<?= $conn->id ?>">
+					<text x="<?= $process->x ?>" y="<?= $process->y ?>" fill="red"><?= $process->name ?></text>
+					<?php foreach ($process->connectors() as $conn){ ?>
 					<circle
 							class="connector"
-							cx="<?= $x ?>"
-							cy="100"
+							cx="<?= $process->x ?>"
+							cy="<?= $process->y - $process->r ?>"
 							r="10"
-							transform="rotate(<?= $conn->angle ?>,<?= $x ?>,500)">
+							id="connector_<?= $process->id ?>.<?= $conn->id ?>"
+							transform="rotate(<?= $conn->angle ?>,<?= $process->x ?>,<?= $process->y ?>)">
 						<title><?= $conn->name ?></title>
 					</circle>
-				</a>
-				<?php } ?>
-
+					<?php } ?>
+				</g>
 				<?php $x+=1000; } // foreach process?>
 			</svg>
 		</td>
