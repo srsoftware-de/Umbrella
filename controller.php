@@ -415,9 +415,9 @@ class Terminal{
 			'type' => 'INT',
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
 			'description' => 'TEXT',
-			'w' => 'INT',
-			'x' => 'INT',
-			'y' => 'INT',
+			'w' => ['INT','DEFAULT 100'],
+			'x' => ['INT','DEFAULT 100'],
+			'y' => ['INT','DEFAULT 50'],
 		];
 	}
 

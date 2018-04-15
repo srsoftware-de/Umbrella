@@ -88,14 +88,13 @@ include '../common_templates/messages.php'; ?>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
-				<?php $x = 500;
-				foreach ($model->processes() as $process){ ?>
+				<?php foreach ($model->processes() as $process){ ?>
 				<g>
 					<circle
 							class="process"
 							cx="<?= $process->x ?>"
 							cy="<?= $process->y ?>"
-							r="<?= $process->r ?>"
+							r="<?= $process->r?>"
 							id="process_<?= $process->id ?>">
 						<title><?= $process->description ?></title>
 					</circle>
@@ -112,7 +111,37 @@ include '../common_templates/messages.php'; ?>
 					</circle>
 					<?php } ?>
 				</g>
-				<?php $x+=1000; } // foreach process?>
+				<?php } // foreach process?>
+
+				<?php foreach ($model->terminals() as $term){ ?>
+				<g>
+					<?php if (!$term->type) { ?>
+					<rect
+							class="terminal"
+							x="<?= $term->x - ($term->w/2)?>"
+							y="<?= $term->y - 15 ?>"
+							width="<?= $term->w ?>"
+							height="30"
+							id="terminal_<?= $term->id ?>">
+						<title><?= $term->description ?></title>
+					</rect>
+					<?php } else { ?>
+					<ellipse cx="<?= $term->x ?>" cy="<?= $term->y + 10 ?>" rx="<?= $term->w/2?>" ry="15" />
+					<rect
+							class="terminal"
+							x="<?= $term->x - ($term->w/2)?>"
+							y="<?= $term->y - 30 ?>"
+							width="<?= $term->w ?>"
+							height="40"
+						  	stroke-dasharray="0,<?= $term->w ?>,40,<?= $term->w ?>,40"
+							id="terminal_<?= $term->id ?>">
+						<title><?= $term->description ?></title>
+					</rect>
+					<ellipse cx="<?= $term->x ?>" cy="<?= $term->y - 30 ?>" rx="<?= $term->w/2?>" ry="15" />//-->
+					<?php } ?>
+					<text x="<?= $term->x ?>" y="<?= $term->y ?>" fill="red"><?= $term->name ?></text>
+				</g>
+				<?php } // foreach process?>
 			</svg>
 		</td>
 	</tr>
