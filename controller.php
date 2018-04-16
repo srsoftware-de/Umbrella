@@ -238,7 +238,7 @@
 		if ($notify_user){
 			$url = load_url($url_hash);
 			$recipient = request('user','json',['ids'=>$user_id]);
-			if (send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$recipient['login']),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$url['url'],getUrl('bookmark')]))){
+			if (send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$user->login),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$url['url'],getUrl('bookmark')]))){
 				info('Notification has been sent to user.');
 			}
 			
