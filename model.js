@@ -1,40 +1,28 @@
-var SVGDocument = null;
-var SVGRoot = null;
-
-var TrueCoords = null;
-var GrabPoint = null;
 var BackDrop = null;
-var DragTarget = null;
+var DragGroup = null;
+
+var PointGrabbed = null;
+var GroupOrigin = null;
 
 function Init(evt){
-	SVGDocument = evt.target.ownerDocument;
-	SVGRoot = evt.target;
-
-	// these svg points hold x and y values...
-	//    very handy, but they do not display on the screen (just so you know)
-	TrueCoords = SVGRoot.createSVGPoint();
-	GrabPoint = SVGRoot.createSVGPoint();
-
-	// this will serve as the canvas over which items are dragged.
-	//    having the drag events occur on the mousemove over a backdrop
-	//    (instead of the dragged element) prevents the dragged element
-	//    from being inadvertantly dropped when the mouse is moved rapidly
-	BackDrop = SVGDocument.getElementById('backdrop');
+	BackDrop = evt.target.ownerDocument.getElementById('backdrop');
 }
 
 function Wheel(evt){
 	var elem = evt.target;
-	if (evt.target.nodeName == 'circle'){
-		evt.preventDefault();
+	var cls = elem.getAttribute('class');
 
-		var cls = elem.getAttribute('class');
-		if (cls == 'process'){
+	if (evt.target.nodeName == 'circle'){
+
+		if (cls == 'process' && evt.shiftKey){
+			evt.preventDefault();
 			var r = elem.getAttribute('r')-evt.deltaY/3;
 			if (r>10) {
 				elem.setAttribute('r',r);
 				updateElement(elem,{r: r});
 			}
 		} else if(cls == 'connector'){
+			evt.preventDefault();
 			var xforms = elem.getAttribute('transform');
 
 			var parts  = /rotate\(\s*([^\s,)]+)[ ,]([^\s,)]+)[ ,]([^\s,)]+)/.exec(xforms);
@@ -46,8 +34,7 @@ function Wheel(evt){
 			updateElement(elem,{angle: a});
 		}
 	} else {
-		var cls = elem.getAttribute('class');
-		if (cls == 'terminal'){
+		if (cls == 'terminal' && evt.shiftKey){
 			evt.preventDefault();
 			var d = -evt.deltaY/3;
 			var w = +elem.getAttribute('width')+d;
@@ -85,47 +72,45 @@ function updateElement(elem,data){
 	});
 }
 
-function Grab(evt){
-	// you cannot drag the background itself, so ignore any attempts to mouse down on it
-	if (evt.target == BackDrop) return;
+function getTranslation(elem){
+	if (!elem.hasAttribute('transform')) return {x:0, y:0};
+	var trans = elem.getAttribute('transform');
+	var parts  = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(trans);
+	return {x:+parts[1], y:+parts[2]};
+}
 
-	if (evt.target.getAttribute('class') == 'connector') return;
-	//set the item moused down on as the element to be dragged
-	DragTarget = evt.target;
+function Grab(evt){
+	if (evt.button != 0) return; // only respond to right button
+
+	if (evt.target == BackDrop) return; // don't drag the background
+
+	if (evt.target.getAttribute('class') == 'connector') return; // don't drag connectors
+
+	DragGroup = evt.target;
 
 	// only move groups
-	while (DragTarget.nodeName != 'g'){
-		DragTarget = DragTarget.parentNode;
-		if (DragTarget == null) return;
+	while (DragGroup.nodeName != 'g'){
+		DragGroup = DragGroup.parentNode;
+		if (DragGroup == null) return;
 	}
 
 	// move this element to the "top" of the display, so it is (almost)
-	DragTarget.parentNode.appendChild( DragTarget );
+	DragGroup.parentNode.appendChild( DragGroup );
 
 	// turn off all pointer events to the dragged element, this does 2 things:
-	DragTarget.setAttributeNS(null, 'pointer-events', 'none');
+	DragGroup.setAttributeNS(null, 'pointer-events', 'none');
 
-	// we need to find the current position and translation of the grabbed element, so that we only apply the differential between the current location and the new location
-	var transMatrix = DragTarget.getCTM();
-	GrabPoint.x = TrueCoords.x - Number(transMatrix.e);
-	GrabPoint.y = TrueCoords.y - Number(transMatrix.f);
+	PointGrabbed = {x: evt.offsetX, y: evt.offsetY};
+	GroupOrigin = getTranslation(DragGroup);
 };
 
 
 function Drag(evt){
-	// account for zooming and panning
-	GetTrueCoords(evt);
-
 	// if we don't currently have an element in tow, don't do anything
-	if (DragTarget){
-		// account for the offset between the element's origin and the
-		//    exact place we grabbed it... this way, the drag will look more natural
-		var newX = TrueCoords.x - GrabPoint.x;
-		var newY = TrueCoords.y - GrabPoint.y;
-
-		// apply a new tranform translation to the dragged element, to display
-		//    it in its new location
-		DragTarget.setAttributeNS(null, 'transform', 'translate(' + newX + ',' + newY + ')');
+	if (DragGroup){
+		var x = GroupOrigin.x + evt.offsetX - PointGrabbed.x;
+		var y = GroupOrigin.y + evt.offsetY - PointGrabbed.y;
+		DragGroup.setAttributeNS(null, 'transform', 'translate(' + x + ',' + y + ')');
 	}
 };
 
@@ -139,25 +124,14 @@ function getMainComponent(group){
 }
 function Drop(evt){
 	// if we aren't currently dragging an element, don't do anything
-	if ( DragTarget )	{
-		DragTarget.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
-		var elem = getMainComponent(DragTarget);
+	if ( DragGroup )	{
+		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
+		var elem = getMainComponent(DragGroup);
 		if (elem != null){
-			var x = elem.hasAttribute('x') ? +elem.getAttribute('x') : +elem.getAttribute('cx');
-			var y = elem.hasAttribute('y') ? +elem.getAttribute('y') : +elem.getAttribute('cy');
-			x += TrueCoords.x - GrabPoint.x;
-			y += TrueCoords.y - GrabPoint.y;
+			var x = GroupOrigin.x + evt.offsetX - PointGrabbed.x;
+			var y = GroupOrigin.y + evt.offsetY - PointGrabbed.y;
 			updateElement(elem,{x: x, y: y});
 		}
-		DragTarget = null;
+		DragGroup = null;
 	}
-};
-
-
-function GetTrueCoords(evt){
-	// find the current zoom level and pan setting, and adjust the reported mouse position accordingly
-	var newScale = SVGRoot.currentScale;
-	var translation = SVGRoot.currentTranslate;
-	TrueCoords.x = (evt.clientX - translation.x)/newScale;
-	TrueCoords.y = (evt.clientY - translation.y)/newScale;
 };
