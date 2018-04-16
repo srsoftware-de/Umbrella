@@ -13,8 +13,10 @@ if ($model_id = param('id')){
 }
 
 if ($name = param('name')){
-	$terminal = new Terminal($name,$model_id,param('description'),param('type'));
+	$terminal = new Terminal();
+	$terminal->patch($_POST);
 	$terminal->save();
+	$model->link($terminal);
 	redirect('view');
 }
 include '../common_templates/head.php';

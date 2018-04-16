@@ -11,6 +11,9 @@ function get_or_create_db(){
 			'models'=>   Model::fields(),
 			'processes'=>Process::fields(),
 			'terminals'=>Terminal::fields(),
+			'models_processes' => Model::process_link(),
+			'models_terminals' => Model::terminal_link(),
+			'child_processes' => Process::parent_link(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -243,6 +246,26 @@ class Model{
 			'description' => ['TEXT'],
 		];
 	}
+	
+	static function process_link(){
+		return [
+			'model_id' => ['INT','NOT NULL'],
+			'process_id' => ['INT','NOT NULL'],
+			'x' => ['INT', 'DEFAULT 30'],
+			'y' => ['INT', 'DEFAULT 30'],
+			'PRIMARY KEY' => '(model_id, process_id)',
+		];
+	}
+	
+	static function terminal_link(){
+		return [
+		'model_id' => ['INT','NOT NULL'],
+		'terminal_id' => ['INT','NOT NULL'],
+		'x' => ['INT', 'DEFAULT 30'],
+		'y' => ['INT', 'DEFAULT 30'],
+		'PRIMARY KEY' => '(model_id, terminal_id)',
+		];
+	}	
 
 	static function load($options = []){
 		global $projects;
@@ -282,12 +305,41 @@ class Model{
 
 		return $models;
 	}
+	
 
 	/** instance functions **/
 	function __construct($project_id = null, $name = null, $description = null){
 		$this->project_id = $project_id;
 		$this->name = $name;
 		$this->description = $description;
+	}
+
+	function findConnector($cid){
+		foreach ($this->processes() as $proc){
+			foreach ($proc->connectors as $conn){
+				if ($cid == $conn->id) return $conn;
+			}
+		}
+		return null;
+	}
+	
+	function link($object){
+		$db = get_or_create_db();
+		if ($object instanceof Process) {
+			$sql = 'INSERT INTO models_processes (model_id, process_id) VALUES (:mid, :pid)';
+			$args = [':mid' => $this->id, ':pid' => $object->id];
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to assign process to model');
+			return;
+		}
+		if ($object instanceof Terminal) {
+			$sql = 'INSERT INTO models_terminals (model_id, terminal_id) VALUES (:mid, :tid)';
+			$args = [':mid' => $this->id, ':tid' => $object->id];
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to assign terminal to model');			
+			return;
+		}
+		warn('Model-&gt;link has no handler for '.$object);
 	}
 
 	function patch($data = array()){
@@ -336,7 +388,7 @@ class Model{
 		return $this->terminals;
 	}
 
-	public function processes($id = null){
+	public function processes($id = null){		
 		if (!isset($this->processes)) $this->processes = Process::load(['model_id'=>$this->id]);
 		if ($id) return $this->processes[$id];
 		return $this->processes;
@@ -348,26 +400,40 @@ class Process{
 	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'model_id' => ['INT','NOT NULL'],
-			'parent_id' => 'INT',
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
 			'description' => 'TEXT',
 			'r' => ['INT','DEFAULT 30'],
-			'x' => ['INT','DEFAULT 100'],
-			'y' => ['INT','DEFAULT 100'],
+		];
+	}
+	
+	static function parent_link(){
+		return [
+			'process_id' => ['INT','NOT NULL'],
+			'parent_process' => ['INT','NOT NULL'],
+			'x' => ['INT', 'DEFAULT 30'],
+			'y' => ['INT', 'DEFAULT 30'],
+			'PRIMARY KEY' => '(process_id, parent_process)',
 		];
 	}
 
 	static function load($options = []){
-
 		$db = get_or_create_db();
 
 		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+		
+		$where = [];
+		$args = [];
+		
+		$sql = 'SELECT * FROM processes';
+		if (isset($options['model_id'])){
+			$sql .= ' LEFT JOIN models_processes ON models_processes.process_id = processes.id';
+			$where[] = 'model_id = ?';
+			$args[] = $options['model_id'];
+		}
+		
+		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 
-		$sql = 'SELECT * FROM processes WHERE model_id = ?';
-		$args = [$options['model_id']];
-
-		$single = false;
+/*		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
@@ -377,7 +443,8 @@ class Process{
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$sql .= ' WHERE id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
-		}
+		}*/
+		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load processes');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -390,7 +457,6 @@ class Process{
 			if ($single) return $process;
 			$processes[$process->id] = $process;
 		}
-
 		return $processes;
 	}
 
@@ -415,15 +481,39 @@ class Process{
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE processes SET';
-				$args = [':id'=>$this->id];
-				foreach ($this->dirty as $field){
-					$sql .= ' '.$field.'=:'.$field.',';
-					$args[':'.$field] = $this->{$field};
+				$link_sql = null;
+				$link_args = [];
+				
+				$process_sql = 'UPDATE processes SET';				
+				if (isset($this->model_id)) {
+					$link_sql = 'UPDATE models_processes SET';
+					$link_args = [':pid'=>$this->id,':mid'=>$this->model_id];
 				}
-				$sql = rtrim($sql,',').' WHERE id = :id';
-				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update process in database!');
+				
+				$process_args = [':id'=>$this->id];
+				
+				foreach ($this->dirty as $field){
+					if (array_key_exists($field, Process::fields())){
+						$process_sql .= ' '.$field.'=:'.$field.',';
+						$process_args[':'.$field] = $this->{$field};
+					} else {
+						$link_sql .= ' '.$field.'=:'.$field.',';
+						$link_args[':'.$field] = $this->{$field};
+					}
+				}
+				if (count($process_args)>1){
+					$process_sql = rtrim($process_sql,',').' WHERE id = :id';
+					//debug(query_insert($process_sql,$process_args),1);
+					$query = $db->prepare($process_sql);
+					assert($query->execute($process_args),'Was no able to update process in database!');
+				}
+				
+				if ($link_sql && count($link_args)>2){
+					$link_sql = rtrim($link_sql,',').' WHERE process_id = :pid AND model_id = :mid';
+					//debug(query_insert($link_sql.' ',$link_args),1);
+					$query = $db->prepare($link_sql);
+					assert($query->execute($link_args),'Was no able to update process link in database!');						
+				}
 			}
 		} else {
 			$known_fields = array_keys(Process::fields());
@@ -443,6 +533,7 @@ class Process{
 	}
 
 }
+
 class Terminal{
 	const TERMINAL = 0;
 	const DATABASE = 1;
@@ -451,26 +542,31 @@ class Terminal{
 	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'model_id' => ['INT','NOT NULL'],
 			'type' => 'INT',
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
 			'description' => 'TEXT',
-			'w' => ['INT','DEFAULT 100'],
-			'x' => ['INT','DEFAULT 100'],
-			'y' => ['INT','DEFAULT 50'],
+			'w' => ['INT','DEFAULT 50'],
 		];
 	}
 
 	static function load($options = []){
-
 		$db = get_or_create_db();
 
-		assert(isset($options['model_id']),'No model id passed to Terminal::load()!');
+		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+		
+		$where = [];
+		$args = [];
+		
+		$sql = 'SELECT * FROM terminals';
+		if (isset($options['model_id'])){
+			$sql .= ' LEFT JOIN models_terminals ON models_terminals.terminal_id = terminals.id';
+			$where[] = 'model_id = ?';
+			$args[] = $options['model_id'];
+		}
+		
+		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 
-		$sql = 'SELECT * FROM terminals WHERE model_id = ?';
-		$args = [$options['model_id']];
-
-		$single = false;
+/*		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
@@ -480,31 +576,24 @@ class Terminal{
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$sql .= ' WHERE id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
-		}
+		}*/
+		//debug(query_insert($sql.' ',$args),1);
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load terminals');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$terminals = [];
 
 		foreach ($rows as $row){
-			$terminal = new Terminal($row['name'],$row['model_id']);
+			$terminal = new Terminal();
 			$terminal->patch($row);
 			$terminal->dirty=[];
 			if ($single) return $terminal;
 			$terminals[$terminal->id] = $terminal;
 		}
-
 		return $terminals;
 	}
 
 	/** instance functions **/
-	function __construct($name,$model_id,$description = null,$type = null){
-		$this->model_id = $model_id;
-		$this->name = $name;
-		$this->description = $description;
-		$this->type = $type;
-	}
-
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -518,15 +607,39 @@ class Terminal{
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE terminals SET';
-				$args = [':id'=>$this->id];
-				foreach ($this->dirty as $field){
-					$sql .= ' '.$field.'=:'.$field.',';
-					$args[':'.$field] = $this->{$field};
+				$link_sql = null;
+				$link_args = [];
+				
+				$process_sql = 'UPDATE terminals SET';				
+				if (isset($this->model_id)) {
+					$link_sql = 'UPDATE models_terminals SET';
+					$link_args = [':tid'=>$this->id,':mid'=>$this->model_id];
 				}
-				$sql = rtrim($sql,',').' WHERE id = :id';
-				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update terminal in database!');
+				
+				$process_args = [':id'=>$this->id];
+				
+				foreach ($this->dirty as $field){
+					if (array_key_exists($field, Terminal::fields())){
+						$process_sql .= ' '.$field.'=:'.$field.',';
+						$process_args[':'.$field] = $this->{$field};
+					} else {
+						$link_sql .= ' '.$field.'=:'.$field.',';
+						$link_args[':'.$field] = $this->{$field};
+					}
+				}
+				if (count($process_args)>1){
+					$process_sql = rtrim($process_sql,',').' WHERE id = :id';
+					//debug(query_insert($process_sql,$process_args),1);
+					$query = $db->prepare($process_sql);
+					assert($query->execute($process_args),'Was no able to update terminal in database!');
+				}
+				
+				if ($link_sql && count($link_args)>2){
+					$link_sql = rtrim($link_sql,',').' WHERE terminal_id = :tid AND model_id = :mid';
+					//debug(query_insert($link_sql.' ',$link_args),1);
+					$query = $db->prepare($link_sql);
+					assert($query->execute($link_args),'Was no able to update terminal link in database!');						
+				}
 			}
 		} else {
 			$known_fields = array_keys(Terminal::fields());

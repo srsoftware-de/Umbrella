@@ -101,6 +101,11 @@ include '../common_templates/messages.php'; ?>
 							$terminal = $model->terminals($flow->start_id);
 							$x1 = $terminal->x + $terminal->w/2;
 							$y1 = $terminal->y + 15;
+						} else {
+							$connector = $model->findConnector($flow->start_id);
+							$proc = $model->processes($connector->process_id);
+							$x1 = $proc->x + sin($connector->angle*$rad)*$proc->r;
+							$y1 = $proc->y - cos($connector->angle*$rad)*$proc->r;
 						}
 						$x2 = $process->x + sin($conn->angle*$rad)*$process->r;
 						$y2 = $process->y - cos($conn->angle*$rad)*$process->r;
@@ -191,4 +196,4 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 </table>
-<?php include '../common_templates/closure.php';
+<?php debug($model);include '../common_templates/closure.php';

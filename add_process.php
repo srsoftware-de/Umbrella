@@ -16,6 +16,7 @@ if ($name = param('name')){
 	$process = new Process();
 	$process->patch($_POST);
 	$process->save();
+	$model->link($process);
 	redirect('view');
 }
 include '../common_templates/head.php';
@@ -27,7 +28,6 @@ include '../common_templates/messages.php'; ?>
 <fieldset>
 	<legend><?= t('Add process to "?"',$model->name); ?></legend>
 	<form method="POST">
-	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
 		<input type="text" name="name" value="<?= param('name','') ?>" />
