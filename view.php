@@ -121,77 +121,13 @@ include '../common_templates/messages.php'; ?>
 					} // foreach connector
 				} // foreach process?>
 
-				<?php foreach ($model->processes() as $process){ ?>
-				<g>
-					<circle
-							class="process"
-							cx="<?= $process->x ?>"
-							cy="<?= $process->y ?>"
-							r="<?= $process->r?>"
-							id="process_<?= $process->id ?>">
-						<title><?= $process->description ?></title>
-					</circle>
-					<text x="<?= $process->x ?>" y="<?= $process->y ?>" fill="red"><?= $process->name ?></text>
-					<?php foreach ($process->connectors() as $conn){ ?>
-					<a xlink:href="flow_to_connector/<?= $process->id ?>.<?= $conn->id ?>">
-						<circle
-								class="connector"
-								cx="<?= $process->x ?>"
-								cy="<?= $process->y - $process->r ?>"
-								r="10"
-								id="connector_<?= $process->id ?>.<?= $conn->id ?>"
-								transform="rotate(<?= $conn->angle ?>,<?= $process->x ?>,<?= $process->y ?>)">
-							<title><?= $conn->name ?></title>
-						</circle>
-					</a>
+				<?php foreach ($model->processes() as $process){ 
+					$process->svg();
+				} // foreach process
 
-					<?php } // foreach connector ?>
-				</g>
-				<?php } // foreach process?>
-
-				<?php foreach ($model->terminals() as $term){ ?>
-				<g>
-					<?php if (!$term->type) { ?>
-					<rect
-							class="terminal"
-							x="<?= $term->x?>"
-							y="<?= $term->y?>"
-							width="<?= $term->w ?>"
-							height="30"
-							id="terminal_<?= $term->id ?>">
-						<title><?= $term->description ?></title>
-					</rect>
-					<text x="<?= $term->x + $term->w/2 ?>" y="<?= $term->y + 15 ?>" fill="red"><?= $term->name ?></text>
-					<?php } else { ?>
-					<ellipse
-							 cx="<?= $term->x + $term->w/2 ?>"
-							 cy="<?= $term->y + 40 ?>"
-							 rx="<?= $term->w/2?>"
-							 ry="15">
-						<title><?= $term->description ?></title>
-					</ellipse>
-					<rect
-							class="terminal"
-							x="<?= $term->x?>"
-							y="<?= $term->y ?>"
-							width="<?= $term->w ?>"
-							height="40"
-						  	stroke-dasharray="0,<?= $term->w ?>,40,<?= $term->w ?>,40"
-							id="terminal_<?= $term->id ?>">
-						<title><?= $term->description ?></title>
-					</rect>
-					<ellipse
-							 cx="<?= $term->x + $term->w/2 ?>"
-							 cy="<?= $term->y ?>"
-							 rx="<?= $term->w/2?>"
-							 ry="15">
-						<title><?= $term->description ?></title>
-					</ellipse>
-					<text x="<?= $term->x + $term->w/2 ?>" y="<?= $term->y + 30 ?>" fill="red"><?= $term->name ?></text>
-					<?php } ?>
-
-				</g>
-				<?php } // foreach process?>
+				foreach ($model->terminals() as $term){
+					$term->svg();
+				} // foreach process?>
 			</svg>
 		</td>
 	</tr>

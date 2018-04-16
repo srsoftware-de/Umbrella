@@ -34,7 +34,8 @@ include '../common_templates/messages.php'; ?>
 		<td>
 			<span class="right symbol">
 				<a href="../edit_process/<?= $process->id ?>" title="<?= t('edit')?>"></a>
-				<a href="../connect_process/<?= $process->id ?>" title="<?= t('add connector')?>"></a>
+				<a href="../connect_process/<?= $process->id ?>" title="<?= t('add connector')?>"></a>
+				<a href="../add_child_for_process/<?= $process->id ?>" title="<?= t('add child process')?>"></a>
 			</span>
 			<h1><?= $process->name ?></h1>
 		</td>
@@ -59,6 +60,18 @@ include '../common_templates/messages.php'; ?>
 		<td class="description"><?= $process->description; ?></td>
 	</tr>
 	<?php } ?>
+	<?php if ($process->children()){ ?>
+	<tr>
+		<th><?= t('Children')?></th>
+		<td class="process_children">
+			<ul>
+			<?php foreach ($process->children() as $child) { ?>
+				<li title="<?= $child->description ?>"><?= $child->name ?></li>
+			<?php } ?>
+			</ul>
+		</td>
+	</tr>
+	<?php } ?>
 	<?php if ($process->connectors()){ ?>
 	<tr>
 		<th><?= t('Connectors')?></th>
@@ -72,4 +85,6 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 </table>
-<?php include '../common_templates/closure.php';
+<?php
+debug($process); 
+include '../common_templates/closure.php';

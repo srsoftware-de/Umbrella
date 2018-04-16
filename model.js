@@ -74,7 +74,7 @@ function Wheel(evt){
 }
 
 function updateElement(elem,data){
-	var script = 'update_'+elem.id.replace('_','/');
+	var script = 'update_'+elem.id.replace(/_([^_]*)$/,'/$1');
 	$.ajax({
 		url: script,
 		method: 'POST',

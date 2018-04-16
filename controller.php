@@ -419,7 +419,7 @@ class Process{
 	static function load($options = []){
 		$db = get_or_create_db();
 
-		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+		assert(isset($options['model_id']) || isset($options['parent']) || isset($options['ids']),'Neither ids, model id nor parent process id passed to Process::load()!');
 		
 		$where = [];
 		$args = [];
@@ -430,20 +430,27 @@ class Process{
 			$where[] = 'model_id = ?';
 			$args[] = $options['model_id'];
 		}
-		
-		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+		if (isset($options['parent'])){
+			$sql .= ' LEFT JOIN child_processes ON child_processes.process_id = processes.id';
+			$where[] = 'parent_process = ?';
+			$args[] = $options['parent'];
+		}
 
-/*		$single = false;
-		if (isset($options['ids'])){
+		$single = false;
+		if (isset($options['ids'])){			
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
 				$single = true;
 				$ids = [$ids];
 			}
+			
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$sql .= ' LEFT JOIN child_processes ON child_processes.process_id = processes.id';
+			$where[] .= 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
-		}*/
+		}
+		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+
 		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load processes');
@@ -461,7 +468,20 @@ class Process{
 	}
 
 	/** instance functions **/
+	
+	function addChild($child_process){
+		$db = get_or_create_db();
+		$sql = 'INSERT INTO child_processes (process_id, parent_process) VALUES (:child_id, :parent_id)';
+		$args = [':child_id' => $child_process->id, ':parent_id' => $this->id];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to assign child to process');
+	}
 
+	function children(){
+		if (!isset($this->children)) $this->children = Process::load(['parent'=>$this->id]);
+		return $this->children;	
+	}
+	
 	function connectors($id = null){
 		if (!isset($this->connectors)) $this->connectors = Connector::load(['process_id'=>$this->id]);
 		if ($id) return $this->connectors[$id];
@@ -489,6 +509,10 @@ class Process{
 					$link_sql = 'UPDATE models_processes SET';
 					$link_args = [':pid'=>$this->id,':mid'=>$this->model_id];
 				}
+				if (isset($this->parent_process)) {
+					$link_sql = 'UPDATE child_processes SET';
+					$link_args = [':pid'=>$this->id,':parent'=>$this->parent_process];
+				}
 				
 				$process_args = [':id'=>$this->id];
 				
@@ -509,8 +533,9 @@ class Process{
 				}
 				
 				if ($link_sql && count($link_args)>2){
-					$link_sql = rtrim($link_sql,',').' WHERE process_id = :pid AND model_id = :mid';
-					//debug(query_insert($link_sql.' ',$link_args),1);
+					$link_sql = rtrim($link_sql,',').' WHERE process_id = :pid';
+					if (isset($this->model_id)) $link_sql .= ' AND model_id = :mid';
+					if (isset($this->parent_process)) $link_sql .= ' AND parent_process = :parent';
 					$query = $db->prepare($link_sql);
 					assert($query->execute($link_args),'Was no able to update process link in database!');						
 				}
@@ -532,6 +557,36 @@ class Process{
 		}
 	}
 
+	function svg(){ ?>
+		<g>
+			<circle
+					class="process"
+					cx="<?= $this->x ?>"
+					cy="<?= $this->y ?>"
+					r="<?= $this->r?>"
+					id="<?= isset($this->parent_process)?'child_':''?>process_<?= $this->id ?>">
+				<title><?= $this->description ?></title>
+			</circle>
+			<text x="<?= $this->x ?>" y="<?= $this->y ?>" fill="red"><?= $this->name ?></text>
+			<?php foreach ($this->connectors() as $conn){ ?>
+			<a xlink:href="flow_to_connector/<?= $this->id ?>.<?= $conn->id ?>">
+				<circle
+						class="connector"
+						cx="<?= $this->x ?>"
+						cy="<?= $this->y - $this->r ?>"
+						r="10"
+						id="connector_<?= $this->id ?>.<?= $conn->id ?>"
+						transform="rotate(<?= $conn->angle ?>,<?= $this->x ?>,<?= $this->y ?>)">
+					<title><?= $conn->name ?></title>
+				</circle>
+			</a>	
+			<?php } // foreach connector 
+			foreach ($this->children() as $child){
+				$child->svg();
+			}	
+			?>
+		</g>
+	<?php }
 }
 
 class Terminal{
@@ -566,8 +621,8 @@ class Terminal{
 		
 		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 
-/*		$single = false;
-		if (isset($options['ids'])){
+		$single = false;
+/*		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
 				$single = true;
@@ -656,4 +711,47 @@ class Terminal{
 			$this->id = $db->lastInsertId();
 		}
 	}
+	
+	public function svg(){ ?>
+	<g>
+		<?php if (!$this->type) { ?>
+		<rect
+				class="terminal"
+				x="<?= $this->x?>"
+				y="<?= $this->y?>"
+				width="<?= $this->w ?>"
+				height="30"
+				id="terminal_<?= $this->id ?>">
+			<title><?= $this->description ?></title>
+		</rect>
+		<text x="<?= $this->x + $this->w/2 ?>" y="<?= $this->y + 15 ?>" fill="red"><?= $this->name ?></text>
+		<?php } else { ?>
+		<ellipse
+				 cx="<?= $this->x + $this->w/2 ?>"
+				 cy="<?= $this->y + 40 ?>"
+				 rx="<?= $this->w/2?>"
+				 ry="15">
+			<title><?= $this->description ?></title>
+		</ellipse>
+		<rect
+				class="terminal"
+				x="<?= $this->x?>"
+				y="<?= $this->y ?>"
+				width="<?= $this->w ?>"
+				height="40"
+			  	stroke-dasharray="0,<?= $this->w ?>,40,<?= $this->w ?>,40"
+				id="terminal_<?= $this->id ?>">
+			<title><?= $this->description ?></title>
+		</rect>
+		<ellipse
+				 cx="<?= $this->x + $this->w/2 ?>"
+				 cy="<?= $this->y ?>"
+				 rx="<?= $this->w/2?>"
+				 ry="15">
+			<title><?= $this->description ?></title>
+		</ellipse>
+		<text x="<?= $this->x + $this->w/2 ?>" y="<?= $this->y + 30 ?>" fill="red"><?= $this->name ?></text>
+		<?php } ?>
+	</g>
+	<?php }
 }
