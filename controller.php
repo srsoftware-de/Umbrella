@@ -60,6 +60,7 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO times (user_id, subject, start_time, state) VALUES (:uid, :subj, :start, :state)');
 		assert($query->execute(array(':uid'=>$user_id,':subj'=>t('new time'),':start'=>time(),':state'=>TIME_STATUS_STARTED)),'Was not able to create new time entry!');
+		return $db->lastInsertId();
 	}
 
 	function drop_time($time_id = null){
