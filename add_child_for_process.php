@@ -18,7 +18,9 @@ if (!$process_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$process = $model->processes($process_id);
+$process_hierarchy = explode('.',$process_id);
+$process = $model->processes(array_shift($process_hierarchy));
+while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 if ($name = param('name')){
 	$child = new Process();
