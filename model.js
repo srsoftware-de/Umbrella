@@ -4,11 +4,87 @@ var DragGroup = null;
 var PointGrabbed = null;
 var GroupOrigin = null;
 
-function Init(evt){
+function drag(evt){
+	// if we don't currently have an element in tow, don't do anything
+	if (DragGroup){
+		var x = GroupOrigin.x + evt.offsetX - PointGrabbed.x;
+		var y = GroupOrigin.y + evt.offsetY - PointGrabbed.y;
+		DragGroup.setAttributeNS(null, 'transform', 'translate(' + x + ',' + y + ')');
+	}
+}
+
+function drop(evt){
+	// if we aren't currently dragging an element, don't do anything
+	if ( DragGroup )	{
+		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
+		var elem = getMainComponent(DragGroup);
+		if (elem != null){
+			var x = GroupOrigin.x + evt.offsetX - PointGrabbed.x;
+			var y = GroupOrigin.y + evt.offsetY - PointGrabbed.y;
+			updateElement(elem,{x: x, y: y});
+		}
+		DragGroup = null;
+	}
+}
+
+function getMainComponent(group){
+	var children = group.children;
+	for (var i=0; i<children.length; i++){
+		var child = children[i];
+		if (child.hasAttribute('id')) return child;
+	}
+	return null;
+}
+
+function getTranslation(elem){
+	if (!elem.hasAttribute('transform')) return {x:0, y:0};
+	var trans = elem.getAttribute('transform');
+	var parts  = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(trans);
+	return {x:+parts[1], y:+parts[2]};
+}
+
+function grab(evt){
+	if (evt.button != 0) return; // only respond to right button
+
+	if (evt.target == BackDrop) return; // don't drag the background
+
+	if (evt.target.getAttribute('class') == 'connector') return; // don't drag connectors
+
+	DragGroup = evt.target;
+
+	// only move groups
+	while (DragGroup.nodeName != 'g'){
+		DragGroup = DragGroup.parentNode;
+		if (DragGroup == null) return;
+	}
+
+	// move this element to the "top" of the display, so it is (almost)
+	DragGroup.parentNode.appendChild( DragGroup );
+
+	// turn off all pointer events to the dragged element, this does 2 things:
+	DragGroup.setAttributeNS(null, 'pointer-events', 'none');
+
+	PointGrabbed = {x: evt.offsetX, y: evt.offsetY};
+	GroupOrigin = getTranslation(DragGroup);
+}
+
+function initSVG(evt){
 	BackDrop = evt.target.ownerDocument.getElementById('backdrop');
 }
 
-function Wheel(evt){
+function updateElement(elem,data){
+	var script = 'update_'+elem.id.replace(/_([^_]*)$/,'/$1');
+	$.ajax({
+		url: script,
+		method: 'POST',
+		data: data,
+		complete: function(a,b){
+			location.reload();
+		}
+	});
+}
+
+function wheel(evt){
 	var elem = evt.target;
 	var cls = elem.getAttribute('class');
 
@@ -59,79 +135,3 @@ function Wheel(evt){
 		}
 	}
 }
-
-function updateElement(elem,data){
-	var script = 'update_'+elem.id.replace(/_([^_]*)$/,'/$1');
-	$.ajax({
-		url: script,
-		method: 'POST',
-		data: data,
-		complete: function(a,b){
-			location.reload();
-		}
-	});
-}
-
-function getTranslation(elem){
-	if (!elem.hasAttribute('transform')) return {x:0, y:0};
-	var trans = elem.getAttribute('transform');
-	var parts  = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(trans);
-	return {x:+parts[1], y:+parts[2]};
-}
-
-function Grab(evt){
-	if (evt.button != 0) return; // only respond to right button
-
-	if (evt.target == BackDrop) return; // don't drag the background
-
-	if (evt.target.getAttribute('class') == 'connector') return; // don't drag connectors
-
-	DragGroup = evt.target;
-
-	// only move groups
-	while (DragGroup.nodeName != 'g'){
-		DragGroup = DragGroup.parentNode;
-		if (DragGroup == null) return;
-	}
-
-	// move this element to the "top" of the display, so it is (almost)
-	DragGroup.parentNode.appendChild( DragGroup );
-
-	// turn off all pointer events to the dragged element, this does 2 things:
-	DragGroup.setAttributeNS(null, 'pointer-events', 'none');
-
-	PointGrabbed = {x: evt.offsetX, y: evt.offsetY};
-	GroupOrigin = getTranslation(DragGroup);
-};
-
-
-function Drag(evt){
-	// if we don't currently have an element in tow, don't do anything
-	if (DragGroup){
-		var x = GroupOrigin.x + evt.offsetX - PointGrabbed.x;
-		var y = GroupOrigin.y + evt.offsetY - PointGrabbed.y;
-		DragGroup.setAttributeNS(null, 'transform', 'translate(' + x + ',' + y + ')');
-	}
-};
-
-function getMainComponent(group){
-	var children = group.children;
-	for (var i=0; i<children.length; i++){
-		var child = children[i];
-		if (child.hasAttribute('id')) return child;
-	}
-	return null;
-}
-function Drop(evt){
-	// if we aren't currently dragging an element, don't do anything
-	if ( DragGroup )	{
-		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
-		var elem = getMainComponent(DragGroup);
-		if (elem != null){
-			var x = GroupOrigin.x + evt.offsetX - PointGrabbed.x;
-			var y = GroupOrigin.y + evt.offsetY - PointGrabbed.y;
-			updateElement(elem,{x: x, y: y});
-		}
-		DragGroup = null;
-	}
-};

@@ -82,11 +82,11 @@ include '../common_templates/messages.php'; ?>
 			<svg
 				 width="100%"
 				 viewbox="0 0 1000 1000"
-				 onload="Init(evt)"
-				 onmousedown="Grab(evt)"
-				 onmousemove="Drag(evt)"
-				 onmouseup="Drop(evt)"
-				 onmousewheel="Wheel(evt)">
+				 onload="initSVG(evt)"
+				 onmousedown="grab(evt)"
+				 onmousemove="drag(evt)"
+				 onmouseup="drop(evt)"
+				 onmousewheel="wheel(evt)">
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
