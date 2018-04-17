@@ -121,7 +121,7 @@ include '../common_templates/messages.php'; ?>
 					} // foreach connector
 				} // foreach process?>
 
-				<?php foreach ($model->processes() as $process){ 
+				<?php foreach ($model->processes() as $process){
 					$process->svg();
 				} // foreach process
 
@@ -132,4 +132,4 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 </table>
-<?php debug($model);include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php';

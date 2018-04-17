@@ -19,9 +19,15 @@ function drop(evt){
 		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
 		var elem = getMainComponent(DragGroup);
 		if (elem != null){
-			var x = GroupOrigin.x + evt.offsetX - PointGrabbed.x;
-			var y = GroupOrigin.y + evt.offsetY - PointGrabbed.y;
-			updateElement(elem,{x: x, y: y});
+			var moveX = evt.offsetX - PointGrabbed.x;
+			var moveY = evt.offsetY - PointGrabbed.y;
+			if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) {
+				location.href = elem.id.replace(/_([^_]*)$/,'/$1');
+			} else {
+				var x = GroupOrigin.x + moveX;
+				var y = GroupOrigin.y + moveY;
+				updateElement(elem,{x: x, y: y});
+			}
 		}
 		DragGroup = null;
 	}

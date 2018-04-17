@@ -17,15 +17,19 @@ if (!$process_id){
 	redirect(getUrl('model'));
 }
 
+$model = Model::load(['ids'=>$model_id]);
+$process_hierarchy = explode('.',$process_id);
+$process = $model->processes(array_shift($process_hierarchy));
+while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
+
 if ($name = param('name')){
 	$connector = new Connector();
 	$connector->patch($_POST);
+	$connector->patch(['process_id'=>$process->id]);
 	$connector->save();
 	redirect('../process/'.$process_id);
 }
 
-$model = Model::load(['ids'=>$model_id]);
-$process = $model->processes($process_id);
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';

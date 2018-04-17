@@ -17,8 +17,12 @@ if (!$process_id){
 	redirect(getUrl('model'));
 }
 
+
+
 $model = Model::load(['ids'=>$model_id]);
-$process = $model->processes($process_id);
+$process_hierarchy = explode('.',$process_id);
+$process = $model->processes(array_shift($process_hierarchy));
+while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 $connectors = $process->connectors();
 
@@ -33,9 +37,9 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Process')?></th>
 		<td>
 			<span class="right symbol">
-				<a href="../edit_process/<?= $process->id ?>" title="<?= t('edit')?>"></a>
-				<a href="../connect_process/<?= $process->id ?>" title="<?= t('add connector')?>"></a>
-				<a href="../add_child_for_process/<?= $process->id ?>" title="<?= t('add child process')?>"></a>
+				<a href="../edit_process/<?= $process_id ?>" title="<?= t('edit')?>"></a>
+				<a href="../connect_process/<?= $process_id ?>" title="<?= t('add connector')?>"></a>
+				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add child process')?>"></a>
 			</span>
 			<h1><?= $process->name ?></h1>
 		</td>
@@ -66,7 +70,9 @@ include '../common_templates/messages.php'; ?>
 		<td class="process_children">
 			<ul>
 			<?php foreach ($process->children() as $child) { ?>
-				<li title="<?= $child->description ?>"><?= $child->name ?></li>
+				<li title="<?= $child->description ?>">
+					<a href="<?= $process->id ?>.<?= $child->id ?>"><?= $child->name ?></a>
+				</li>
 			<?php } ?>
 			</ul>
 		</td>
@@ -85,6 +91,4 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 </table>
-<?php
-debug($process); 
-include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php';

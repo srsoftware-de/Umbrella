@@ -474,9 +474,10 @@ class Process{
 		assert($query->execute($args),'Was not able to assign child to process');
 	}
 
-	function children(){
+	function children($id = null){
 		if (!isset($this->children)) $this->children = Process::load(['parent'=>$this->id]);
-		return $this->children;	
+		if ($id) return $this->children[$id];
+		return $this->children;
 	}
 
 	function connectors($id = null){
@@ -559,9 +560,11 @@ class Process{
 			$rad = $parent->r;
 			$this->x = $this->x < -$rad ? -$rad : ($this->x > $rad ? $rad : $this->x);
 			$this->y = $this->y < -$rad ? -$rad : ($this->y > $rad ? $rad : $this->y);
+			$this->path = $parent->path . '.' . $this->id;
 		} else {
 			$this->x = $this->x < 0 ? 0 : ($this->x > 1000 ? 1000 : $this->x);
 			$this->y = $this->y < 0 ? 0 : ($this->y > 1000 ? 1000 : $this->y);
+			$this->path = $this->id;
 		}
 		?>
 		<g transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
@@ -570,18 +573,18 @@ class Process{
 					cx="0"
 					cy="0"
 					r="<?= $this->r?>"
-					id="<?= isset($this->parent_process)?'child_':''?>process_<?= $this->id ?>">
+					id="process_<?= $this->path ?>">
 				<title><?= $this->description ?></title>
 			</circle>
 			<text x="0" y="0" fill="red"><?= $this->name ?></text>
 			<?php foreach ($this->connectors() as $conn){ ?>
-			<a xlink:href="flow_to_connector/<?= $this->id ?>.<?= $conn->id ?>">
+			<a xlink:href="flow_to_connector/<?= $this->path ?>.<?= $conn->id ?>">
 				<circle
 						class="connector"
 						cx="0"
 						cy="<?= -$this->r ?>"
 						r="10"
-						id="connector_<?= $this->id ?>.<?= $conn->id ?>"
+						id="connector_<?= $this->path ?>.<?= $conn->id ?>"
 						transform="rotate(<?= $conn->angle ?>,0,0)">
 					<title><?= $conn->name ?></title>
 				</circle>
