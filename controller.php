@@ -51,15 +51,22 @@ function get_or_create_db(){
 }
 
 function arrow($x1,$y1,$x2,$y2){ ?>
-<line
-	x1="<?= $x1 ?>"
-	y1="<?= $y1 ?>"
-	x2="<?= $x2 ?>"
-	y2="<?= $y2 ?>"
-	style="stroke:rgb(255,0,0);stroke-width:2" />
-<?php }
+<line class="arrow" x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" /><?php	 
+	$dx = $x2 - $x1;
+	$dy = $y2 - $y1;
+	$alpha = ($dy == 0) ? 0 : atan($dx/$dy);
+	$x1 = $x2 - 25*sin($alpha+0.4);
+	$y1 = $y2 - 25*cos($alpha+0.4); ?>
+<line class="arrow" x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" /><?php
+		$x1 = $x2 - 25*sin($alpha-0.4);
+		$y1 = $y2 - 25*cos($alpha-0.4); ?>
+<line class="arrow" x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" /><?php
+}
 
 class Connector{
+	const DIR_IN = 0;
+	const DIR_OUT = 1;
+	
 	/* static functions */
 	static function fields(){
 		return [
@@ -116,7 +123,6 @@ class Connector{
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if ($key === 'direction') $val = $val == 'in'||$val==1;
 			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
@@ -588,7 +594,7 @@ class Process{
 					id="process_<?= $this->path ?>">
 				<title><?= $this->description ?></title>
 			</circle>
-			<text x="0" y="0" fill="red">P<?= $this->id ?></text>
+			<text x="0" y="0" fill="red"><?= $this->name ?></text>
 			<?php foreach ($this->connectors() as $conn){
 				
 				foreach ($conn->flows() as $flow){
@@ -597,17 +603,17 @@ class Process{
 					if ($flow->end_type == Flow::TO_TERMINAL) continue;
 					if ($flow->end_id != $conn->id) continue;
 
-					$x1 = $this->r*sin($conn->angle*RAD);
-					$y1 = -$this->r*cos($conn->angle*RAD);
-
 					$c2 = $parent->connectors($flow->start_id);
-					$x2 = -$this->x + $parent->r * sin($c2->angle*RAD);
-					$y2 = -$this->y - $parent->r * cos($c2->angle*RAD);;
-
+					$x1 = -$this->x + $parent->r * sin($c2->angle*RAD);
+					$y1 = -$this->y - $parent->r * cos($c2->angle*RAD);;
+					
+					$x2 = $this->r*sin($conn->angle*RAD);
+					$y2 = -$this->r*cos($conn->angle*RAD);
+						
 					arrow($x1, $y1, $x2, $y2);
 				}
 			?>
-			<a xlink:href="connect_in/<?= $this->path ?>.<?= $conn->id ?>">
+			<a xlink:href="connect_<?= $conn->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $this->path ?>.<?= $conn->id ?>">
 				<circle
 						class="connector"
 						cx="0"
@@ -618,7 +624,6 @@ class Process{
 					<title><?= $conn->name ?></title>
 				</circle>
 			</a>
-			<text x="<?= 30+$this->r*sin($conn->angle*RAD) ?>" y="<?= -10-$this->r*cos($conn->angle*RAD) ?>">C<?= $conn->id ?></text>
 			<?php } // foreach connector
 			foreach ($this->children() as $child){
 				$child->svg($this);

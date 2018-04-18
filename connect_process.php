@@ -53,11 +53,11 @@ include '../common_templates/messages.php'; ?>
 		</label>
 		<p>
 			<label>
-				<input type="radio" name="direction" value="in" checked="checked">
+				<input type="radio" name="direction" value="<?= Connector::DIR_IN ?>" checked="checked">
 				<?= t('inbound connector') ?>
 			</label>
 			<label>
-				<input type="radio" name="direction" value="out">
+				<input type="radio" name="direction" value="<?= Connector::DIR_OUT ?>">
 				<?= t('outbound connector') ?>
 			</label>
 		</p>

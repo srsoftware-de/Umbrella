@@ -31,20 +31,19 @@ if ($endpoint = param('endpoint')){
 			'name'=>$name,
 			'definition'=>param('definition'),
 			'description'=>param('description'),
+			'end_type'   =>Flow::TO_CONNECTOR,
 		];
 		
 		switch ($endpoint_type){
 			case Flow::TO_CONNECTOR:
 				$data['start_type'] = Flow::TO_CONNECTOR;
 				$data['start_id']   = $conn_id;
-				$data['end_type']   = Flow::TO_CONNECTOR;
 				$data['end_id']     = $endpoint_id;
 				break;
 			case Flow::TO_TERMINAL:
 				$data['start_type'] = Flow::TO_TERMINAL;
 				$data['start_id']   = $endpoint_id;
-				$data['end_type']   = Flow::TO_CONNECTOR;
-				$data['end_id']     = $conn_id;				
+				$data['end_id']     = $conn_id;
 				break;
 		}
 		

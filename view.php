@@ -90,24 +90,18 @@ include '../common_templates/messages.php'; ?>
 
 				<?php foreach ($model->processes() as $process){
 					if ($process->parent_process) continue; // only draw top level processes here. Children are handeled by process->svg();
-						foreach ($process->connectors() as $conn){
-							foreach ($conn->flows() as $flow){
-								if ($flow->start_type != Flow::TO_TERMINAL) continue;
-								$terminal = $model->terminals($flow->start_id);
-								$x1 = $terminal->x + $terminal->w/2;
-								$y1 = $terminal->y + 15;
+					foreach ($process->connectors() as $conn){
+						foreach ($conn->flows() as $flow){
+							if ($flow->start_type != Flow::TO_TERMINAL) continue;
+							$terminal = $model->terminals($flow->start_id);
+							$x1 = $terminal->x + $terminal->w/2;
+							$y1 = $terminal->y + 15;
 
-								$x2 = $process->x + sin($conn->angle*RAD)*$process->r;
-								$y2 = $process->y - cos($conn->angle*RAD)*$process->r;
-							?>
-					  <line
-							x1="<?= $x1 ?>"
-							y1="<?= $y1 ?>"
-							x2="<?= $x2 ?>"
-							y2="<?= $y2 ?>"
-							style="stroke:rgb(255,0,0);stroke-width:2" />
-
-					<?php } // foreach flow
+							$x2 = $process->x + sin($conn->angle*RAD)*$process->r;
+							$y2 = $process->y - cos($conn->angle*RAD)*$process->r;
+							
+							arrow($x1,$y1,$x2,$y2);
+						 } // foreach flow
 					} // foreach connector
 				} // foreach process?>
 
