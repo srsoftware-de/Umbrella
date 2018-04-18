@@ -1,4 +1,7 @@
 <?php
+
+const RAD = 0.01745329;
+
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create model/db directory!');
 	assert(is_writable('db'),'Directory model/db not writable!');
@@ -46,6 +49,15 @@ function get_or_create_db(){
 	}
 	return $db;
 }
+
+function arrow($x1,$y1,$x2,$y2){ ?>
+<line
+	x1="<?= $x1 ?>"
+	y1="<?= $y1 ?>"
+	x2="<?= $x2 ?>"
+	y2="<?= $y2 ?>"
+	style="stroke:rgb(255,0,0);stroke-width:2" />
+<?php }
 
 class Connector{
 	/* static functions */
@@ -144,8 +156,8 @@ class Connector{
 
 class Flow{
 	/** static **/
-	const ENDS_IN_CONNECTOR= 0;
-	const ENDS_IN_TERMINAL = 1;
+	const TO_CONNECTOR = 0;
+	const TO_TERMINAL = 1;
 	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
@@ -165,8 +177,8 @@ class Flow{
 		assert(isset($options['connector']),'No connector id passed to Connector::load()!');
 
 		$sql = 'SELECT * FROM flows
-				WHERE (start_type = '.Flow::ENDS_IN_CONNECTOR.' AND start_id = ?)
-				   OR (end_type = '.Flow::ENDS_IN_CONNECTOR.' AND end_id = ?)';
+				WHERE (start_type = '.Flow::TO_CONNECTOR.' AND start_id = ?)
+				   OR (end_type = '.Flow::TO_CONNECTOR.' AND end_id = ?)';
 		$args = [$options['connector'],$options['connector']];
 
 		$single = false;
@@ -387,7 +399,7 @@ class Model{
 		return $this->terminals;
 	}
 
-	public function processes($id = null){		
+	public function processes($id = null){
 		if (!isset($this->processes)) $this->processes = Process::load(['model_id'=>$this->id]);
 		if ($id) return $this->processes[$id];
 		return $this->processes;
@@ -576,9 +588,26 @@ class Process{
 					id="process_<?= $this->path ?>">
 				<title><?= $this->description ?></title>
 			</circle>
-			<text x="0" y="0" fill="red"><?= $this->name ?></text>
-			<?php foreach ($this->connectors() as $conn){ ?>
-			<a xlink:href="flow_to_connector/<?= $this->path ?>.<?= $conn->id ?>">
+			<text x="0" y="0" fill="red">P<?= $this->id ?></text>
+			<?php foreach ($this->connectors() as $conn){
+				
+				foreach ($conn->flows() as $flow){
+					
+					if ($flow->start_type == Flow::TO_TERMINAL) continue;
+					if ($flow->end_type == Flow::TO_TERMINAL) continue;
+					if ($flow->end_id != $conn->id) continue;
+
+					$x1 = $this->r*sin($conn->angle*RAD);
+					$y1 = -$this->r*cos($conn->angle*RAD);
+
+					$c2 = $parent->connectors($flow->start_id);
+					$x2 = -$this->x + $parent->r * sin($c2->angle*RAD);
+					$y2 = -$this->y - $parent->r * cos($c2->angle*RAD);;
+
+					arrow($x1, $y1, $x2, $y2);
+				}
+			?>
+			<a xlink:href="connect_in/<?= $this->path ?>.<?= $conn->id ?>">
 				<circle
 						class="connector"
 						cx="0"
@@ -589,6 +618,7 @@ class Process{
 					<title><?= $conn->name ?></title>
 				</circle>
 			</a>
+			<text x="<?= 30+$this->r*sin($conn->angle*RAD) ?>" y="<?= -10-$this->r*cos($conn->angle*RAD) ?>">C<?= $conn->id ?></text>
 			<?php } // foreach connector
 			foreach ($this->children() as $child){
 				$child->svg($this);

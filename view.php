@@ -12,8 +12,6 @@ if ($model_id = param('id')){
 	redirect(getUrl('model'));
 }
 
-$rad = 0.01745329;
-
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
@@ -90,26 +88,18 @@ include '../common_templates/messages.php'; ?>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
-				<?php foreach ($model->processes() as $process){ ?>
+				<?php foreach ($model->processes() as $process){
+					if ($process->parent_process) continue; // only draw top level processes here. Children are handeled by process->svg();
+						foreach ($process->connectors() as $conn){
+							foreach ($conn->flows() as $flow){
+								if ($flow->start_type != Flow::TO_TERMINAL) continue;
+								$terminal = $model->terminals($flow->start_id);
+								$x1 = $terminal->x + $terminal->w/2;
+								$y1 = $terminal->y + 15;
 
-					<?php foreach ($process->connectors() as $conn){ ?>
-
-					<?php foreach ($conn->flows() as $flow){
-						$x1 = 0;
-						$y1 = 0;
-						if ($flow->start_type == Flow::ENDS_IN_TERMINAL){
-							$terminal = $model->terminals($flow->start_id);
-							$x1 = $terminal->x + $terminal->w/2;
-							$y1 = $terminal->y + 15;
-						} else {
-							$connector = $model->findConnector($flow->start_id);
-							$proc = $model->processes($connector->process_id);
-							$x1 = $proc->x + sin($connector->angle*$rad)*$proc->r;
-							$y1 = $proc->y - cos($connector->angle*$rad)*$proc->r;
-						}
-						$x2 = $process->x + sin($conn->angle*$rad)*$process->r;
-						$y2 = $process->y - cos($conn->angle*$rad)*$process->r;
-					?>
+								$x2 = $process->x + sin($conn->angle*RAD)*$process->r;
+								$y2 = $process->y - cos($conn->angle*RAD)*$process->r;
+							?>
 					  <line
 							x1="<?= $x1 ?>"
 							y1="<?= $y1 ?>"
