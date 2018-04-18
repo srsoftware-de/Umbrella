@@ -600,17 +600,31 @@ class Process{
 				foreach ($conn->flows() as $flow){
 					
 					if ($flow->start_type == Flow::TO_TERMINAL) continue;
-					if ($flow->end_type == Flow::TO_TERMINAL) continue;
-					if ($flow->end_id != $conn->id) continue;
-
-					$c2 = $parent->connectors($flow->start_id);
-					$x1 = -$this->x + $parent->r * sin($c2->angle*RAD);
-					$y1 = -$this->y - $parent->r * cos($c2->angle*RAD);;
+					if ($flow->end_type == Flow::TO_TERMINAL) continue;					
 					
-					$x2 = $this->r*sin($conn->angle*RAD);
-					$y2 = -$this->r*cos($conn->angle*RAD);
+					if ($conn->direction){
+						if ($flow->start_id != $conn->id) continue;
+						$c2 = $parent->connectors($flow->end_id);
+						$x1 = $this->r*sin($conn->angle*RAD);
+						$y1 = -$this->r*cos($conn->angle*RAD);
 						
-					arrow($x1, $y1, $x2, $y2);
+						$x2 = -$this->x + $parent->r * sin($c2->angle*RAD);
+						$y2 = -$this->y - $parent->r * cos($c2->angle*RAD);;
+						
+							
+						arrow($x1, $y1, $x2, $y2);
+
+					} else {
+						if ($flow->end_id != $conn->id) continue;
+						$c2 = $parent->connectors($flow->start_id);
+						$x1 = -$this->x + $parent->r * sin($c2->angle*RAD);
+						$y1 = -$this->y - $parent->r * cos($c2->angle*RAD);;
+						
+						$x2 = $this->r*sin($conn->angle*RAD);
+						$y2 = -$this->r*cos($conn->angle*RAD);
+							
+						arrow($x1, $y1, $x2, $y2);
+					}
 				}
 			?>
 			<a xlink:href="connect_<?= $conn->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $this->path ?>.<?= $conn->id ?>">

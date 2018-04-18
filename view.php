@@ -89,18 +89,31 @@ include '../common_templates/messages.php'; ?>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
 				<?php foreach ($model->processes() as $process){
-					if ($process->parent_process) continue; // only draw top level processes here. Children are handeled by process->svg();
+					if (isset($process->parent_process)) continue; // only draw top level processes here. Children are handeled by process->svg();
 					foreach ($process->connectors() as $conn){
 						foreach ($conn->flows() as $flow){
-							if ($flow->start_type != Flow::TO_TERMINAL) continue;
-							$terminal = $model->terminals($flow->start_id);
-							$x1 = $terminal->x + $terminal->w/2;
-							$y1 = $terminal->y + 15;
+							if ($flow->start_type == Flow::TO_TERMINAL){
+								$terminal = $model->terminals($flow->start_id);
+								$x2 = $process->x + sin($conn->angle*RAD)*$process->r;
+								$y2 = $process->y - cos($conn->angle*RAD)*$process->r;
+								
+								$x1 = $terminal->x + $terminal->w/2;
+								$y1 = $terminal->y + ($terminal->y > $y2 ? 0 : 30);
 
-							$x2 = $process->x + sin($conn->angle*RAD)*$process->r;
-							$y2 = $process->y - cos($conn->angle*RAD)*$process->r;
+								arrow($x1,$y1,$x2,$y2);
+							}
 							
-							arrow($x1,$y1,$x2,$y2);
+							if ($flow->end_type == Flow::TO_TERMINAL){
+								$terminal = $model->terminals($flow->end_id);							
+								$x1 = $process->x + sin($conn->angle*RAD)*$process->r;
+								$y1 = $process->y - cos($conn->angle*RAD)*$process->r;
+								
+								$x2 = $terminal->x + $terminal->w/2;
+								$y2 = $terminal->y + ($terminal->y > $y1 ? 0 : 30);
+								
+								arrow($x1,$y1,$x2,$y2);
+							}
+								
 						 } // foreach flow
 					} // foreach connector
 				} // foreach process?>

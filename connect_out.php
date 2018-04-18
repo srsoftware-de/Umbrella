@@ -31,19 +31,19 @@ if ($endpoint = param('endpoint')){
 			'name'=>$name,
 			'definition'=>param('definition'),
 			'description'=>param('description'),
-			'end_type'   =>Flow::TO_CONNECTOR,
+			'start_type'   =>Flow::TO_CONNECTOR,
 		];
 		
 		switch ($endpoint_type){
 			case Flow::TO_CONNECTOR:
-				$data['start_type'] = Flow::TO_CONNECTOR;
-				$data['start_id']   = $conn_id;
-				$data['end_id']     = $endpoint_id;
+				$data['end_type'] = Flow::TO_CONNECTOR;
+				$data['end_id']   = $conn_id;
+				$data['start_id']     = $endpoint_id;
 				break;
 			case Flow::TO_TERMINAL:
-				$data['start_type'] = Flow::TO_TERMINAL;
-				$data['start_id']   = $endpoint_id;
-				$data['end_id']     = $conn_id;
+				$data['end_type'] = Flow::TO_TERMINAL;
+				$data['end_id']   = $endpoint_id;
+				$data['start_id']     = $conn_id;
 				break;
 		}
 		
@@ -55,7 +55,7 @@ if ($endpoint = param('endpoint')){
 		warn('Pleas set at least a name for the flow');
 	}
 } else {
-	warn('Please select starting point for flow');
+	warn('Please select end point for flow');
 }
 
 info('This Module is not functional, yet.');
@@ -67,7 +67,7 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 <fieldset>
 	<legend>
-		<?= t('Select source for flow to connector "?"',$conn->name); ?>
+		<?= t('Select sink for flow from connector "?"',$conn->name); ?>
 	</legend>
 	<label>
 		<?= t('Name') ?><input type="text" name="name" />
@@ -85,7 +85,7 @@ include '../common_templates/messages.php'; ?>
 			<?= t('Child process: ?',$child->name) ?>
 		</legend>
 		<ul>
-			<?php foreach ($child->connectors() as $conn){ if ($conn->direction) continue; ?>
+			<?php foreach ($child->connectors() as $conn){ if (!$conn->direction) continue; ?>
 			<li>
 				<label>
 					<input type="radio" name="endpoint" value="<?= Flow::TO_CONNECTOR.'.'.$conn->id ?>" />
