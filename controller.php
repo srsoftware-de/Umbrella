@@ -50,17 +50,18 @@ function get_or_create_db(){
 	return $db;
 }
 
-function arrow($x1,$y1,$x2,$y2){ ?>
-<line class="arrow" x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" /><?php	 
-	$dx = $x2 - $x1;
-	$dy = $y2 - $y1;
-	$alpha = ($dy == 0) ? 0 : atan($dx/$dy);
-	$x1 = $x2 - 25*sin($alpha+0.4);
-	$y1 = $y2 - 25*cos($alpha+0.4); ?>
-<line class="arrow" x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" /><?php
-		$x1 = $x2 - 25*sin($alpha-0.4);
-		$y1 = $y2 - 25*cos($alpha-0.4); ?>
-<line class="arrow" x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" /><?php
+function arrow($x1,$y1,$x2,$y2,$text = null,$link = null){
+if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
+<g class="arrow">
+<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
+<?php $dx = $x2 - $x1; $dy = $y2 - $y1;	$alpha = ($dy == 0) ? 0 : atan($dx/$dy); $x1 = $x2 - 25*sin($alpha+0.4); $y1 = $y2 - 25*cos($alpha+0.4); ?>
+<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="10" />	
+<text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?></text>
+<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
+<?php $x1 = $x2 - 25*sin($alpha-0.4); $y1 = $y2 - 25*cos($alpha-0.4); ?>
+<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
+</g>
+<?php if ($link){ ?></a><?php } 
 }
 
 class Connector{
@@ -164,6 +165,7 @@ class Flow{
 	/** static **/
 	const TO_CONNECTOR = 0;
 	const TO_TERMINAL = 1;
+	const TO_SIBLING = 2;
 	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
@@ -177,14 +179,13 @@ class Flow{
 		];
 	}
 
-	/** instance methods **/
-		static function load($options = []){
+	static function load($options = []){
 		$db = get_or_create_db();
 		assert(isset($options['connector']),'No connector id passed to Connector::load()!');
 
 		$sql = 'SELECT * FROM flows
-				WHERE (start_type = '.Flow::TO_CONNECTOR.' AND start_id = ?)
-				   OR (end_type = '.Flow::TO_CONNECTOR.' AND end_id = ?)';
+				WHERE ((start_type = '.Flow::TO_CONNECTOR.' AND start_id = ?)
+				   OR (end_type = '.Flow::TO_CONNECTOR.' AND end_id = ?))';
 		$args = [$options['connector'],$options['connector']];
 
 		$single = false;
@@ -195,7 +196,7 @@ class Flow{
 				$ids = [$ids];
 			}
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
 		$query = $db->prepare($sql);
@@ -213,6 +214,15 @@ class Flow{
 		return $flows;
 	}
 
+	/** instance methods **/
+	function delete(){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM flows WHERE id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query, $args));
+		assert($query->execute($args),t('Was not able to remove flow "?" from database.',$this->name));
+	}
+	
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -367,7 +377,13 @@ class Model{
 			$this->{$key} = $val;
 		}
 	}
-
+	
+	public function processes($id = null){
+		if (!isset($this->processes)) $this->processes = Process::load(['model_id'=>$this->id]);
+		if ($id) return $this->processes[$id];
+		return $this->processes;
+	}
+	
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
@@ -498,7 +514,10 @@ class Process{
 
 	function connectors($id = null){
 		if (!isset($this->connectors)) $this->connectors = Connector::load(['process_id'=>$this->id]);
-		if ($id) return $this->connectors[$id];
+		if ($id) {
+			if (array_key_exists($id, $this->connectors)) return $this->connectors[$id];
+			return null;
+		}
 		return $this->connectors;
 	}
 
@@ -571,12 +590,12 @@ class Process{
 		}
 	}
 
-	function svg($parent = null){
-		if ($parent){
-			$rad = $parent->r;
+	function svg(&$model){
+		if ($this->parent){
+			$rad = $this->parent->r;
 			$this->x = $this->x < -$rad ? -$rad : ($this->x > $rad ? $rad : $this->x);
 			$this->y = $this->y < -$rad ? -$rad : ($this->y > $rad ? $rad : $this->y);
-			$this->path = $parent->path . '.' . $this->id;
+			$this->path = $this->parent->path . '.' . $this->id;
 		} else {
 			$this->x = $this->x < 0 ? 0 : ($this->x > 1000 ? 1000 : $this->x);
 			$this->y = $this->y < 0 ? 0 : ($this->y > 1000 ? 1000 : $this->y);
@@ -594,34 +613,84 @@ class Process{
 			</circle>
 			<text x="0" y="0" fill="red"><?= $this->name ?></text>
 			<?php foreach ($this->connectors() as $conn){
-				
-				foreach ($conn->flows() as $flow){
-					
-					if ($flow->start_type == Flow::TO_TERMINAL) continue;
-					if ($flow->end_type == Flow::TO_TERMINAL) continue;					
-					
-					if ($conn->direction){
-						if ($flow->start_id != $conn->id) continue;
-						$c2 = $parent->connectors($flow->end_id);
-						$x1 = $this->r*sin($conn->angle*RAD);
-						$y1 = -$this->r*cos($conn->angle*RAD);
-						
-						$x2 = -$this->x + $parent->r * sin($c2->angle*RAD);
-						$y2 = -$this->y - $parent->r * cos($c2->angle*RAD);;
-						
-							
-						arrow($x1, $y1, $x2, $y2);
 
-					} else {
-						if ($flow->end_id != $conn->id) continue;
-						$c2 = $parent->connectors($flow->start_id);
-						$x1 = -$this->x + $parent->r * sin($c2->angle*RAD);
-						$y1 = -$this->y - $parent->r * cos($c2->angle*RAD);;
+				foreach ($conn->flows() as $flow){
+
+					if ($flow->start_type == Flow::TO_TERMINAL){
+						$terminal = $model->terminals($flow->start_id);
+						$x2 =  sin($conn->angle*RAD)*$this->r;
+						$y2 = -cos($conn->angle*RAD)*$this->r;
+					
+						$x1 = -$this->x + $terminal->x + $terminal->w/2;
+						$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30);
+					
+						$parent = $this->parent;
+						while ($parent){
+							$x1 -= $parent->x;
+							$y1 -= $parent->y;
+							$parent = $parent->parent;
+						}
 						
-						$x2 = $this->r*sin($conn->angle*RAD);
-						$y2 = -$this->r*cos($conn->angle*RAD);
-							
-						arrow($x1, $y1, $x2, $y2);
+						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+						continue;
+					}
+						
+					if ($flow->end_type == Flow::TO_TERMINAL){
+						$terminal = $model->terminals($flow->end_id);
+						
+						$x1 = + sin($conn->angle*RAD)*$this->r;
+						$y1 = - cos($conn->angle*RAD)*$this->r;
+						
+						$x2 = -$this->x + $terminal->x + $terminal->w/2;
+						$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
+						
+						$parent = $this->parent;
+						while ($parent){
+							$x2 -= $parent->x;
+							$y2 -= $parent->y;
+							$parent = $parent->parent;
+						}
+
+						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+						continue;
+					}
+					
+					if ($conn->direction){ // OUT
+						if ($flow->start_id != $conn->id) continue;
+						$c2 = $this->parent->connectors($flow->end_id);
+						if ($c2){ // flow goes to connector of parent
+							$x1 = $this->r*sin($conn->angle*RAD);
+							$y1 = -$this->r*cos($conn->angle*RAD);
+
+							$x2 = -$this->x + $this->parent->r * sin($c2->angle*RAD);
+							$y2 = -$this->y - $this->parent->r * cos($c2->angle*RAD);
+
+							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+						}
+					} else { // IN
+						if ($flow->end_id != $conn->id) continue;
+						$c2 = $this->parent->connectors($flow->start_id);
+						if ($c2 === null){
+							foreach ($this->parent->children() as $sibling){
+								$c2 = $sibling->connectors($flow->start_id);
+								if ($c2) break;
+							}
+							$x1 = -$this->x + $sibling->x + $sibling->r * sin($c2->angle*RAD);
+							$y1 = -$this->y + $sibling->y - $sibling->r * cos($c2->angle*RAD);
+
+							$x2 = $this->r*sin($conn->angle*RAD);
+							$y2 = -$this->r*cos($conn->angle*RAD);
+
+							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+						} else { // flow comes from connector of parent
+							$x1 = -$this->x + $this->parent->r * sin($c2->angle*RAD);
+							$y1 = -$this->y - $this->parent->r * cos($c2->angle*RAD);;
+
+							$x2 = $this->r*sin($conn->angle*RAD);
+							$y2 = -$this->r*cos($conn->angle*RAD);
+
+							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+						}
 					}
 				}
 			?>
@@ -630,7 +699,7 @@ class Process{
 						class="connector"
 						cx="0"
 						cy="<?= -$this->r ?>"
-						r="10"
+						r="15"
 						id="connector_<?= $this->path ?>.<?= $conn->id ?>"
 						transform="rotate(<?= $conn->angle ?>,0,0)">
 					<title><?= $conn->name ?></title>
@@ -638,7 +707,8 @@ class Process{
 			</a>
 			<?php } // foreach connector
 			foreach ($this->children() as $child){
-				$child->svg($this);
+				$child->parent = &$this;
+				$child->svg($model,$this);
 			}
 			?>
 		</g>

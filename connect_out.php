@@ -96,7 +96,6 @@ include '../common_templates/messages.php'; ?>
 		</ul>
 	</fieldset>
 	<?php } ?>
-	<?php if (!$process->parent_process) { ?>
 	<fieldset>
 		<legend>
 			<?= t('Terminals') ?>
@@ -112,7 +111,6 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 		</ul>
 	</fieldset>
-	<?php } ?>
 	<button type="submit">
 		<?= t('Add flow') ?>
 	</button>

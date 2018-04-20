@@ -84,7 +84,7 @@ include '../common_templates/messages.php'; ?>
 				 onmousedown="grab(evt)"
 				 onmousemove="drag(evt)"
 				 onmouseup="drop(evt)"
-				 onmousewheel="wheel(evt)">
+				 onwheel="wheel(evt)">
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
@@ -103,16 +103,6 @@ include '../common_templates/messages.php'; ?>
 								arrow($x1,$y1,$x2,$y2);
 							}
 							
-							if ($flow->end_type == Flow::TO_TERMINAL){
-								$terminal = $model->terminals($flow->end_id);							
-								$x1 = $process->x + sin($conn->angle*RAD)*$process->r;
-								$y1 = $process->y - cos($conn->angle*RAD)*$process->r;
-								
-								$x2 = $terminal->x + $terminal->w/2;
-								$y2 = $terminal->y + ($terminal->y > $y1 ? 0 : 30);
-								
-								arrow($x1,$y1,$x2,$y2);
-							}
 								
 						 } // foreach flow
 					} // foreach connector

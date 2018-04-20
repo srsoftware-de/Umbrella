@@ -45,6 +45,11 @@ if ($endpoint = param('endpoint')){
 				$data['start_id']   = $endpoint_id;
 				$data['end_id']     = $conn_id;
 				break;
+			case Flow::TO_SIBLING:
+				$data['start_type'] = Flow::TO_CONNECTOR;
+				$data['start_id']   = $endpoint_id;
+				$data['end_id']     = $conn_id;;
+				break;
 		}
 		
 		$flow = new Flow();
@@ -96,7 +101,31 @@ include '../common_templates/messages.php'; ?>
 		</ul>
 	</fieldset>
 	<?php } ?>
-	<?php if (!$process->parent_process) { ?>
+	<?php if ($process->parent_process) { ?>
+	<fieldset>
+		<legend>
+			<?= t('Siblings') ?>
+		</legend>
+		<ul>
+			<?php foreach ($process->parent->children() as $sibling){
+				if ($process == $sibling) continue; 
+			?>
+			<li><?= $sibling->name ?>
+				<ul>
+				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->direction) continue; ?>
+				<li>
+					<label>
+						<input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.'.'.$conn->id ?>" />
+						<?= $conn->name ?> (<?= $conn->id ?>)
+					</label>
+				</li>
+				<?php } ?>
+			</ul>
+			</li>
+			<?php } ?>
+		</ul>
+	</fieldset>	
+	<?php } ?>
 	<fieldset>
 		<legend>
 			<?= t('Terminals') ?>
@@ -112,7 +141,6 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 		</ul>
 	</fieldset>
-	<?php } ?>
 	<button type="submit">
 		<?= t('Add flow') ?>
 	</button>
