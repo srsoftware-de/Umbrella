@@ -373,6 +373,14 @@ function address_from_vcard($vcard){
 	return $result;
 }
 
+function html2plain($text){
+	$text = str_replace(['<br/>','<br />','<br>'],"\n",$text);
+	$text = str_replace(['<li>'],"- ",$text);
+	$text = str_replace(['</li>','<ul>','</ul>'],'',$text);
+	$text = str_replace('"','""',$text);
+	return $text;
+}
+
 assert_options(ASSERT_ACTIVE,   true);
 assert_options(ASSERT_BAIL,     false);
 assert_options(ASSERT_WARNING,  true);

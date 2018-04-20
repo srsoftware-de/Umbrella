@@ -1,0 +1,46 @@
+.arrow{
+	stroke: blue;
+	stroke-width: 2;
+}
+circle, ellipse, rect{
+	stroke: black;
+	stroke-width: 2;
+}
+ellipse,
+circle.process{
+	fill: rgba(255,255,255,0.5);
+}
+rect.terminal{
+	fill: white;
+}
+circle.connector{
+	fill: rgba(0,0,0,0.05);
+	stroke: none;
+}
+circle.connector:hover{
+	fill: rgba(0,0,0,0.6);
+	r: 30;
+}
+text{
+	text-anchor:middle;
+	alignment-baseline:middle;
+	font-size:16;
+}
+
+#backdrop{
+	fill: transparent;
+}
+
+.arrow circle{
+	stroke: none;
+	fill: white;
+}
+.arrow text{
+	fill: blue;
+	stroke: none;
+}
+
+.arrow:hover circle{
+	fill: rgba(0,0,255,0.3);
+	r: 50;
+}
