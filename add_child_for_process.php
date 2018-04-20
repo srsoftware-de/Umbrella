@@ -27,7 +27,7 @@ if ($name = param('name')){
 	$child->patch($_POST);
 	$child->save();
 	$process->addChild($child);
-	redirect('../process/'.$process_id);
+	redirect($model->url());
 }
 
 info('This Module is not functional, yet.');

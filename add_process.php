@@ -9,7 +9,7 @@ if ($model_id = param('id')){
 	$model = Model::load(['ids'=>$model_id]);
 } else {
 	error('No Model id passed to add_process!');
-	redirect('index');
+	redirect($model->url());
 }
 
 if ($name = param('name')){
@@ -17,7 +17,7 @@ if ($name = param('name')){
 	$process->patch($_POST);
 	$process->save();
 	$model->link($process);
-	redirect('view');
+	redirect($model->url());
 }
 include '../common_templates/head.php';
 

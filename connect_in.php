@@ -50,7 +50,7 @@ if ($endpoint = param('endpoint')){
 		$flow = new Flow();
 		$flow->patch($data);
 		$flow->save();
-		redirect(getUrl('model',$model_id.'/view'));
+		redirect($model->url());
 	} else {
 		warn('Pleas set at least a name for the flow');
 	}

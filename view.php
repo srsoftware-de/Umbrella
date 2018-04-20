@@ -119,7 +119,7 @@ include '../common_templates/messages.php'; ?>
 				} // foreach process?>
 
 				<?php foreach ($model->processes() as $process){
-					$process->svg();
+					$process->svg($model);
 				} // foreach process
 
 				foreach ($model->terminals() as $term){

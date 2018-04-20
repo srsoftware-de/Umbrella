@@ -27,7 +27,7 @@ if ($name = param('name')){
 	$connector->patch($_POST);
 	$connector->patch(['process_id'=>$process->id]);
 	$connector->save();
-	redirect('../process/'.$process_id);
+	redirect($model->url());
 }
 
 

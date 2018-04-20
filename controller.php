@@ -405,10 +405,8 @@ class Model{
 		return $this->terminals;
 	}
 
-	public function processes($id = null){
-		if (!isset($this->processes)) $this->processes = Process::load(['model_id'=>$this->id]);
-		if ($id) return $this->processes[$id];
-		return $this->processes;
+	public function url(){
+		return getUrl('model',$this->id.'/view');
 	}
 }
 
