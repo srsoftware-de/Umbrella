@@ -41,9 +41,7 @@ if ($action == 'delete'){?>
 		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?"><?= t('No')?></a>
 	</fieldset>
-<?php }
-
-?>
+<?php } ?>
 
 
 <table class="vertical model" style="width: 100%">

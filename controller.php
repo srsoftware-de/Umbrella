@@ -54,11 +54,11 @@ function arrow($x1,$y1,$x2,$y2,$text = null,$link = null){
 if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 <g class="arrow">
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
-<?php $dx = $x2 - $x1; $dy = $y2 - $y1;	$alpha = ($dy == 0) ? 0 : atan($dx/$dy); $x1 = $x2 - 25*sin($alpha+0.4); $y1 = $y2 - 25*cos($alpha+0.4); ?>
-<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="10" />	
+<?php $dx = $x2 - $x1; $dy = $y2 - $y1;	$alpha = ($dy == 0) ? 0 : atan($dx/$dy); $x1 = $x2 - 25*sin($alpha+0.2); $y1 = $y2 - 25*cos($alpha+0.2); ?>
+<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="15" />	
 <text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?></text>
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
-<?php $x1 = $x2 - 25*sin($alpha-0.4); $y1 = $y2 - 25*cos($alpha-0.4); ?>
+<?php $x1 = $x2 - 25*sin($alpha-0.2); $y1 = $y2 - 25*cos($alpha-0.2); ?>
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
 </g>
 <?php if ($link){ ?></a><?php } 
@@ -115,6 +115,15 @@ class Connector{
 	}
 
 	/* instance methods */
+	function delete(){
+		foreach ($this->flows() as $flow) $flow->delete();
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM connectors WHERE id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query, $args));
+		assert($query->execute($args),t('Was not able to remove connector "?" from database.',$this->name));
+	}
+	
 	function flows(){
 		if (!isset($this->flows)) $this->flows = Flow::load(['connector'=>$this->id]);
 		return $this->flows;
@@ -520,6 +529,15 @@ class Process{
 		}
 		return $this->connectors;
 	}
+	
+	function delete(){
+		foreach ($this->connectors() as $conn) $conn->delete();
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM processes WHERE id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query, $args));
+		assert($query->execute($args),t('Was not able to remove process "?" from database.',$this->name));
+	}
 
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
@@ -602,16 +620,16 @@ class Process{
 			$this->path = $this->id;
 		}
 		?>
-		<g transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
+		<g class="process" transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
 			<circle
 					class="process"
 					cx="0"
 					cy="0"
 					r="<?= $this->r?>"
 					id="process_<?= $this->path ?>">
-				<title><?= $this->description ?></title>
+				<title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
-			<text x="0" y="0" fill="red"><?= $this->name ?></text>
+			<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text>
 			<?php foreach ($this->connectors() as $conn){
 
 				foreach ($conn->flows() as $flow){
@@ -850,7 +868,7 @@ class Terminal{
 				id="terminal_<?= $this->id ?>">
 			<title><?= $this->description ?></title>
 		</rect>
-		<text x="<?= $this->w/2 ?>" y="15" fill="red"><?= $this->name ?></text>
+		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
 		<?php } else { ?>
 		<ellipse
 				 cx="<?= $this->w/2 ?>"
@@ -876,7 +894,7 @@ class Terminal{
 				 ry="15">
 			<title><?= $this->description ?></title>
 		</ellipse>
-		<text x="<?= $this->w/2 ?>" y="30" fill="red"><?= $this->name ?></text>
+		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
 		<?php } ?>
 	</g>
 	<?php }

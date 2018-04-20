@@ -23,7 +23,7 @@ $terminal = $model->terminals($terminal_id);
 if (param('name')){
 	$terminal->patch($_POST);
 	$terminal->save();
-	redirect('../terminal/'.$terminal_id);
+	redirect($model->url());
 }
 
 info('This Module is not functional, yet.');

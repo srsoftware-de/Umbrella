@@ -24,13 +24,28 @@ $process_hierarchy = explode('.',$process_id);
 $process = $model->processes(array_shift($process_hierarchy));
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
+$action = param('action');
+if ($action == 'delete' && param('confirm')=='true'){
+	$process->delete();
+	redirect($model->url());
+}
+
 $connectors = $process->connectors();
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php'; 
+
+if ($action == 'delete'){?>
+	<fieldset>
+		<legend><?= t('Delete "?"',$process->name)?></legend>
+		<?= t('You are about to delete the process "?". Are you sure you want to proceed?',$process->name) ?>
+		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
+		<a class="button" href="?"><?= t('No')?></a>
+	</fieldset>
+<?php } ?>
 
 <table class="vertical process">
 	<tr>
@@ -40,6 +55,7 @@ include '../common_templates/messages.php'; ?>
 				<a href="../edit_process/<?= $process_id ?>" title="<?= t('edit')?>"></a>
 				<a href="../connect_process/<?= $process_id ?>" title="<?= t('add connector')?>"></a>
 				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add child process')?>"></a>
+				<a title="delete" href="?action=delete"></a>
 			</span>
 			<h1><?= $process->name ?></h1>
 		</td>
