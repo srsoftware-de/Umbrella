@@ -47,8 +47,8 @@ include '../common_templates/messages.php'; ?>
 		</label>
 		<label>
 			<?= t('Position') ?>
-			<input type="number" min="0" step="1" name="x" value="<?= round($process->x) ?>" />
-			<input type="number" min="0" step="1" name="y" value="<?= round($process->y)	 ?>" />
+			<input type="number" step="1" name="x" value="<?= round($process->x) ?>" />
+			<input type="number" step="1" name="y" value="<?= round($process->y)	 ?>" />
 		</label>
 		<button type="submit">
 			<?= t('Save'); ?>

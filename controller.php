@@ -591,7 +591,7 @@ class Process{
 	}
 
 	function svg(&$model){
-		if ($this->parent){
+		if (isset($this->parent)){
 			$rad = $this->parent->r;
 			$this->x = $this->x < -$rad ? -$rad : ($this->x > $rad ? $rad : $this->x);
 			$this->y = $this->y < -$rad ? -$rad : ($this->y > $rad ? $rad : $this->y);
@@ -644,7 +644,7 @@ class Process{
 						$x2 = -$this->x + $terminal->x + $terminal->w/2;
 						$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
 						
-						$parent = $this->parent;
+						$parent = isset($this->parent) ? $this->parent: false;
 						while ($parent){
 							$x2 -= $parent->x;
 							$y2 -= $parent->y;

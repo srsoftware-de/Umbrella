@@ -22,7 +22,6 @@ if ($name = param('name')){
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
@@ -47,4 +46,4 @@ include '../common_templates/messages.php'; ?>
 	</form>
 </fieldset>
 
-<?php include '../common_templates/bottom.php';
+<?php include '../common_templates/closure.php';

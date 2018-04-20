@@ -71,7 +71,7 @@ include '../common_templates/messages.php'; ?>
 			<ul>
 			<?php foreach ($process->children() as $child) { ?>
 				<li title="<?= $child->description ?>">
-					<a href="<?= $process->id ?>.<?= $child->id ?>"><?= $child->name ?></a>
+					<a href="<?= $process_id ?>.<?= $child->id ?>"><?= $child->name ?></a>
 				</li>
 			<?php } ?>
 			</ul>
