@@ -6,10 +6,12 @@ include 'controller.php';
 require_login('model');
 
 $model_id = param('id1');
-$id2 = param('id2');
-assert(strpos($id2,'.')!==false,'Parameter does not refer to process.connector');
-$process_hierarchy = explode('.',$id2);
-$conn_id = array_pop($process_hierarchy); // last part
+$endpoint_path = param('id2');
+assert(strpos($endpoint_path,':')!==false,'Parameter does not refer to process:connector');
+$endpoint_path_parts = explode(':',$endpoint_path);
+$connector_id = array_pop($endpoint_path_parts); // last part
+$process_path = array_pop($endpoint_path_parts);
+$process_hierarchy = explode('.',$process_path);
 
 $model = Model::load(['ids'=>$model_id]);
 $process = $model->processes(array_shift($process_hierarchy));
@@ -19,36 +21,41 @@ while(!empty($process_hierarchy)) {
 	$process = $child;
 }
 
-$conn = $process->connectors($conn_id);
+$conn = $process->connectors($connector_id);
 
 if ($endpoint = param('endpoint')){
 	if ($name = param('name')){
-		$endpoint = explode('.', $endpoint);
+		$endpoint = explode(':', $endpoint);
 		$endpoint_type = array_shift($endpoint);
-		$endpoint_id = array_shift($endpoint);
 		
 		$data = [
 			'name'=>$name,
 			'definition'=>param('definition'),
 			'description'=>param('description'),
-			'end_type'   =>Flow::TO_CONNECTOR,
 		];
-		
 		switch ($endpoint_type){
 			case Flow::TO_CONNECTOR:
-				$data['start_type'] = Flow::TO_CONNECTOR;
-				$data['start_id']   = $conn_id;
-				$data['end_id']     = $endpoint_id;
+				$target_proc = array_shift($endpoint);
+				$target_conn = array_shift($endpoint);
+				$data['start_process'] = $model->id.':'.$process_path;
+				$data['start_id']   = $connector_id;
+				$data['end_process'] = $model->id.':'.$target_proc; 
+				$data['end_id']     = $target_conn;
 				break;
 			case Flow::TO_TERMINAL:
-				$data['start_type'] = Flow::TO_TERMINAL;
-				$data['start_id']   = $endpoint_id;
-				$data['end_id']     = $conn_id;
+				$target_term = array_shift($endpoint);
+				$data['start_process'] = null;
+				$data['start_id']   = $target_term;
+				$data['end_process'] = $model->id.':'.$process_path;
+				$data['end_id']     = $connector_id;
 				break;
 			case Flow::TO_SIBLING:
-				$data['start_type'] = Flow::TO_CONNECTOR;
-				$data['start_id']   = $endpoint_id;
-				$data['end_id']     = $conn_id;;
+				$target_proc = array_shift($endpoint);
+				$target_conn = array_shift($endpoint);
+				$data['start_process'] = $model->id.':'.$target_proc;
+				$data['start_id']   = $target_conn;
+				$data['end_process'] = $model->id.':'.$process_path;
+				$data['end_id']     = $connector_id;;
 				break;
 		}
 		
@@ -84,40 +91,38 @@ include '../common_templates/messages.php'; ?>
 		<?= t('Description') ?><textarea name="description"></textarea>
 	</label>
 
-	<?php if ($process->children()) foreach ($process->children() as $child){ ?>
+	<?php if ($process->children()) foreach ($process->children() as $child_process){ ?>
 	<fieldset>
 		<legend>
-			<?= t('Child process: ?',$child->name) ?>
+			<?= t('Child process: ?',$child_process->name) ?>
 		</legend>
 		<ul>
-			<?php foreach ($child->connectors() as $conn){ if ($conn->direction) continue; ?>
+			<?php foreach ($child_process->connectors() as $conn){ if ($conn->direction) continue; ?>
 			<li>
-				<label>
-					<input type="radio" name="endpoint" value="<?= Flow::TO_CONNECTOR.'.'.$conn->id ?>" />
-					<?= $conn->name ?>
-				</label>
+				<label><input type="radio" name="endpoint" value="<?= Flow::TO_CONNECTOR.':'.$process_path.'.'.$child_process->id.':'.$conn->id ?>" /> <?= $conn->name ?> (<?= $conn->id ?>)</label>
 			</li>
 			<?php } ?>
 		</ul>
 	</fieldset>
 	<?php } ?>
-	<?php if ($process->parent_process) { ?>
+	<?php if ($process->parent_process) { 
+		$process_path = explode('.', $process_path);
+		array_pop($process_path);
+		$process_path = implode('.', $process_path);
+	?>
 	<fieldset>
 		<legend>
 			<?= t('Siblings') ?>
 		</legend>
 		<ul>
-			<?php foreach ($process->parent->children() as $sibling){
+			<?php foreach ($process->parent->children() as $sibling){				
 				if ($process == $sibling) continue; 
 			?>
 			<li><?= $sibling->name ?>
 				<ul>
 				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->direction) continue; ?>
 				<li>
-					<label>
-						<input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.'.'.$conn->id ?>" />
-						<?= $conn->name ?> (<?= $conn->id ?>)
-					</label>
+					<label><input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.':'.$process_path.'.'.$sibling->id.':'.$conn->id ?>" /> <?= $conn->name ?> (<?= $conn->id ?>)</label>
 				</li>
 				<?php } ?>
 			</ul>
@@ -134,7 +139,7 @@ include '../common_templates/messages.php'; ?>
 			<?php foreach ($model->terminals() as $term){ ?>
 			<li>
 				<label>
-					<input type="radio" name="endpoint" value="<?= Flow::TO_TERMINAL.'.'.$term->id ?>" />
+					<input type="radio" name="endpoint" value="<?= Flow::TO_TERMINAL.':'.$term->id ?>" />
 					<?= $term->name ?>
 				</label>
 			</li>
@@ -147,7 +152,4 @@ include '../common_templates/messages.php'; ?>
 </fieldset>
 </form>
 
-<?php
-debug(['prc'=>$process,'model'=>$model,'con'=>$conn]);
-
-include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php'; ?>

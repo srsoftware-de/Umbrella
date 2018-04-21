@@ -53,8 +53,9 @@ if ($action == 'delete'){?>
 		<td>
 			<span class="right symbol">
 				<a href="../edit_process/<?= $process_id ?>" title="<?= t('edit')?>"></a>
-				<a href="../connect_process/<?= $process_id ?>" title="<?= t('add connector')?>"></a>
-				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add child process')?>"></a>
+				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add connector')?>"></a>
+				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add new child process')?>"></a>
+				<a href="../add_existing_process/<?= $process_id ?>" title="<?= t('add existing process')?>"></a>
 				<a title="delete" href="?action=delete"></a>
 			</span>
 			<h1><?= $process->name ?></h1>

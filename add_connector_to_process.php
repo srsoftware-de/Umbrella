@@ -25,7 +25,7 @@ while(!empty($process_hierarchy)) $process = $process->children(array_shift($pro
 if ($name = param('name')){
 	$connector = new Connector();
 	$connector->patch($_POST);
-	$connector->patch(['process_id'=>$process->id]);
+	$connector->patch(['process_id'=>$process->id,'angle'=>180*param('direction')]);	
 	$connector->save();
 	redirect($model->url());
 }
@@ -61,10 +61,6 @@ include '../common_templates/messages.php'; ?>
 				<?= t('outbound connector') ?>
 			</label>
 		</p>
-		<label>
-			<?= t('Position') ?>
-			<input type="number" value="0" name="angle" />°
-		</label>
 		<button type="submit">
 			<?= t('Save'); ?>
 		</button>

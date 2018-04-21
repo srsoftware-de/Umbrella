@@ -78,7 +78,6 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Display') ?></th>
 		<td>
 			<svg
-				 width="100%"
 				 viewbox="0 0 1000 1000"
 				 onload="initSVG(evt)"
 				 onmousedown="grab(evt)"

@@ -55,11 +55,12 @@ if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 <g class="arrow">
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
 <?php $dx = $x2 - $x1; $dy = $y2 - $y1;	$alpha = ($dy == 0) ? 0 : atan($dx/$dy); $x1 = $x2 - 25*sin($alpha+0.2); $y1 = $y2 - 25*cos($alpha+0.2); ?>
-<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="15" />	
-<text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?></text>
+	
+
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
 <?php $x1 = $x2 - 25*sin($alpha-0.2); $y1 = $y2 - 25*cos($alpha-0.2); ?>
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
+<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="15" /><text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?></text>
 </g>
 <?php if ($link){ ?></a><?php } 
 }
@@ -125,7 +126,7 @@ class Connector{
 	}
 	
 	function flows(){
-		if (!isset($this->flows)) $this->flows = Flow::load(['connector'=>$this->id]);
+		if (!isset($this->flows) && isset($this->process)) $this->flows = Flow::load(['process'=>$this->process,'connector'=>$this->id]);
 		return $this->flows;
 	}
 
@@ -178,10 +179,10 @@ class Flow{
 	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'start_type' => ['INT','NOT NULL','DEFAULT 0'],
-			'start_id' => ['INT','NOT NULL'],
-			'end_type' => ['INT','NOT NULL','DEFAULT 0'],
-			'end_id' => ['INT','NOT NULL'],
+			'start_process' => ['VARCHAR'=>255], // null for terminals
+			'start_id' => ['INT','NOT NULL'], // terminal id or connector id
+			'end_process' => ['VARCHAR'=>255], // null for terminals
+			'end_id' => ['INT','NOT NULL'], // terminal id or connector id
 			'name' => ['VARCHAR'=>255, 'NOT NULL'],
 			'description' => ['TEXT'],
 			'definition' => ['TEXT'],
@@ -190,12 +191,11 @@ class Flow{
 
 	static function load($options = []){
 		$db = get_or_create_db();
+		assert(isset($options['process']),'No process path passed to Connector::load()!');
 		assert(isset($options['connector']),'No connector id passed to Connector::load()!');
 
-		$sql = 'SELECT * FROM flows
-				WHERE ((start_type = '.Flow::TO_CONNECTOR.' AND start_id = ?)
-				   OR (end_type = '.Flow::TO_CONNECTOR.' AND end_id = ?))';
-		$args = [$options['connector'],$options['connector']];
+		$sql = 'SELECT * FROM flows WHERE ((start_process = ? AND start_id = ?) OR (end_process = ? AND end_id = ?))';
+		$args = [$options['process'],$options['connector'],$options['process'],$options['connector']];
 
 		$single = false;
 		if (isset($options['ids'])){
@@ -208,6 +208,7 @@ class Flow{
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -228,7 +229,6 @@ class Flow{
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM flows WHERE id = :id');
 		$args = [':id'=>$this->id];
-		debug(query_insert($query, $args));
 		assert($query->execute($args),t('Was not able to remove flow "?" from database.',$this->name));
 	}
 	
@@ -310,6 +310,16 @@ class Model{
 
 		if (!isset($projects)) $projects = request('project','json');
 		$project_ids = array_keys($projects);
+		
+		if (isset($options['project_id'])){
+			if (in_array($options['project_id'], $project_ids)) {
+				$project_ids = [$options['project_id']];
+			} else {
+				error('You are not allowed to access the project (?)!',$options['project_id']);
+				return null;
+			}
+		}
+		
 		$qMarks = str_repeat('?,', count($project_ids)-1).'?';
 		$sql = 'SELECT * FROM models WHERE project_id IN ('.$qMarks.')';
 		$args = $project_ids;
@@ -507,10 +517,10 @@ class Process{
 	}
 
 	/** instance functions **/
-	function addChild($child_process){
+	function addChild($child_process_id){
 		$db = get_or_create_db();
 		$sql = 'INSERT INTO child_processes (process_id, parent_process) VALUES (:child_id, :parent_id)';
-		$args = [':child_id' => $child_process->id, ':parent_id' => $this->id];
+		$args = [':child_id' => $child_process_id, ':parent_id' => $this->id];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to assign child to process');
 	}
@@ -631,10 +641,9 @@ class Process{
 			</circle>
 			<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text>
 			<?php foreach ($this->connectors() as $conn){
-
+				$conn->process = $model->id.':'.$this->path;
 				foreach ($conn->flows() as $flow){
-
-					if ($flow->start_type == Flow::TO_TERMINAL){
+					if ($flow->start_process == null){
 						$terminal = $model->terminals($flow->start_id);
 						$x2 =  sin($conn->angle*RAD)*$this->r;
 						$y2 = -cos($conn->angle*RAD)*$this->r;
@@ -649,11 +658,11 @@ class Process{
 							$parent = $parent->parent;
 						}
 						
-						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						continue;
 					}
 						
-					if ($flow->end_type == Flow::TO_TERMINAL){
+					if ($flow->end_process == null){
 						$terminal = $model->terminals($flow->end_id);
 						
 						$x1 = + sin($conn->angle*RAD)*$this->r;
@@ -669,12 +678,17 @@ class Process{
 							$parent = $parent->parent;
 						}
 
-						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						continue;
 					}
+
 					
+					/*debug($this,false,['connectors','parent']);
+					debug($conn,false,'flows');
+					debug($flow,true);*/
+
 					if ($conn->direction){ // OUT
-						if ($flow->start_id != $conn->id) continue;
+						if ($flow->start_process != $conn->process) continue;
 						$c2 = $this->parent->connectors($flow->end_id);
 						if ($c2){ // flow goes to connector of parent
 							$x1 = $this->r*sin($conn->angle*RAD);
@@ -683,10 +697,10 @@ class Process{
 							$x2 = -$this->x + $this->parent->r * sin($c2->angle*RAD);
 							$y2 = -$this->y - $this->parent->r * cos($c2->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						}
 					} else { // IN
-						if ($flow->end_id != $conn->id) continue;
+						if ($flow->end_process != $conn->process) continue;
 						$c2 = $this->parent->connectors($flow->start_id);
 						if ($c2 === null){
 							foreach ($this->parent->children() as $sibling){
@@ -699,7 +713,7 @@ class Process{
 							$x2 = $this->r*sin($conn->angle*RAD);
 							$y2 = -$this->r*cos($conn->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						} else { // flow comes from connector of parent
 							$x1 = -$this->x + $this->parent->r * sin($c2->angle*RAD);
 							$y1 = -$this->y - $this->parent->r * cos($c2->angle*RAD);;
@@ -707,18 +721,18 @@ class Process{
 							$x2 = $this->r*sin($conn->angle*RAD);
 							$y2 = -$this->r*cos($conn->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.'.'.$conn->id.'.'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						}
 					}
 				}
 			?>
-			<a xlink:href="connect_<?= $conn->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $this->path ?>.<?= $conn->id ?>">
+			<a xlink:href="connect_<?= $conn->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $this->path ?>:<?= $conn->id ?>">
 				<circle
 						class="connector"
 						cx="0"
 						cy="<?= -$this->r ?>"
 						r="15"
-						id="connector_<?= $this->path ?>.<?= $conn->id ?>"
+						id="connector_<?= $this->path ?>:<?= $conn->id ?>"
 						transform="rotate(<?= $conn->angle ?>,0,0)">
 					<title><?= $conn->name ?></title>
 				</circle>

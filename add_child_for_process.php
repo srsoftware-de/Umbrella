@@ -26,7 +26,7 @@ if ($name = param('name')){
 	$child = new Process();
 	$child->patch($_POST);
 	$child->save();
-	$process->addChild($child);
+	$process->addChild($child->id);
 	redirect($model->url());
 }
 
