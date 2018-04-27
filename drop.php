@@ -13,9 +13,7 @@ $time = end(load_times(['ids'=>$time_id]));
 $confirm = $time['state'] == TIME_STATUS_STARTED ? 'yes' : null;
 
 if ($confirm = param('confirm', $confirm)){
-	if ($confirm == 'yes'){
-		drop_time($time_id);		
-	}
+	if ($confirm == 'yes') drop_time($time_id);
 	redirect('../index');
 }
 

@@ -33,9 +33,12 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 
-if (!$show_complete){ ?>
+if ($show_complete){ ?>
+<a class="symbol" title="<?= t('export times')?>" href="export?complete=show"></a>
+<?php } else { ?> 
 <a class="symbol" title="<?= t('show completed times') ?>" href="?complete=show"></a>
-<?php }?>
+<a class="symbol" title="<?= t('export times to CSV')?>" href="export"></a>
+<?php } ?>
 
 
 <table>
@@ -70,12 +73,13 @@ if (!$show_complete){ ?>
 		<td><a href="<?= $id ?>/view"><?= $time['start_time']?date('Y-m-d H:i',$time['start_time']):''; ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= $time['end_time']?date('Y-m-d H:i',$time['end_time']):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= $time['end_time']?round(($time['end_time']-$time['start_time'])/3600,2):'' ?></a></td>
-		<td><a href="<?= $id ?>/edit"><?= t(state_Text($time['state'])) ?></a></td>
+		<td><a href="<?= $id ?>/edit"><?= t(state_text($time['state'])) ?></a></td>
 		<td>
 			<?php if ($time['end_time']) { ?>
 			<a class="symbol" title="<?= t('edit') ?>" href="<?= $id ?>/edit"></a>
 			<?php } ?>
 			<a class="symbol" title="<?= t('drop') ?>" href="<?= $id ?>/drop"></a>
+			<a class="symbol" title="<?= t('complete') ?>" href="<?= $id ?>/complete"></a>
 		</td>
 	</tr>
 <?php } ?>

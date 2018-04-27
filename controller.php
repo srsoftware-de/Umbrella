@@ -59,7 +59,7 @@
 		assert(is_numeric($user_id),'No valid user id passed to start_time');
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO times (user_id, subject, start_time, state) VALUES (:uid, :subj, :start, :state)');
-		assert($query->execute(array(':uid'=>$user_id,':subj'=>t('new time'),':start'=>time(),':state'=>TIME_STATUS_STARTED)),'Was not able to create new time entry!');
+		assert($query->execute(array(':uid'=>$user_id,':subj'=>t('started timetrack'),':start'=>time(),':state'=>TIME_STATUS_STARTED)),'Was not able to create new time entry!');
 		return $db->lastInsertId();
 	}
 
@@ -180,7 +180,7 @@
 		return $tracks;
 	}
 
-	function set_state($time_id = null,$state = TIME_STATE_OPEN){
+	function set_state($time_id = null,$state = TIME_STATUS_OPEN){
 		global $user;
 		assert($time_id !== null,'Invalid time id (null) submited to set_state!');
 		if (!is_array($time_id)) $time_id = [$time_id];
