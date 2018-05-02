@@ -13,14 +13,16 @@ if ($model_id = param('id1')){
 }
 
 if ($path = param('id2')){
-	$parts = explode('.',$path);
+	$parts = explode(':',$path);
 	$flow_id = array_pop($parts);
 	$conn_id = array_pop($parts);
-	$flow = Flow::load(['connector'=>$conn_id,'ids'=>$flow_id]);
+	$process_path = array_pop($parts);
+
+	$flow = Flow::load(['connector'=>$conn_id,'ids'=>$flow_id,'process'=>$model_id.':'.$process_path]);
 } else {
 	error('No flow id passed to model/'.$model->id.'/flow!');
 	redirect($model->url());
-} 
+}
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
@@ -46,13 +48,14 @@ if ($action == 'delete'){?>
 
 <table class="vertical model" style="width: 100%">
 	<tr>
-		<th><?= t('Flow')?></th>
+		<th>
+			<?= t('Flow')?></th>
 		<td>
 			<h1><?= $flow->name ?></h1>
 			<span class="right symbol">
+				<a href="../edit_flow/<?= $process_path ?>:<?= $conn_id ?>:<?= $flow_id ?>" title="<?= t('edit')?>"></a>
 				<a title="delete" href="?action=delete"></a>
 			</span>
-			
 		</td>
 	</tr>
 	<tr>
