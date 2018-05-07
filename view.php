@@ -14,19 +14,19 @@ if (!$document) {
 	redirect('..');
 }
 
+$projects = request('project','json',['company_ids'=>$document->company_id]); // get all projects of the documents' company
+$tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
 if ($services['time']){
 	if (isset($document->company_id) && $document->company_id !== null){
-		$projects = request('project','json',['company_ids'=>$document->company_id]); // get all projects of the documents' company
-		$tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
 		$times = request('time','json',['task_ids'=>array_keys($tasks)]); // get all times for tasks of the project
 		$user_ids = [];
 		foreach ($times as $time_id => $time){
-			$user_ids[$time['user_id']] = true;
+			$user_ids[$time['user_id']] = true; // add user id of time to user_ids list
 			foreach ($time['task_ids'] as $task_id){
 				if (!isset($tasks[$task_id])) continue;
-				$task = $tasks[$task_id];
-				$time['tasks'][$task_id] = $task;
-				$project_id = $task['project_id'];
+				$task = $tasks[$task_id]; // search task in task list
+				$time['tasks'][$task_id] = $task; // add task to time
+				$project_id = $task['project_id']; // add time to times of (project of task)
 				$projects[$project_id]['times'][$time_id] = $time;
 			}
 		}
@@ -86,6 +86,44 @@ if (isset($services['items'])){
 	}
 }
 
+if ($selected_tasks = post('tasks')){
+	$item_code = t('offer');
+	$customer_price = CustomerPrice::load($document->company_id,$document->customer_number,$item_code);
+
+	$timetrack_tax = 19.0; // TODO: make adjustable
+	foreach ($selected_tasks as $task_id => $dummy){
+
+		$task = $tasks[$task_id];
+		$duration = $task['est_time']; // TODO: make decimals adjustable
+		$position = new DocumentPosition($document);
+		$position->patch([
+				'item_code'=>$item_code,
+				'amount'=>$duration,
+				'unit'=>t('hours'),
+				'title'=>$task['name'],
+				'description'=>$task['description'],
+				'single_price'=> $customer_price ? $customer_price->single_price : 20*100,
+				'tax'=>$timetrack_tax]);
+		$position->save();
+	}
+	request('time','update_state',['PENDING'=>implode(',',array_keys($selected_times))]);
+}
+
+/* Arrange tasks with estimated time into project tree */
+foreach ($tasks as &$task){
+	if ($task['est_time'] > 0){
+		while ($task['parent_task_id']){
+			$parent = &$tasks[$task['parent_task_id']];
+			$parent['children'][$task['id']] = $task;
+			$task = $parent;
+		}		
+		$project = &$projects[$task['project_id']];
+		$project['timed_tasks'][$task['id']] = $task;
+	}
+}
+
+unset($project);
+
 if ($position_data = post('position')){
 	$positions = $document->positions();
 	foreach ($position_data as $pos => $data){
@@ -114,6 +152,21 @@ if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('document',$id.'/view'));
 	$bookmark = request('bookmark','json_get?id='.$hash);
 }
+
+function show_time_estimates($tasks){ ?>
+	<ul>
+	<?php foreach ($tasks as $task_id => $task) { ?>
+		<li>
+			<label>
+				<input type="checkbox" name="tasks[<?= $task_id?>]" /><?= $task['name']?>
+				<?php if ($task['est_time']>0) { ?><span class="est_time">(<?= $task['est_time'] ?>&nbsp;<?= t('hours')?>)</span><?php } ?>
+				<span class="description"><?= $task['description']?></span>
+				<?php if (isset($task['children'])) show_time_estimates($task['children'])?>
+			</label>
+		</li>
+	<?php }?>
+	</ul>
+<?php }
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -168,7 +221,7 @@ include '../common_templates/messages.php'; ?>
 					<option value="<?= $state ?>" <?= $document->state == $state ? 'selected="true"' :''?> ><?= t($text) ?></option>
 				<?php } ?>
 				</select>
-			<label>
+			</label>
 		</fieldset>
 
 		<fieldset class="header">
@@ -232,7 +285,7 @@ include '../common_templates/messages.php'; ?>
 				<li>
 					<?= t('Timetrack')?>
 					<ul>
-						<?php foreach ($projects as $project_id => $project) {
+						<?php foreach ($projects as $project) {
 							if (!isset($project['times']) || empty($project['times'])) continue;
 						?>
 						<li>
@@ -257,6 +310,17 @@ include '../common_templates/messages.php'; ?>
 								</li>
 							<?php }?>
 							</ul>
+						</li>
+						<?php } // foreach project?>
+					</ul>
+				</li>
+				<li>
+					<?= t('Estimated times')?>
+					<ul>
+						<?php foreach ($projects as $project_id => $prj) { if (!isset($prj['timed_tasks']) || empty($prj['timed_tasks'])) continue;?>
+						<li>
+							<?= $prj['name']?>
+							<?php show_time_estimates($prj['timed_tasks'])?>
 						</li>
 						<?php } // foreach project?>
 					</ul>
@@ -325,6 +389,5 @@ include '../common_templates/messages.php'; ?>
 		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ?',$document->customer_email)?></a>
 	</fieldset>
 </form>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'document:'.$id],false,NO_CONVERSSION);
-
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'document:'.$id],false,NO_CONVERSION);
 include '../common_templates/closure.php';?>
