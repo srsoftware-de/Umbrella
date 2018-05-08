@@ -32,16 +32,16 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Name'); ?></legend>
 		<input type="text" name="name" value="<?= param('name','') ?>" />
 	</fieldset>
-	<fieldset>
-		<legend><?= t('Description'); ?></legend>
-		<textarea name="description"><?= param('description','') ?></textarea>
-	</fieldset>
 	<label>
 		<input type="radio" name="type" checked="true" value="<?= Terminal::TERMINAL ?>"><?= t('Terminal')?>
 	</label>
 	<label>
 		<input type="radio" name="type" value="<?= Terminal::DATABASE ?>"><?= t('Database')?>
 	</label>
+	<fieldset>
+		<legend><?= t('Description'); ?></legend>
+		<textarea name="description"><?= param('description','') ?></textarea>
+	</fieldset>
 	<button type="submit"><?= t('Save') ?></button>
 	</form>
 </fieldset>

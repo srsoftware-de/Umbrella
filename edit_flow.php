@@ -45,7 +45,7 @@ include '../common_templates/messages.php'; ?>
 			<?= t('Name') ?><input type="text" name="name" value="<?= $flow->name ?>"/>
 		</label>
 		<label>
-			<?= t('Definition') ?><input type="text" name="definition" value="<?= $flow->definition ?>" />
+			<?= t('Definition') ?><input type="text" name="definition" value="<?= htmlentities($flow->definition) ?>" />
 		</label>
 		<label>
 			<?= t('Description') ?><textarea name="description"><?= $flow->description ?></textarea>

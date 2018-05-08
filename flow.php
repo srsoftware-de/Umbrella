@@ -81,7 +81,7 @@ if ($action == 'delete'){?>
 	<?php if ($flow->definition){ ?>
 	<tr>
 		<th><?= t('Definition')?></th>
-		<td class="definition"><?= $flow->definition; ?></td>
+		<td class="definition"><?= htmlentities($flow->definition); ?></td>
 	</tr>
 	<?php } ?>
 </table>

@@ -12,21 +12,37 @@ if ($model_id = param('id')){
 	redirect(getUrl('model'));
 }
 
+$action = param('action');
+if ($action == 'delete' && param('confirm')=='true'){
+	$model->delete(); die();	
+	redirect(getUrl('model','?project='.$model->project_id));
+}
+
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php'; 
+
+if ($action == 'delete'){?>
+	<fieldset>
+		<legend><?= t('Delete "?"',$model->name)?></legend>
+		<?= t('You are about to delete the model "?". Are you sure you want to proceed?',$model->name) ?>
+		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
+		<a class="button" href="?"><?= t('No')?></a>
+	</fieldset>
+<?php } ?>
 
 <table class="vertical model" style="width: 100%">
 	<tr>
 		<th><?= t('Model')?></th>
 		<td>
 			<h1><?= $model->name ?></h1>
-			<span class="right">
-				<a title="<?= t('edit')?>"	href="edit"		class="symbol"></a>
-				<a title="<?= t('add terminal')?>" href="add_terminal" class="symbol"></a>
-				<a title="<?= t('add process')?>" href="add_process" class="symbol"></a>
+			<span class="right symbol">
+				<a title="<?= t('edit')?>"	href="edit"></a>
+				<a title="<?= t('add terminal')?>" href="add_terminal"></a>
+				<a title="<?= t('add process')?>" href="add_process"></a>
+				<a title="<?= t('delete model')?>" href="?action=delete"></a>
 			</span>
 		</td>
 	</tr>

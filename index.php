@@ -6,7 +6,9 @@ include 'controller.php';
 require_login('model');
 
 $projects = request('project','json');
-$models = Model::load();
+$options = [];
+if ($project = param('project')) $options['project_id'] = $project;
+$models = Model::load($options);
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';

@@ -20,11 +20,26 @@ if (!$terminal_id){
 $model = Model::load(['ids'=>$model_id]);
 $terminal = $model->terminals($terminal_id);
 
+$action = param('action');
+if ($action == 'delete' && param('confirm')=='true'){
+	$terminal->delete();
+	redirect($model->url());
+}
+
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php';
+
+if ($action == 'delete'){?>
+	<fieldset>
+		<legend><?= t('Delete "?"',$terminal->name)?></legend>
+		<?= t('You are about to delete the terminal "?". Are you sure you want to proceed?',$terminal->name) ?>
+		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
+		<a class="button" href="?"><?= t('No')?></a>
+	</fieldset>
+<?php } ?>
 
 <table class="vertical terminal">
 	<tr>
@@ -32,6 +47,7 @@ include '../common_templates/messages.php'; ?>
 		<td>
 			<span class="right symbol">
 				<a href="../edit_terminal/<?= $terminal->id ?>"></a>
+				<a href="?action=delete"></a>
 			</span>
 			<h1><?= $terminal->name ?></h1>
 		</td>

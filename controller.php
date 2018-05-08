@@ -116,12 +116,12 @@ class Connector{
 	}
 
 	/* instance methods */
-	function delete(){
+	function delete($model_id){
 		foreach ($this->flows() as $flow) $flow->delete();
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM connectors WHERE id = :id');
 		$args = [':id'=>$this->id];
-		debug(query_insert($query, $args));
+		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove connector "?" from database.',$this->name));
 	}
 	
@@ -194,7 +194,7 @@ class Flow{
 		assert(isset($options['process']),'No process path passed to Connector::load()!');
 		assert(isset($options['connector']),'No connector id passed to Connector::load()!');
 
-		$sql = 'SELECT * FROM flows WHERE ((start_process = ? AND start_id = ?) OR (end_process = ? AND end_id = ?))';
+		$sql = 'SELECT * FROM flows WHERE ((start_process = ? AND start_id = ?) OR (end_process = ? AND end_id = ?))';		
 		$args = [$options['process'],$options['connector'],$options['process'],$options['connector']];
 
 		$single = false;
@@ -310,7 +310,7 @@ class Model{
 
 		if (!isset($projects)) $projects = request('project','json');
 		$project_ids = array_keys($projects);
-		
+
 		if (isset($options['project_id'])){
 			if (in_array($options['project_id'], $project_ids)) {
 				$project_ids = [$options['project_id']];
@@ -319,7 +319,7 @@ class Model{
 				return null;
 			}
 		}
-		
+
 		$qMarks = str_repeat('?,', count($project_ids)-1).'?';
 		$sql = 'SELECT * FROM models WHERE project_id IN ('.$qMarks.')';
 		$args = $project_ids;
@@ -358,6 +358,18 @@ class Model{
 		$this->project_id = $project_id;
 		$this->name = $name;
 		$this->description = $description;
+	}
+	
+	function delete(){
+		$db = get_or_create_db();
+		
+		foreach ($this->processes() as $proc) $proc->delete($this->id);
+		foreach ($this->terminals() as $term) $term->delete();
+		
+		$query = $db->prepare('DELETE FROM models WHERE id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove model "?" from database.',$this->name));
 	}
 
 	function findConnector($cid){
@@ -540,15 +552,26 @@ class Process{
 		return $this->connectors;
 	}
 	
-	function delete(){
-		foreach ($this->connectors() as $conn) $conn->delete();
+	function delete($model_id){
+		foreach ($this->children() as $child_process) $child_process->delete($model_id);
+		foreach ($this->connectors() as $conn) $conn->delete($model_id);
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM processes WHERE id = :id');
 		$args = [':id'=>$this->id];
-		debug(query_insert($query, $args));
+		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove process "?" from database.',$this->name));
+		
+		$query = $db->prepare('DELETE FROM child_processes WHERE process_id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove process "?" from database.',$this->name));
+		
+		$query = $db->prepare('DELETE FROM models_processes WHERE process_id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove process "?" from models_processes table.',$this->name));
 	}
-
+	
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
@@ -807,6 +830,26 @@ class Terminal{
 	}
 
 	/** instance functions **/
+	
+	function delete(){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM terminals WHERE id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove terminal "?" from terminals table.',$this->name));
+		
+		$query = $db->prepare('DELETE FROM models_terminals WHERE terminal_id = :id');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove terminal "?" from models_terminals table.',$this->name));
+		
+		$query = $db->prepare('DELETE FROM flows WHERE ( start_process IS NULL AND start_id = :id ) OR ( end_process IS NULL AND end_id = :id )');
+		$args = [':id'=>$this->id];
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove flows from/to terminal "?" from database.',$this->name));
+		
+	}
+	
 	function patch($data = array()){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){

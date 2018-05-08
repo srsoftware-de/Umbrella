@@ -32,6 +32,13 @@ if ($action == 'delete' && param('confirm')=='true'){
 
 $connectors = $process->connectors();
 
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$process->description = Parsedown::instance()->parse($process->description);
+} else {
+	$process->description = str_replace("\n", "<br/>", $process->description);
+}
+
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
@@ -56,7 +63,7 @@ if ($action == 'delete'){?>
 				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add connector')?>"></a>
 				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add new child process')?>"></a>
 				<a href="../add_existing_process/<?= $process_id ?>" title="<?= t('add existing process')?>"></a>
-				<a title="delete" href="?action=delete"></a>
+				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>
 			<h1><?= $process->name ?></h1>
 		</td>
