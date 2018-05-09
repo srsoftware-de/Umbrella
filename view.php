@@ -83,7 +83,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
 		<?php foreach ($model->processes() as $process){ ?>
-		<a class="button" href="process/<?= $process->id ?>" title="<?= $process->description ?>"><?= $process->name ?></a> 
+		<a class="button" href="process/<?= $process->id ?>" title="<?= $process->description ?>"><?= $process->id ?></a> 
 		<?php } ?>
 		</td>
 	</tr>

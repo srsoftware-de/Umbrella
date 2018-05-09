@@ -13,11 +13,18 @@ if ($model_id = param('id')){
 }
 
 if ($name = param('name')){
+	$base = ProcessBase::load(['model_id'=>$model_id,'ids'=>$name]);
+	if ($base === null) {
+		$base = new ProcessBase();
+		$param = $_POST;
+		$base->patch($_POST);
+		$base->save();
+	}
 	$process = new Process();
-	$process->patch($_POST);
+	$process->base = $base;
+	$process->patch(['model_id'=>$model_id,'process_id'=>$name,'x'=>50,'y'=>50]);		
 	$process->save();
-	$model->link($process);
-	redirect($model->url());
+	redirect('view');
 }
 include '../common_templates/head.php';
 
@@ -27,6 +34,7 @@ include '../common_templates/messages.php'; ?>
 <fieldset>
 	<legend><?= t('Add process to "?"',$model->name); ?></legend>
 	<form method="POST">
+	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
 		<input type="text" name="name" value="<?= param('name','') ?>" />
