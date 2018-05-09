@@ -9,14 +9,15 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/models.db');
 
 		$tables = [
-			'flows'=>    Flow::fields(),
-			'connectors'=> Connector::fields(),
+			'flows'=>    Flow::base_fields(),
+			'flow_instances'=>    Flow::instance_fields(),
+			'connectors'=> Connector::base_fields(),
+			'connector_instances'=> Connector::instance_fields(),
 			'models'=>   Model::fields(),
-			'processes'=>Process::fields(),
-			'terminals'=>Terminal::fields(),
-			'models_processes' => Model::process_link(),
-			'models_terminals' => Model::terminal_link(),
-			'child_processes' => Process::parent_link(),
+			'processes'=>Process::base_fields(),
+			'process_instances'=>Process::instance_fields(),
+			'terminals'=>TerminalBase::fields(),
+			'terminal_instances'=>Terminal::fields(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -65,18 +66,37 @@ if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 <?php if ($link){ ?></a><?php } 
 }
 
-class Connector{
+class BaseClass{
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+}
+
+class Connector extends BaseClass{
 	const DIR_IN = 0;
 	const DIR_OUT = 1;
 	
 	/* static functions */
-	static function fields(){
+	static function base_fields(){
 		return [
-			'id' => ['INTEGER','KEY'=>'PRIMARY'],
+			'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
+			'model_id' => ['INT','NOT NULL'],
 			'process_id' => ['INT','NOT NULL'],
 			'direction' => ['BOOLEAN'],
-			'name' => ['VARCHAR'=>255, 'NOT NULL'],
-			'description' => ['TEXT'],
+		];
+	}
+	
+	static function instance_fields(){
+		return [
+			'id' => ['INTEGER','KEY'=>'PRIMARY'],
+			'model_id' => ['INT','NOT NULL'],
+			'connector_id' => ['VARCHAR'=>255,'NOT NULL'],
+			'process_instance_id' => ['INT','NOT NULL'],
 			'angle'=>['INT'],
 		];
 	}
@@ -130,14 +150,7 @@ class Connector{
 		return $this->flows;
 	}
 
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-	}
+
 
 	public function save(){
 		$db = get_or_create_db();
@@ -171,24 +184,32 @@ class Connector{
 	}
 }
 
-class Flow{
+class Flow extends BaseClass{
 	/** static **/
 	const TO_CONNECTOR = 0;
 	const TO_TERMINAL = 1;
 	const TO_SIBLING = 2;
-	static function fields(){
+	static function base_fields(){
 		return [
-			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'start_process' => ['VARCHAR'=>255], // null for terminals
-			'start_id' => ['INT','NOT NULL'], // terminal id or connector id
-			'end_process' => ['VARCHAR'=>255], // null for terminals
-			'end_id' => ['INT','NOT NULL'], // terminal id or connector id
-			'name' => ['VARCHAR'=>255, 'NOT NULL'],
+			'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
+			'model_id' => ['INT','NOT NULL'],
 			'description' => ['TEXT'],
 			'definition' => ['TEXT'],
 		];
 	}
-
+	
+	static function instance_fields(){
+		return [
+			'id' => ['INTEGER','KEY'=>'PRIMARY'],
+			'model_id' => ['INT','NOT NULL'],
+			'flow_id' => ['VARCHAR'=>255,'NOT NULL'],
+			'start_connector' => ['INT'], // null for terminals
+			'start_terminal' => ['INT'], // null for connector
+			'end_connector' => ['INT'], // null for terminals
+			'end_terminal' => ['INT'], // null for connector
+		];
+	}
+	
 	static function load($options = []){
 		$db = get_or_create_db();
 		assert(isset($options['process']),'No process path passed to Connector::load()!');
@@ -231,15 +252,7 @@ class Flow{
 		$args = [':id'=>$this->id];
 		assert($query->execute($args),t('Was not able to remove flow "?" from database.',$this->name));
 	}
-	
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-	}
+
 
 	public function save(){
 		$db = get_or_create_db();
@@ -273,7 +286,7 @@ class Flow{
 	}
 }
 
-class Model{
+class Model extends BaseClass{
 	/** static functions **/
 	static function fields(){
 		return [
@@ -399,15 +412,6 @@ class Model{
 		}
 		warn('Model-&gt;link has no handler for '.$object);
 	}
-
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-	}
 	
 	public function processes($id = null){
 		if (!isset($this->processes)) $this->processes = Process::load(['model_id'=>$this->id]);
@@ -445,9 +449,9 @@ class Model{
 			$this->id = $db->lastInsertId();
 		}
 	}
-
+	
 	public function terminals($id = null){
-		if (!isset($this->terminals)) $this->terminals = Terminal::load(['model_id'=>$this->id]);
+		if (!isset($this->terminals)) $this->terminals = TerminalBase::load(['model_id'=>$this->id]);
 		if ($id) return $this->terminals[$id];
 		return $this->terminals;
 	}
@@ -457,24 +461,25 @@ class Model{
 	}
 }
 
-class Process{
+class Process extends BaseClass{
 	/** static functions **/
-	static function fields(){
+	static function base_fields(){
 		return [
-			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'name' => ['VARCHAR'=>255, 'NOT NULL'],
+			'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
+			'model_id' => ['INT','NOT NULL'],
 			'description' => 'TEXT',
 			'r' => ['INT','DEFAULT 30'],
 		];
 	}
 
-	static function parent_link(){
+	static function instance_fields(){
 		return [
-			'process_id' => ['INT','NOT NULL'],
-			'parent_process' => ['INT','NOT NULL'],
+			'id' => ['INTEGER','KEY'=>'PRIMARY'],
+			'model_id' => ['INT','NOT NULL'],
+			'process_id'=> ['VARCHAR'=>255, 'NOT NULL'],
+			'parent' => 'TEXT',
 			'x' => ['INT', 'DEFAULT 30'],
 			'y' => ['INT', 'DEFAULT 30'],
-			'PRIMARY KEY' => '(process_id, parent_process)',
 		];
 	}
 
@@ -570,15 +575,6 @@ class Process{
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove process "?" from models_processes table.',$this->name));
-	}
-	
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
 	}
 
 	public function save(){
@@ -770,67 +766,175 @@ class Process{
 	<?php }
 }
 
-class Terminal{
+class TerminalBase extends BaseClass{
 	const TERMINAL = 0;
 	const DATABASE = 1;
-
+	
 	/** static functions **/
 	static function fields(){
 		return [
-			'id' => ['INTEGER','KEY'=>'PRIMARY'],
-			'type' => 'INT',
-			'name' => ['VARCHAR'=>255, 'NOT NULL'],
-			'description' => 'TEXT',
-			'w' => ['INT','DEFAULT 50'],
+		'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
+		'model_id' => ['INT','NOT NULL'],
+		'type' => 'INT',
+		'description' => 'TEXT',
+		'w' => ['INT','DEFAULT 50'],
 		];
 	}
-
+	
 	static function load($options = []){
 		$db = get_or_create_db();
-
+	
 		assert(isset($options['model_id']),'No model id passed to Process::load()!');
-
-		$where = [];
-		$args = [];
-
-		$sql = 'SELECT * FROM terminals';
-		if (isset($options['model_id'])){
-			$sql .= ' LEFT JOIN models_terminals ON models_terminals.terminal_id = terminals.id';
-			$where[] = 'model_id = ?';
-			$args[] = $options['model_id'];
-		}
-
-		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
-
+	
+		$where = ['model_id = ?'];
+		$args = [$options['model_id']];
+		
+		$sql = 'SELECT * FROM terminals WHERE ';
+		
 		$single = false;
-/*		if (isset($options['ids'])){
+		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
 				$single = true;
 				$ids = [$ids];
 			}
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
-		}*/
-		//debug(query_insert($sql.' ',$args),1);
+		}
+		$sql .= implode(' AND ', $where);
+		
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load terminals');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		$terminals = [];
 
+		$bases = [];
 		foreach ($rows as $row){
-			$terminal = new Terminal();
-			$terminal->patch($row);
-			$terminal->dirty=[];
-			if ($single) return $terminal;
-			$terminals[$terminal->id] = $terminal;
+			$base = new TerminalBase($row['id']);
+			$base->patch($row);
+			unset($base->dirty);
+			if ($single) return $base;
+			$bases[] = $base;
+		}
+		if ($single) return null;
+		return $bases;
+	}
+	
+	/** instance functions **/
+	public function __construct(){
+		$this->patch(['w'=>50]);
+	}
+	
+	public function save(){
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE terminals SET';
+				$args = [':id'=>$this->id];
+	
+				foreach ($this->dirty as $field){
+					if (array_key_exists($field, TerminalBase::fields())){
+						$sql .= ' '.$field.'=:'.$field.',';
+						$args[':'.$field] = $this->{$field};
+					}
+				}
+				if (count($args)>1){
+					$sql = rtrim($sql,',').' WHERE id = :id';
+					$query = $db->prepare($sql);
+					assert($query->execute($args),'Was no able to update terminal in database!');
+				}
+			}
+		} else {
+			$known_fields = array_keys(TerminalBase::fields());
+			$fields = ['id'];
+			$args = [$this->name];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO terminals ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new terminal');
+			$this->id = $this->name;
+			unset($this->name);
+		}
+		unset($this->dirty);
+	}
+}
+
+class Terminal extends BaseClass{
+	
+	/** static functions **/
+	static function fields(){
+		return [
+		'id' => ['INTEGER','KEY'=>'PRIMARY'],
+		'model_id' => ['INT','NOT NULL'],
+		'terminal_id' => ['VARCHAR'=>255, 'NOT NULL'],
+		'x' => ['INT','DEFAULT 50'],
+		'y' => ['INT','DEFAULT 50'],
+		];
+	}
+	
+	static function load($options = []){
+		$db = get_or_create_db();
+	
+		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+	
+		$sql = 'SELECT * FROM terminals WHERE model_id = :model';
+		$args = [':model'=>$options['model_id']];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load terminals');
+		$bases = $query->fetchAll(PDO::FETCH_ASSOC);
+	
+		$terminals = [];
+	
+		foreach ($bases as $base){
+			$query = $db->prepare('SELECT * FROM terminal_instances WHERE model_id = :model AND terminal_id = :tid');
+			$args = [':model'=>$options['model_id'],':tid'=>$base['id']];
+			assert($query->execute($args),'Was not able to load terminals');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			foreach ($rows as $row){
+				$terminal = new Terminal();
+				$terminal->patch($row);
+				$terminal->dirty = [];
+				$terminal->base = $base;
+				$terminals[$terminal->id] = $terminal;
+			}
 		}
 		return $terminals;
 	}
 
-	/** instance functions **/
-	
+	static function load_bases($options = []){
+		$db = get_or_create_db();
+
+		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+
+		$sql = 'SELECT * FROM terminals WHERE model_id = :model';
+		$args = [':model'=>$options['model_id']];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load terminals');
+		$bases = $query->fetchAll(PDO::FETCH_ASSOC);
+		
+		$terminals = [];
+		
+		foreach ($bases as $base){
+			$query = $db->prepare('SELECT * FROM terminal_instances WHERE model_id = :model AND terminal_id = :tid');
+			$args = [':model'=>$options['model_id'],':tid'=>$base['id']];
+			assert($query->execute($args),'Was not able to load terminals');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			foreach ($rows as $row){
+				$terminal = new Terminal();
+				$terminal->patch($row);
+				$terminal->dirty = [];
+				$terminal->base = $base;
+				$terminals[$terminal->id] = $terminal;
+			}
+		}
+		return $terminals;
+	}
+
+	/** instance functions **/	
 	function delete(){
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM terminals WHERE id = :id');
@@ -849,52 +953,58 @@ class Terminal{
 		assert($query->execute($args),t('Was not able to remove flows from/to terminal "?" from database.',$this->name));
 		
 	}
+
 	
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
+	/**
+	 * Checks, if a terminal with the given id/name exists.
+	 * If so, it is loaded into the base attribute.
+	 * Otherwise it is created. 
+	 */
+	function provide_base($param){
+		$db = get_or_create_db();
+		assert(isset($param['model_id']),'Cannot load terminal without model reference!');
+		assert(isset($param['name']),'Cannot load terminal without name!');
+		
+		$param['id'] = $param['name']; unset($param['name']);
+		
+		$query = $db->prepare('SELECT * FROM terminals WHERE id = :id AND model_id = :model');
+		$args = [':id'=>$param['id'],':model'=>$param['model_id']];
+		
+		assert($query->execute($args),'Was not able to load terminal!');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		if (empty($rows)){
+			$query = $db->prepare('INSERT INTO terminals (id, model_id, type, description, w) VALUES (:id, :model, :type, :descr, :width)');
+			assert(isset($param['type']),'Cannot create new terminal without type!');
+			$args[':type'] = $param['type'];
+			if (!isset($param['description']) || $param['description'] === '') $param['description'] = null;
+			$args[':descr'] = $param['description'];
+			$param['w'] = 50;
+			$args[':width'] = $param['w'];			
+			$this->base = $param;
+			assert($query->execute($args),'Was not able to create new terminal!');
+		} else {
+			$this->base = $rows[0];
 		}
+		$this->patch(['terminal_id'=>$this->base['id']]);
 	}
 
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$link_sql = null;
-				$link_args = [];
-
-				$process_sql = 'UPDATE terminals SET';
-				if (isset($this->model_id)) {
-					$link_sql = 'UPDATE models_terminals SET';
-					$link_args = [':tid'=>$this->id,':mid'=>$this->model_id];
-				}
-
-				$process_args = [':id'=>$this->id];
+				$sql = 'UPDATE terminal_instances SET';
+				$args = [':id'=>$this->id];
 
 				foreach ($this->dirty as $field){
 					if (array_key_exists($field, Terminal::fields())){
-						$process_sql .= ' '.$field.'=:'.$field.',';
-						$process_args[':'.$field] = $this->{$field};
-					} else {
-						$link_sql .= ' '.$field.'=:'.$field.',';
-						$link_args[':'.$field] = $this->{$field};
+						$sql .= ' '.$field.'=:'.$field.',';
+						$args[':'.$field] = $this->{$field};
 					}
 				}
-				if (count($process_args)>1){
-					$process_sql = rtrim($process_sql,',').' WHERE id = :id';
-					//debug(query_insert($process_sql,$process_args),1);
-					$query = $db->prepare($process_sql);
-					assert($query->execute($process_args),'Was no able to update terminal in database!');
-				}
-
-				if ($link_sql && count($link_args)>2){
-					$link_sql = rtrim($link_sql,',').' WHERE terminal_id = :tid AND model_id = :mid';
-					//debug(query_insert($link_sql.' ',$link_args),1);
-					$query = $db->prepare($link_sql);
-					assert($query->execute($link_args),'Was no able to update terminal link in database!');
+				if (count($args)>1){
+					$sql = rtrim($sql,',').' WHERE id = :id';
+					$query = $db->prepare($sql);
+					assert($query->execute($args),'Was no able to update terminal in database!');
 				}
 			}
 		} else {
@@ -907,10 +1017,11 @@ class Terminal{
 					$args[':'.$f] = $this->{$f};
 				}
 			}
-			$query = $db->prepare('INSERT INTO terminals ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			$query = $db->prepare('INSERT INTO terminal_instances ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 			assert($query->execute($args),'Was not able to insert new terminal');
 			$this->id = $db->lastInsertId();
 		}
+		unset($this->dirty);
 	}
 
 	public function svg(){ ?>

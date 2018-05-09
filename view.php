@@ -65,7 +65,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Terminals')?></th>
 		<td class="terminals">
 		<?php foreach ($model->terminals() as $terminal){ if ($terminal->type) continue; ?>
-		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a> 
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description?>"><?= $terminal->id ?></a> 
 		<?php } ?>
 		</td>
 	</tr>
@@ -73,9 +73,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Databases')?></th>
 		<td class="databases">
 		<?php foreach ($model->terminals() as $terminal){ if (!$terminal->type) continue;?>
-		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description ?>">
-			<?= $terminal->name ?>
-		</a>
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description ?>"><?= $terminal->id ?></a>
 		<?php } ?>
 		</td>
 	</tr>

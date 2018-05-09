@@ -13,10 +13,17 @@ if ($model_id = param('id')){
 }
 
 if ($name = param('name')){
+	$base = TerminalBase::load(['model_id'=>$model_id,'ids'=>$name]);
+	if ($base === null) {
+		$base = new TerminalBase();
+		$param = $_POST;
+		$base->patch($_POST);
+		$base->save();		
+	}
 	$terminal = new Terminal();
-	$terminal->patch($_POST);
+	$terminal->base = $base;
+	$terminal->patch(['model_id'=>$model_id,'terminal_id'=>$name,'x'=>50,'y'=>50]);		
 	$terminal->save();
-	$model->link($terminal);
 	redirect('view');
 }
 include '../common_templates/head.php';
@@ -33,10 +40,10 @@ include '../common_templates/messages.php'; ?>
 		<input type="text" name="name" value="<?= param('name','') ?>" />
 	</fieldset>
 	<label>
-		<input type="radio" name="type" checked="true" value="<?= Terminal::TERMINAL ?>"><?= t('Terminal')?>
+		<input type="radio" name="type" checked="true" value="<?= TerminalBase::TERMINAL ?>"><?= t('Terminal')?>
 	</label>
 	<label>
-		<input type="radio" name="type" value="<?= Terminal::DATABASE ?>"><?= t('Database')?>
+		<input type="radio" name="type" value="<?= TerminalBase::DATABASE ?>"><?= t('Database')?>
 	</label>
 	<fieldset>
 		<legend><?= t('Description'); ?></legend>
