@@ -14,7 +14,7 @@ $process_path = array_pop($endpoint_path_parts);
 $process_hierarchy = explode('.',$process_path);
 
 $model = Model::load(['ids'=>$model_id]);
-$process = $model->processes(array_shift($process_hierarchy));
+$process = $model->process_instances(array_shift($process_hierarchy));
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 $conn = $process->connectors($connector_id);

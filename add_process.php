@@ -16,7 +16,6 @@ if ($name = param('name')){
 	$base = ProcessBase::load(['model_id'=>$model_id,'ids'=>$name]);
 	if ($base === null) {
 		$base = new ProcessBase();
-		$param = $_POST;
 		$base->patch($_POST);
 		$base->save();
 	}

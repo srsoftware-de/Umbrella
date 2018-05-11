@@ -11,8 +11,8 @@ function get_or_create_db(){
 		$tables = [
 			'flows'=>    Flow::base_fields(),
 			'flow_instances'=>    Flow::instance_fields(),
-			'connectors'=> Connector::base_fields(),
-			'connector_instances'=> Connector::instance_fields(),
+			'connectors'=> ConnectorBase::fields(),
+			'connector_instances'=> Connector::fields(),
 			'models'=>   Model::fields(),
 			'processes'=>ProcessBase::base_fields(),
 			'process_instances'=>Process::fields(),
@@ -77,12 +77,9 @@ class BaseClass{
 	}
 }
 
-class Connector extends BaseClass{
-	const DIR_IN = 0;
-	const DIR_OUT = 1;
-	
+class ConnectorBase extends BaseClass{
 	/* static functions */
-	static function base_fields(){
+	static function fields(){
 		return [
 			'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
 			'model_id' => ['INT','NOT NULL'],
@@ -91,7 +88,92 @@ class Connector extends BaseClass{
 		];
 	}
 	
-	static function instance_fields(){
+	static function load($options = []){
+		$db = get_or_create_db();
+		assert(isset($options['model_id']),'No model id passed to ConnectorBase::load()!');
+		
+		$sql = 'SELECT * FROM connectors';
+		$where = ['model_id = ?'];
+		$args = [$options['model_id']];
+	
+		$single = false;
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+		
+		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
+
+		assert($query->execute($args),'Was not able to load connectors');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$connectors = [];
+	
+		foreach ($rows as $row){
+			$connector = new Connector();
+			$connector->patch($row);
+			unset($connector->dirty);
+			if ($single) return $connector;
+			$connectors[$connector->id] = $connector;
+		}
+		if ($single) return null;
+		return $connectors;
+	}
+	
+	/** instance functions **/
+	public function __construct(){
+		$this->patch(['direction'=>0]);
+	}
+	
+	public function save(){
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE connectors SET';
+				$args = [':id'=>$this->id];
+	
+				foreach ($this->dirty as $field){
+					if (array_key_exists($field, ConnectorBase::fields())){
+						$sql .= ' '.$field.'=:'.$field.',';
+						$args[':'.$field] = $this->{$field};
+					}
+				}
+				if (count($args)>1){
+					$sql = rtrim($sql,',').' WHERE id = :id';
+					$query = $db->prepare($sql);
+					assert($query->execute($args),'Was no able to update connector in database!');
+				}
+			}
+		} else {
+			$known_fields = array_keys(ConnectorBase::fields());
+			$fields = ['id'];
+			$args = [':id'=>$this->name];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO connectors ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new base connector');
+			$this->id = $this->name;
+			unset($this->name);
+		}
+		unset($this->dirty);
+	}
+}
+
+class Connector extends BaseClass{
+	const DIR_IN = 0;
+	const DIR_OUT = 1;
+	
+	/* static functions */
+	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'model_id' => ['INT','NOT NULL'],
@@ -103,10 +185,16 @@ class Connector extends BaseClass{
 
 	static function load($options = []){
 		$db = get_or_create_db();
-		assert(isset($options['process_id']),'No process id passed to Connector::load()!');
+		assert(isset($options['model_id']),'No model id passed to Connector::load()!');
 
-		$sql = 'SELECT * FROM connectors WHERE process_id = ?';
-		$args = [$options['process_id']];
+		$sql = 'SELECT * FROM connector_instances';
+		$where = ['model_id = ?'];
+		$args = [$options['model_id']];
+		
+		if (isset($options['process_instance'])){
+			$where[] = 'process_instance_id = ?';
+			$args[] = $options['process_instance'];
+		}
 
 		$single = false;
 		if (isset($options['ids'])){
@@ -116,18 +204,22 @@ class Connector extends BaseClass{
 				$ids = [$ids];
 			}
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
+		$sql .= ' WHERE '.implode(' AND ',$where);
 		$query = $db->prepare($sql);
+		
 		assert($query->execute($args),'Was not able to load connectors');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$connectors = [];
 
 		foreach ($rows as $row){
 			$connector = new Connector();
+			$connector->base = ConnectorBase::load(['model_id'=>$options['model_id'],'ids'=>$row['connector_id']]);
 			$connector->patch($row);
-			$connector->dirty=[];
+			unset($connector->dirty);
 			if ($single) return $connector;
 			$connectors[$connector->id] = $connector;
 		}
@@ -156,7 +248,7 @@ class Connector extends BaseClass{
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE connectors SET';
+				$sql = 'UPDATE connector_instances SET';
 				$args = [':id'=>$this->id];
 				foreach ($this->dirty as $field){
 					$sql .= ' '.$field.'=:'.$field.',';
@@ -176,11 +268,12 @@ class Connector extends BaseClass{
 					$args[':'.$f] = $this->{$f};
 				}
 			}
-			$query = $db->prepare('INSERT INTO connectors ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			$query = $db->prepare('INSERT INTO connector_instances ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 			assert($query->execute($args),'Was not able to insert new connector');
 
 			$this->id = $db->lastInsertId();
 		}
+		unset($this->dirty);
 	}
 }
 
@@ -645,7 +738,7 @@ class Process extends BaseClass{
 	}
 
 	function connectors($id = null){
-		if (!isset($this->connectors)) $this->connectors = Connector::load(['process_id'=>$this->id]);
+		if (!isset($this->connectors)) $this->connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->id]);
 		if ($id) {
 			if (array_key_exists($id, $this->connectors)) return $this->connectors[$id];
 			return null;
@@ -741,9 +834,8 @@ class Process extends BaseClass{
 				<title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
 			<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>
-			<?php foreach ($this->connectors() as $conn){ continue;
-				$conn->process = $model->id.':'.$this->path;
-				foreach ($conn->flows() as $flow){
+			<?php foreach ($this->connectors() as $conn){
+/*				foreach ($conn->flows() as $flow){
 					if ($flow->start_process == null){
 						$terminal = $model->terminals($flow->start_id);
 						$x2 =  sin($conn->angle*RAD)*$this->r;
@@ -783,11 +875,6 @@ class Process extends BaseClass{
 						continue;
 					}
 
-					
-					/*debug($this,false,['connectors','parent']);
-					debug($conn,false,'flows');
-					debug($flow,true);*/
-
 					if ($conn->direction){ // OUT
 						if ($flow->start_process != $conn->process) continue;
 						$c2 = $this->parent->connectors($flow->end_id);
@@ -825,17 +912,17 @@ class Process extends BaseClass{
 							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						}
 					}
-				}
+				} // foreach flow */
 			?>
-			<a xlink:href="connect_<?= $conn->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $this->path ?>:<?= $conn->id ?>">
+			<a xlink:href="connect_<?= $conn->base->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $this->path ?>:<?= $conn->id ?>">
 				<circle
 						class="connector"
 						cx="0"
-						cy="<?= -$this->r ?>"
+						cy="<?= -$this->base->r ?>"
 						r="15"
 						id="connector_<?= $this->path ?>:<?= $conn->id ?>"
 						transform="rotate(<?= $conn->angle ?>,0,0)">
-					<title><?= $conn->name ?></title>
+					<title><?= $conn->base->id ?></title>
 				</circle>
 			</a>
 			<?php } // foreach connector

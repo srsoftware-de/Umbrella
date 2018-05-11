@@ -19,13 +19,24 @@ if (!$process_id){
 
 $model = Model::load(['ids'=>$model_id]);
 $process_hierarchy = explode('.',$process_id);
-$process = $model->processes(array_shift($process_hierarchy));
+$process = $model->process_instances(array_shift($process_hierarchy));
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 if ($name = param('name')){
+	$base = ConnectorBase::load(['model_id'=>$model_id,'ids'=>$name]);
+	if ($base === null){
+		$base = new ConnectorBase();
+		$base->patch($_POST);
+		$base->save();
+		debug($base,1);
+	}
 	$connector = new Connector();
-	$connector->patch($_POST);
-	$connector->patch(['process_id'=>$process->id,'angle'=>180*param('direction')]);	
+	$connector->base = $base;
+	$connector->patch([
+			'model_id'=>$model_id,
+			'connector_id'=>$base->id,
+			'process_instance_id'=>$process->id,
+			'angle'=>180*param('direction')]);
 	$connector->save();
 	redirect($model->url());
 }
@@ -40,16 +51,13 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Add connector to process "?"',$process->name)?>
+			<?= t('Add connector to process "?"',$process->base->id)?>
 		</legend>
 		<input type="hidden" name="process_id" value="<?= $process_id ?>" />
+		<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 		<label>
 			<?= t('Connector name') ?>
 			<input type="text" name="name" value="" />
-		</label>
-		<label>
-			<?= t('Connector description') ?>
-			<textarea name="description"></textarea>
 		</label>
 		<p>
 			<label>
