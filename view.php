@@ -102,7 +102,7 @@ if ($action == 'delete'){?>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
 				<?php foreach ($model->process_instances() as $process){
-					$process->svg();
+					$process->svg($model);
 				} // foreach process
 
  				foreach ($model->terminal_instances() as $term){

@@ -9,12 +9,12 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/models.db');
 
 		$tables = [
-			'flows'=>    Flow::base_fields(),
-			'flow_instances'=>    Flow::instance_fields(),
+			'flows'=>    FlowBase::fields(),
+			'flow_instances'=>    Flow::fields(),
 			'connectors'=> ConnectorBase::fields(),
 			'connector_instances'=> Connector::fields(),
 			'models'=>   Model::fields(),
-			'processes'=>ProcessBase::base_fields(),
+			'processes'=>ProcessBase::fields(),
 			'process_instances'=>Process::fields(),
 			'terminals'=>TerminalBase::fields(),
 			'terminal_instances'=>Terminal::fields(),
@@ -238,7 +238,7 @@ class Connector extends BaseClass{
 	}
 	
 	function flows(){
-		if (!isset($this->flows) && isset($this->process)) $this->flows = Flow::load(['process'=>$this->process,'connector'=>$this->id]);
+		if (!isset($this->flows)) $this->flows = Flow::load(['model_id'=>$this->model_id,'connector'=>$this->id]);
 		return $this->flows;
 	}
 
@@ -277,21 +277,95 @@ class Connector extends BaseClass{
 	}
 }
 
+class FlowBase extends BaseClass{
+	/** static methods **/
+	static function fields(){
+		return [
+		'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
+		'model_id' => ['INT','NOT NULL'],
+		'description' => ['TEXT'],
+		'definition' => ['TEXT'],
+		];
+	}
+	
+	static function load($options = []){
+		$db = get_or_create_db();
+		
+		assert(isset($options['model_id']),'No model_id passed to FlowBase::load()!');
+		
+		$sql = 'SELECT * FROM flows';
+		$where = ['model_id = ?'];
+		$args = [$options['model_id']];
+		
+		$single = false;
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+	
+		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
+		assert($query->execute($args),'Was not able to load flows');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$flows = [];
+	
+		foreach ($rows as $row){
+			$flow = new Flow();
+			$flow->patch($row);
+			unset($flow->dirty);
+			if ($single) return $flow;
+			$flows[$flow->id] = $flow;
+		}
+		if ($single) return null;
+		return $flows;
+	}
+	
+	/** instance functions **/
+	public function save(){
+		$db = get_or_create_db();
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE flows SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update flow in database!');
+			}
+		} else {
+			$known_fields = array_keys(FlowBase::fields());
+			$fields = ['id'];
+			$args = [':id'=>$this->name];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO flows ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			debug(query_insert($query,$args));
+			assert($query->execute($args),'Was not able to insert new flow');
+			$this->id = $this->name;
+			unset($this->name);
+		}
+	}
+}
+
 class Flow extends BaseClass{
 	/** static **/
 	const TO_CONNECTOR = 0;
 	const TO_TERMINAL = 1;
 	const TO_SIBLING = 2;
-	static function base_fields(){
-		return [
-			'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
-			'model_id' => ['INT','NOT NULL'],
-			'description' => ['TEXT'],
-			'definition' => ['TEXT'],
-		];
-	}
 	
-	static function instance_fields(){
+	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
 			'model_id' => ['INT','NOT NULL'],
@@ -305,11 +379,16 @@ class Flow extends BaseClass{
 	
 	static function load($options = []){
 		$db = get_or_create_db();
-		assert(isset($options['process']),'No process path passed to Connector::load()!');
-		assert(isset($options['connector']),'No connector id passed to Connector::load()!');
+		assert(isset($options['model_id']),'No model_id passed to Flow::load()!');
+		
+		$sql = 'SELECT * FROM flow_instances';
+		$where = ['model_id = ?'];
+		$args = [$options['model_id']];
 
-		$sql = 'SELECT * FROM flows WHERE ((start_process = ? AND start_id = ?) OR (end_process = ? AND end_id = ?))';		
-		$args = [$options['process'],$options['connector'],$options['process'],$options['connector']];
+		if (isset($options['connector'])){
+			$where[] = '(start_connector = ?  OR end_connector = ?)';
+			$args = array_merge($args, [$options['connector'],$options['connector']]);
+		}
 
 		$single = false;
 		if (isset($options['ids'])){
@@ -319,22 +398,24 @@ class Flow extends BaseClass{
 				$ids = [$ids];
 			}
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' AND id IN ('.$qMarks.')';
+			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
 
-		$query = $db->prepare($sql);
+		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$flows = [];
 
 		foreach ($rows as $row){
 			$flow = new Flow();
+			$flow->base = FlowBase::load(['model_id'=>$options['model_id'],'ids'=>$row['flow_id']]);
 			$flow->patch($row);
-			$flow->dirty=[];
+			unset($flow->dirty);
 			if ($single) return $flow;
 			$flows[$flow->id] = $flow;
 		}
+		if ($single) return null;
 		return $flows;
 	}
 
@@ -351,7 +432,7 @@ class Flow extends BaseClass{
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
-				$sql = 'UPDATE flows SET';
+				$sql = 'UPDATE flow_instances SET';
 				$args = [':id'=>$this->id];
 				foreach ($this->dirty as $field){
 					$sql .= ' '.$field.'=:'.$field.',';
@@ -371,11 +452,12 @@ class Flow extends BaseClass{
 					$args[':'.$f] = $this->{$f};
 				}
 			}
-			$query = $db->prepare('INSERT INTO flows ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			$query = $db->prepare('INSERT INTO flow_instances ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 			assert($query->execute($args),'Was not able to insert new flow');
 
 			$this->id = $db->lastInsertId();
 		}
+		unset($this->dirty);
 	}
 }
 
@@ -811,7 +893,7 @@ class Process extends BaseClass{
 		unset($this->dirty);
 	}
 
-	function svg(&$parent = null){
+	function svg(&$model, &$parent = null){
 		$this->path = $this->id;
 		if (isset($parent)){
 			$rad = $parent->base->r;
@@ -833,45 +915,46 @@ class Process extends BaseClass{
 					id="process_<?= $this->path ?>">
 				<title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
-			<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>
+			<text x="0" y="0"><title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>
 			<?php foreach ($this->connectors() as $conn){
-/*				foreach ($conn->flows() as $flow){
-					if ($flow->start_process == null){
-						$terminal = $model->terminals($flow->start_id);
-						$x2 =  sin($conn->angle*RAD)*$this->r;
-						$y2 = -cos($conn->angle*RAD)*$this->r;
+				foreach ($conn->flows() as $flow){
+					if ($flow->start_connector == null){
+						$terminal = $model->terminal_instances($flow->start_terminal);
+						//debug(['this'=>$this,'conn'=>$conn,'terminal'=>$terminal]);
+						$x2 =  sin($conn->angle*RAD)*$this->base->r;
+						$y2 = -cos($conn->angle*RAD)*$this->base->r;
 
-						$x1 = -$this->x + $terminal->x + $terminal->w/2;
+						$x1 = -$this->x + $terminal->x + $terminal->base->w/2;
 						$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30);
 
-						$parent = $this->parent;
-						while ($parent){
-							$x1 -= $parent->x;
-							$y1 -= $parent->y;
-							$parent = $parent->parent;
+						$proc_pointer = $parent;
+						while ($proc_pointer){
+							$x1 -= $proc_pointer->x;
+							$y1 -= $proc_pointer->y;
+							$proc_pointer = $proc_pointer->parent;
 						}
 
-						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						continue;
 					}
 
-					if ($flow->end_process == null){
-						$terminal = $model->terminals($flow->end_id);
+					if ($flow->end_connector == null){
+						$terminal = $model->terminal_instances($flow->end_terminal);
 
-						$x1 = + sin($conn->angle*RAD)*$this->r;
-						$y1 = - cos($conn->angle*RAD)*$this->r;
+						$x1 = + sin($conn->angle*RAD)*$this->base->r;
+						$y1 = - cos($conn->angle*RAD)*$this->base->r;
 
-						$x2 = -$this->x + $terminal->x + $terminal->w/2;
+						$x2 = -$this->x + $terminal->x + $terminal->base->w/2;
 						$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
 
-						$parent = isset($this->parent) ? $this->parent: false;
-						while ($parent){
-							$x2 -= $parent->x;
-							$y2 -= $parent->y;
-							$parent = $parent->parent;
+						$proc_pointer = $parent;
+						while ($proc_pointer){
+							$x2 -= $proc_pointer->x;
+							$y2 -= $proc_pointer->y;
+							$proc_pointer = $proc_pointer->parent;
 						}
 
-						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						continue;
 					}
 
@@ -926,7 +1009,7 @@ class Process extends BaseClass{
 				</circle>
 			</a>
 			<?php } // foreach connector
-			foreach ($this->children() as $child) $child->svg($this);
+			foreach ($this->children() as $child) $child->svg($model,$this);
 			?>
 		</g>
 	<?php }

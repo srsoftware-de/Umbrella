@@ -28,7 +28,6 @@ if ($name = param('name')){
 		$base = new ConnectorBase();
 		$base->patch($_POST);
 		$base->save();
-		debug($base,1);
 	}
 	$connector = new Connector();
 	$connector->base = $base;
