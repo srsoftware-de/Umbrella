@@ -36,15 +36,19 @@ include '../common_templates/messages.php'; ?>
 	<form method="POST">
 	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 	<fieldset>
-		<legend><?= t('Name'); ?></legend>
-		<input type="text" name="name" value="<?= param('name','') ?>" />
-	</fieldset>
+	<legend><?= t('Type')?></legend>
 	<label>
-		<input type="radio" name="type" checked="true" value="<?= TerminalBase::TERMINAL ?>"><?= t('Terminal')?>
+		<input type="radio" name="type" checked="checked" value="<?= TerminalBase::TERMINAL ?>"><?= t('Terminal')?>
 	</label>
 	<label>
 		<input type="radio" name="type" value="<?= TerminalBase::DATABASE ?>"><?= t('Database')?>
 	</label>
+	</fieldset>
+	<fieldset>
+		<legend><?= t('Name'); ?></legend>
+		<input type="text" name="name" value="<?= param('name','') ?>" />
+	</fieldset>
+	
 	<fieldset>
 		<legend><?= t('Description'); ?></legend>
 		<textarea name="description"><?= param('description','') ?></textarea>

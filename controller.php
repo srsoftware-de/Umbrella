@@ -320,7 +320,7 @@ class FlowBase extends BaseClass{
 		$flows = [];
 	
 		foreach ($rows as $row){
-			$flow = new Flow();
+			$flow = new FlowBase();
 			$flow->patch($row);
 			unset($flow->dirty);
 			if ($single) return $flow;
@@ -338,10 +338,18 @@ class FlowBase extends BaseClass{
 				$sql = 'UPDATE flows SET';
 				$args = [':id'=>$this->id];
 				foreach ($this->dirty as $field){
-					$sql .= ' '.$field.'=:'.$field.',';
-					$args[':'.$field] = $this->{$field};
+					if (array_key_exists($field, FlowBase::fields())){
+						$sql .= ' '.$field.'=:'.$field.',';
+						$args[':'.$field] = $this->{$field};
+					} elseif ($field == 'name'){
+						$sql .= ' id = :new_id,';
+						$args[':new_id'] = $this->{$field};
+						$this->update_references($this->{$field});
+					}
+						
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
+				debug(query_insert($sql,$args));
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update flow in database!');
 			}
@@ -361,6 +369,14 @@ class FlowBase extends BaseClass{
 			unset($this->name);
 		}
 		unset($this->dirty);
+	}
+	
+	private function update_references($new_id){
+		$instances = Flow::load(['model_id'=>$this->model_id,'flow_id'=>$this->id]);
+		foreach ($instances as $flow){
+			$flow->patch(['flow_id'=>$new_id]);
+			$flow->save();
+		}
 	}
 }
 
@@ -405,6 +421,11 @@ class Flow extends BaseClass{
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
+		}
+		
+		if (isset($options['flow_id'])){
+			$where[] = 'flow_id = ?';
+			$args[] = $options['flow_id'];
 		}
 
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
@@ -732,7 +753,7 @@ class ProcessBase extends BaseClass{
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					} elseif ($field == 'name'){
-						$sql .= ' id = :new_id';
+						$sql .= ' id = :new_id,';
 						$args[':new_id'] = $this->{$field};
 						$this->update_references($this->{$field});
 					}
@@ -984,7 +1005,7 @@ class Process extends BaseClass{
 							$proc_pointer = $proc_pointer->parent;
 						}
 
-						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
 						continue;
 					}
 
@@ -1004,7 +1025,7 @@ class Process extends BaseClass{
 							$proc_pointer = $proc_pointer->parent;
 						}
 
-						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
 						continue;
 					}
 
@@ -1019,7 +1040,7 @@ class Process extends BaseClass{
 							$x2 = -$this->x + $parent->base->r * sin($end_connector->angle*RAD);
 							$y2 = -$this->y - $parent->base->r * cos($end_connector->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
 						}
 					} else { // IN
 						if ($flow->end_connector != $conn->id) continue;
@@ -1035,7 +1056,7 @@ class Process extends BaseClass{
 							$x2 = $this->base->r*sin($conn->angle*RAD);
 							$y2 = -$this->base->r*cos($conn->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
 						} else { // flow comes from connector of parent
 							$x1 = -$this->x + $parent->base->r * sin($start_connector->angle*RAD);
 							$y1 = -$this->y - $parent->base->r * cos($start_connector->angle*RAD);;
@@ -1043,7 +1064,7 @@ class Process extends BaseClass{
 							$x2 = $this->base->r*sin($conn->angle*RAD);
 							$y2 = -$this->base->r*cos($conn->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
 						}
 					}
 				} // foreach flow */

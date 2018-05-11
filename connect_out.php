@@ -10,7 +10,7 @@ $connector_id = param('id2');
 
 $model = Model::load(['ids'=>$model_id]);
 $connector = $model->connector_instances($connector_id);
-$process = $model->process_instances($connector->process_instance_id);
+$process = Process::load(['model_id'=>$model_id,'ids'=>$connector->process_instance_id]);
 
 
 if ($endpoint = param('endpoint')){

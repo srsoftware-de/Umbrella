@@ -12,21 +12,18 @@ if ($model_id = param('id1')){
 	redirect(getUrl('model'));
 }
 
-if ($path = param('id2')){
-	$parts = explode(':',$path);
-	$flow_id = array_pop($parts);
-	$conn_id = array_pop($parts);
-	$process_path = array_pop($parts);
-
-	$flow = Flow::load(['connector'=>$conn_id,'ids'=>$flow_id,'process'=>$model_id.':'.$process_path]);
+if ($flow_id = param('id2')){
+	$flow = Flow::load(['model_id'=>$model_id,'ids'=>$flow_id]);
+	debug($flow);
 } else {
 	error('No flow id passed to model/'.$model->id.'/flow!');
 	redirect($model->url());
 }
 
 if ($name = param('name')){
-	$flow->patch($_POST);
-	$flow->save();
+	$flow->base->patch($_POST);
+	debug($flow->base);
+	$flow->base->save();
 	redirect(getUrl('model',$model_id.'/view'));
 }
 
@@ -39,16 +36,16 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Edit flow "?"',$flow->name); ?>
+			<?= t('Edit flow "?"',$flow->base->id); ?>
 		</legend>
 		<label>
-			<?= t('Name') ?><input type="text" name="name" value="<?= $flow->name ?>"/>
+			<?= t('Name') ?><input type="text" name="name" value="<?= $flow->base->id ?>"/>
 		</label>
 		<label>
-			<?= t('Definition') ?><input type="text" name="definition" value="<?= htmlentities($flow->definition) ?>" />
+			<?= t('Definition') ?><input type="text" name="definition" value="<?= htmlentities($flow->base->definition) ?>" />
 		</label>
 		<label>
-			<?= t('Description') ?><textarea name="description"><?= $flow->description ?></textarea>
+			<?= t('Description') ?><textarea name="description"><?= $flow->base->description ?></textarea>
 		</label>
 		<button type="submit">
 			<?= t('Save'); ?>

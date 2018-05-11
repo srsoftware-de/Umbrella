@@ -1,6 +1,7 @@
 <?php
 
 $translations = array(
+		'Add child process to process "?"' => 'Unterprozess zu "?" hinzufügen',
 		'add connector'=>'Verbinder hinzufügen',
 		'Add connector to process "?"'=>'Verbinder zu Prozess "?" hinzufügen',
 		'add model'=>'Modell hinzufügen',

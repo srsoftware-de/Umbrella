@@ -56,17 +56,17 @@ include '../common_templates/messages.php'; ?>
 		<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 		<p>
 			<label>
-				<input type="radio" name="direction" value="<?= Connector::DIR_IN ?>" checked="checked">
+				<input type="radio" name="direction" value="<?= Connector::DIR_IN ?>" checked="checked" onClick="$('input[type=text]').val('<?= $process->base->id ?>:in');" >
 				<?= t('inbound connector') ?>
 			</label>
 			<label>
-				<input type="radio" name="direction" value="<?= Connector::DIR_OUT ?>">
+				<input type="radio" name="direction" value="<?= Connector::DIR_OUT ?>" onClick="$('input[type=text]').val('<?= $process->base->id ?>:out');" >
 				<?= t('outbound connector') ?>
 			</label>
 		</p>
 		<label>
 			<?= t('Connector name') ?>
-			<input type="text" name="name" value="" />
+			<input type="text" name="name" value="" autofocus="true" />
 		</label>
 		<button type="submit">
 			<?= t('Save'); ?>

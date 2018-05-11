@@ -12,13 +12,8 @@ if ($model_id = param('id1')){
 	redirect(getUrl('model'));
 }
 
-if ($path = param('id2')){
-	$parts = explode(':',$path);
-	$flow_id = array_pop($parts);
-	$conn_id = array_pop($parts);
-	$process_path = array_pop($parts);
-
-	$flow = Flow::load(['connector'=>$conn_id,'ids'=>$flow_id,'process'=>$model_id.':'.$process_path]);
+if ($flow_id = param('id2')){
+	$flow = Flow::load(['model_id'=>$model_id,'ids'=>$flow_id]);
 } else {
 	error('No flow id passed to model/'.$model->id.'/flow!');
 	redirect($model->url());
@@ -51,9 +46,9 @@ if ($action == 'delete'){?>
 		<th>
 			<?= t('Flow')?></th>
 		<td>
-			<h1><?= $flow->name ?></h1>
+			<h1><?= $flow->base->id ?></h1>
 			<span class="right symbol">
-				<a href="../edit_flow/<?= $process_path ?>:<?= $conn_id ?>:<?= $flow_id ?>" title="<?= t('edit')?>"></a>
+				<a href="../edit_flow/<?= $flow_id ?>" title="<?= t('edit')?>"></a>
 				<a title="delete" href="?action=delete"></a>
 			</span>
 		</td>
@@ -72,16 +67,16 @@ if ($action == 'delete'){?>
 			<a href="<?= $model->url(); ?>"><?= $model->name ?></a>
 		</td>
 	</tr>
-	<?php if ($flow->description){ ?>
+	<?php if ($flow->base->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $flow->description; ?></td>
+		<td class="description"><?= htmlentities($flow->base->description); ?></td>
 	</tr>
 	<?php } ?>
-	<?php if ($flow->definition){ ?>
+	<?php if ($flow->base->definition){ ?>
 	<tr>
 		<th><?= t('Definition')?></th>
-		<td class="definition"><?= htmlentities($flow->definition); ?></td>
+		<td class="definition"><?= htmlentities($flow->base->definition); ?></td>
 	</tr>
 	<?php } ?>
 </table>
