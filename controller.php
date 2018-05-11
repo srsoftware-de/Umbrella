@@ -726,11 +726,15 @@ class ProcessBase extends BaseClass{
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE processes SET';
 				$args = [':id'=>$this->id];
-
+								
 				foreach ($this->dirty as $field){
 					if (array_key_exists($field, ProcessBase::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
+					} elseif ($field == 'name'){
+						$sql .= ' id = :new_id';
+						$args[':new_id'] = $this->{$field};
+						$this->update_references($this->{$field});
 					}
 				}
 				if (count($args)>1){
@@ -755,6 +759,19 @@ class ProcessBase extends BaseClass{
 			unset($this->name);
 		}
 		unset($this->dirty);
+	}
+	
+	public function update_references($new_id){		
+		$process_instances = Process::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
+		$connectors = ConnectorBase::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
+		foreach ($process_instances as $process){
+			$process->patch(['process_id'=>$new_id]);
+			$process->save();
+		}
+		foreach ($connectors as $connector){
+			$connector->patch(['process_id'=>$new_id]);
+			$connector->save();
+		}
 	}
 }
 
@@ -1151,11 +1168,11 @@ class Terminal extends BaseClass{
 	/** static functions **/
 	static function fields(){
 		return [
-		'id' => ['INTEGER','KEY'=>'PRIMARY'],
-		'model_id' => ['INT','NOT NULL'],
-		'terminal_id' => ['VARCHAR'=>255, 'NOT NULL'],
-		'x' => ['INT','DEFAULT 50'],
-		'y' => ['INT','DEFAULT 50'],
+			'id' => ['INTEGER','KEY'=>'PRIMARY'],
+			'model_id' => ['INT','NOT NULL'],
+			'terminal_id' => ['VARCHAR'=>255, 'NOT NULL'],
+			'x' => ['INT','DEFAULT 0'],
+			'y' => ['INT','DEFAULT 0'],
 		];
 	}
 

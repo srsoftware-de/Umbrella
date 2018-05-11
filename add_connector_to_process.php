@@ -54,10 +54,6 @@ include '../common_templates/messages.php'; ?>
 		</legend>
 		<input type="hidden" name="process_id" value="<?= $process->base->id ?>" />
 		<input type="hidden" name="model_id" value="<?= $model->id ?>" />
-		<label>
-			<?= t('Connector name') ?>
-			<input type="text" name="name" value="" />
-		</label>
 		<p>
 			<label>
 				<input type="radio" name="direction" value="<?= Connector::DIR_IN ?>" checked="checked">
@@ -68,6 +64,10 @@ include '../common_templates/messages.php'; ?>
 				<?= t('outbound connector') ?>
 			</label>
 		</p>
+		<label>
+			<?= t('Connector name') ?>
+			<input type="text" name="name" value="" />
+		</label>
 		<button type="submit">
 			<?= t('Save'); ?>
 		</button>

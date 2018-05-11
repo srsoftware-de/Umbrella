@@ -22,7 +22,7 @@ if ($name = param('name')){
 	}
 	$terminal = new Terminal();
 	$terminal->base = $base;
-	$terminal->patch(['model_id'=>$model_id,'terminal_id'=>$name,'x'=>50,'y'=>50]);		
+	$terminal->patch(['model_id'=>$model_id,'terminal_id'=>$name,'x'=>0,'y'=>0]);		
 	$terminal->save();
 	redirect('view');
 }

@@ -115,7 +115,7 @@ function initSVG(evt){
 
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
-	//reload_timer_handle = setTimeout(function(){location.reload()},200);
+	reload_timer_handle = setTimeout(function(){location.reload()},500);
 }
 
 function updateElement(elem,data){

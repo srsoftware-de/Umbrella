@@ -20,6 +20,7 @@ $translations = array(
 		'Display'=>'Anzeige',
 		'Documents'=>'Dokumente',
 		'edit'=>'bearbeiten',
+		'Edit process "?"' => 'Prozess "?" bearbeiten',
 		'Edit terminal "?"'=>'Terminal "?" bearbeiten',
 		'Files'=>'Dateien',
 		'inbound connector'=>'eingehender Verbinder',
