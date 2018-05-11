@@ -94,8 +94,8 @@ if ($action == 'delete'){?>
 		<td class="process_children">
 			<ul>
 			<?php foreach ($process->children() as $child) { ?>
-				<li title="<?= $child->description ?>">
-					<a href="<?= $process_id ?>.<?= $child->id ?>"><?= $child->name ?></a>
+				<li title="<?= $child->base->description ?>">
+					<a href="<?= $process_id ?>.<?= $child->id ?>"><?= $child->base->id ?></a>
 				</li>
 			<?php } ?>
 			</ul>
