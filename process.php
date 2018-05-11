@@ -20,10 +20,7 @@ if (!$process_id){
 
 
 $model = Model::load(['ids'=>$model_id]);
-$process_hierarchy = explode('.',$process_id);
-$process = $model->process_instances(array_shift($process_hierarchy));
-while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
-
+$process = Process::load(['model_id'=>$model_id,'ids'=>$process_id]);
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
 	$process->delete();
@@ -34,9 +31,9 @@ $connectors = $process->connectors();
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
-	$process->description = Parsedown::instance()->parse($process->description);
+	$process->base->description = Parsedown::instance()->parse($process->base->description);
 } else {
-	$process->description = str_replace("\n", "<br/>", $process->description);
+	$process->base->description = str_replace("\n", "<br/>", htmlentities($process->base->description));
 }
 
 info('This Module is not functional, yet.');
@@ -108,7 +105,7 @@ if ($action == 'delete'){?>
 		<td class="connectors">
 			<ul>
 			<?php foreach ($process->connectors() as $conn) { ?>
-				<li title="<?= $conn->description ?>"><span class="symbol"><?= $conn->direction?'':''?></span> <?= $conn->name ?></li>
+				<li title="<?= $conn->description ?>"><span class="symbol"><?= $conn->base->direction?'':''?></span> <?= $conn->base->id ?></li>
 			<?php } ?>
 			</ul>
 		</td>

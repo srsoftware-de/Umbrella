@@ -97,6 +97,9 @@ function grab(evt){
 		if (DragGroup == null) return;
 	}
 	if (DragGroup.getAttribute('class') == 'arrow') return; // don't drag connectors
+	
+	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
+	
 	// move this element to the "top" of the display, so it is (almost)
 	DragGroup.parentNode.appendChild( DragGroup );
 
@@ -148,7 +151,13 @@ function wheel(evt){
 			var xforms = elem.getAttribute('transform');
 
 			var parts  = /rotate\(\s*([^\s,)]+)[ ,]([^\s,)]+)[ ,]([^\s,)]+)/.exec(xforms);
-			var a = +parts[1] - 10*Math.sign(evt.deltaY);
+			var da = 10*Math.sign(evt.deltaY);			
+			var a = +parts[1];
+			if (a<180) {
+				a += da;
+			} else a -= da;
+			while (a<0) a+=360;
+			while (a>=360) a-=360;
 			var x = +parts[2];
 			var y = +parts[3];
 			console.log({a:a,x:x,y:y});

@@ -35,7 +35,7 @@ if ($name = param('name')){
 		}
 		$child = new Process();
 		$child->base = $base;
-		$child->patch(['model_id'=>$model_id,'process_id'=>$name,'parent'=>$process->base->id,'x'=>50,'y'=>50]);
+		$child->patch(['model_id'=>$model_id,'process_id'=>$name,'parent'=>$process->base->id,'x'=>0,'y'=>15]);
 		$child->save();
 		redirect($model->url());
 	}

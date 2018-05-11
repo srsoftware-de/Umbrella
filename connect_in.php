@@ -10,7 +10,7 @@ $connector_id = param('id2');
 
 $model = Model::load(['ids'=>$model_id]);
 $connector = $model->connector_instances($connector_id);
-$process = $model->process_instances($connector->process_instance_id);
+$process = Process::load(['model_id'=>$model_id,'ids'=>$connector->process_instance_id]);
 
 if ($endpoint = param('endpoint')){	
 	if ($name = param('name')){
@@ -35,8 +35,6 @@ if ($endpoint = param('endpoint')){
 				$data['end_connector']  = $connector_id;
 				break;
 			case Flow::TO_SIBLING:
-				$target_proc = array_shift($endpoint);
-				$target_conn = array_shift($endpoint);
 				$data['start_connector'] = reset($endpoint);
 				$data['end_connector'] = $connector_id;
 				break;
@@ -93,30 +91,24 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 		</ul>
 	</fieldset>
-	<?php } ?>
-	<?php if ($process->parent_process) { 
-		$process_path = explode('.', $process_path);
-		array_pop($process_path);
-		$process_path = implode('.', $process_path);
-	?>
+	<?php }
+	if ($parent = $process->parent_process()) { ?>
 	<fieldset>
 		<legend>
 			<?= t('Siblings') ?>
 		</legend>
 		<ul>
-			<?php foreach ($process->parent->children() as $sibling){				
-				if ($process == $sibling) continue; 
-			?>
-			<li><?= $sibling->name ?>
+			<?php foreach ($parent->children() as $sibling){ if ($process->id == $sibling->id) continue; ?>
+			<li><?= $sibling->base->id ?>
 				<ul>
-				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->direction) continue; ?>
+				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->base->direction) continue; ?>
 				<li>
 					<label><input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
 				</li>
-				<?php } ?>
+				<?php } // foreach connector ?>
 			</ul>
 			</li>
-			<?php } ?>
+			<?php } // foreach sibling ?>
 		</ul>
 	</fieldset>	
 	<?php } ?>

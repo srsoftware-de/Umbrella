@@ -25,6 +25,13 @@ if ($action == 'delete' && param('confirm')=='true'){
 	redirect($model->url());
 }
 
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$flow->base->description = Parsedown::instance()->parse($flow->base->description);
+} else {
+	$flow->base->description = str_replace("\n", "<br/>", htmlentities($flow->base->description));
+}
+
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
@@ -33,8 +40,8 @@ include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
-		<legend><?= t('Delete "?"',$flow->name)?></legend>
-		<?= t('You are about to delete the flow "?". Are you sure you want to proceed?',$flow->name) ?>
+		<legend><?= t('Delete "?"',$flow->base->id)?></legend>
+		<?= t('You are about to delete the flow "?". Are you sure you want to proceed?',$flow->base->id) ?>
 		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?"><?= t('No')?></a>
 	</fieldset>
@@ -70,7 +77,7 @@ if ($action == 'delete'){?>
 	<?php if ($flow->base->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= htmlentities($flow->base->description); ?></td>
+		<td class="description"><?= $flow->base->description; ?></td>
 	</tr>
 	<?php } ?>
 	<?php if ($flow->base->definition){ ?>

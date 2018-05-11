@@ -448,7 +448,7 @@ class Flow extends BaseClass{
 	/** instance methods **/
 	function delete(){
 		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM flows WHERE id = :id');
+		$query = $db->prepare('DELETE FROM flow_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
 		assert($query->execute($args),t('Was not able to remove flow "?" from database.',$this->name));
 	}
@@ -718,6 +718,7 @@ class ProcessBase extends BaseClass{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
 		$sql .= implode(' AND ', $where);
 
 		$query = $db->prepare($sql);
@@ -739,6 +740,10 @@ class ProcessBase extends BaseClass{
 	/** instance functions **/
 	public function __construct(){
 		$this->patch(['r'=>50]);
+	}
+	
+	public function children(){
+		return Process::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
 	}
 	
 	public function save(){
@@ -840,6 +845,12 @@ class Process extends BaseClass{
 				$args[] = $options['parent'];
 			}
 		}
+		
+		if (isset($options['process_id'])){
+			$where[] = 'process_id = ?';
+			$args[] = $options['process_id'];
+		}
+		
 		$sql .= implode(' AND ', $where);
 
 		$query = $db->prepare($sql);
@@ -919,6 +930,11 @@ class Process extends BaseClass{
 		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove process "?" from models_processes table.',$this->name));
 	}
+	
+	function parent_process(){
+		if ($this->parent) return ProcessBase::load(['model_id'=>$this->model_id,'ids'=>$this->parent]);
+		return null;
+	}
 
 	function patch($data = array()){
 		foreach ($data as $key => $val){
@@ -984,7 +1000,7 @@ class Process extends BaseClass{
 					cx="0"
 					cy="0"
 					r="<?= $this->base->r ?>"
-					id="process_<?= $this->path ?>">
+					id="process_<?= $this->id ?>">
 				<title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
 			<text x="0" y="0"><title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>

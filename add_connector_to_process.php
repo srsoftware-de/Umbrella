@@ -18,8 +18,7 @@ if (!$process_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$process_hierarchy = explode('.',$process_id);
-$process = $model->process_instances(array_shift($process_hierarchy));
+$process = Process::load(['model_id'=>$model_id,'ids'=>$process_id]);
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 if ($name = param('name')){
