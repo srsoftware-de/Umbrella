@@ -21,7 +21,7 @@ if (!$process_id){
 
 $model = Model::load(['ids'=>$model_id]);
 $process_hierarchy = explode('.',$process_id);
-$process = $model->processes(array_shift($process_hierarchy));
+$process = $model->process_instances(array_shift($process_hierarchy));
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 $action = param('action');
@@ -47,8 +47,8 @@ include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
-		<legend><?= t('Delete "?"',$process->name)?></legend>
-		<?= t('You are about to delete the process "?". Are you sure you want to proceed?',$process->name) ?>
+		<legend><?= t('Delete "?"',$process->base->id)?></legend>
+		<?= t('You are about to delete the process "?". Are you sure you want to proceed?',$process->base->id) ?>
 		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?"><?= t('No')?></a>
 	</fieldset>
@@ -65,7 +65,7 @@ if ($action == 'delete'){?>
 				<a href="../add_existing_process/<?= $process_id ?>" title="<?= t('add existing process')?>"></a>
 				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>
-			<h1><?= $process->name ?></h1>
+			<h1><?= $process->base->id ?></h1>
 		</td>
 	</tr>
 	<tr>
@@ -82,10 +82,10 @@ if ($action == 'delete'){?>
 			<a href="<?= getUrl('model',$model->id.'/view'); ?>"><?= $model->name ?></a>
 		</td>
 	</tr>
-	<?php if ($process->description){ ?>
+	<?php if ($process->base->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $process->description; ?></td>
+		<td class="description"><?= $process->base->description; ?></td>
 	</tr>
 	<?php } ?>
 	<?php if ($process->children()){ ?>

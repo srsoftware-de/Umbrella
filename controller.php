@@ -56,7 +56,7 @@ if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 <g class="arrow">
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
 <?php $dx = $x2 - $x1; $dy = $y2 - $y1;	$alpha = ($dy == 0) ? 0 : atan($dx/$dy); $x1 = $x2 - 25*sin($alpha+0.2); $y1 = $y2 - 25*cos($alpha+0.2); ?>
-	
+
 
 <line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
 <?php $x1 = $x2 - 25*sin($alpha-0.2); $y1 = $y2 - 25*cos($alpha-0.2); ?>
@@ -372,13 +372,13 @@ class Model extends BaseClass{
 		$this->name = $name;
 		$this->description = $description;
 	}
-	
+
 	function delete(){
 		$db = get_or_create_db();
-		
+
 		foreach ($this->processes() as $proc) $proc->delete($this->id);
 		foreach ($this->terminals() as $term) $term->delete();
-		
+
 		$query = $db->prepare('DELETE FROM models WHERE id = :id');
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
@@ -407,18 +407,24 @@ class Model extends BaseClass{
 			$sql = 'INSERT INTO models_terminals (model_id, terminal_id) VALUES (:mid, :tid)';
 			$args = [':mid' => $this->id, ':tid' => $object->id];
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to assign terminal to model');			
+			assert($query->execute($args),'Was not able to assign terminal to model');
 			return;
 		}
 		warn('Model-&gt;link has no handler for '.$object);
 	}
-	
+
 	public function processes($id = null){
 		if (!isset($this->processes)) $this->processes = ProcessBase::load(['model_id'=>$this->id]);
 		if ($id) return $this->processes[$id];
 		return $this->processes;
 	}
-	
+
+	public function process_instances($id = null){
+		if (!isset($this->process_instances)) $this->process_instances = Process::load(['model_id'=>$this->id, 'parent'=>null]);
+		if ($id) return $this->process_instances[$id];
+		return $this->process_instances;
+	}
+
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
@@ -449,11 +455,17 @@ class Model extends BaseClass{
 			$this->id = $db->lastInsertId();
 		}
 	}
-	
+
 	public function terminals($id = null){
 		if (!isset($this->terminals)) $this->terminals = TerminalBase::load(['model_id'=>$this->id]);
 		if ($id) return $this->terminals[$id];
 		return $this->terminals;
+	}
+
+	public function terminal_instances($id = null){
+		if (!isset($this->terminal_instances)) $this->terminal_instances = Terminal::load(['model_id'=>$this->id]);
+		if ($id) return $this->terminal_instances[$id];
+		return $this->terminal_instances;
 	}
 
 	public function url(){
@@ -471,17 +483,17 @@ class ProcessBase extends BaseClass{
 		'r' => ['INT','DEFAULT 30'],
 		];
 	}
-	
+
 	static function load($options = []){
 		$db = get_or_create_db();
-	
+
 		assert(isset($options['model_id']),'No model id passed to ProcessBase::load()!');
-	
+
 		$where = ['model_id = ?'];
 		$args = [$options['model_id']];
-	
+
 		$sql = 'SELECT * FROM processes WHERE ';
-	
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -494,35 +506,35 @@ class ProcessBase extends BaseClass{
 			$args = array_merge($args, $ids);
 		}
 		$sql .= implode(' AND ', $where);
-	
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load processes');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-	
+
 		$bases = [];
 		foreach ($rows as $row){
 			$base = new ProcessBase($row['id']);
 			$base->patch($row);
 			unset($base->dirty);
 			if ($single) return $base;
-			$bases[] = $base;
+			$bases[$row['id']] = $base;
 		}
 		if ($single) return null;
 		return $bases;
 	}
-	
+
 	/** instance functions **/
 	public function __construct(){
 		$this->patch(['r'=>50]);
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE processes SET';
 				$args = [':id'=>$this->id];
-	
+
 				foreach ($this->dirty as $field){
 					if (array_key_exists($field, ProcessBase::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
@@ -538,7 +550,7 @@ class ProcessBase extends BaseClass{
 		} else {
 			$known_fields = array_keys(ProcessBase::fields());
 			$fields = ['id'];
-			$args = [$this->name];
+			$args = [':id'=>$this->name];
 			foreach ($known_fields as $f){
 				if (isset($this->{$f})){
 					$fields[]=$f;
@@ -546,7 +558,7 @@ class ProcessBase extends BaseClass{
 				}
 			}
 			$query = $db->prepare('INSERT INTO processes ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
-			assert($query->execute($args),'Was not able to insert new process');
+			assert($query->execute($args),'Was not able to insert new base process');
 			$this->id = $this->name;
 			unset($this->name);
 		}
@@ -568,24 +580,16 @@ class Process extends BaseClass{
 	}
 
 	static function load($options = []){
+
+		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+		$bases = ProcessBase::load(['model_id' => $options['model_id']]);
+
 		$db = get_or_create_db();
 
-		assert(isset($options['model_id']) || isset($options['parent']) || isset($options['ids']),'Neither ids, model id nor parent process id passed to Process::load()!');
+		$where = ['model_id = ?'];
+		$args = [$options['model_id']];
 
-		$where = [];
-		$args = [];
-
-		$sql = 'SELECT * FROM processes';
-		if (isset($options['model_id'])){
-			$sql .= ' LEFT JOIN models_processes ON models_processes.process_id = processes.id';
-			$where[] = 'model_id = ?';
-			$args[] = $options['model_id'];
-		}
-		if (isset($options['parent'])){
-			$sql .= ' LEFT JOIN child_processes ON child_processes.process_id = processes.id';
-			$where[] = 'parent_process = ?';
-			$args[] = $options['parent'];
-		}
+		$sql = 'SELECT * FROM process_instances WHERE ';
 
 		$single = false;
 		if (isset($options['ids'])){
@@ -594,26 +598,34 @@ class Process extends BaseClass{
 				$single = true;
 				$ids = [$ids];
 			}
-
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' LEFT JOIN child_processes ON child_processes.process_id = processes.id';
-			$where[] .= 'id IN ('.$qMarks.')';
+			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+		if (array_key_exists('parent',$options)){
+			if ($options['parent'] === null){
+				$where[] = 'parent IS NULL';
+			} else {
+				$where[] = 'parent = ?';
+				$args[] = $options['parent'];
+			}
+		}
+		$sql .= implode(' AND ', $where);
 
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load processes');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		$processes = [];
 
+		$processes = [];
 		foreach ($rows as $row){
-			$process = new Process();
+			$process = new Process($row['id']);
+			$process->base = $bases[$row['process_id']];
 			$process->patch($row);
-			$process->dirty=[];
+			unset($process->dirty);
 			if ($single) return $process;
-			$processes[$process->id] = $process;
+			$processes[$row['id']] = $process;
 		}
+		if ($single) return null;
 		return $processes;
 	}
 
@@ -627,7 +639,7 @@ class Process extends BaseClass{
 	}
 
 	function children($id = null){
-		if (!isset($this->children)) $this->children = Process::load(['parent'=>$this->id]);
+		if (!isset($this->children)) $this->children = Process::load(['model_id'=>$this->model_id,'parent'=>$this->process_id]);
 		if ($id) return $this->children[$id];
 		return $this->children;
 	}
@@ -661,8 +673,17 @@ class Process extends BaseClass{
 		assert($query->execute($args),t('Was not able to remove process "?" from models_processes table.',$this->name));
 	}
 
+	function patch($data = array()){
+		foreach ($data as $key => $val){
+			if ($key === 'r') {
+				$this->base->patch([$key => $val]);
+			} else parent::patch([$key => $val]);
+		}
+	}
+
 	public function save(){
 		$db = get_or_create_db();
+		if (isset($this->base)) $this->base->save();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE process_instances SET';
@@ -697,59 +718,60 @@ class Process extends BaseClass{
 		unset($this->dirty);
 	}
 
-	function svg(&$model){
-		if (isset($this->parent)){
-			$rad = $this->parent->r;
+	function svg(&$parent = null){
+		$this->path = $this->id;
+		if (isset($parent)){
+			$rad = $parent->base->r;
 			$this->x = $this->x < -$rad ? -$rad : ($this->x > $rad ? $rad : $this->x);
 			$this->y = $this->y < -$rad ? -$rad : ($this->y > $rad ? $rad : $this->y);
-			$this->path = $this->parent->path . '.' . $this->id;
+			$this->path = $parent->path.'.'.$this->path;
 		} else {
 			$this->x = $this->x < 0 ? 0 : ($this->x > 1000 ? 1000 : $this->x);
 			$this->y = $this->y < 0 ? 0 : ($this->y > 1000 ? 1000 : $this->y);
-			$this->path = $this->id;
 		}
+		
 		?>
 		<g class="process" transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
 			<circle
 					class="process"
 					cx="0"
 					cy="0"
-					r="<?= $this->r?>"
+					r="<?= $this->base->r ?>"
 					id="process_<?= $this->path ?>">
-				<title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
+				<title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
-			<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text>
-			<?php foreach ($this->connectors() as $conn){
+			<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>
+			<?php foreach ($this->connectors() as $conn){ continue;
 				$conn->process = $model->id.':'.$this->path;
 				foreach ($conn->flows() as $flow){
 					if ($flow->start_process == null){
 						$terminal = $model->terminals($flow->start_id);
 						$x2 =  sin($conn->angle*RAD)*$this->r;
 						$y2 = -cos($conn->angle*RAD)*$this->r;
-					
+
 						$x1 = -$this->x + $terminal->x + $terminal->w/2;
 						$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30);
-					
+
 						$parent = $this->parent;
 						while ($parent){
 							$x1 -= $parent->x;
 							$y1 -= $parent->y;
 							$parent = $parent->parent;
 						}
-						
+
 						arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						continue;
 					}
-						
+
 					if ($flow->end_process == null){
 						$terminal = $model->terminals($flow->end_id);
-						
+
 						$x1 = + sin($conn->angle*RAD)*$this->r;
 						$y1 = - cos($conn->angle*RAD)*$this->r;
-						
+
 						$x2 = -$this->x + $terminal->x + $terminal->w/2;
 						$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
-						
+
 						$parent = isset($this->parent) ? $this->parent: false;
 						while ($parent){
 							$x2 -= $parent->x;
@@ -817,10 +839,7 @@ class Process extends BaseClass{
 				</circle>
 			</a>
 			<?php } // foreach connector
-			foreach ($this->children() as $child){
-				$child->parent = &$this;
-				$child->svg($model,$this);
-			}
+			foreach ($this->children() as $child) $child->svg($this);
 			?>
 		</g>
 	<?php }
@@ -935,23 +954,18 @@ class Terminal extends BaseClass{
 		'y' => ['INT','DEFAULT 50'],
 		];
 	}
-	
+
 	static function load($options = []){
-		$db = get_or_create_db();
-	
+
 		assert(isset($options['model_id']),'No model id passed to Process::load()!');
-	
-		$sql = 'SELECT * FROM terminals WHERE model_id = :model';
-		$args = [':model'=>$options['model_id']];
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load terminals');
-		$bases = $query->fetchAll(PDO::FETCH_ASSOC);
-	
+		$bases = TerminalBase::load(['model_id'=>$options['model_id']]);
+		$db = get_or_create_db();
+
 		$terminals = [];
-	
+
 		foreach ($bases as $base){
 			$query = $db->prepare('SELECT * FROM terminal_instances WHERE model_id = :model AND terminal_id = :tid');
-			$args = [':model'=>$options['model_id'],':tid'=>$base['id']];
+			$args = [':model'=>$options['model_id'],':tid'=>$base->id];
 			assert($query->execute($args),'Was not able to load terminals');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			foreach ($rows as $row){
@@ -1011,45 +1025,20 @@ class Terminal extends BaseClass{
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove flows from/to terminal "?" from database.',$this->name));
-		
+
 	}
 
-	
-	/**
-	 * Checks, if a terminal with the given id/name exists.
-	 * If so, it is loaded into the base attribute.
-	 * Otherwise it is created. 
-	 */
-	function provide_base($param){
-		$db = get_or_create_db();
-		assert(isset($param['model_id']),'Cannot load terminal without model reference!');
-		assert(isset($param['name']),'Cannot load terminal without name!');
-		
-		$param['id'] = $param['name']; unset($param['name']);
-		
-		$query = $db->prepare('SELECT * FROM terminals WHERE id = :id AND model_id = :model');
-		$args = [':id'=>$param['id'],':model'=>$param['model_id']];
-		
-		assert($query->execute($args),'Was not able to load terminal!');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		if (empty($rows)){
-			$query = $db->prepare('INSERT INTO terminals (id, model_id, type, description, w) VALUES (:id, :model, :type, :descr, :width)');
-			assert(isset($param['type']),'Cannot create new terminal without type!');
-			$args[':type'] = $param['type'];
-			if (!isset($param['description']) || $param['description'] === '') $param['description'] = null;
-			$args[':descr'] = $param['description'];
-			$param['w'] = 50;
-			$args[':width'] = $param['w'];			
-			$this->base = $param;
-			assert($query->execute($args),'Was not able to create new terminal!');
-		} else {
-			$this->base = $rows[0];
+	function patch($data = array()){
+		foreach ($data as $key => $val){
+			if ($key === 'w') {
+				$this->base->patch([$key => $val]);
+			} else parent::patch([$key => $val]);
 		}
-		$this->patch(['terminal_id'=>$this->base['id']]);
 	}
 
 	public function save(){
 		$db = get_or_create_db();
+		if (isset($this->base)) $this->base->save();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE terminal_instances SET';
@@ -1091,38 +1080,38 @@ class Terminal extends BaseClass{
 				class="terminal"
 				x="0"
 				y="0"
-				width="<?= $this->w ?>"
+				width="<?= $this->base->w ?>"
 				height="30"
 				id="terminal_<?= $this->id ?>">
-			<title><?= $this->description ?></title>
+			<title><?= $this->base->description ?></title>
 		</rect>
-		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
+		<text x="<?= $this->base->w/2 ?>" y="15" fill="red"><title><?= $this->base->description ?></title><?= $this->base->id ?></text>
 		<?php } else { ?>
 		<ellipse
-				 cx="<?= $this->w/2 ?>"
+				 cx="<?= $this->base->w/2 ?>"
 				 cy="40"
-				 rx="<?= $this->w/2?>"
+				 rx="<?= $this->base->w/2?>"
 				 ry="15">
-			<title><?= $this->description ?></title>
+			<title><?= $this->base->description ?></title>
 		</ellipse>
 		<rect
 				class="terminal"
 				x="0"
 				y="0"
-				width="<?= $this->w ?>"
+				width="<?= $this->base->w ?>"
 				height="40"
-			  	stroke-dasharray="0,<?= $this->w ?>,40,<?= $this->w ?>,40"
+			  	stroke-dasharray="0,<?= $this->base->w ?>,40,<?= $this->base->w ?>,40"
 				id="terminal_<?= $this->id ?>">
-			<title><?= $this->description ?></title>
+			<title><?= $this->base->description ?></title>
 		</rect>
 		<ellipse
-				 cx="<?= $this->w/2 ?>"
+				 cx="<?= $this->base->w/2 ?>"
 				 cy="0"
-				 rx="<?= $this->w/2?>"
+				 rx="<?= $this->base->w/2?>"
 				 ry="15">
-			<title><?= $this->description ?></title>
+			<title><?= $this->base->description ?></title>
 		</ellipse>
-		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
+		<text x="<?= $this->base->w/2 ?>" y="30" fill="red"><title><?= $this->base->description ?></title><?= $this->base->id ?></text>
 		<?php } ?>
 	</g>
 	<?php }

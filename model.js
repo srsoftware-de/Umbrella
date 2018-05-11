@@ -105,7 +105,7 @@ function grab(evt){
 	GroupOrigin = getTranslation(DragGroup);
 }
 
-function initSVG(evt){	
+function initSVG(evt){
 	SVGRoot = evt.target;
 	pt = SVGRoot.createSVGPoint();
 	BackDrop = evt.target.ownerDocument.getElementById('backdrop');
@@ -125,7 +125,7 @@ function updateElement(elem,data){
 
 function wheel(evt){
 	var elem = evt.target;
-	var cls = elem.getAttribute('class');
+	var cls = elem.getAttribute('class'); 
 
 	if (evt.target.nodeName == 'circle'){
 

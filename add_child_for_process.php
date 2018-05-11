@@ -19,14 +19,21 @@ if (!$process_id){
 
 $model = Model::load(['ids'=>$model_id]);
 $process_hierarchy = explode('.',$process_id);
-$process = $model->processes(array_shift($process_hierarchy));
+$process = $model->process_instances(array_shift($process_hierarchy));
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 if ($name = param('name')){
+	$base = ProcessBase::load(['model_id'=>$model_id,'ids'=>$name]);
+	if ($base === null) {
+		$base = new ProcessBase();
+		$base->patch(['model_id'=>$model_id]);
+		$base->patch($_POST);
+		$base->save();
+	}
 	$child = new Process();
-	$child->patch($_POST);
+	$child->base = $base;
+	$child->patch(['model_id'=>$model_id,'process_id'=>$name,'parent'=>$process->base->id,'x'=>50,'y'=>50]);
 	$child->save();
-	$process->addChild($child->id);
 	redirect($model->url());
 }
 
@@ -39,9 +46,9 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Add child process to process "?"',$process->name)?>
+			<?= t('Add child process to process "?"',$process->base->id)?>
 		</legend>
-		<input type="hidden" name="parent_process" value="<?= $process_id ?>" />
+		<input type="hidden" name="parent" value="<?= $process->base->id ?>" />
 		<label>
 			<?= t('Name') ?>
 			<input type="text" name="name" value="" />

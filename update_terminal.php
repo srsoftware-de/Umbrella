@@ -18,6 +18,6 @@ if (!$terminal_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$terminal = $model->terminals($terminal_id);
+$terminal = $model->terminal_instances($terminal_id);
 $terminal->patch($_POST);
 $terminal->save();
