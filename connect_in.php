@@ -6,27 +6,17 @@ include 'controller.php';
 require_login('model');
 
 $model_id = param('id1');
-$endpoint_path = param('id2');
-assert(strpos($endpoint_path,':')!==false,'Parameter does not refer to process:connector');
-$endpoint_path_parts = explode(':',$endpoint_path);
-$connector_id = array_pop($endpoint_path_parts); // last part
-$process_path = array_pop($endpoint_path_parts);
-$process_hierarchy = explode('.',$process_path);
+$connector_id = param('id2');
 
 $model = Model::load(['ids'=>$model_id]);
-$process = $model->process_instances(array_shift($process_hierarchy));
-while(!empty($process_hierarchy)) {
-	$child = $process->children(array_shift($process_hierarchy));
-	$child->parent = $process;
-	$process = $child;
-}
+$connector = $model->connector_instances($connector_id);
+$process = $model->process_instances($connector->process_instance_id);
 
-$conn = $process->connectors($connector_id);
-
-if ($endpoint = param('endpoint')){
+if ($endpoint = param('endpoint')){	
 	if ($name = param('name')){
 		$endpoint = explode(':', $endpoint);
 		$endpoint_type = array_shift($endpoint);
+		
 		$data = [
 			'model_id'=>$model_id,
 			'flow_id'=>$name,
@@ -37,25 +27,18 @@ if ($endpoint = param('endpoint')){
 		];
 		switch ($endpoint_type){
 			case Flow::TO_CONNECTOR:
-				$target_proc = array_shift($endpoint);
-				$target_conn = array_shift($endpoint);
-				$data['start_connector'] = $model->id.':'.$process_path;
-				$data['start_id']   = $connector_id;
-				$data['end_process'] = $model->id.':'.$target_proc; 
-				$data['end_id']     = $target_conn;
+				$data['start_connector'] = $connector_id;
+				$data['end_connector'] = reset($endpoint); 
 				break;
 			case Flow::TO_TERMINAL:
-				$target_term = array_shift($endpoint);
-				$data['start_terminal'] = $target_term;
+				$data['start_terminal'] = reset($endpoint);
 				$data['end_connector']  = $connector_id;
 				break;
 			case Flow::TO_SIBLING:
 				$target_proc = array_shift($endpoint);
 				$target_conn = array_shift($endpoint);
-				$data['start_process'] = $model->id.':'.$target_proc;
-				$data['start_id']   = $target_conn;
-				$data['end_process'] = $model->id.':'.$process_path;
-				$data['end_id']     = $connector_id;;
+				$data['start_connector'] = reset($endpoint);
+				$data['end_connector'] = $connector_id;
 				break;
 		}
 		$flow = new Flow();
@@ -67,7 +50,7 @@ if ($endpoint = param('endpoint')){
 		}
 		$flow->base = $base;
 		$flow->patch($data);
-		$flow->save();		
+		$flow->save();
 		redirect($model->url());
 	} else {
 		warn('Pleas set at least a name for the flow');
@@ -85,7 +68,7 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 <fieldset>
 	<legend>
-		<?= t('Select terminal or endpoint for flow to connector "?"',$conn->base->id); ?>
+		<?= t('Select terminal or endpoint for flow to connector "?"',$connector->base->id); ?>
 	</legend>
 	<label>
 		<?= t('Name') ?><input type="text" name="name" />
@@ -105,7 +88,7 @@ include '../common_templates/messages.php'; ?>
 		<ul>
 			<?php foreach ($child_process->connectors() as $conn){ if ($conn->base->direction) continue; ?>
 			<li>
-				<label><input type="radio" name="endpoint" value="<?= Flow::TO_CONNECTOR.':'.$process_path.'.'.$child_process->id.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
+				<label><input type="radio" name="endpoint" value="<?= Flow::TO_CONNECTOR.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
 			</li>
 			<?php } ?>
 		</ul>
@@ -128,7 +111,7 @@ include '../common_templates/messages.php'; ?>
 				<ul>
 				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->direction) continue; ?>
 				<li>
-					<label><input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.':'.$process_path.'.'.$sibling->id.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
+					<label><input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
 				</li>
 				<?php } ?>
 			</ul>

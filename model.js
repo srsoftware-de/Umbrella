@@ -5,6 +5,8 @@ var PointGrabbed = null;
 var GroupOrigin = null;
 var SVGRoot = null;
 var pt = null;
+var reload_timer_handle = null;
+
 function crossHair(x,y,text){
 	var vl = document.createElementNS('http://www.w3.org/2000/svg','line');
 	vl.setAttribute('x1',x);
@@ -111,6 +113,11 @@ function initSVG(evt){
 	BackDrop = evt.target.ownerDocument.getElementById('backdrop');
 }
 
+function schedule_reload(){
+	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
+	//reload_timer_handle = setTimeout(function(){location.reload()},200);
+}
+
 function updateElement(elem,data){
 	var script = 'update_'+elem.id.replace(/_([^_]*)$/,'/$1');
 	$.ajax({
@@ -118,7 +125,7 @@ function updateElement(elem,data){
 		method: 'POST',
 		data: data,
 		complete: function(a,b){
-			location.reload();
+			schedule_reload();
 		}
 	});
 }

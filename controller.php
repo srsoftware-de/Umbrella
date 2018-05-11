@@ -108,6 +108,11 @@ class ConnectorBase extends BaseClass{
 			$args = array_merge($args, $ids);
 		}
 		
+		if (isset($options['process_id'])){
+			$where[] = 'process_id = ?';
+			$args[] = $options['process_id'];
+		}
+		
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
 
 		assert($query->execute($args),'Was not able to load connectors');
@@ -115,7 +120,7 @@ class ConnectorBase extends BaseClass{
 		$connectors = [];
 	
 		foreach ($rows as $row){
-			$connector = new Connector();
+			$connector = new ConnectorBase();
 			$connector->patch($row);
 			unset($connector->dirty);
 			if ($single) return $connector;
@@ -351,11 +356,11 @@ class FlowBase extends BaseClass{
 				}
 			}
 			$query = $db->prepare('INSERT INTO flows ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
-			debug(query_insert($query,$args));
 			assert($query->execute($args),'Was not able to insert new flow');
 			$this->id = $this->name;
 			unset($this->name);
 		}
+		unset($this->dirty);
 	}
 }
 
@@ -547,6 +552,18 @@ class Model extends BaseClass{
 		$this->name = $name;
 		$this->description = $description;
 	}
+	
+	public function connectors($id = null){
+		if (!isset($this->connectors)) $this->connectors = ConnectorBase::load(['model_id'=>$this->id]);
+		if ($id) return $this->connectors[$id];
+		return $this->connectors;
+	}
+	
+	public function connector_instances($id = null){
+		if (!isset($this->connector_instances)) $this->connector_instances = Connector::load(['model_id'=>$this->id, 'parent'=>null]);
+		if ($id) return $this->connector_instances[$id];
+		return $this->connector_instances;
+	}
 
 	function delete(){
 		$db = get_or_create_db();
@@ -702,7 +719,7 @@ class ProcessBase extends BaseClass{
 	public function __construct(){
 		$this->patch(['r'=>50]);
 	}
-
+	
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
@@ -812,6 +829,15 @@ class Process extends BaseClass{
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to assign child to process');
 	}
+	
+	function add_connector_instances($base_connectors){
+		foreach ($base_connectors as $base){
+			$connector = new Connector();
+			$connector->base = $base;
+			$connector->patch(['model_id'=>$this->model_id,'connector_id'=>$base->id,'process_instance_id'=>$this->id,'angle'=>180*$base->direction]);
+			$connector->save();
+		}
+	}
 
 	function children($id = null){
 		if (!isset($this->children)) $this->children = Process::load(['model_id'=>$this->model_id,'parent'=>$this->process_id]);
@@ -820,7 +846,15 @@ class Process extends BaseClass{
 	}
 
 	function connectors($id = null){
-		if (!isset($this->connectors)) $this->connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->id]);
+		if (!isset($this->connectors)) {
+			$base_connectors = ConnectorBase::load(['model_id'=>$this->model_id,'process_id'=>$this->base->id]);			
+			$this->connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->id]);
+			foreach ($this->connectors as $conn) unset($base_connectors[$conn->connector_id]);
+			if (!empty($base_connectors)) {
+				$this->add_connector_instances($base_connectors);
+				$this->connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->id]);
+			}
+		}
 		if ($id) {
 			if (array_key_exists($id, $this->connectors)) return $this->connectors[$id];
 			return null;
@@ -920,7 +954,6 @@ class Process extends BaseClass{
 				foreach ($conn->flows() as $flow){
 					if ($flow->start_connector == null){
 						$terminal = $model->terminal_instances($flow->start_terminal);
-						//debug(['this'=>$this,'conn'=>$conn,'terminal'=>$terminal]);
 						$x2 =  sin($conn->angle*RAD)*$this->base->r;
 						$y2 = -cos($conn->angle*RAD)*$this->base->r;
 
@@ -958,52 +991,53 @@ class Process extends BaseClass{
 						continue;
 					}
 
-					if ($conn->direction){ // OUT
-						if ($flow->start_process != $conn->process) continue;
-						$c2 = $this->parent->connectors($flow->end_id);
-						if ($c2){ // flow goes to connector of parent
-							$x1 = $this->r*sin($conn->angle*RAD);
-							$y1 = -$this->r*cos($conn->angle*RAD);
+					if ($conn->base->direction){ // OUT
+						if ($flow->start_connector != $conn->id) continue;
+						$end_connector = $parent->connectors($flow->end_connector);
+						
+						if ($end_connector){ // flow goes to connector of parent
+							$x1 = $this->base->r*sin($conn->angle*RAD);
+							$y1 = -$this->base->r*cos($conn->angle*RAD);
 
-							$x2 = -$this->x + $this->parent->r * sin($c2->angle*RAD);
-							$y2 = -$this->y - $this->parent->r * cos($c2->angle*RAD);
+							$x2 = -$this->x + $parent->base->r * sin($end_connector->angle*RAD);
+							$y2 = -$this->y - $parent->base->r * cos($end_connector->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						}
 					} else { // IN
-						if ($flow->end_process != $conn->process) continue;
-						$c2 = $this->parent->connectors($flow->start_id);
-						if ($c2 === null){
-							foreach ($this->parent->children() as $sibling){
-								$c2 = $sibling->connectors($flow->start_id);
-								if ($c2) break;
+						if ($flow->end_connector != $conn->id) continue;
+						$start_connector = $parent->connectors($flow->start_connector);
+						if ($start_connector === null){ // flow comes from sobling of process
+							foreach ($parent->children() as $sibling){
+								$start_connector = $sibling->connectors($flow->start_connector);
+								if ($start_connector) break;
 							}
-							$x1 = -$this->x + $sibling->x + $sibling->r * sin($c2->angle*RAD);
-							$y1 = -$this->y + $sibling->y - $sibling->r * cos($c2->angle*RAD);
+							$x1 = -$this->x + $sibling->x + $sibling->base->r * sin($start_connector->angle*RAD);
+							$y1 = -$this->y + $sibling->y - $sibling->base->r * cos($start_connector->angle*RAD);
 
-							$x2 = $this->r*sin($conn->angle*RAD);
-							$y2 = -$this->r*cos($conn->angle*RAD);
+							$x2 = $this->base->r*sin($conn->angle*RAD);
+							$y2 = -$this->base->r*cos($conn->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						} else { // flow comes from connector of parent
-							$x1 = -$this->x + $this->parent->r * sin($c2->angle*RAD);
-							$y1 = -$this->y - $this->parent->r * cos($c2->angle*RAD);;
+							$x1 = -$this->x + $parent->base->r * sin($start_connector->angle*RAD);
+							$y1 = -$this->y - $parent->base->r * cos($start_connector->angle*RAD);;
 
-							$x2 = $this->r*sin($conn->angle*RAD);
-							$y2 = -$this->r*cos($conn->angle*RAD);
+							$x2 = $this->base->r*sin($conn->angle*RAD);
+							$y2 = -$this->base->r*cos($conn->angle*RAD);
 
-							arrow($x1,$y1,$x2,$y2,$flow->name,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$this->path.':'.$conn->id.':'.$flow->id));
 						}
 					}
 				} // foreach flow */
 			?>
-			<a xlink:href="connect_<?= $conn->base->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $this->path ?>:<?= $conn->id ?>">
+			<a xlink:href="connect_<?= $conn->base->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $conn->id ?>">
 				<circle
 						class="connector"
 						cx="0"
 						cy="<?= -$this->base->r ?>"
 						r="15"
-						id="connector_<?= $this->path ?>:<?= $conn->id ?>"
+						id="connector_<?= $conn->id ?>"
 						transform="rotate(<?= $conn->angle ?>,0,0)">
 					<title><?= $conn->base->id ?></title>
 				</circle>
@@ -1245,7 +1279,7 @@ class Terminal extends BaseClass{
 
 	public function svg(){ ?>
 	<g transform="translate(<?= $this->x>0?$this->x:0 ?>,<?= $this->y>0?$this->y:0 ?>)">
-		<?php if (!$this->type) { ?>
+		<?php if (!$this->base->type) { // terminal ?>
 		<rect
 				class="terminal"
 				x="0"

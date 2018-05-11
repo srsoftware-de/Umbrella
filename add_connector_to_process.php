@@ -52,7 +52,7 @@ include '../common_templates/messages.php'; ?>
 		<legend>
 			<?= t('Add connector to process "?"',$process->base->id)?>
 		</legend>
-		<input type="hidden" name="process_id" value="<?= $process_id ?>" />
+		<input type="hidden" name="process_id" value="<?= $process->base->id ?>" />
 		<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 		<label>
 			<?= t('Connector name') ?>
