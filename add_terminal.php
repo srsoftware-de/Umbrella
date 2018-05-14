@@ -13,15 +13,15 @@ if ($model_id = param('id')){
 }
 
 if ($name = param('name')){
-	$base = TerminalBase::load(['model_id'=>$model_id,'ids'=>$name]);
+	$base = TerminalBase::load(['project_id'=>$model->project_id,'ids'=>$name]);
 	if ($base === null) {
 		$base = new TerminalBase();		
-		$base->patch($_POST);
+		$base->patch($_POST);		
 		$base->save();
 	}
 	$terminal = new Terminal();
 	$terminal->base = $base;
-	$terminal->patch(['model_id'=>$model_id,'terminal_id'=>$name,'x'=>0,'y'=>0]);		
+	$terminal->patch(['model_id'=>$model_id,'terminal_id'=>$name,'x'=>0,'y'=>0]);
 	$terminal->save();
 	redirect('view');
 }
@@ -33,6 +33,7 @@ include '../common_templates/messages.php'; ?>
 <fieldset>
 	<legend><?= t('Add Terminal to "?"',$model->name); ?></legend>
 	<form method="POST">
+	<input type="hidden" name="project_id" value="<?= $model->project_id ?>" />
 	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 	<fieldset>
 	<legend><?= t('Type')?></legend>

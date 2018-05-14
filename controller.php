@@ -657,15 +657,9 @@ class Model extends BaseClass{
 	}
 
 	public function processes($id = null){
-		if (!isset($this->processes)) $this->processes = ProcessBase::load(['model_id'=>$this->id]);
+		if (!isset($this->processes)) $this->processes = ProcessBase::load(['project_id'=>$this->project_id]);
 		if ($id) return $this->processes[$id];
 		return $this->processes;
-	}
-
-	public function process_instances($id = null){
-		if (!isset($this->process_instances)) $this->process_instances = Process::load(['model_id'=>$this->id, 'parent'=>null]);
-		if ($id) return $this->process_instances[$id];
-		return $this->process_instances;
 	}
 
 	public function save(){
@@ -700,7 +694,7 @@ class Model extends BaseClass{
 	}
 
 	public function terminals($id = null){
-		if (!isset($this->terminals)) $this->terminals = TerminalBase::load(['model_id'=>$this->id]);
+		if (!isset($this->terminals)) $this->terminals = TerminalBase::load(['project_id'=>$this->project_id]);
 		if ($id) return $this->terminals[$id];
 		return $this->terminals;
 	}
@@ -721,20 +715,20 @@ class ProcessBase extends BaseClass{
 	static function fields(){
 		return [
 			'id' => ['VARCHAR'=>255, 'NOT NULL'],
-			'model_id' => ['INT','NOT NULL'],
+			'project_id' => ['INT','NOT NULL'],
 			'description' => 'TEXT',
 			'r' => ['INT','DEFAULT 30'],
-			'PRIMARY KEY'=>'(id, model_id)',
+			'PRIMARY KEY'=>'(id, project_id)',
 		];
 	}
 
 	static function load($options = []){
 		$db = get_or_create_db();
 
-		assert(isset($options['model_id']),'No model id passed to ProcessBase::load()!');
+		assert(isset($options['project_id']),'No project id passed to ProcessBase::load()!');
 
-		$where = ['model_id = ?'];
-		$args = [$options['model_id']];
+		$where = ['project_id = ?'];
+		$args = [$options['project_id']];
 
 		$sql = 'SELECT * FROM processes WHERE ';
 
@@ -775,6 +769,11 @@ class ProcessBase extends BaseClass{
 	
 	public function children(){
 		return Process::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
+	}
+	
+	public function instances($options){
+		$options['base'] = $this;
+		return Process::load($options); 
 	}
 	
 	public function save(){
@@ -852,10 +851,21 @@ class Process extends BaseClass{
 	}
 
 	static function load($options = []){
-
-		assert(isset($options['model_id']),'No model id passed to Process::load()!');
-		$bases = ProcessBase::load(['model_id' => $options['model_id']]);
-
+		assert(isset($options['model_id']),'No model id passed to Process::load()!');		
+		
+		$bases = null;
+		if (isset($options['base'])){
+			$base = $options['base'];
+			$bases = [$base->id => $base];
+			$options['project_id'] = $base->project_id;
+			$options['process_id'] = $base->id;
+		} else {
+			if (!isset($options['project_id'])){
+				$model = Model::load(['ids'=>$options['model_id']]);
+				$options['project_id'] = $model->project_id;
+			}
+			$bases = ProcessBase::load(['project_id' => $options['project_id']]);
+		}
 		$db = get_or_create_db();
 
 		$where = ['model_id = ?'];
@@ -1148,21 +1158,21 @@ class TerminalBase extends BaseClass{
 	static function fields(){
 		return [
 			'id' => ['VARCHAR'=>255, 'NOT NULL'],
-			'model_id' => ['INT','NOT NULL'],
+			'project_id' => ['INT','NOT NULL'],
 			'type' => 'INT',
 			'description' => 'TEXT',
 			'w' => ['INT','DEFAULT 50'],
-			'PRIMARY KEY' => '(id, model_id)',
+			'PRIMARY KEY' => '(id, project_id)',
 		];
 	}
 	
 	static function load($options = []){
 		$db = get_or_create_db();
 	
-		assert(isset($options['model_id']),'No model id passed to TerminalBase::load()!');
+		assert(isset($options['project_id']),'No project id passed to TerminalBase::load()!');
 	
-		$where = ['model_id = ?'];
-		$args = [$options['model_id']];
+		$where = ['project_id = ?'];
+		$args = [$options['project_id']];
 		
 		$sql = 'SELECT * FROM terminals WHERE ';
 		
@@ -1185,11 +1195,11 @@ class TerminalBase extends BaseClass{
 
 		$bases = [];
 		foreach ($rows as $row){
-			$base = new TerminalBase($row['id']);
+			$base = new TerminalBase();
 			$base->patch($row);
 			unset($base->dirty);
 			if ($single) return $base;
-			$bases[] = $base;
+			$bases[$row['id']] = $base;
 		}
 		if ($single) return null;
 		return $bases;
@@ -1198,6 +1208,11 @@ class TerminalBase extends BaseClass{
 	/** instance functions **/
 	public function __construct(){
 		$this->patch(['w'=>50]);
+	}
+	
+	public function instances($options = []){
+		$options['base'] = $this;
+		return Terminal::load($options);
 	}
 	
 	public function save(){
@@ -1211,10 +1226,15 @@ class TerminalBase extends BaseClass{
 					if (array_key_exists($field, TerminalBase::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
+					} elseif ($field == 'name'){
+						$sql .= ' id = :new_id,';
+						$args[':new_id'] = $this->name;
+						$this->update_references($this->name);
 					}
 				}
 				if (count($args)>1){
-					$sql = rtrim($sql,',').' WHERE id = :id';
+					$sql = rtrim($sql,',').' WHERE id = :id AND project_id IN (SELECT project_id FROM models WHERE id IN (SELECT id FROM models WHERE project_id = :pid))';
+					$args[':pid'] = $this->project_id;
 					$query = $db->prepare($sql);
 					assert($query->execute($args),'Was no able to update terminal in database!');
 				}
@@ -1236,6 +1256,13 @@ class TerminalBase extends BaseClass{
 		}
 		unset($this->dirty);
 	}
+	
+	public function update_references($new_id){
+		foreach ($this->instances() as $terminal){
+			$terminal->patch(['terminal_id'=>$new_id]);
+			$terminal->save();
+		}
+	}
 }
 
 class Terminal extends BaseClass{
@@ -1252,26 +1279,56 @@ class Terminal extends BaseClass{
 	}
 
 	static function load($options = []){
-
-		assert(isset($options['model_id']),'No model id passed to Process::load()!');
-		$bases = TerminalBase::load(['model_id'=>$options['model_id']]);
-		$db = get_or_create_db();
-
-		$terminals = [];
-
-		foreach ($bases as $base){
-			$query = $db->prepare('SELECT * FROM terminal_instances WHERE model_id = :model AND terminal_id = :tid');
-			$args = [':model'=>$options['model_id'],':tid'=>$base->id];
-			assert($query->execute($args),'Was not able to load terminals');
-			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-			foreach ($rows as $row){
-				$terminal = new Terminal();
-				$terminal->patch($row);
-				$terminal->dirty = [];
-				$terminal->base = $base;
-				$terminals[$terminal->id] = $terminal;
+		$bases = null;
+		$where = [];
+		$args = [];
+		
+		if (isset($options['base'])){
+			$base = $options['base'];
+			$bases = [$base->id => $base];
+			$options['terminal_id'] = $base->id;
+			
+			$where [] = 'model_id IN (SELECT id FROM models WHERE project_id = :pid)';
+			$args[':pid'] = $base->project_id;
+		} else {
+			if (!isset($options['project_id'])){
+				assert(isset($options['model_id']),'Process::load() needs either a model_id, a project_id or a process base object!');
+				$model = Model::load(['ids'=>$options['model_id']]);				
+				$options['project_id'] = $model->project_id;
 			}
+			$bases = TerminalBase::load(['project_id' => $options['project_id']]);			
 		}
+		
+		if (isset($options['model_id'])){
+			$where[] = 'model_id = :model';
+			$args[':model'] = $options['model_id'];
+		}
+		
+		if (isset($options['terminal_id'])){
+			$where[] = 'terminal_id = :terminal_id';
+			$args[':terminal_id'] = $options['terminal_id'];
+		}
+		
+		if (isset($options['id'])){
+			$where[] = 'id = :id';
+			$args[':id'] = $options['id'];
+		}
+		
+		$sql = 'SELECT * FROM terminal_instances WHERE '.implode(' AND ',$where);
+		//debug(query_insert($sql,$args));
+		$db = get_or_create_db();		
+		$query = $db->prepare($sql);		
+		assert($query->execute($args),'Was not able to load terminals');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($rows as $row){
+			$terminal = new Terminal();
+			$terminal->base = $bases[$row['terminal_id']];
+			$terminal->patch($row);
+			unset($terminal->dirty);
+			if (isset($options['id'])) return $terminal;
+			$terminals[$terminal->id] = $terminal;
+		}
+		if (isset($options['id'])) return null;
 		return $terminals;
 	}
 
@@ -1307,19 +1364,14 @@ class Terminal extends BaseClass{
 	/** instance functions **/	
 	function delete(){
 		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM terminals WHERE id = :id');
+		$query = $db->prepare('DELETE FROM terminal_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
-		assert($query->execute($args),t('Was not able to remove terminal "?" from terminals table.',$this->name));
+		assert($query->execute($args),t('Was not able to remove terminal "?" from terminal instances table.',$this->name));
 		
-		$query = $db->prepare('DELETE FROM models_terminals WHERE terminal_id = :id');
-		$args = [':id'=>$this->id];
-		debug(query_insert($query,$args));
-		assert($query->execute($args),t('Was not able to remove terminal "?" from models_terminals table.',$this->name));
-		
-		$query = $db->prepare('DELETE FROM flows WHERE ( start_process IS NULL AND start_id = :id ) OR ( end_process IS NULL AND end_id = :id )');
-		$args = [':id'=>$this->id];
-		debug(query_insert($query,$args));
+		$query = $db->prepare('DELETE FROM flow_instances WHERE model_id = :mid AND (start_terminal = :tid OR end_terminal = :tid)');
+		$args = [':mid'=>$this->model_id,':tid'=>$this->id];
+		debug(query_insert($query,$args),1);
 		assert($query->execute($args),t('Was not able to remove flows from/to terminal "?" from database.',$this->name));
 
 	}
@@ -1334,7 +1386,6 @@ class Terminal extends BaseClass{
 
 	public function save(){
 		$db = get_or_create_db();
-		if (isset($this->base)) $this->base->save();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE terminal_instances SET';

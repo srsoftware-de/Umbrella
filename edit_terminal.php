@@ -6,23 +6,25 @@ include 'controller.php';
 require_login('model');
 
 $model_id = param('id1');
-$terminal_id = param('id2');
+$terminal_instance_id = param('id2');
 
 if (!$model_id){
 	error('No model id passed to terminal.');
 	redirect(getUrl('model'));
 }
-if (!$terminal_id){
+if (!$terminal_instance_id){
 	error('No terminal id passed to terminal.');
 	redirect(getUrl('model'));
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$terminal = $model->terminals($terminal_id);
+$terminal_instance = Terminal::load(['model_id'=>$model_id,'id'=>$terminal_instance_id]);
 
-if (param('name')){
-	$terminal->patch($_POST);
-	$terminal->save();
+if ($name = param('name')){
+	$base = $terminal_instance->base;
+	if ($name == $base->id) unset($_POST['name']);
+	$base->patch($_POST);
+	$base->save();
 	redirect($model->url());
 }
 
@@ -35,20 +37,15 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Edit terminal "?"',$terminal->name)?>
+			<?= t('Edit terminal "?"',$terminal_instance->base->id)?>
 		</legend>
 		<label>
 			<?= t('Terminal name') ?>
-			<input type="text" name="name" value="<?= $terminal->name ?>" />
+			<input type="text" name="name" value="<?= $terminal_instance->base->id ?>" />
 		</label>
 		<label>
 			<?= t('Terminal description') ?>
-			<textarea name="description"><?= $terminal->description ?></textarea>
-		</label>
-		<label>
-			<?= t('Position') ?>
-			<input type="number" min="0" step="1" name="x" value="<?= round($terminal->x) ?>" />
-			<input type="number" min="0" step="1" name="y" value="<?= round($terminal->y)	 ?>" />
+			<textarea name="description"><?= $terminal_instance->base->description ?></textarea>
 		</label>
 		<button type="submit">
 			<?= t('Save'); ?>

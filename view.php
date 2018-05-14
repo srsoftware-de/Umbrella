@@ -101,13 +101,17 @@ if ($action == 'delete'){?>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
-				<?php foreach ($model->process_instances() as $process){
-					$process->svg($model);
-				} // foreach process
+				<?php foreach ($model->processes() as $base){
+					foreach ($base->instances(['model_id'=>$model->id,'parent'=>null]) as $process){
+						$process->svg($model);
+					} // foreach process
+				} // foreach process base
 
- 				foreach ($model->terminal_instances() as $term){
- 					$term->svg();
- 				} // foreach terminal?>
+ 				foreach ($model->terminals() as $base){
+					foreach ($base->instances(['model_id'=>$model->id]) as $term){
+ 						$term->svg();
+ 					} // foreach terminal
+ 				} // foreach terminal base ?>
 			</svg>
 		</td>
 	</tr>
