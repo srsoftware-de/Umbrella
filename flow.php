@@ -27,7 +27,7 @@ if ($action == 'delete' && param('confirm')=='true'){
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
-	$flow->base->description = Parsedown::instance()->parse($flow->base->description);
+	$flow->base->description = Parsedown::instance()->parse(htmlentities($flow->base->description));
 } else {
 	$flow->base->description = str_replace("\n", "<br/>", htmlentities($flow->base->description));
 }

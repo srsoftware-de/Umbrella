@@ -31,7 +31,7 @@ $connectors = $process->connectors();
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
-	$process->base->description = Parsedown::instance()->parse($process->base->description);
+	$process->base->description = Parsedown::instance()->parse(htmlentities($flow->base->description));
 } else {
 	$process->base->description = str_replace("\n", "<br/>", htmlentities($process->base->description));
 }
@@ -57,9 +57,9 @@ if ($action == 'delete'){?>
 		<td>
 			<span class="right symbol">
 				<a href="../edit_process/<?= $process_id ?>" title="<?= t('edit')?>"></a>
-				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add connector')?>"></a>
+				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add inflow connector')?>"></a>
+				<a href="../add_connector_to_process/<?= $process_id ?>?direction=<?= Connector::DIR_OUT ?>" title="<?= t('add inflow connector')?>"></a>
 				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add new child process')?>"></a>
-				<a href="../add_existing_process/<?= $process_id ?>" title="<?= t('add existing process')?>"></a>
 				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>
 			<h1><?= $process->base->id ?></h1>

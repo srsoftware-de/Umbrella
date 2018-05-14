@@ -116,6 +116,18 @@ function initSVG(evt){
 	BackDrop = evt.target.ownerDocument.getElementById('backdrop');
 }
 
+function presetConnectorName(elem){
+	var id = $("input[name=process_id]").attr('value');
+	var out=elem.value;
+	var input = $("input[name=name]");
+	var start=id.length+1;
+	input.attr('value',id+(out == 1?':out':':in'));
+	input.each(function(){
+		this.focus();
+		this.selectionStart = start;
+		this.selectionEnd = 1000;
+	});
+}
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
 	reload_timer_handle = setTimeout(function(){location.reload()},500);
@@ -160,7 +172,6 @@ function wheel(evt){
 			while (a>=360) a-=360;
 			var x = +parts[2];
 			var y = +parts[3];
-			console.log({a:a,x:x,y:y});
 			elem.setAttribute('transform','rotate('+a+','+x+','+y+')');
 			updateElement(elem,{angle: a});
 		}

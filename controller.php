@@ -172,6 +172,11 @@ class ConnectorBase extends BaseClass{
 		}
 		unset($this->dirty);
 	}
+	
+	public function turn(){
+		$this->patch(['direction' => 1-$this->direction]);
+		$this->save();
+	}
 }
 
 class Connector extends BaseClass{
@@ -234,21 +239,18 @@ class Connector extends BaseClass{
 	}
 
 	/* instance methods */
-	function delete($model_id){
+	function delete(){
 		foreach ($this->flows() as $flow) $flow->delete();
 		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM connectors WHERE id = :id');
+		$query = $db->prepare('DELETE FROM connector_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
-		debug(query_insert($query,$args));
-		assert($query->execute($args),t('Was not able to remove connector "?" from database.',$this->name));
+		assert($query->execute($args),t('Was not able to remove connector instance "?" from database.',$this->base->id));
 	}
 	
 	function flows(){
 		if (!isset($this->flows)) $this->flows = Flow::load(['model_id'=>$this->model_id,'connector'=>$this->id]);
 		return $this->flows;
 	}
-
-
 
 	public function save(){
 		$db = get_or_create_db();
@@ -268,6 +270,7 @@ class Connector extends BaseClass{
 			$known_fields = array_keys(Connector::fields());
 			$fields = [];
 			$args = [];
+			if (!isset($this->angle)) $this->angle = $this->select_angle();
 			foreach ($known_fields as $f){
 				if (isset($this->{$f})){
 					$fields[]=$f;
@@ -280,6 +283,32 @@ class Connector extends BaseClass{
 			$this->id = $db->lastInsertId();
 		}
 		unset($this->dirty);
+	}
+	
+	public function select_angle(){
+		$connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->process_instance_id]);
+		$angles = [];
+		foreach ($connectors as $conn) $angles[] = $conn->angle;
+		$angle = 0;
+		while (in_array($angle,$angles)){
+			switch ($angle){
+				case 375:
+					return 0;
+					break;
+				case 365:
+					$angle = 15;
+					break;
+				case 370:
+					$angle = 5;
+					break;
+				case 360:
+					$angle = 10;
+					break;
+				default:
+					$angle += 20;
+			}
+		}
+		return $angle;
 	}
 }
 
@@ -454,8 +483,7 @@ class Flow extends BaseClass{
 		$args = [':id'=>$this->id];
 		assert($query->execute($args),t('Was not able to remove flow "?" from database.',$this->name));
 	}
-
-
+	
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){

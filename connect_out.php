@@ -12,6 +12,17 @@ $model = Model::load(['ids'=>$model_id]);
 $connector = $model->connector_instances($connector_id);
 $process = Process::load(['model_id'=>$model_id,'ids'=>$connector->process_instance_id]);
 
+if ($action = param('action')){
+	switch ($action){
+		case 'turn':
+			$connector->base->turn();
+			redirect(getUrl('model',$model_id.'/view'));
+			break;
+		case 'drop':
+			redirect(getUrl('model',$model_id.'/drop_connector_instance/'.$connector_id));
+			break;
+	}
+}
 
 if ($endpoint = param('endpoint')){
 	if ($name = param('name')){
@@ -104,10 +115,10 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 		</ul>
 	</fieldset>
-	<button type="submit">
-		<?= t('Add flow') ?>
-	</button>
-</fieldset>
+	<button type="submit"><?= t('Add flow') ?></button>
+	<button type="submit" name="action" value="turn"><?= t('turn connector') ?></button>
+	<button type="submit" name="action" value="drop"><?= t('drop connector') ?></button>
+	</fieldset>
 </form>
 
 <?php include '../common_templates/closure.php'; ?>

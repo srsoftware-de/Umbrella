@@ -7,6 +7,7 @@ require_login('model');
 
 $model_id = param('id1');
 $process_id = param('id2');
+$direction = param('direction',Connector::DIR_IN);
 
 if (!$model_id){
 	error('No model id passed to terminal.');
@@ -33,8 +34,7 @@ if ($name = param('name')){
 	$connector->patch([
 			'model_id'=>$model_id,
 			'connector_id'=>$base->id,
-			'process_instance_id'=>$process->id,
-			'angle'=>180*param('direction')]);
+			'process_instance_id'=>$process->id]);
 	$connector->save();
 	redirect($model->url());
 }
@@ -45,7 +45,7 @@ include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
-
+<script type="text/javascript" src="<?= getUrl('model','model.js')?>"></script>
 <form method="post">
 	<fieldset>
 		<legend>
@@ -55,17 +55,17 @@ include '../common_templates/messages.php'; ?>
 		<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 		<p>
 			<label>
-				<input type="radio" name="direction" value="<?= Connector::DIR_IN ?>" checked="checked" onClick="$('input[type=text]').val('<?= $process->base->id ?>:in');" >
+				<input type="radio" name="direction" value="<?= Connector::DIR_IN ?>" <?= $direction?'':'checked="checked"' ?> onClick="presetConnectorName(this);" >
 				<?= t('inbound connector') ?>
 			</label>
 			<label>
-				<input type="radio" name="direction" value="<?= Connector::DIR_OUT ?>" onClick="$('input[type=text]').val('<?= $process->base->id ?>:out');" >
+				<input type="radio" name="direction" value="<?= Connector::DIR_OUT ?>" <?= $direction?'checked="checked"':'' ?> onClick="presetConnectorName(this);" >
 				<?= t('outbound connector') ?>
 			</label>
 		</p>
 		<label>
 			<?= t('Connector name') ?>
-			<input type="text" name="name" value="" autofocus="true" />
+			<input type="text" name="name" value="" autofocus="autofocus" />
 		</label>
 		<button type="submit">
 			<?= t('Save'); ?>
