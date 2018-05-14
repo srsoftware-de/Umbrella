@@ -20,7 +20,6 @@ if (!$process_id){
 
 $model = Model::load(['ids'=>$model_id]);
 $process = $model->process_instances($process_id);
-debug($process);
 
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
@@ -39,7 +38,6 @@ if ($name = param('name')){
 			'model_id'=>$model_id,
 			'connector_id'=>$base->id,
 			'process_instance_id'=>$process->id]);
-	debug($connector);
 	$connector->save();
 	redirect($model->url());
 }

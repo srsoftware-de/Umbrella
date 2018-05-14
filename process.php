@@ -28,7 +28,6 @@ if ($action == 'delete' && param('confirm')=='true'){
 }
 
 $connectors = $process->connectors();
-debug($connectors);
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';

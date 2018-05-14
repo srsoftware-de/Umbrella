@@ -53,17 +53,14 @@ if ($endpoint = param('endpoint')){
 		}
 		$flow = new FlowInstance();
 		$base = Flow::load(['project_id'=>$model->project_id,'ids'=>$name]);
-		debug($base);
 		if ($base === null){
 			$base = new Flow();			
-			$base->patch(['name'=>$name,'project_id'=>$model->project_id,'definition'=>param('definition'),'description'=>param('description')]);
-			debug($base);
+			$base->patch(['name'=>$name,'project_id'=>$model->project_id,'definition'=>param('definition'),'description'=>param('description')]);			
 			$base->save();
 		}
-		debug($base);
+		
 		$flow->base = $base;
 		$flow->patch($data);
-		debug($flow);
 		$flow->save();
 		redirect($model->url());
 	} else {
@@ -119,7 +116,7 @@ include '../common_templates/messages.php'; ?>
 				<ul>
 				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->base->direction) continue; ?>
 				<li>
-					<label><input type="radio" name="endpoint" value="<?= FlowInstance::TO_SIBLING.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
+					<label><input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
 				</li>
 				<?php } // foreach connector ?>
 			</ul>
@@ -149,4 +146,4 @@ include '../common_templates/messages.php'; ?>
 </fieldset>
 </form>
 
-<?php debug($process); include '../common_templates/closure.php'; ?>
+<?php include '../common_templates/closure.php'; ?>

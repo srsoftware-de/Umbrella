@@ -317,7 +317,7 @@ class ConnectorInstance extends BaseClass{
 	}
 	
 	public function select_angle(){
-		$connectors = ConnectorInstance::load(['model_id'=>$this->model_id,'process_instance'=>$this->process_instance_id]);
+		$connectors = ConnectorInstance::load(['model_id'=>$this->model_id,'process_instance_id'=>$this->process_instance_id]);
 		$angles = [];
 		foreach ($connectors as $conn) $angles[] = $conn->angle;
 		$angle = 0;
@@ -381,10 +381,15 @@ class Flow extends BaseClass{
 			$where[] = 'project_id = ?';
 			$args[] = $options['project_id'];
 		}
+		
+		if (isset($options['model_id'])){
+			$where[] = 'project_id = (SELECT project_id FROM models WHERE id = ?)';
+			$args[] = $options['model_id'];
+		}
 	
 		$db = get_or_create_db();
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
-		//debug(query_insert($query,$args));
+		
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$flows = [];
@@ -502,11 +507,12 @@ class FlowInstance extends BaseClass{
 			$args[] = $options['flow_id'];
 		}
 		
+		$bases = [];
 		if (isset($options['model_id'])){
 			$where[] = 'model_id  = ?';
 			$args[] = $options['model_id'];
+			$bases = Flow::load(['model_id'=>$options['model_id']]);
 		}
-		
 		
 		if (isset($options['project_id'])){
 			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
@@ -516,11 +522,14 @@ class FlowInstance extends BaseClass{
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		
 		$flows = [];
-
+		
 		foreach ($rows as $row){
 			$flow = new FlowInstance();
-			$flow->base = Flow::load(['model_id'=>$options['model_id'],'ids'=>$row['flow_id']]);
+			$flow_id = $row['flow_id'];
+			if (!isset($bases[$flow_id])) $bases[$flow_id] = Flow::load(['ids'=>$flow_id]);
+			$flow->base = $bases[$flow_id];
 			$flow->patch($row);
 			unset($flow->dirty);
 			if ($single) return $flow;

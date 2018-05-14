@@ -18,7 +18,7 @@ if (!$process_instance_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$process = Process::load(['model_id'=>$model_id,'ids'=>$process_instance_id]);
+$process = $model->process_instances($process_instance_id);
 
 if (param('name')){
 	$process->base->patch($_POST);
