@@ -32,7 +32,7 @@ function get_or_create_db(){
 							case $prop_k==='DEFAULT':
 								$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
 							case $prop_k==='KEY':
-								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in invoice/controller.php!');
+								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in model/controller.php!');
 								$sql.= 'PRIMARY KEY '; break;
 							default:
 								$sql .= $prop_v.' ';
@@ -81,10 +81,11 @@ class ConnectorBase extends BaseClass{
 	/* static functions */
 	static function fields(){
 		return [
-			'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
+			'id' => ['VARCHAR'=>255, 'NOT NULL'],
 			'model_id' => ['INT','NOT NULL'],
 			'process_id' => ['INT','NOT NULL'],
 			'direction' => ['BOOLEAN'],
+			'PRIMARY KEY'=>'(id, model_id)',
 		];
 	}
 	
@@ -286,10 +287,11 @@ class FlowBase extends BaseClass{
 	/** static methods **/
 	static function fields(){
 		return [
-		'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
-		'model_id' => ['INT','NOT NULL'],
-		'description' => ['TEXT'],
-		'definition' => ['TEXT'],
+			'id' => ['VARCHAR'=>255, 'NOT NULL'],
+			'model_id' => ['INT','NOT NULL'],
+			'description' => ['TEXT'],
+			'definition' => ['TEXT'],
+			'PRIMARY KEY'=>'(id, model_id)',
 		];
 	}
 	
@@ -690,10 +692,11 @@ class ProcessBase extends BaseClass{
 	/** static functions **/
 	static function fields(){
 		return [
-		'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
-		'model_id' => ['INT','NOT NULL'],
-		'description' => 'TEXT',
-		'r' => ['INT','DEFAULT 30'],
+			'id' => ['VARCHAR'=>255, 'NOT NULL'],
+			'model_id' => ['INT','NOT NULL'],
+			'description' => 'TEXT',
+			'r' => ['INT','DEFAULT 30'],
+			'PRIMARY KEY'=>'(id, model_id)',
 		];
 	}
 
@@ -790,10 +793,16 @@ class ProcessBase extends BaseClass{
 	public function update_references($new_id){		
 		$process_instances = Process::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
 		$connectors = ConnectorBase::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
+		$children = Process::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
 		foreach ($process_instances as $process){
 			$process->patch(['process_id'=>$new_id]);
 			$process->save();
 		}
+		foreach ($children as $process){
+			$process->patch(['parent'=>$new_id]);
+			$process->save();
+		}
+		
 		foreach ($connectors as $connector){
 			$connector->patch(['process_id'=>$new_id]);
 			$connector->save();
@@ -1110,11 +1119,12 @@ class TerminalBase extends BaseClass{
 	/** static functions **/
 	static function fields(){
 		return [
-		'id' => ['VARCHAR'=>255, 'NOT NULL','KEY'=>'PRIMARY'],
-		'model_id' => ['INT','NOT NULL'],
-		'type' => 'INT',
-		'description' => 'TEXT',
-		'w' => ['INT','DEFAULT 50'],
+			'id' => ['VARCHAR'=>255, 'NOT NULL'],
+			'model_id' => ['INT','NOT NULL'],
+			'type' => 'INT',
+			'description' => 'TEXT',
+			'w' => ['INT','DEFAULT 50'],
+			'PRIMARY KEY' => '(id, model_id)',
 		];
 	}
 	
@@ -1184,7 +1194,7 @@ class TerminalBase extends BaseClass{
 		} else {
 			$known_fields = array_keys(TerminalBase::fields());
 			$fields = ['id'];
-			$args = [$this->name];
+			$args = [':id'=>$this->name];
 			foreach ($known_fields as $f){
 				if (isset($this->{$f})){
 					$fields[]=$f;

@@ -9,7 +9,7 @@ if ($project_id = param('project')){
 	if ($name = param('name')){
 		$model = new Model($project_id, $name,param('description'));
 		$model->save();
-		redirect(getUrl('model'));
+		redirect(getUrl('model',$model->id.'/view'));
 	}
 } else {
 	redirect(getUrl('model'));

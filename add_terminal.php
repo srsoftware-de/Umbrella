@@ -15,10 +15,9 @@ if ($model_id = param('id')){
 if ($name = param('name')){
 	$base = TerminalBase::load(['model_id'=>$model_id,'ids'=>$name]);
 	if ($base === null) {
-		$base = new TerminalBase();
-		$param = $_POST;
+		$base = new TerminalBase();		
 		$base->patch($_POST);
-		$base->save();		
+		$base->save();
 	}
 	$terminal = new Terminal();
 	$terminal->base = $base;

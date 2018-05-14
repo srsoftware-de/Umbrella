@@ -5,6 +5,7 @@ $translations = array(
 		'add connector'=>'Verbinder hinzufügen',
 		'Add connector to process "?"'=>'Verbinder zu Prozess "?" hinzufügen',
 		'Add flow'=>'Datenfluss hinzufügen',
+		'Add Model'=>'Modell hinzufügen',
 		'add model'=>'Modell hinzufügen',
 		'Add model to project:'=>'Modell zu Projekt hinzufügen:',
 		'add process'=>'Prozess hinzufügen',

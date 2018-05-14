@@ -105,7 +105,7 @@ if ($action == 'delete'){?>
 		<td class="connectors">
 			<ul>
 			<?php foreach ($process->connectors() as $conn) { ?>
-				<li title="<?= $conn->description ?>"><span class="symbol"><?= $conn->base->direction?'':''?></span> <?= $conn->base->id ?></li>
+				<li title="<?= $conn->description ?>"><span class="symbol"><?= $conn->base->direction?'':''?></span> <?= $conn->base->id ?></li>
 			<?php } ?>
 			</ul>
 		</td>
