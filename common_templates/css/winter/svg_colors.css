@@ -1,10 +1,8 @@
 .arrow{
-	stroke: red;
-	stroke-width: 2;
+	stroke: blue;
 }
 circle, ellipse, rect{
 	stroke: black;
-	stroke-width: 2;
 }
 ellipse,
 circle.process{
@@ -19,12 +17,6 @@ circle.connector{
 }
 circle.connector:hover{
 	fill: rgba(0,0,0,0.6);
-	r: 30;
-}
-text{
-	text-anchor:middle;
-	alignment-baseline:middle;
-	font-size:16;
 }
 
 #backdrop{
@@ -33,17 +25,13 @@ text{
 
 .arrow circle{
 	stroke: none;
-	fill: gray;
+	fill: white;
 }
 .arrow text{
-	fill: black;
+	fill: blue;
+	stroke: none;
 }
 
 .arrow:hover circle{
-	fill: rgba(255,0,0,0.3);
-	r: 50;
-}
-
-.process text{
-	fill: black;
+	fill: rgba(0,0,255,0.3);
 }

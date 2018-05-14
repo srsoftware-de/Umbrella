@@ -201,12 +201,20 @@ function error($message,$args = null){
 	$_SESSION['errors'][] = t($message,$args);
 }
 
-function debug($object,$die = false){
+function debug($object,$die = false,$exclude = false){
 	if ($object === null) {
 		echo 'null';
 	} else if ($object === false) {
 		echo 'false';
-	} else echo '<pre>'.print_r($object,true).'</pre>';
+	} else {
+		if ($exclude){
+			if (!is_array($exclude)) $exclude = [$exclude];
+			if (is_array($object)){
+				foreach ($exclude as $key) unset($object[$key]);
+			} else foreach ($exclude as $key) unset($object->{$key});
+		}
+		echo '<pre>'.print_r($object,true).'</pre>';
+	}
 	if ($die){
 		include 'common_templates/closure.php';
 		die();
@@ -214,7 +222,7 @@ function debug($object,$die = false){
 }
 
 function query_insert($query,$args){
-	$sql = ($query instanceof PDOStatement) ? $query->queryString : $query;
+	$sql = ($query instanceof PDOStatement ? $query->queryString : $query) . ' ';
 	$pos = strpos($sql,'?');
 	if ($pos > 0){
 		while ($pos > 0){
