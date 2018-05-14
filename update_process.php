@@ -18,6 +18,6 @@ if (!$process_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$process = Process::load(['model_id'=>$model_id,'ids'=>$process_id]);
+$process = $model->process_instances($process_id);
 $process->patch($_POST);
 $process->save();

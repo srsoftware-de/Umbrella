@@ -18,7 +18,7 @@ if (!$terminal_instance_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$terminal = Terminal::load(['model_id'=>$model_id,'id'=>$terminal_instance_id]);
+$terminal = $model->terminal_instances($terminal_instance_id);
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
@@ -56,6 +56,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Model')?></th>
 		<td class="model">
 			<a href="<?= getUrl('model',$model->id.'/view'); ?>"><?= $model->name ?></a>
+			<a class="symbol" title="show other models"   href="<?= getUrl('model').'?project='.$terminal->base->project_id ?>"></a>
 		</td>
 	</tr>
 	<tr>
@@ -63,7 +64,7 @@ if ($action == 'delete'){?>
 		<td class="project">
 			<a href="<?= getUrl('project',$model->project_id.'/view'); ?>"><?= $model->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
+			<a class="symbol" title="show project files"  href="<?= getUrl('files').'?path=project/'.$model->project_id ?>"target="_blank"></a>
 			</td>
 	</tr>
 	<?php if ($terminal->base->description){ ?>

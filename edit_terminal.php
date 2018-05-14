@@ -18,7 +18,7 @@ if (!$terminal_instance_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$terminal_instance = Terminal::load(['model_id'=>$model_id,'id'=>$terminal_instance_id]);
+$terminal_instance = $model->terminal_instances($terminal_instance_id);
 
 if ($name = param('name')){
 	$base = $terminal_instance->base;

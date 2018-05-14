@@ -13,7 +13,7 @@ if ($model_id = param('id1')){
 }
 
 if ($flow_id = param('id2')){
-	$flow = Flow::load(['model_id'=>$model_id,'ids'=>$flow_id]);
+	$flow = FlowInstance::load(['model_id'=>$model_id,'ids'=>$flow_id]);
 } else {
 	error('No flow id passed to model/'.$model->id.'/flow!');
 	redirect($model->url());

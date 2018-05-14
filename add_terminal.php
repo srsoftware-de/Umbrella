@@ -13,13 +13,13 @@ if ($model_id = param('id')){
 }
 
 if ($name = param('name')){
-	$base = TerminalBase::load(['project_id'=>$model->project_id,'ids'=>$name]);
+	$base = Terminal::load(['project_id'=>$model->project_id,'ids'=>$name]);
 	if ($base === null) {
-		$base = new TerminalBase();		
+		$base = new Terminal();		
 		$base->patch($_POST);		
 		$base->save();
 	}
-	$terminal = new Terminal();
+	$terminal = new TerminalInstance();
 	$terminal->base = $base;
 	$terminal->patch(['model_id'=>$model_id,'terminal_id'=>$name,'x'=>0,'y'=>0]);
 	$terminal->save();
@@ -31,17 +31,17 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add Terminal to "?"',$model->name); ?></legend>
+	<legend><?= t('Add TerminalInstance to "?"',$model->name); ?></legend>
 	<form method="POST">
 	<input type="hidden" name="project_id" value="<?= $model->project_id ?>" />
 	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 	<fieldset>
 	<legend><?= t('Type')?></legend>
 	<label>
-		<input type="radio" name="type" checked="checked" value="<?= TerminalBase::TERMINAL ?>"><?= t('Terminal')?>
+		<input type="radio" name="type" checked="checked" value="<?= Terminal::TERMINAL ?>"><?= t('Terminal')?>
 	</label>
 	<label>
-		<input type="radio" name="type" value="<?= TerminalBase::DATABASE ?>"><?= t('Database')?>
+		<input type="radio" name="type" value="<?= Terminal::DATABASE ?>"><?= t('Database')?>
 	</label>
 	</fieldset>
 	<fieldset>

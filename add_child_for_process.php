@@ -12,30 +12,30 @@ if ($model_id = param('id1')){
 	redirect(getUrl('model'));
 }
 
-$process_id = param('id2');
-if (!$process_id){
+$process_instance_id = param('id2');
+if (!$process_instance_id){
 	error('No terminal id passed to terminal.');
 	redirect(getUrl('model'));
 }
 
-$process_hierarchy = explode('.',$process_id);
-$process = $model->process_instances(array_shift($process_hierarchy));
-while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
+$model = Model::load(['ids'=>$model_id]);
+$process_instance = ProcessInstance::load(['model_id'=>$model_id,'ids'=>$process_instance_id]);
 
 if ($name = param('name')){
-	if ($name == $process->base->id){
-		error('Process may not be its own child at the moment!');
+	if ($name == $process_instance->base->id){
+		error('ProcessInstance may not be its own child at the moment!');
 	} else {
-		$base = ProcessBase::load(['model_id'=>$model_id,'ids'=>$name]);
+		$project_id = $process_instance->base->project_id;
+		$base = Process::load(['project_id' => $project_id,'ids'=>$name]);
 		if ($base === null) {
-			$base = new ProcessBase();
-			$base->patch(['model_id'=>$model_id]);
+			$base = new Process();
+			$base->patch(['project_id'=>$project_id]);
 			$base->patch($_POST);
 			$base->save();
 		}
-		$child = new Process();
+		$child = new ProcessInstance();
 		$child->base = $base;
-		$child->patch(['model_id'=>$model_id,'process_id'=>$name,'parent'=>$process->base->id,'x'=>0,'y'=>15]);
+		$child->patch(['model_id'=>$model_id,'process_id'=>$name,'parent'=>$process_instance->base->id,'x'=>0,'y'=>15]);
 		$child->save();
 		redirect($model->url());
 	}
@@ -50,9 +50,9 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Add child process to process "?"',$process->base->id)?>
+			<?= t('Add child process to process "?"',$process_instance->base->id)?>
 		</legend>
-		<input type="hidden" name="parent" value="<?= $process->base->id ?>" />
+		<input type="hidden" name="parent" value="<?= $process_instance->base->id ?>" />
 		<label>
 			<?= t('Name') ?>
 			<input type="text" name="name" value="" />

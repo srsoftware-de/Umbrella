@@ -20,7 +20,7 @@ if (!$process_id){
 
 
 $model = Model::load(['ids'=>$model_id]);
-$process = Process::load(['model_id'=>$model_id,'ids'=>$process_id]);
+$process = $model->process_instances($process_id);
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
 	$process->delete();
@@ -28,10 +28,11 @@ if ($action == 'delete' && param('confirm')=='true'){
 }
 
 $connectors = $process->connectors();
+debug($connectors);
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
-	$process->base->description = Parsedown::instance()->parse(htmlentities($flow->base->description));
+	$process->base->description = Parsedown::instance()->parse(htmlentities($process->base->description));
 } else {
 	$process->base->description = str_replace("\n", "<br/>", htmlentities($process->base->description));
 }

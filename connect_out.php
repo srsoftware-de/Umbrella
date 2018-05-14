@@ -10,7 +10,7 @@ $connector_id = param('id2');
 
 $model = Model::load(['ids'=>$model_id]);
 $connector = $model->connector_instances($connector_id);
-$process = Process::load(['model_id'=>$model_id,'ids'=>$connector->process_instance_id]);
+$process = $model->process_instances($connector->process_instance_id);
 
 if ($action = param('action')){
 	switch ($action){
@@ -45,13 +45,14 @@ if ($endpoint = param('endpoint')){
 				$target_term = array_shift($endpoint);
 				$data['start_connector']  = $connector_id;
 				$data['end_terminal'] = $target_term;
-break;
+			break;
 		}
-		$flow = new Flow();
-		$base = FlowBase::load(['model_id'=>$model_id,'ids'=>$name]);
+		$flow = new FlowInstance();
+		$base = Flow::load(['project_id'=>$model->project_id,'ids'=>$name]);
 		if ($base === null){
-			$base = new FlowBase();
-			$base->patch(['name'=>$name,'model_id'=>$model_id,'definition'=>param('definition'),'description'=>param('description')]);
+			$base = new Flow();
+			$base->patch(['name'=>$name,'project_id'=>$model->project_id,'definition'=>param('definition'),'description'=>param('description')]);
+			debug($base);
 			$base->save();
 		}
 		$flow->base = $base;

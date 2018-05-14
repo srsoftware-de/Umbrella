@@ -14,7 +14,7 @@ if ($model_id = param('id')){
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
-	$model->delete(); die();	
+	$model->delete();	
 	redirect(getUrl('model','?project='.$model->project_id));
 }
 
@@ -52,6 +52,7 @@ if ($action == 'delete'){?>
 			<a href="<?= getUrl('project',$model->project_id.'/view'); ?>"><?= $model->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
+			<a class="symbol" title="show other models"   href="<?= getUrl('model').'?project='.$model->project_id ?>"></a>
 			</td>
 	</tr>
 	<?php if ($model->description){ ?>
@@ -59,32 +60,34 @@ if ($action == 'delete'){?>
 		<th><?= t('Description')?></th>
 		<td class="description"><?= $model->description; ?></td>
 	</tr>
-	<?php } ?>
-	<?php if ($model->terminals()){ ?>
+	<?php }
+	$shown = [];
+	if ($model->terminal_instances()){ ?>
 	<tr>
 		<th><?= t('Terminals')?></th>
 		<td class="terminals">
-		<?php foreach ($model->terminals() as $terminal){ if ($terminal->type) continue; ?>
-		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description?>"><?= $terminal->id ?></a> 
-		<?php } ?>
+		<?php foreach ($model->terminal_instances() as $terminal){ if ($terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description?>"><?= $terminal->base->id ?></a> 
+		<?php $shown[] = $terminal->base->id; } ?>
 		</td>
 	</tr>
 	<tr>
 		<th><?= t('Databases')?></th>
 		<td class="databases">
-		<?php foreach ($model->terminals() as $terminal){ if (!$terminal->type) continue;?>
-		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description ?>"><?= $terminal->id ?></a>
+		<?php foreach ($model->terminal_instances() as $terminal){ if (!$terminal->base->type) continue;?>
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description ?>"><?= $terminal->base->id ?></a>
 		<?php } ?>
 		</td>
 	</tr>
-	<?php } ?>
-	<?php if ($model->processes()){ ?>
+	<?php } 
+	$shown = [];
+	if ($model->process_instances()){ ?>
 	<tr>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
-		<?php foreach ($model->processes() as $process){ ?>
-		<a class="button" href="process/<?= $process->id ?>" title="<?= $process->description ?>"><?= $process->id ?></a> 
-		<?php } ?>
+		<?php foreach ($model->process_instances() as $process){ if (in_array($process->base->id,$shown)) continue;?>
+		<a class="button" href="process/<?= $process->id ?>" title="<?= $process->base->description ?>"><?= $process->base->id ?></a> 
+		<?php $shown[] = $process->base->id; } ?>
 		</td>
 	</tr>
 	<?php } ?>
@@ -101,17 +104,13 @@ if ($action == 'delete'){?>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
-				<?php foreach ($model->processes() as $base){
-					foreach ($base->instances(['model_id'=>$model->id,'parent'=>null]) as $process){
-						$process->svg($model);
-					} // foreach process
-				} // foreach process base
-
- 				foreach ($model->terminals() as $base){
-					foreach ($base->instances(['model_id'=>$model->id]) as $term){
- 						$term->svg();
- 					} // foreach terminal
- 				} // foreach terminal base ?>
+				<?php foreach ($model->process_instances() as $process){
+					if ($process->parent === null) $process->svg($model);
+				} // foreach process
+				
+				foreach ($model->terminal_instances() as $term){
+ 					$term->svg();
+ 				} // foreach terminal ?>
 			</svg>
 		</td>
 	</tr>

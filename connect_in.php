@@ -10,7 +10,7 @@ $connector_id = param('id2');
 
 $model = Model::load(['ids'=>$model_id]);
 $connector = $model->connector_instances($connector_id);
-$process = Process::load(['model_id'=>$model_id,'ids'=>$connector->process_instance_id]);
+$process = $model->process_instances($connector->process_instance_id);
 
 if ($action = param('action')){
 	switch ($action){
@@ -24,7 +24,7 @@ if ($action = param('action')){
 	}
 }
 
-if ($endpoint = param('endpoint')){	
+if ($endpoint = param('endpoint')){
 	if ($name = param('name')){
 		$endpoint = explode(':', $endpoint);
 		$endpoint_type = array_shift($endpoint);
@@ -51,15 +51,19 @@ if ($endpoint = param('endpoint')){
 				$data['end_connector'] = $connector_id;
 				break;
 		}
-		$flow = new Flow();
-		$base = FlowBase::load(['model_id'=>$model_id,'ids'=>$name]);
+		$flow = new FlowInstance();
+		$base = Flow::load(['project_id'=>$model->project_id,'ids'=>$name]);
+		debug($base);
 		if ($base === null){
-			$base = new FlowBase();
-			$base->patch(['name'=>$name,'model_id'=>$model_id,'definition'=>param('definition'),'description'=>param('description')]);
+			$base = new Flow();			
+			$base->patch(['name'=>$name,'project_id'=>$model->project_id,'definition'=>param('definition'),'description'=>param('description')]);
+			debug($base);
 			$base->save();
 		}
+		debug($base);
 		$flow->base = $base;
 		$flow->patch($data);
+		debug($flow);
 		$flow->save();
 		redirect($model->url());
 	} else {
@@ -115,7 +119,7 @@ include '../common_templates/messages.php'; ?>
 				<ul>
 				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->base->direction) continue; ?>
 				<li>
-					<label><input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
+					<label><input type="radio" name="endpoint" value="<?= FlowInstance::TO_SIBLING.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
 				</li>
 				<?php } // foreach connector ?>
 			</ul>
@@ -145,4 +149,4 @@ include '../common_templates/messages.php'; ?>
 </fieldset>
 </form>
 
-<?php debug($_POST); include '../common_templates/closure.php'; ?>
+<?php debug($process); include '../common_templates/closure.php'; ?>

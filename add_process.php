@@ -13,13 +13,13 @@ if ($model_id = param('id')){
 }
 
 if ($name = param('name')){
-	$base = ProcessBase::load(['project_id'=>$model->project_id,'ids'=>$name]);
+	$base = Process::load(['project_id'=>$model->project_id,'ids'=>$name]);
 	if ($base === null) {
-		$base = new ProcessBase();
+		$base = new Process();
 		$base->patch($_POST);
 		$base->save();
 	}
-	$process = new Process();
+	$process = new ProcessInstance();
 	$process->base = $base;
 	$process->patch(['model_id'=>$model_id,'process_id'=>$name,'x'=>50,'y'=>50]);
 	$process->save();

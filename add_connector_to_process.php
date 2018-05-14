@@ -19,22 +19,27 @@ if (!$process_id){
 }
 
 $model = Model::load(['ids'=>$model_id]);
-$process = Process::load(['model_id'=>$model_id,'ids'=>$process_id]);
+$process = $model->process_instances($process_id);
+debug($process);
+
 while(!empty($process_hierarchy)) $process = $process->children(array_shift($process_hierarchy));
 
 if ($name = param('name')){
-	$base = ConnectorBase::load(['model_id'=>$model_id,'ids'=>$name]);
+	$base = Connector::load(['project_id'=>$model->project_id,'ids'=>$name]);
 	if ($base === null){
-		$base = new ConnectorBase();
+		$base = new Connector();
 		$base->patch($_POST);
+		$base->patch(['project_id'=>$model->project_id]);
+		debug($base);
 		$base->save();
-	}
-	$connector = new Connector();
+	}	
+	$connector = new ConnectorInstance();
 	$connector->base = $base;
 	$connector->patch([
 			'model_id'=>$model_id,
 			'connector_id'=>$base->id,
 			'process_instance_id'=>$process->id]);
+	debug($connector);
 	$connector->save();
 	redirect($model->url());
 }
@@ -52,7 +57,6 @@ include '../common_templates/messages.php'; ?>
 			<?= t('Add connector to process "?"',$process->base->id)?>
 		</legend>
 		<input type="hidden" name="process_id" value="<?= $process->base->id ?>" />
-		<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 		<p>
 			<label>
 				<input type="radio" name="direction" value="<?= Connector::DIR_IN ?>" <?= $direction?'':'checked="checked"' ?> onClick="presetConnectorName(this);" >

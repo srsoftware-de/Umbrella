@@ -9,15 +9,15 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/models.db');
 
 		$tables = [
-			'flows'=>    FlowBase::fields(),
-			'flow_instances'=>    Flow::fields(),
-			'connectors'=> ConnectorBase::fields(),
-			'connector_instances'=> Connector::fields(),
+			'flows'=>    Flow::fields(),
+			'flow_instances'=> FlowInstance::fields(),
+			'connectors'=> Connector::fields(),
+			'connector_instances'=> ConnectorInstance::fields(),
 			'models'=>   Model::fields(),
-			'processes'=>ProcessBase::fields(),
-			'process_instances'=>Process::fields(),
-			'terminals'=>TerminalBase::fields(),
-			'terminal_instances'=>Terminal::fields(),
+			'processes'=>Process::fields(),
+			'process_instances'=>ProcessInstance::fields(),
+			'terminals'=>Terminal::fields(),
+			'terminal_instances'=>TerminalInstance::fields(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -43,7 +43,7 @@ function get_or_create_db(){
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 			$query = $db->prepare($sql);
-			assert($db->query($sql),'Was not able to create '.$table.' table in companies.db!');
+			assert($db->query($sql),'Was not able to create '.$table.' table in models.db!');
 		}
 	} else {
 		$db = new PDO('sqlite:db/models.db');
@@ -77,25 +77,26 @@ class BaseClass{
 	}
 }
 
-class ConnectorBase extends BaseClass{
+class Connector extends BaseClass{
 	/* static functions */
+	const DIR_IN = 0;
+	const DIR_OUT = 1;
+	
 	static function fields(){
 		return [
 			'id' => ['VARCHAR'=>255, 'NOT NULL'],
-			'model_id' => ['INT','NOT NULL'],
+			'project_id' => ['INT','NOT NULL'],
 			'process_id' => ['INT','NOT NULL'],
 			'direction' => ['BOOLEAN'],
-			'PRIMARY KEY'=>'(id, model_id)',
+			'PRIMARY KEY'=>'(id, project_id)',
 		];
 	}
 	
 	static function load($options = []){
-		$db = get_or_create_db();
-		assert(isset($options['model_id']),'No model id passed to ConnectorBase::load()!');
-		
+		//debug(['method'=>'Connector::load','options'=>$options]);
 		$sql = 'SELECT * FROM connectors';
-		$where = ['model_id = ?'];
-		$args = [$options['model_id']];
+		$where = [];
+		$args = [];
 	
 		$single = false;
 		if (isset($options['ids'])){
@@ -114,14 +115,21 @@ class ConnectorBase extends BaseClass{
 			$args[] = $options['process_id'];
 		}
 		
-		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
+		if (isset($options['project_id'])){
+			$where[] = 'project_id = ?';
+			$args[] = $options['project_id'];
+		}
 
+		$db = get_or_create_db();
+		
+		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
+		//debug(query_insert($query,$args));
 		assert($query->execute($args),'Was not able to load connectors');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$connectors = [];
 	
 		foreach ($rows as $row){
-			$connector = new ConnectorBase();
+			$connector = new Connector();
 			$connector->patch($row);
 			unset($connector->dirty);
 			if ($single) return $connector;
@@ -136,6 +144,14 @@ class ConnectorBase extends BaseClass{
 		$this->patch(['direction'=>0]);
 	}
 	
+	public function delete(){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM connectors WHERE project_id = :pid AND id = :id');
+		$args = [':pid'=>$this->project_id,':id'=>$this->id];
+		debug(query_insert($query,$args));
+		$query->execute($args);		
+	}
+	
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
@@ -144,7 +160,7 @@ class ConnectorBase extends BaseClass{
 				$args = [':id'=>$this->id];
 	
 				foreach ($this->dirty as $field){
-					if (array_key_exists($field, ConnectorBase::fields())){
+					if (array_key_exists($field, Connector::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					}
@@ -156,7 +172,7 @@ class ConnectorBase extends BaseClass{
 				}
 			}
 		} else {
-			$known_fields = array_keys(ConnectorBase::fields());
+			$known_fields = array_keys(Connector::fields());
 			$fields = ['id'];
 			$args = [':id'=>$this->name];
 			foreach ($known_fields as $f){
@@ -179,10 +195,7 @@ class ConnectorBase extends BaseClass{
 	}
 }
 
-class Connector extends BaseClass{
-	const DIR_IN = 0;
-	const DIR_OUT = 1;
-	
+class ConnectorInstance extends BaseClass{
 	/* static functions */
 	static function fields(){
 		return [
@@ -196,15 +209,14 @@ class Connector extends BaseClass{
 
 	static function load($options = []){
 		$db = get_or_create_db();
-		assert(isset($options['model_id']),'No model id passed to Connector::load()!');
 
 		$sql = 'SELECT * FROM connector_instances';
-		$where = ['model_id = ?'];
-		$args = [$options['model_id']];
+		$where = [];
+		$args = [];
 		
-		if (isset($options['process_instance'])){
-			$where[] = 'process_instance_id = ?';
-			$args[] = $options['process_instance'];
+		if (isset($options['connector_id'])){
+			$where[] = 'connector_id = ?';
+			$args[] = $options['connector_id'];
 		}
 
 		$single = false;
@@ -219,6 +231,21 @@ class Connector extends BaseClass{
 			$args = array_merge($args, $ids);
 		}
 		
+		if (isset($options['model_id'])){
+			$where[] = 'model_id = ?';
+			$args[] = $options['model_id'];
+		}
+		
+		if (isset($options['process_instance_id'])){
+			$where[] = 'process_instance_id = ?';
+			$args[] = $options['process_instance_id'];
+		}
+		
+		if (isset($options['project_id'])){
+			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
+			$args[] = $options['project_id'];
+		}
+		
 		$sql .= ' WHERE '.implode(' AND ',$where);
 		$query = $db->prepare($sql);
 		
@@ -227,8 +254,8 @@ class Connector extends BaseClass{
 		$connectors = [];
 
 		foreach ($rows as $row){
-			$connector = new Connector();
-			$connector->base = ConnectorBase::load(['model_id'=>$options['model_id'],'ids'=>$row['connector_id']]);
+			$connector = new ConnectorInstance();			
+			$connector->base = Connector::load(['model_id'=>$row['model_id'],'ids'=>$row['connector_id']]);
 			$connector->patch($row);
 			unset($connector->dirty);
 			if ($single) return $connector;
@@ -241,14 +268,18 @@ class Connector extends BaseClass{
 	/* instance methods */
 	function delete(){
 		foreach ($this->flows() as $flow) $flow->delete();
+		
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM connector_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
+		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove connector instance "?" from database.',$this->base->id));
+		$other_instances = ConnectorInstance::load(['project_id'=>$this->base->project_id,'connector_id'=>$this->connector_id]);
+		if (empty($other_instances)) $this->base->delete();		
 	}
 	
 	function flows(){
-		if (!isset($this->flows)) $this->flows = Flow::load(['model_id'=>$this->model_id,'connector'=>$this->id]);
+		if (!isset($this->flows)) $this->flows = FlowInstance::load(['model_id'=>$this->model_id,'connector'=>$this->id]);
 		return $this->flows;
 	}
 
@@ -267,7 +298,7 @@ class Connector extends BaseClass{
 				assert($query->execute($args),'Was no able to update connector in database!');
 			}
 		} else {
-			$known_fields = array_keys(Connector::fields());
+			$known_fields = array_keys(ConnectorInstance::fields());
 			$fields = [];
 			$args = [];
 			if (!isset($this->angle)) $this->angle = $this->select_angle();
@@ -286,7 +317,7 @@ class Connector extends BaseClass{
 	}
 	
 	public function select_angle(){
-		$connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->process_instance_id]);
+		$connectors = ConnectorInstance::load(['model_id'=>$this->model_id,'process_instance'=>$this->process_instance_id]);
 		$angles = [];
 		foreach ($connectors as $conn) $angles[] = $conn->angle;
 		$angle = 0;
@@ -312,26 +343,27 @@ class Connector extends BaseClass{
 	}
 }
 
-class FlowBase extends BaseClass{
+class Flow extends BaseClass{
 	/** static methods **/
+	const TO_CONNECTOR = 0;
+	const TO_TERMINAL = 1;
+	const TO_SIBLING = 2;
+	
 	static function fields(){
 		return [
 			'id' => ['VARCHAR'=>255, 'NOT NULL'],
-			'model_id' => ['INT','NOT NULL'],
+			'project_id' => ['INT','NOT NULL'],
 			'description' => ['TEXT'],
 			'definition' => ['TEXT'],
-			'PRIMARY KEY'=>'(id, model_id)',
+			'PRIMARY KEY'=>'(id, project_id)',
 		];
 	}
 	
 	static function load($options = []){
-		$db = get_or_create_db();
-		
-		assert(isset($options['model_id']),'No model_id passed to FlowBase::load()!');
 		
 		$sql = 'SELECT * FROM flows';
-		$where = ['model_id = ?'];
-		$args = [$options['model_id']];
+		$where = [];
+		$args = [];
 		
 		$single = false;
 		if (isset($options['ids'])){
@@ -344,14 +376,21 @@ class FlowBase extends BaseClass{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
+		if (isset($options['project_id'])){
+			$where[] = 'project_id = ?';
+			$args[] = $options['project_id'];
+		}
 	
+		$db = get_or_create_db();
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
+		//debug(query_insert($query,$args));
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$flows = [];
-	
+		
 		foreach ($rows as $row){
-			$flow = new FlowBase();
+			$flow = new Flow();
 			$flow->patch($row);
 			unset($flow->dirty);
 			if ($single) return $flow;
@@ -362,6 +401,14 @@ class FlowBase extends BaseClass{
 	}
 	
 	/** instance functions **/
+	public function delete(){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM flows WHERE project_id = :pid AND id = :id');
+		$args = [':pid'=>$this->project_id,':id'=>$this->id];
+		debug(query_insert($query,$args));
+		$query->execute($args);
+	}
+	
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
@@ -369,7 +416,7 @@ class FlowBase extends BaseClass{
 				$sql = 'UPDATE flows SET';
 				$args = [':id'=>$this->id];
 				foreach ($this->dirty as $field){
-					if (array_key_exists($field, FlowBase::fields())){
+					if (array_key_exists($field, Flow::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					} elseif ($field == 'name'){
@@ -385,7 +432,7 @@ class FlowBase extends BaseClass{
 				assert($query->execute($args),'Was no able to update flow in database!');
 			}
 		} else {
-			$known_fields = array_keys(FlowBase::fields());
+			$known_fields = array_keys(Flow::fields());
 			$fields = ['id'];
 			$args = [':id'=>$this->name];
 			foreach ($known_fields as $f){
@@ -403,7 +450,7 @@ class FlowBase extends BaseClass{
 	}
 	
 	private function update_references($new_id){
-		$instances = Flow::load(['model_id'=>$this->model_id,'flow_id'=>$this->id]);
+		$instances = FlowInstance::load(['model_id'=>$this->model_id,'flow_id'=>$this->id]);
 		foreach ($instances as $flow){
 			$flow->patch(['flow_id'=>$new_id]);
 			$flow->save();
@@ -411,11 +458,8 @@ class FlowBase extends BaseClass{
 	}
 }
 
-class Flow extends BaseClass{
+class FlowInstance extends BaseClass{
 	/** static **/
-	const TO_CONNECTOR = 0;
-	const TO_TERMINAL = 1;
-	const TO_SIBLING = 2;
 	
 	static function fields(){
 		return [
@@ -431,11 +475,10 @@ class Flow extends BaseClass{
 	
 	static function load($options = []){
 		$db = get_or_create_db();
-		assert(isset($options['model_id']),'No model_id passed to Flow::load()!');
 		
 		$sql = 'SELECT * FROM flow_instances';
-		$where = ['model_id = ?'];
-		$args = [$options['model_id']];
+		$where = [];		
+		$args = [];
 
 		if (isset($options['connector'])){
 			$where[] = '(start_connector = ?  OR end_connector = ?)';
@@ -458,15 +501,26 @@ class Flow extends BaseClass{
 			$where[] = 'flow_id = ?';
 			$args[] = $options['flow_id'];
 		}
-
+		
+		if (isset($options['model_id'])){
+			$where[] = 'model_id  = ?';
+			$args[] = $options['model_id'];
+		}
+		
+		
+		if (isset($options['project_id'])){
+			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
+			$args[] = $options['project_id'];
+		}
+		
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$flows = [];
 
 		foreach ($rows as $row){
-			$flow = new Flow();
-			$flow->base = FlowBase::load(['model_id'=>$options['model_id'],'ids'=>$row['flow_id']]);
+			$flow = new FlowInstance();
+			$flow->base = Flow::load(['model_id'=>$options['model_id'],'ids'=>$row['flow_id']]);
 			$flow->patch($row);
 			unset($flow->dirty);
 			if ($single) return $flow;
@@ -478,10 +532,14 @@ class Flow extends BaseClass{
 
 	/** instance methods **/
 	function delete(){
+		//debug(['item'=>$this,'method'=>'delete']);
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM flow_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
-		assert($query->execute($args),t('Was not able to remove flow "?" from database.',$this->name));
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove flow instance "?" from database.',$this->base->id));
+		$other_instances = FlowInstance::load(['project_id'=>$this->base->project_id,'flow_id'=>$this->flow_id]);
+		if (empty($other_instances)) $this->base->delete();
 	}
 	
 	public function save(){
@@ -499,7 +557,7 @@ class Flow extends BaseClass{
 				assert($query->execute($args),'Was no able to update flow in database!');
 			}
 		} else {
-			$known_fields = array_keys(Flow::fields());
+			$known_fields = array_keys(FlowInstance::fields());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){
@@ -605,30 +663,28 @@ class Model extends BaseClass{
 	}
 	
 	public function connectors($id = null){
-		if (!isset($this->connectors)) $this->connectors = ConnectorBase::load(['model_id'=>$this->id]);
+		if (!isset($this->connectors)) $this->connectors = Connector::load(['model_id'=>$this->id]);
 		if ($id) return $this->connectors[$id];
 		return $this->connectors;
 	}
 	
 	public function connector_instances($id = null){
-		if (!isset($this->connector_instances)) $this->connector_instances = Connector::load(['model_id'=>$this->id, 'parent'=>null]);
+		if (!isset($this->connector_instances)) $this->connector_instances = ConnectorInstance::load(['model_id'=>$this->id]);
 		if ($id) return $this->connector_instances[$id];
 		return $this->connector_instances;
 	}
 
 	function delete(){
+		foreach ($this->process_instances() as $process) $process->delete();
+		foreach ($this->terminal_instances() as $terminal) $terminal->delete();
 		$db = get_or_create_db();
-
-		foreach ($this->processes() as $proc) $proc->delete($this->id);
-		foreach ($this->terminals() as $term) $term->delete();
-
 		$query = $db->prepare('DELETE FROM models WHERE id = :id');
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove model "?" from database.',$this->name));
 	}
 
-	function findConnector($cid){
+	function findConnectorInstance($cid){
 		foreach ($this->processes() as $proc){
 			foreach ($proc->connectors as $conn){
 				if ($cid == $conn->id) return $conn;
@@ -639,14 +695,14 @@ class Model extends BaseClass{
 
 	function link($object){
 		$db = get_or_create_db();
-		if ($object instanceof Process) {
+		if ($object instanceof ProcessInstance) {
 			$sql = 'INSERT INTO models_processes (model_id, process_id) VALUES (:mid, :pid)';
 			$args = [':mid' => $this->id, ':pid' => $object->id];
 			$query = $db->prepare($sql);
 			assert($query->execute($args),'Was not able to assign process to model');
 			return;
 		}
-		if ($object instanceof Terminal) {
+		if ($object instanceof TerminalInstance) {
 			$sql = 'INSERT INTO models_terminals (model_id, terminal_id) VALUES (:mid, :tid)';
 			$args = [':mid' => $this->id, ':tid' => $object->id];
 			$query = $db->prepare($sql);
@@ -656,8 +712,9 @@ class Model extends BaseClass{
 		warn('Model-&gt;link has no handler for '.$object);
 	}
 
-	public function processes($id = null){
-		if (!isset($this->processes)) $this->processes = ProcessBase::load(['project_id'=>$this->project_id]);
+	public function process_instances($id = null){
+		if (!isset($this->processes)) $this->processes = ProcessInstance::load(['model_id' => $this->id]);
+		//debug($this->processes);
 		if ($id) return $this->processes[$id];
 		return $this->processes;
 	}
@@ -693,16 +750,10 @@ class Model extends BaseClass{
 		}
 	}
 
-	public function terminals($id = null){
-		if (!isset($this->terminals)) $this->terminals = TerminalBase::load(['project_id'=>$this->project_id]);
+	public function terminal_instances($id = null){
+		if (!isset($this->terminals)) $this->terminals = TerminalInstance::load(['model_id' => $this->id]);
 		if ($id) return $this->terminals[$id];
 		return $this->terminals;
-	}
-
-	public function terminal_instances($id = null){
-		if (!isset($this->terminal_instances)) $this->terminal_instances = Terminal::load(['model_id'=>$this->id]);
-		if ($id) return $this->terminal_instances[$id];
-		return $this->terminal_instances;
 	}
 
 	public function url(){
@@ -710,7 +761,7 @@ class Model extends BaseClass{
 	}
 }
 
-class ProcessBase extends BaseClass{
+class Process extends BaseClass{
 	/** static functions **/
 	static function fields(){
 		return [
@@ -725,10 +776,8 @@ class ProcessBase extends BaseClass{
 	static function load($options = []){
 		$db = get_or_create_db();
 
-		assert(isset($options['project_id']),'No project id passed to ProcessBase::load()!');
-
-		$where = ['project_id = ?'];
-		$args = [$options['project_id']];
+		$where = [];
+		$args = [];
 
 		$sql = 'SELECT * FROM processes WHERE ';
 
@@ -744,6 +793,11 @@ class ProcessBase extends BaseClass{
 			$args = array_merge($args, $ids);
 		}
 		
+		if (isset($options['project_id'])){
+			$where[] = 'project_id = ?';
+			$args[] = $options['project_id'];
+		}
+		
 		$sql .= implode(' AND ', $where);
 
 		$query = $db->prepare($sql);
@@ -752,7 +806,7 @@ class ProcessBase extends BaseClass{
 
 		$bases = [];
 		foreach ($rows as $row){
-			$base = new ProcessBase($row['id']);
+			$base = new Process($row['id']);
 			$base->patch($row);
 			unset($base->dirty);
 			if ($single) return $base;
@@ -768,12 +822,20 @@ class ProcessBase extends BaseClass{
 	}
 	
 	public function children(){
-		return Process::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
+		return ProcessInstance::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
 	}
 	
-	public function instances($options){
+	public function delete(){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM processes WHERE project_id = :pid AND id = :id');
+		$args = [':pid'=>$this->project_id,':id'=>$this->id];
+		debug(query_insert($query,$args));
+		$query->execute($args);
+	}
+	
+	public function instances($options = []){
 		$options['base'] = $this;
-		return Process::load($options); 
+		return ProcessInstance::load($options); 
 	}
 	
 	public function save(){
@@ -784,7 +846,7 @@ class ProcessBase extends BaseClass{
 				$args = [':id'=>$this->id];
 								
 				foreach ($this->dirty as $field){
-					if (array_key_exists($field, ProcessBase::fields())){
+					if (array_key_exists($field, Process::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					} elseif ($field == 'name'){
@@ -800,7 +862,7 @@ class ProcessBase extends BaseClass{
 				}
 			}
 		} else {
-			$known_fields = array_keys(ProcessBase::fields());
+			$known_fields = array_keys(Process::fields());
 			$fields = ['id'];
 			$args = [':id'=>$this->name];
 			foreach ($known_fields as $f){
@@ -818,9 +880,9 @@ class ProcessBase extends BaseClass{
 	}
 	
 	public function update_references($new_id){		
-		$process_instances = Process::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
-		$connectors = ConnectorBase::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
-		$children = Process::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
+		$process_instances = ProcessInstance::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
+		$connectors = Connector::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
+		$children = ProcessInstance::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
 		foreach ($process_instances as $process){
 			$process->patch(['process_id'=>$new_id]);
 			$process->save();
@@ -837,7 +899,7 @@ class ProcessBase extends BaseClass{
 	}
 }
 
-class Process extends BaseClass{
+class ProcessInstance extends BaseClass{
 	/** static functions **/
 	static function fields(){
 		return [
@@ -851,27 +913,8 @@ class Process extends BaseClass{
 	}
 
 	static function load($options = []){
-		assert(isset($options['model_id']),'No model id passed to Process::load()!');		
-		
-		$bases = null;
-		if (isset($options['base'])){
-			$base = $options['base'];
-			$bases = [$base->id => $base];
-			$options['project_id'] = $base->project_id;
-			$options['process_id'] = $base->id;
-		} else {
-			if (!isset($options['project_id'])){
-				$model = Model::load(['ids'=>$options['model_id']]);
-				$options['project_id'] = $model->project_id;
-			}
-			$bases = ProcessBase::load(['project_id' => $options['project_id']]);
-		}
-		$db = get_or_create_db();
-
-		$where = ['model_id = ?'];
-		$args = [$options['model_id']];
-
-		$sql = 'SELECT * FROM process_instances WHERE ';
+		$where = [];
+		$args = [];
 
 		$single = false;
 		if (isset($options['ids'])){
@@ -884,6 +927,12 @@ class Process extends BaseClass{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
+		if (isset($options['model_id'])){
+			$where[] = 'model_id = ?';
+			$args[] = $options['model_id'];
+		}
+		
 		if (array_key_exists('parent',$options)){
 			if ($options['parent'] === null){
 				$where[] = 'parent IS NULL';
@@ -898,16 +947,33 @@ class Process extends BaseClass{
 			$args[] = $options['process_id'];
 		}
 		
-		$sql .= implode(' AND ', $where);
-
+		if (isset($options['project_id'])){
+			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
+			$args[] = $options['project_id'];
+		}
+		
+		$sql = 'SELECT * FROM process_instances WHERE '.implode(' AND ', $where);
+		$db = get_or_create_db();
 		$query = $db->prepare($sql);
+		//debug(query_insert($query,$args));
 		assert($query->execute($args),'Was not able to load processes');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		
+		$models = [];
+		$bases = [];
 
 		$processes = [];
 		foreach ($rows as $row){
-			$process = new Process($row['id']);
-			$process->base = $bases[$row['process_id']];
+			$process_id = $row['process_id'];
+			$model_id = $row['model_id'];
+			
+			if (!isset($bases[$process_id])){ // load bases on demand
+				if (!isset($models[$model_id])) $models[$model_id] = Model::load(['ids'=>$model_id]); // load models on demand, needed to retrieve base 
+				$bases[$process_id] = Process::load(['ids'=>$process_id,'project_id' => $models[$model_id]->project_id]);
+			}
+			
+			$process = new ProcessInstance();
+			$process->base = $bases[$process_id];
 			$process->patch($row);
 			unset($process->dirty);
 			if ($single) return $process;
@@ -928,7 +994,7 @@ class Process extends BaseClass{
 	
 	function add_connector_instances($base_connectors){
 		foreach ($base_connectors as $base){
-			$connector = new Connector();
+			$connector = new ConnectorInstance();
 			$connector->base = $base;
 			$connector->patch(['model_id'=>$this->model_id,'connector_id'=>$base->id,'process_instance_id'=>$this->id,'angle'=>180*$base->direction]);
 			$connector->save();
@@ -936,19 +1002,23 @@ class Process extends BaseClass{
 	}
 
 	function children($id = null){
-		if (!isset($this->children)) $this->children = Process::load(['model_id'=>$this->model_id,'parent'=>$this->process_id]);
+		if (!isset($this->children)) $this->children = ProcessInstance::load(['model_id'=>$this->model_id,'parent'=>$this->process_id]);
 		if ($id) return $this->children[$id];
 		return $this->children;
 	}
 
 	function connectors($id = null){
 		if (!isset($this->connectors)) {
-			$base_connectors = ConnectorBase::load(['model_id'=>$this->model_id,'process_id'=>$this->base->id]);			
-			$this->connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->id]);
-			foreach ($this->connectors as $conn) unset($base_connectors[$conn->connector_id]);
-			if (!empty($base_connectors)) {
-				$this->add_connector_instances($base_connectors);
-				$this->connectors = Connector::load(['model_id'=>$this->model_id,'process_instance'=>$this->id]);
+			$base_connectors = Connector::load(['project_id'=>$this->base->project_id,'process_id'=>$this->base->id]);
+			if (empty($base_connectors)) {
+				$this->connectors = [];
+			} else {
+				$this->connectors = ConnectorInstance::load(['model_id'=>$this->model_id,'process_instance_id'=>$this->id]);
+				foreach ($this->connectors as $conn) unset($base_connectors[$conn->connector_id]);
+				if (!empty($base_connectors)) {
+					$this->add_connector_instances($base_connectors);
+					$this->connectors = ConnectorInstance::load(['model_id'=>$this->model_id,'process_instance'=>$this->id]);
+				}
 			}
 		}
 		if ($id) {
@@ -958,28 +1028,22 @@ class Process extends BaseClass{
 		return $this->connectors;
 	}
 	
-	function delete($model_id){
-		foreach ($this->children() as $child_process) $child_process->delete($model_id);
-		foreach ($this->connectors() as $conn) $conn->delete($model_id);
+	function delete(){
+		//debug(['item'=>$this,'method'=>'delete']);
+		foreach ($this->children() as $child_process) $child_process->delete();
+		foreach ($this->connectors() as $conn) $conn->delete();
+		
 		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM processes WHERE id = :id');
+		$query = $db->prepare('DELETE FROM process_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
-		assert($query->execute($args),t('Was not able to remove process "?" from database.',$this->name));
-		
-		$query = $db->prepare('DELETE FROM child_processes WHERE process_id = :id');
-		$args = [':id'=>$this->id];
-		debug(query_insert($query,$args));
-		assert($query->execute($args),t('Was not able to remove process "?" from database.',$this->name));
-		
-		$query = $db->prepare('DELETE FROM models_processes WHERE process_id = :id');
-		$args = [':id'=>$this->id];
-		debug(query_insert($query,$args));
-		assert($query->execute($args),t('Was not able to remove process "?" from models_processes table.',$this->name));
+		assert($query->execute($args),t('Was not able to process instance "?" from database.',$this->base->id));
+		$other_instances = ProcessInstance::load(['project_id'=>$this->base->project_id,'process_id'=>$this->process_id]);
+		if (empty($other_instances)) $this->base->delete();
 	}
 	
 	function parent_process(){
-		if ($this->parent) return ProcessBase::load(['model_id'=>$this->model_id,'ids'=>$this->parent]);
+		if ($this->parent) return Process::load(['model_id'=>$this->model_id,'ids'=>$this->parent]);
 		return null;
 	}
 
@@ -1000,7 +1064,7 @@ class Process extends BaseClass{
 				$args = [':id'=>$this->id];
 
 				foreach ($this->dirty as $field){
-					if (array_key_exists($field, Process::fields())){
+					if (array_key_exists($field, ProcessInstance::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					}
@@ -1012,7 +1076,7 @@ class Process extends BaseClass{
 				}
 			}
 		} else {
-			$known_fields = array_keys(Process::fields());
+			$known_fields = array_keys(ProcessInstance::fields());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){
@@ -1039,7 +1103,6 @@ class Process extends BaseClass{
 			$this->x = $this->x < 0 ? 0 : ($this->x > 1000 ? 1000 : $this->x);
 			$this->y = $this->y < 0 ? 0 : ($this->y > 1000 ? 1000 : $this->y);
 		}
-		
 		?>
 		<g class="process" transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
 			<circle
@@ -1051,7 +1114,7 @@ class Process extends BaseClass{
 				<title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
 			<text x="0" y="0"><title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>
-			<?php foreach ($this->connectors() as $conn){
+			<?php foreach ($this->connectors() as $conn){ 
 				foreach ($conn->flows() as $flow){
 					if ($flow->start_connector == null){
 						$terminal = $model->terminal_instances($flow->start_terminal);
@@ -1150,7 +1213,7 @@ class Process extends BaseClass{
 	<?php }
 }
 
-class TerminalBase extends BaseClass{
+class Terminal extends BaseClass{
 	const TERMINAL = 0;
 	const DATABASE = 1;
 	
@@ -1169,7 +1232,7 @@ class TerminalBase extends BaseClass{
 	static function load($options = []){
 		$db = get_or_create_db();
 	
-		assert(isset($options['project_id']),'No project id passed to TerminalBase::load()!');
+		assert(isset($options['project_id']),'No project id passed to Terminal::load()!');
 	
 		$where = ['project_id = ?'];
 		$args = [$options['project_id']];
@@ -1195,7 +1258,7 @@ class TerminalBase extends BaseClass{
 
 		$bases = [];
 		foreach ($rows as $row){
-			$base = new TerminalBase();
+			$base = new Terminal();
 			$base->patch($row);
 			unset($base->dirty);
 			if ($single) return $base;
@@ -1210,9 +1273,17 @@ class TerminalBase extends BaseClass{
 		$this->patch(['w'=>50]);
 	}
 	
+	public function delete(){
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM terminals WHERE project_id = :pid AND id = :id');
+		$args = [':pid'=>$this->project_id,':id'=>$this->id];
+		debug(query_insert($query,$args));
+		$query->execute($args);
+	}
+	
 	public function instances($options = []){
 		$options['base'] = $this;
-		return Terminal::load($options);
+		return TerminalInstance::load($options);
 	}
 	
 	public function save(){
@@ -1223,7 +1294,7 @@ class TerminalBase extends BaseClass{
 				$args = [':id'=>$this->id];
 	
 				foreach ($this->dirty as $field){
-					if (array_key_exists($field, TerminalBase::fields())){
+					if (array_key_exists($field, Terminal::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					} elseif ($field == 'name'){
@@ -1240,7 +1311,7 @@ class TerminalBase extends BaseClass{
 				}
 			}
 		} else {
-			$known_fields = array_keys(TerminalBase::fields());
+			$known_fields = array_keys(Terminal::fields());
 			$fields = ['id'];
 			$args = [':id'=>$this->name];
 			foreach ($known_fields as $f){
@@ -1265,7 +1336,7 @@ class TerminalBase extends BaseClass{
 	}
 }
 
-class Terminal extends BaseClass{
+class TerminalInstance extends BaseClass{
 	
 	/** static functions **/
 	static function fields(){
@@ -1277,65 +1348,73 @@ class Terminal extends BaseClass{
 			'y' => ['INT','DEFAULT 0'],
 		];
 	}
-
+	
 	static function load($options = []){
-		$bases = null;
 		$where = [];
 		$args = [];
-		
-		if (isset($options['base'])){
-			$base = $options['base'];
-			$bases = [$base->id => $base];
-			$options['terminal_id'] = $base->id;
-			
-			$where [] = 'model_id IN (SELECT id FROM models WHERE project_id = :pid)';
-			$args[':pid'] = $base->project_id;
-		} else {
-			if (!isset($options['project_id'])){
-				assert(isset($options['model_id']),'Process::load() needs either a model_id, a project_id or a process base object!');
-				$model = Model::load(['ids'=>$options['model_id']]);				
-				$options['project_id'] = $model->project_id;
+	
+		$single = false;
+		if (isset($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
 			}
-			$bases = TerminalBase::load(['project_id' => $options['project_id']]);			
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
 		}
-		
+	
 		if (isset($options['model_id'])){
-			$where[] = 'model_id = :model';
-			$args[':model'] = $options['model_id'];
+			$where[] = 'model_id = ?';
+			$args[] = $options['model_id'];
 		}
 		
+		if (isset($options['project_id'])){
+			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
+			$args[] = $options['project_id'];
+		}
+	
 		if (isset($options['terminal_id'])){
-			$where[] = 'terminal_id = :terminal_id';
-			$args[':terminal_id'] = $options['terminal_id'];
+			$where[] = 'terminal_id = ?';
+			$args[] = $options['terminal_id'];
 		}
-		
-		if (isset($options['id'])){
-			$where[] = 'id = :id';
-			$args[':id'] = $options['id'];
-		}
-		
-		$sql = 'SELECT * FROM terminal_instances WHERE '.implode(' AND ',$where);
-		//debug(query_insert($sql,$args));
-		$db = get_or_create_db();		
-		$query = $db->prepare($sql);		
+	
+		$sql = 'SELECT * FROM terminal_instances WHERE '.implode(' AND ', $where);
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load terminals');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+	
+		$models = [];
+		$bases = [];
+	
+		$terminals = [];
 		foreach ($rows as $row){
-			$terminal = new Terminal();
-			$terminal->base = $bases[$row['terminal_id']];
+
+			$terminal_id = $row['terminal_id'];
+			$model_id = $row['model_id'];			
+				
+			if (!isset($bases[$terminal_id])){ // load bases on demand
+				if (!isset($models[$model_id])) $models[$model_id] = Model::load(['ids'=>$model_id]); // load models on demand, needed to retrieve base
+				$bases[$terminal_id] = Terminal::load(['ids'=>$terminal_id,'project_id' => $models[$model_id]->project_id]);
+			}
+				
+			$terminal = new TerminalInstance();
+			$terminal->base = $bases[$terminal_id];
 			$terminal->patch($row);
 			unset($terminal->dirty);
-			if (isset($options['id'])) return $terminal;
-			$terminals[$terminal->id] = $terminal;
+			if ($single) return $terminal;
+			$terminals[$row['id']] = $terminal;
 		}
-		if (isset($options['id'])) return null;
+		if ($single) return null;
 		return $terminals;
 	}
 
 	static function load_bases($options = []){
 		$db = get_or_create_db();
 
-		assert(isset($options['model_id']),'No model id passed to Process::load()!');
+		assert(isset($options['model_id']),'No model id passed to ProcessInstance::load()!');
 
 		$sql = 'SELECT * FROM terminals WHERE model_id = :model';
 		$args = [':model'=>$options['model_id']];
@@ -1351,7 +1430,7 @@ class Terminal extends BaseClass{
 			assert($query->execute($args),'Was not able to load terminals');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			foreach ($rows as $row){
-				$terminal = new Terminal();
+				$terminal = new TerminalInstance();
 				$terminal->patch($row);
 				$terminal->dirty = [];
 				$terminal->base = $base;
@@ -1369,11 +1448,14 @@ class Terminal extends BaseClass{
 		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove terminal "?" from terminal instances table.',$this->name));
 		
-		$query = $db->prepare('DELETE FROM flow_instances WHERE model_id = :mid AND (start_terminal = :tid OR end_terminal = :tid)');
-		$args = [':mid'=>$this->model_id,':tid'=>$this->id];
-		debug(query_insert($query,$args),1);
-		assert($query->execute($args),t('Was not able to remove flows from/to terminal "?" from database.',$this->name));
+		$query = $db->prepare('DELETE FROM flow_instances WHERE (start_terminal = :tid OR end_terminal = :tid)');
+		$args = [':tid'=>$this->id];
+		debug(query_insert($query,$args));
+		assert($query->execute($args),t('Was not able to remove flows from/to terminal "?" from database.',$this->base->id));
 
+		$other_instances = TerminalInstance::load(['project_id'=>$this->base->project_id,'terminal_id'=>$this->terminal_id]);
+		if (empty($other_instances)) $this->base->delete();
+		
 	}
 
 	function patch($data = array()){
@@ -1392,7 +1474,7 @@ class Terminal extends BaseClass{
 				$args = [':id'=>$this->id];
 
 				foreach ($this->dirty as $field){
-					if (array_key_exists($field, Terminal::fields())){
+					if (array_key_exists($field, TerminalInstance::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					}
@@ -1404,7 +1486,7 @@ class Terminal extends BaseClass{
 				}
 			}
 		} else {
-			$known_fields = array_keys(Terminal::fields());
+			$known_fields = array_keys(TerminalInstance::fields());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){
