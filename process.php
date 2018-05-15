@@ -105,7 +105,7 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Display') ?></th>
 		<td>
-			<?php $process->x = $process->y =  100+$process->base->r; ?>
+			<?php $process->x = $process->y =  175+$process->base->r; ?>
 			<svg
 				 viewbox="0 0 <?= 2*$process->x ?> <?= 2*$process->y ?>"
 				 onload="initSVG(evt)"
@@ -120,13 +120,29 @@ if ($action == 'delete'){?>
 				<?php foreach ($process->connectors() as $conn) {
 					$x1 = $process->x + sin($conn->angle*RAD)*$process->base->r ;
 					$y1 = $process->y - cos($conn->angle*RAD)*$process->base->r ;
-					$x2 = $process->x + sin($conn->angle*RAD)*($process->x);
-					$y2 = $process->y - cos($conn->angle*RAD)*($process->y);
+					$x2 = $process->x + sin($conn->angle*RAD)*(100+$process->base->r);
+					$y2 = $process->y - cos($conn->angle*RAD)*(100+$process->base->r);
 					$flow = reset($conn->flows());
 					if ($conn->base->direction){
 						arrow($x1,$y1,$x2,$y2, $flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+						if ($flow->end_terminal){
+							$terminal = $model->terminal_instances($flow->end_terminal);
+							if ($terminal->base->type){ // Database
+								$terminal->x = $x2 - ($x2>$x1 ? 0 : $terminal->base->w);
+								$terminal->y = $y2-20;
+								$terminal->svg();
+							}
+						}
 					} else {
 						arrow($x2,$y2,$x1,$y1, $flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+						if ($flow->start_terminal) {
+							$terminal = $model->terminal_instances($flow->start_terminal);
+							if ($terminal->base->type){ // Database
+								$terminal->x = $x2 - ($x2>$x1 ? 0 : $terminal->base->w);
+								$terminal->y = $y2-20;
+								$terminal->svg();
+							}
+						}
 					}
 				} ?>
 			</svg>

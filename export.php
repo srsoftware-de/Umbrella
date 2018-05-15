@@ -24,8 +24,13 @@ include '../common_templates/messages.php'; ?>
 <h2><?= t('Processes') ?></h2>
 <?php foreach ($model->process_instances() as $process) { ?>
 <h3><a href="<?= $process->url() ?>"><?= t('Process: "?"', $process->base->id) ?></a></h3>
-<?php $process->x = $process->y =  100+$process->base->r; ?>
+<?php
+$process->x = $process->y =  100+$process->base->r;
+$process->x = $process->y =  175+$process->base->r;
+$databases = [];
+?>
 <svg
+	 style="max-width: 600px"
 	 viewbox="0 0 <?= 2*$process->x ?> <?= 2*$process->y ?>"
 	 onload="initSVG(evt)"
 	 onmousedown="grab(evt)"
@@ -39,13 +44,31 @@ include '../common_templates/messages.php'; ?>
 	<?php foreach ($process->connectors() as $conn) {
 		$x1 = $process->x + sin($conn->angle*RAD)*$process->base->r ;
 		$y1 = $process->y - cos($conn->angle*RAD)*$process->base->r ;
-		$x2 = $process->x + sin($conn->angle*RAD)*($process->x);
-		$y2 = $process->y - cos($conn->angle*RAD)*($process->y);
+		$x2 = $process->x + sin($conn->angle*RAD)*(100+$process->base->r);
+		$y2 = $process->y - cos($conn->angle*RAD)*(100+$process->base->r);
 		$flow = reset($conn->flows());
 		if ($conn->base->direction){
 			arrow($x1,$y1,$x2,$y2, $flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+			if ($flow->end_terminal){
+				$terminal = $model->terminal_instances($flow->end_terminal);
+				if ($terminal->base->type){ // Database
+					$terminal->x = $x2 - ($x2>$x1 ? 0 : $terminal->base->w);
+					$terminal->y = $y2-20;
+					$terminal->svg();
+					$databases[$terminal->base->id] = $terminal;
+				}
+			}
 		} else {
 			arrow($x2,$y2,$x1,$y1, $flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+			if ($flow->start_terminal) {
+				$terminal = $model->terminal_instances($flow->start_terminal);
+				if ($terminal->base->type){ // Database
+					$terminal->x = $x2 - ($x2>$x1 ? 0 : $terminal->base->w);
+					$terminal->y = $y2-20;
+					$terminal->svg();
+					$databases[$terminal->base->id] = $terminal;
+				}
+			}
 		}
 	} ?>
 </svg>
@@ -70,6 +93,14 @@ include '../common_templates/messages.php'; ?>
 	<?php } } ?>
 </ul>
 
+<?php if (!empty($databases)) { ?>
+<h3><?= t('Databases') ?></h3>
+<ul>
+	<?php foreach ($databases as $db){ ?>
+	<li><?= $db->base->id ?></li>
+	<?php }?>
+</ul>
+<?php } // if databases ?>
 <?php } // foreach process?>
 
 <h2><?= t('Terminals'); ?></h2>

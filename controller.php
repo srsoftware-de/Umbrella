@@ -1139,7 +1139,7 @@ class ProcessInstance extends BaseClass{
 							$y2 = -cos($conn->angle*RAD)*$this->base->r;
 	
 							$x1 = -$this->x + $terminal->x + $terminal->base->w/2;
-							$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30);
+							$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30) + 25;
 	
 							$proc_pointer = $parent;
 							while ($proc_pointer){
