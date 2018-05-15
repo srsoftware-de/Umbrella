@@ -168,6 +168,10 @@ function show_time_estimates($tasks){ ?>
 	</ul>
 <?php }
 
+if ($document->customer_number == '') warn('No customer number set in document!');
+if ($document->delivery_date() == '') warn('No delivery date set in document!');
+if ($document->template_id == null) warn('No document template selected!');
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
