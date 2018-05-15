@@ -54,16 +54,23 @@ function get_or_create_db(){
 function arrow($x1,$y1,$x2,$y2,$text = null,$link = null){
 if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 <g class="arrow">
-<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
-<?php $dx = $x2 - $x1; $dy = $y2 - $y1;	$alpha = ($dy == 0) ? 0 : atan($dx/$dy); $x1 = $x2 - 25*sin($alpha+0.2); $y1 = $y2 - 25*cos($alpha+0.2); ?>
-
-
-<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
-<?php $x1 = $x2 - 25*sin($alpha-0.2); $y1 = $y2 - 25*cos($alpha-0.2); ?>
-<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
-<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="15" /><text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?></text>
+	<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
+	<?php  $dx = $x2 - $x1; $dy = $y2 - $y1; $alpha = ($dy == 0) ? 0 : atan($dx/$dy); if ($dy < 0) $alpha+=pi(); $x1 = $x2 - 25*sin($alpha+0.2); $y1 = $y2 - 25*cos($alpha+0.2); ?>
+	<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
+	<?php $x1 = $x2 - 25*sin($alpha-0.2); $y1 = $y2 - 25*cos($alpha-0.2); ?>
+	<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
+	<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="15" /><text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?></text>
 </g>
 <?php if ($link){ ?></a><?php } 
+}
+
+function markdown($text){
+	if (file_exists('../lib/parsedown/Parsedown.php')){
+		include_once '../lib/parsedown/Parsedown.php';
+		return Parsedown::instance()->parse($text);
+	} else {
+		return str_replace("\n", "<br/>", htmlentities($text));
+	}
 }
 
 class BaseClass{
@@ -1101,7 +1108,7 @@ class ProcessInstance extends BaseClass{
 		unset($this->dirty);
 	}
 
-	function svg(&$model, &$parent = null){
+	function svg(&$model, &$parent = null, $options = ['draw_arrows'=>true]){
 		$this->path = $this->id;
 		if (isset($parent)){
 			$rad = $parent->base->r;
@@ -1123,86 +1130,89 @@ class ProcessInstance extends BaseClass{
 				<title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
 			<text x="0" y="0"><title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>
-			<?php foreach ($this->connectors() as $conn){ 
-				foreach ($conn->flows() as $flow){
-					if ($flow->start_connector == null){
-						$terminal = $model->terminal_instances($flow->start_terminal);
-						$x2 =  sin($conn->angle*RAD)*$this->base->r;
-						$y2 = -cos($conn->angle*RAD)*$this->base->r;
-
-						$x1 = -$this->x + $terminal->x + $terminal->base->w/2;
-						$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30);
-
-						$proc_pointer = $parent;
-						while ($proc_pointer){
-							$x1 -= $proc_pointer->x;
-							$y1 -= $proc_pointer->y;
-							$proc_pointer = $proc_pointer->parent;
-						}
-
-						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
-						continue;
-					}
-
-					if ($flow->end_connector == null){
-						$terminal = $model->terminal_instances($flow->end_terminal);
-
-						$x1 = + sin($conn->angle*RAD)*$this->base->r;
-						$y1 = - cos($conn->angle*RAD)*$this->base->r;
-
-						$x2 = -$this->x + $terminal->x + $terminal->base->w/2;
-						$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
-
-						$proc_pointer = $parent;
-						while ($proc_pointer){
-							$x2 -= $proc_pointer->x;
-							$y2 -= $proc_pointer->y;
-							$proc_pointer = $proc_pointer->parent;
-						}
-
-						arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
-						continue;
-					}
-
-					if ($conn->base->direction){ // OUT
-						if ($flow->start_connector != $conn->id) continue;
-						$end_connector = $parent->connectors($flow->end_connector);
-						
-						if ($end_connector){ // flow goes to connector of parent
-							$x1 = $this->base->r*sin($conn->angle*RAD);
-							$y1 = -$this->base->r*cos($conn->angle*RAD);
-
-							$x2 = -$this->x + $parent->base->r * sin($end_connector->angle*RAD);
-							$y2 = -$this->y - $parent->base->r * cos($end_connector->angle*RAD);
-
-							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
-						}
-					} else { // IN
-						if ($flow->end_connector != $conn->id) continue;
-						$start_connector = $parent->connectors($flow->start_connector);
-						if ($start_connector === null){ // flow comes from sobling of process
-							foreach ($parent->children() as $sibling){
-								$start_connector = $sibling->connectors($flow->start_connector);
-								if ($start_connector) break;
+			<?php foreach ($this->connectors() as $conn){
+				if (isset($options['draw_arrows']) && $options['draw_arrows']==true){
+					foreach ($conn->flows() as $flow){
+						if ($flow->start_connector == null){
+							$terminal = $model->terminal_instances($flow->start_terminal);
+							$x2 =  sin($conn->angle*RAD)*$this->base->r;
+							$y2 = -cos($conn->angle*RAD)*$this->base->r;
+	
+							$x1 = -$this->x + $terminal->x + $terminal->base->w/2;
+							$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30);
+	
+							$proc_pointer = $parent;
+							while ($proc_pointer){
+								$x1 -= $proc_pointer->x;
+								$y1 -= $proc_pointer->y;
+								$proc_pointer = $proc_pointer->parent;
 							}
-							$x1 = -$this->x + $sibling->x + $sibling->base->r * sin($start_connector->angle*RAD);
-							$y1 = -$this->y + $sibling->y - $sibling->base->r * cos($start_connector->angle*RAD);
-
-							$x2 = $this->base->r*sin($conn->angle*RAD);
-							$y2 = -$this->base->r*cos($conn->angle*RAD);
-
+	
 							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
-						} else { // flow comes from connector of parent
-							$x1 = -$this->x + $parent->base->r * sin($start_connector->angle*RAD);
-							$y1 = -$this->y - $parent->base->r * cos($start_connector->angle*RAD);;
-
-							$x2 = $this->base->r*sin($conn->angle*RAD);
-							$y2 = -$this->base->r*cos($conn->angle*RAD);
-
-							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+							continue;
 						}
-					}
-				} // foreach flow */
+	
+						if ($flow->end_connector == null){
+							$terminal = $model->terminal_instances($flow->end_terminal);
+	
+							$x1 = + sin($conn->angle*RAD)*$this->base->r;
+							$y1 = - cos($conn->angle*RAD)*$this->base->r;
+	
+							$x2 = -$this->x + $terminal->x + $terminal->base->w/2;
+							$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
+	
+							$proc_pointer = $parent;
+							while ($proc_pointer){
+								$x2 -= $proc_pointer->x;
+								$y2 -= $proc_pointer->y;
+								$proc_pointer = $proc_pointer->parent;
+							}
+	
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+							continue;
+						}
+	
+						if ($conn->base->direction){ // OUT
+							if ($flow->start_connector != $conn->id) continue;
+							$end_connector = $parent->connectors($flow->end_connector);
+							
+							if ($end_connector){ // flow goes to connector of parent
+								$x1 = $this->base->r*sin($conn->angle*RAD);
+								$y1 = -$this->base->r*cos($conn->angle*RAD);
+	
+								$x2 = -$this->x + $parent->base->r * sin($end_connector->angle*RAD);
+								$y2 = -$this->y - $parent->base->r * cos($end_connector->angle*RAD);
+	
+								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+							}
+						} else { // IN
+							if ($flow->end_connector != $conn->id) continue;
+							if ($parent === null) continue; 
+							$start_connector = $parent->connectors($flow->start_connector);
+							if ($start_connector === null){ // flow comes from sobling of process
+								foreach ($parent->children() as $sibling){
+									$start_connector = $sibling->connectors($flow->start_connector);
+									if ($start_connector) break;
+								}
+								$x1 = -$this->x + $sibling->x + $sibling->base->r * sin($start_connector->angle*RAD);
+								$y1 = -$this->y + $sibling->y - $sibling->base->r * cos($start_connector->angle*RAD);
+	
+								$x2 = $this->base->r*sin($conn->angle*RAD);
+								$y2 = -$this->base->r*cos($conn->angle*RAD);
+	
+								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+							} else { // flow comes from connector of parent
+								$x1 = -$this->x + $parent->base->r * sin($start_connector->angle*RAD);
+								$y1 = -$this->y - $parent->base->r * cos($start_connector->angle*RAD);;
+	
+								$x2 = $this->base->r*sin($conn->angle*RAD);
+								$y2 = -$this->base->r*cos($conn->angle*RAD);
+	
+								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+							}
+						}
+					} // foreach flow */
+				} // if draw arrows
 			?>
 			<a xlink:href="connect_<?= $conn->base->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $conn->id ?>">
 				<circle
@@ -1220,6 +1230,10 @@ class ProcessInstance extends BaseClass{
 			?>
 		</g>
 	<?php }
+
+	function url(){
+		return getUrl('model',$this->model_id.'/process/'.$this->id);
+	}
 }
 
 class Terminal extends BaseClass{
@@ -1346,7 +1360,7 @@ class Terminal extends BaseClass{
 }
 
 class TerminalInstance extends BaseClass{
-	
+
 	/** static functions **/
 	static function fields(){
 		return [
@@ -1357,11 +1371,11 @@ class TerminalInstance extends BaseClass{
 			'y' => ['INT','DEFAULT 0'],
 		];
 	}
-	
+
 	static function load($options = []){
 		$where = [];
 		$args = [];
-	
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -1373,42 +1387,42 @@ class TerminalInstance extends BaseClass{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-	
+
 		if (isset($options['model_id'])){
 			$where[] = 'model_id = ?';
 			$args[] = $options['model_id'];
 		}
-		
+
 		if (isset($options['project_id'])){
 			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
 			$args[] = $options['project_id'];
 		}
-	
+
 		if (isset($options['terminal_id'])){
 			$where[] = 'terminal_id = ?';
 			$args[] = $options['terminal_id'];
 		}
-	
+
 		$sql = 'SELECT * FROM terminal_instances WHERE '.implode(' AND ', $where);
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load terminals');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-	
+
 		$models = [];
 		$bases = [];
-	
+
 		$terminals = [];
 		foreach ($rows as $row){
 
 			$terminal_id = $row['terminal_id'];
 			$model_id = $row['model_id'];			
-				
+
 			if (!isset($bases[$terminal_id])){ // load bases on demand
 				if (!isset($models[$model_id])) $models[$model_id] = Model::load(['ids'=>$model_id]); // load models on demand, needed to retrieve base
 				$bases[$terminal_id] = Terminal::load(['ids'=>$terminal_id,'project_id' => $models[$model_id]->project_id]);
 			}
-				
+
 			$terminal = new TerminalInstance();
 			$terminal->base = $bases[$terminal_id];
 			$terminal->patch($row);
@@ -1430,9 +1444,9 @@ class TerminalInstance extends BaseClass{
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load terminals');
 		$bases = $query->fetchAll(PDO::FETCH_ASSOC);
-		
+
 		$terminals = [];
-		
+
 		foreach ($bases as $base){
 			$query = $db->prepare('SELECT * FROM terminal_instances WHERE model_id = :model AND terminal_id = :tid');
 			$args = [':model'=>$options['model_id'],':tid'=>$base['id']];
@@ -1456,7 +1470,7 @@ class TerminalInstance extends BaseClass{
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove terminal "?" from terminal instances table.',$this->name));
-		
+
 		$query = $db->prepare('DELETE FROM flow_instances WHERE (start_terminal = :tid OR end_terminal = :tid)');
 		$args = [':tid'=>$this->id];
 		debug(query_insert($query,$args));
@@ -1464,7 +1478,7 @@ class TerminalInstance extends BaseClass{
 
 		$other_instances = TerminalInstance::load(['project_id'=>$this->base->project_id,'terminal_id'=>$this->terminal_id]);
 		if (empty($other_instances)) $this->base->delete();
-		
+
 	}
 
 	function patch($data = array()){
@@ -1553,4 +1567,9 @@ class TerminalInstance extends BaseClass{
 		<?php } ?>
 	</g>
 	<?php }
+
+	public function url(){
+		return getUrl('model',$this->model_id.'/terminal/'.$this->id);
+	}
+
 }

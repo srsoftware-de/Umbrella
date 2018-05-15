@@ -17,9 +17,7 @@ if (!$process_id){
 	redirect(getUrl('model'));
 }
 
-
-
-$model = Model::load(['ids'=>$model_id]);
+ $model = Model::load(['ids'=>$model_id]);
 $process = $model->process_instances($process_id);
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
@@ -28,13 +26,6 @@ if ($action == 'delete' && param('confirm')=='true'){
 }
 
 $connectors = $process->connectors();
-
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$process->base->description = Parsedown::instance()->parse(htmlentities($process->base->description));
-} else {
-	$process->base->description = str_replace("\n", "<br/>", htmlentities($process->base->description));
-}
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
@@ -82,7 +73,7 @@ if ($action == 'delete'){?>
 	<?php if ($process->base->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $process->base->description; ?></td>
+		<td class="description"><?= markdown($process->base->description); ?></td>
 	</tr>
 	<?php } ?>
 	<?php if ($process->children()){ ?>
@@ -111,5 +102,35 @@ if ($action == 'delete'){?>
 		</td>
 	</tr>
 	<?php } ?>
+	<tr>
+		<th><?= t('Display') ?></th>
+		<td>
+			<?php $process->x = $process->y =  100+$process->base->r; ?>
+			<svg
+				 viewbox="0 0 <?= 2*$process->x ?> <?= 2*$process->y ?>"
+				 onload="initSVG(evt)"
+				 onmousedown="grab(evt)"
+				 onmousemove="drag(evt)"
+				 onmouseup="drop(evt)"
+				 onwheel="wheel(evt)">
+				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
+				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
+
+				<?php $null = null; $process->svg($model,$null,['draw_arrows'=>false]); ?>
+				<?php foreach ($process->connectors() as $conn) {
+					$x1 = $process->x + sin($conn->angle*RAD)*$process->base->r ;
+					$y1 = $process->y - cos($conn->angle*RAD)*$process->base->r ;
+					$x2 = $process->x + sin($conn->angle*RAD)*($process->x);
+					$y2 = $process->y - cos($conn->angle*RAD)*($process->y);
+					$flow = reset($conn->flows());
+					if ($conn->base->direction){
+						arrow($x1,$y1,$x2,$y2, $flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+					} else {
+						arrow($x2,$y2,$x1,$y1, $flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+					}
+				} ?>
+			</svg>
+		</td>
+	</tr>	
 </table>
 <?php include '../common_templates/closure.php';

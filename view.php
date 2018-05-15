@@ -14,7 +14,7 @@ if ($model_id = param('id')){
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
-	$model->delete();	
+	$model->delete();
 	redirect(getUrl('model','?project='.$model->project_id));
 }
 
@@ -42,6 +42,7 @@ if ($action == 'delete'){?>
 				<a title="<?= t('edit')?>"	href="edit"></a>
 				<a title="<?= t('add terminal')?>" href="add_terminal"></a>
 				<a title="<?= t('add process')?>" href="add_process"></a>
+				<a title="<?= t('export model') ?>" href="export"></a>
 				<a title="<?= t('delete model')?>" href="?action=delete"></a>
 			</span>
 		</td>

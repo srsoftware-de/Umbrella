@@ -49,8 +49,9 @@ function drop(evt){
 			var cp = clickPos(evt);
 			var moveX = cp.x - PointGrabbed.x;
 			var moveY = cp.y - PointGrabbed.y;
-			if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) {
-				location.href = elem.id.replace(/_([^_]*)$/,'/$1');
+			if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) { // if not dragged: handle as click
+				var href = location.href.replace(/\/\d*$/,'').replace(/[^\/]*$/,''); // first: strip trailing number, if present. then: strip page				
+				location.href = href + elem.id.replace(/_([^_]*)$/,'/$1');
 			} else {
 				var x = GroupOrigin.x + moveX;
 				var y = GroupOrigin.y + moveY;
