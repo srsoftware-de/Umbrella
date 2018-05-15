@@ -24,7 +24,7 @@ if ($project_id = param('id')){
 
 		$users = request('user','json',['ids'=>$user_ids]);
 		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
-		
+
 		if (param('note_added')) send_note_notification($project,$users);
 
 		if ($project['company_id'] > 0 && isset($services['company'])){
@@ -33,7 +33,7 @@ if ($project_id = param('id')){
 
 		$title = t('Umprella: Project ?',$project['name']);
 		$show_closed_tasks = param('closed') == 'show';
-		
+
 		if (file_exists('../lib/parsedown/Parsedown.php')){
 			include '../lib/parsedown/Parsedown.php';
 			$project['description'] = Parsedown::instance()->parse($project['description']);
@@ -127,6 +127,18 @@ if ($project){
 		<th><?= t('Estimated time')?></th><td><?= t('? hours',$est_time) ?></td>
 	</tr>
 	<?php } ?>
+	<?php if (isset($services['files'])){ ?>
+	<tr>
+		<th><?= t('Related') ?></th>
+		<td>
+			<?php if (isset($services['files'])) { ?>
+			<a href="<?= getUrl('files','?path=project/'.$project_id) ?>"><span class="symbol"></span> <?= t('files') ?></a>&nbsp;
+			<?php }  if (isset($services['model'])) { ?>
+			<a href="<?= getUrl('model','?project='.$project_id) ?>"><span class="symbol"></span> <?= t('models') ?></a>&nbsp;
+			<?php } ?>
+		</td>
+	</tr>
+	<?php } ?>
 	<tr>
 		<th>
 			<?= t('Tasks')?>
@@ -144,14 +156,6 @@ if ($project){
 			<?php } ?>
 		</td>
 	</tr>
-	<?php if (isset($services['files'])){ ?>
-	<tr>
-		<th><?= t('Files') ?></th>
-		<td>
-			<a href="<?= getUrl('files','?path=project/'.$project_id) ?>"><span class="symbol"></span> <?= t('related files') ?></a>
-		</td>
-	</tr>
-	<?php } ?>
 	<?php if ($project['users']){ ?>
 	<tr>
 		<th><?= t('Users')?></th>
@@ -169,7 +173,7 @@ if ($project){
 	<?php } ?>
 </table>
 <?php
-if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSION); 
+if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSION);
 if (isset($services['notes'])) echo request('notes','html',['uri'=>'project:'.$project_id],false,NO_CONVERSION);
 }
 include '../common_templates/closure.php'; ?>
