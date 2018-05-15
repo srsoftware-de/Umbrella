@@ -32,7 +32,7 @@ foreach ($notes as $nid => $note){ ?>
 		<input type="hidden" name="uri" value="<?= $uri ?>" />
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
 		<fieldset class="add invoice">
-			<legend><?= t('add note - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
+			<legend><?= t('add note - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
 			<textarea name="note"></textarea>
 			<button type="submit"><?= t('add note') ?></button>		
 		</fieldset>

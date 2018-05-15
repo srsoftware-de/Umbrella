@@ -2,7 +2,7 @@
 
 $translations = array(
 		'add note'=>'Notiz hinzufügen',
-		'add note - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>'=>'Notiz hinzufügen - <a target="_blank" href="?">Spickzettel für Markdown und erweitertes Markdown hier</a>',
+		'add note - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>'=>'Notiz hinzufügen - <a target="_blank" href="?">Markdown wird unterstützt ↗Spickzettel</a>',
 		'Are you sure?'=>'Sind Sie sicher?',
 		'Bookmarks' => 'Lesezeichen',
 		'Company'=>'Firma',

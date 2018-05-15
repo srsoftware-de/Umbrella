@@ -57,7 +57,7 @@ class Note{
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['key'])){
 			$key = '%'.$options['key'].'%';
 			$sql .= ' AND note LIKE ?';
@@ -76,22 +76,22 @@ class Note{
 			$sql = 'SELECT * FROM notes WHERE uri = ?';
 			$args = [$uri];
 		}
-		
+
 		$order = isset($options['order']) ? $options['order'] : 'di';
-		
+
 		switch ($order){
 			case 'di': $sql.= ' ORDER BY id DESC'; break;
 			case 'id': $sql.= ' ORDER BY id'; break;
 			case 'uri': $sql.= ' ORDER BY uri'; break;
 		}
-		
+
 		$limit = isset($options['limit']) ? $options['limit'] : '20';
-		
+
 		if ($limit > 0){
 			$sql .= ' LIMIT ?';
 			$args[] = $limit;
 		}
-		$query = $db->prepare($sql);		
+		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load notes');
 		return $query->fetchAll(INDEX_FETCH);
 	}
@@ -104,13 +104,13 @@ class Note{
 			'timestamp' => 'INT',
 		];
 	}
-	
+
 	static function delete($id = null){
 		if ($id === null){
 			error('No id passed to Note::delete!');
 			return false;
 		}
-		$db = get_or_create_db();		
+		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM notes WHERE id = :id');
 		return $query->execute([':id'=>$id]);
 	}
@@ -127,13 +127,13 @@ class Note{
 		$sql = 'INSERT INTO notes (user_id, uri, note, timestamp) VALUES (:uid, :uri, :note, :time);';
 		$args = [':uid'=>$user->id, ':uri'=>$this->uri, ':note'=>$this->note, ':time'=>time()];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to  save note!');
+		assert($query->execute($args),'Was not able to save note!');
 
 	}
-	
+
 	function url(){
 		$parts = explode(':', $this->uri,2);
-		$module = array_shift($parts);		
+		$module = array_shift($parts);
 		$id = array_shift($parts);
 		if ($module == 'files') return getUrl($module,'?path='.$id);
 		return getUrl($module,$id.'/view');
