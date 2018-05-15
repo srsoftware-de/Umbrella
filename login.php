@@ -16,11 +16,11 @@ $login_services = get_login_services();
 
 $redirect = param('returnTo');
 
-include '../common_templates/head.php'; 
-include '../common_templates/messages.php'; 
+include '../common_templates/head.php';
+include '../common_templates/messages.php';
 
 if (!empty($login_services)) { ?>
-<fieldset>
+<fieldset class="openid">
 	<legend><?= t('Login using OAuth 2 / OpenID Connect')?></legend>
 	<?php foreach ($login_services as $name => $data) {?>
 	<a class="button" title="<?= t('Log in using ? account.',$name)?>" href="openid_login?service=<?= $name.($redirect?'&returnTo='.urlencode($redirect):'') ?>"><?= $name ?></a>
@@ -31,7 +31,8 @@ if (!empty($login_services)) { ?>
 
 
 <form method="POST">
-	<fieldset><legend><?= t('Login using email and password')?></legend>
+	<fieldset>
+		<legend><?= t('Login using email and password')?></legend>
 		<fieldset><legend><?= t('Email')?></legend>
 		<input type="text" autofocus="true" name="email" />
 		</fieldset>
