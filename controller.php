@@ -1108,7 +1108,11 @@ class ProcessInstance extends BaseClass{
 		unset($this->dirty);
 	}
 
-	function svg(&$model, &$parent = null, $options = ['draw_arrows'=>true]){
+	function svg(&$model, &$parent = null, $options = []){
+		$factor = isset($options['factor']) ? $options['factor'] : 1.0;
+		$arrows = isset($options['arrows']) ? $options['arrows'] : true;
+
+		$referenced_terminal_instances = [];
 		$this->path = $this->id;
 		if (isset($parent)){
 			$rad = $parent->base->r;
@@ -1131,13 +1135,15 @@ class ProcessInstance extends BaseClass{
 			</circle>
 			<text x="0" y="0"><title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->process_id ?></text>
 			<?php foreach ($this->connectors() as $conn){
-				if (isset($options['draw_arrows']) && $options['draw_arrows']==true){
+				if ($arrows){
 					foreach ($conn->flows() as $flow){
 						if ($flow->start_connector == null){
-							$terminal = $model->terminal_instances($flow->start_terminal);
+							$terminal = $model->terminal_instances($flow->start_terminal)->applyFactor($factor);
+							$referenced_terminal_instances[$terminal->id] = $terminal;
+							
 							$x2 =  sin($conn->angle*RAD)*$this->base->r;
 							$y2 = -cos($conn->angle*RAD)*$this->base->r;
-	
+							
 							$x1 = -$this->x + $terminal->x + $terminal->base->w/2;
 							$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30) + 25;
 	
@@ -1153,8 +1159,10 @@ class ProcessInstance extends BaseClass{
 						}
 	
 						if ($flow->end_connector == null){
-							$terminal = $model->terminal_instances($flow->end_terminal);
-	
+							$terminal = $model->terminal_instances($flow->end_terminal)->applyFactor($factor);
+								
+							$referenced_terminal_instances[$terminal->id] = $terminal;
+							
 							$x1 = + sin($conn->angle*RAD)*$this->base->r;
 							$y1 = - cos($conn->angle*RAD)*$this->base->r;
 	
@@ -1226,10 +1234,14 @@ class ProcessInstance extends BaseClass{
 				</circle>
 			</a>
 			<?php } // foreach connector
-			foreach ($this->children() as $child) $child->svg($model,$this);
-			?>
-		</g>
-	<?php }
+			$options['arrows'] = true; // arrows may have been disabled on upper level. however, draw them in nested structures
+			foreach ($this->children() as $child) {
+				$terminal_references = $child->svg($model,$this,$options);
+				$referenced_terminal_instances = array_merge($referenced_terminal_instances,$terminal_references);
+			} ?>
+		</g><?php
+		return $referenced_terminal_instances; 
+	}
 
 	function url(){
 		return getUrl('model',$this->model_id.'/process/'.$this->id);
@@ -1463,7 +1475,16 @@ class TerminalInstance extends BaseClass{
 		return $terminals;
 	}
 
-	/** instance functions **/	
+	/** instance functions **/
+	function applyFactor($factor){
+		if (!isset($this->appliedFactor)){
+			$this->x *= $factor;
+			$this->y *= $factor;
+			$this->appliedFactor = $factor;
+		}
+		return $this;
+	}
+	
 	function delete(){
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM terminal_instances WHERE id = :id');
@@ -1478,7 +1499,10 @@ class TerminalInstance extends BaseClass{
 
 		$other_instances = TerminalInstance::load(['project_id'=>$this->base->project_id,'terminal_id'=>$this->terminal_id]);
 		if (empty($other_instances)) $this->base->delete();
-
+	}
+	
+	function isDB(){
+		return $this->base->type == Terminal::DATABASE;
 	}
 
 	function patch($data = array()){

@@ -24,24 +24,19 @@ include '../common_templates/messages.php'; ?>
 <h2><?= t('Processes') ?></h2>
 <?php foreach ($model->process_instances() as $process) { ?>
 <h3><a href="<?= $process->url() ?>"><?= t('Process: "?"', $process->base->id) ?></a></h3>
-<?php
-$process->x = $process->y =  100+$process->base->r;
-$process->x = $process->y =  175+$process->base->r;
-$databases = [];
+<?php $process->x = $process->y =  175+$process->base->r;
+	$factor = $process->x / 500;
 ?>
-<svg
-	 style="max-width: 600px"
-	 viewbox="0 0 <?= 2*$process->x ?> <?= 2*$process->y ?>"
-	 onload="initSVG(evt)"
-	 onmousedown="grab(evt)"
-	 onmousemove="drag(evt)"
-	 onmouseup="drop(evt)"
-	 onwheel="wheel(evt)">
+<svg style="max-width: 600px"
+	 viewbox="0 0 <?= 1000*$factor ?> <?= 1000*$factor ?>"
+	 onmouseup="c(evt)">
 	<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 	<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
-	<?php $null = null; $process->svg($model,$null,['draw_arrows'=>false]); ?>
-	<?php foreach ($process->connectors() as $conn) {
+	<?php
+	$null = null; 
+	$referenced_terminal_instances = $process->svg($model,$null,['arrows'=>false,'factor'=>1.1]); 
+	foreach ($process->connectors() as $conn) {
 		$x1 = $process->x + sin($conn->angle*RAD)*$process->base->r ;
 		$y1 = $process->y - cos($conn->angle*RAD)*$process->base->r ;
 		$x2 = $process->x + sin($conn->angle*RAD)*(100+$process->base->r);
@@ -55,7 +50,6 @@ $databases = [];
 					$terminal->x = $x2 - ($x2>$x1 ? 0 : $terminal->base->w);
 					$terminal->y = $y2-20;
 					$terminal->svg();
-					$databases[$terminal->base->id] = $terminal;
 				}
 			}
 		} else {
@@ -66,11 +60,12 @@ $databases = [];
 					$terminal->x = $x2 - ($x2>$x1 ? 0 : $terminal->base->w);
 					$terminal->y = $y2-20;
 					$terminal->svg();
-					$databases[$terminal->base->id] = $terminal;
 				}
 			}
 		}
-	} ?>
+	}
+	foreach ($referenced_terminal_instances as $terminal) $terminal->svg();
+?>
 </svg>
 <?= markdown($process->base->description) ?>
 <h4><?= t('Inflows') ?></h4>
@@ -103,11 +98,24 @@ $databases = [];
 <?php } // if databases ?>
 <?php } // foreach process?>
 
-<h2><?= t('Terminals'); ?></h2>
-<?php $shown = []; foreach ($model->terminal_instances() as $terminal){?>
-<?php if (in_array($terminal->base->id,$shown)) continue; ?>
-<h3><a href="<?= $terminal->url(); ?>"><?= $terminal->base->id ?></a></h3>
-<?= markdown($terminal->base->description) ?>
-<?php $shown[] = $terminal->base->id; } ?>
+<h2><?= t('Databases'); ?></h2><?php
+$shown = [];
+foreach ($model->terminal_instances() as $terminal){
+	if (!$terminal->isDB() || in_array($terminal->base->id,$shown)) continue; ?>
+	<h3><a href="<?= $terminal->url(); ?>"><?= $terminal->base->id ?></a></h3>
+	<?= markdown($terminal->base->description) ?>
+	<?php
+	$shown[] = $terminal->base->id;
+} // foreach terminal ?>
+
+<h2><?= t('Terminals'); ?></h2><?php
+$shown = [];
+foreach ($model->terminal_instances() as $terminal){
+	if ($terminal->isDB() || in_array($terminal->base->id,$shown)) continue; ?>
+	<h3><a href="<?= $terminal->url(); ?>"><?= $terminal->base->id ?></a></h3>
+	<?= markdown($terminal->base->description) ?>
+	<?php
+	$shown[] = $terminal->base->id;
+} // foreach terminal ?>
 
 <?php include '../common_templates/closure.php';

@@ -7,6 +7,11 @@ var SVGRoot = null;
 var pt = null;
 var reload_timer_handle = null;
 
+function click(evt){
+	var href = location.href.replace(/\/\d*$/,'').replace(/[^\/]*$/,''); // first: strip trailing number, if present. then: strip page				
+	location.href = href + evt.target.id.replace(/_([^_]*)$/,'/$1');
+}
+
 function crossHair(x,y,text){
 	var vl = document.createElementNS('http://www.w3.org/2000/svg','line');
 	vl.setAttribute('x1',x);

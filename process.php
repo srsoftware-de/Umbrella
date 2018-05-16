@@ -105,19 +105,19 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Display') ?></th>
 		<td>
-			<?php $process->x = $process->y =  175+$process->base->r; ?>
+			<?php $process->x = $process->y =  175+$process->base->r;
+				$factor = $process->x / 500;
+			?>
 			<svg
-				 viewbox="0 0 <?= 2*$process->x ?> <?= 2*$process->y ?>"
-				 onload="initSVG(evt)"
-				 onmousedown="grab(evt)"
-				 onmousemove="drag(evt)"
-				 onmouseup="drop(evt)"
-				 onwheel="wheel(evt)">
+				 viewbox="0 0 <?= 1000*$factor ?> <?= 1000*$factor ?>"
+				 onmouseup="c(evt)">
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
-				<?php $null = null; $process->svg($model,$null,['draw_arrows'=>false]); ?>
-				<?php foreach ($process->connectors() as $conn) {
+				<?php
+				$null = null; 
+				$referenced_terminal_instances = $process->svg($model,$null,['arrows'=>false,'factor'=>1.1]); 
+				foreach ($process->connectors() as $conn) {
 					$x1 = $process->x + sin($conn->angle*RAD)*$process->base->r ;
 					$y1 = $process->y - cos($conn->angle*RAD)*$process->base->r ;
 					$x2 = $process->x + sin($conn->angle*RAD)*(100+$process->base->r);
@@ -144,9 +144,11 @@ if ($action == 'delete'){?>
 							}
 						}
 					}
-				} ?>
+				}
+				foreach ($referenced_terminal_instances as $terminal) $terminal->svg();
+			?>
 			</svg>
 		</td>
 	</tr>	
 </table>
-<?php include '../common_templates/closure.php';
+<?php debug($process); include '../common_templates/closure.php';
