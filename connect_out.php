@@ -66,7 +66,6 @@ if ($endpoint = param('endpoint')){
 	warn('Please select end point for flow');
 }
 
-info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';

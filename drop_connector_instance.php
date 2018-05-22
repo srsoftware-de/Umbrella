@@ -17,7 +17,6 @@ if ($confirm = param('confirm')){
 	redirect(getUrl('model',$model_id.'/view'));
 }
 
-info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';

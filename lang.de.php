@@ -32,6 +32,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
+		'MARKDOWN_HELP'=>'https://www.markdownguide.org/cheat-sheet',		
 		'Model'=>'Modell',
 		'Model: ?'=>'Modell: ?',
 		'Models' => 'Modelle',

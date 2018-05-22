@@ -16,7 +16,6 @@ if ($model_id = param('id')){
 	}
 }
 
-info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -26,6 +25,7 @@ $flows = [];
 
 foreach ($models as $model) { ?>
 <h1><a href="<?= $model->url() ?>"><?= t('Model: ?',$model->name) ?></a></h1>
+<p><?= t('Project: ?','<a href="'.getUrl('project',$model->project_id.'/view').'">'.$model->project['name'].'</a>')?></p>
 <?= markdown($model->description) ?>
 
 <h2><?= t('Processes') ?></h2>
@@ -82,18 +82,18 @@ foreach ($models as $model) { ?>
 	foreach ($connector->flows() as $flow){
 		$flows[$flow->base->id] = $flow;
 		if ($flow->end_connector != $connector->id) continue; // skip inner flows ?>
-	<li><?= $flow->base->id ?></li>
+	<li><a href="#<?= $flow->base->id ?>"><?= $flow->base->id ?></a></li>
 	<?php } } ?>
 </ul>
 
-<h3><?= t('Outflows') ?></h3>
+<h4><?= t('Outflows') ?></h4>
 <ul>
 	<?php foreach ($process->connectors() as $connector){
 	if (!$connector->base->direction) continue; // skip outbound connectors
 	foreach ($connector->flows() as $flow){
 		$flows[$flow->base->id] = $flow;
 		if ($flow->start_connector != $connector->id) continue; // skip inner flows ?>
-	<li><?= $flow->base->id ?></li>
+	<li><a href="#<?= $flow->base->id ?>"><?= $flow->base->id ?></a></li>
 	<?php } } ?>
 </ul>
 
@@ -133,7 +133,7 @@ foreach ($model->terminal_instances() as $terminal){
 
 <h2><?= t('Flows') ?></h2>
 <?php ksort($flows); foreach ($flows as $flow) { ?>
-	<h3><a href="<?= getUrl('model',$flow->model_id.'/flow/'.$flow->id) ?>"><?= $flow->base->id ?></a></h3>
+	<h3><a name="<?= $flow->base->id ?>" href="<?= getUrl('model',$flow->model_id.'/flow/'.$flow->id) ?>"><?= $flow->base->id ?></a></h3>
 <?php if ($flow->base->definition) { echo t('Definition: ?','<code>'.htmlentities($flow->base->definition).'</code>'); } ?>
 <?= markdown($flow->base->description) ?>
 <?php } ?>

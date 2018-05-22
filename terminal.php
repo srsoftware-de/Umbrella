@@ -26,7 +26,6 @@ if ($action == 'delete' && param('confirm')=='true'){
 	redirect($model->url());
 }
 
-info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -70,7 +69,7 @@ if ($action == 'delete'){?>
 	<?php if ($terminal->base->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $terminal->base->description; ?></td>
+		<td class="description"><?= markdown($terminal->base->description); ?></td>
 	</tr>
 	<?php } ?>
 </table>

@@ -25,7 +25,6 @@ if ($name = param('name')){
 	redirect(getUrl('model',$model_id.'/view'));
 }
 
-info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
@@ -33,18 +32,19 @@ include '../common_templates/messages.php'; ?>
 
 <form method="post">
 	<fieldset>
-		<legend>
-			<?= t('Edit flow "?"',$flow->base->id); ?>
-		</legend>
-		<label>
-			<?= t('Name') ?><input type="text" name="name" value="<?= $flow->base->id ?>"/>
-		</label>
-		<label>
-			<?= t('Definition') ?><input type="text" name="definition" value="<?= htmlentities($flow->base->definition) ?>" />
-		</label>
-		<label>
-			<?= t('Description') ?><textarea name="description"><?= $flow->base->description ?></textarea>
-		</label>
+		<legend><?= t('Edit flow "?"',$flow->base->id); ?></legend>
+		<fieldset>
+			<legend><?= t('Name') ?></legend>
+			<input type="text" name="name" value="<?= $flow->base->id ?>"/>
+		</fieldset>
+		<fieldset>
+			<legend><?= t('Definition') ?></legend>
+			<input type="text" name="definition" value="<?= htmlentities($flow->base->definition) ?>" />
+		</fieldset>
+		<fieldset>
+			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<textarea name="description"><?= $flow->base->description ?></textarea>			
+		</fieldset>
 		<button type="submit">
 			<?= t('Save'); ?>
 		</button>
