@@ -38,7 +38,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Model')?></th>
 		<td>
 			<h1><?= $model->name ?></h1>
-			<span class="right symbol">
+			<span class="symbol">
 				<a title="<?= t('edit')?>"	href="edit"></a>
 				<a title="<?= t('add terminal')?>" href="add_terminal"></a>
 				<a title="<?= t('add process')?>" href="add_process"></a>

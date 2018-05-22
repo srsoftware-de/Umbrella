@@ -46,14 +46,14 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Process')?></th>
 		<td>
-			<span class="right symbol">
+			<h1><?= $process->base->id ?></h1>
+			<span class="symbol">
 				<a href="../edit_process/<?= $process_id ?>" title="<?= t('edit')?>"></a>
 				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add inflow connector')?>"></a>
 				<a href="../add_connector_to_process/<?= $process_id ?>?direction=<?= Connector::DIR_OUT ?>" title="<?= t('add inflow connector')?>"></a>
 				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add new child process')?>"></a>
 				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>
-			<h1><?= $process->base->id ?></h1>
 		</td>
 	</tr>
 	<tr>
@@ -110,7 +110,7 @@ if ($action == 'delete'){?>
 			?>
 			<svg
 				 viewbox="0 0 <?= 1000*$factor ?> <?= 1000*$factor ?>"
-				 onmouseup="c(evt)">
+				 onmouseup="click(evt)">
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
@@ -151,4 +151,4 @@ if ($action == 'delete'){?>
 		</td>
 	</tr>	
 </table>
-<?php debug($process); include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php';

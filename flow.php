@@ -25,13 +25,6 @@ if ($action == 'delete' && param('confirm')=='true'){
 	redirect($model->url());
 }
 
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$flow->base->description = Parsedown::instance()->parse(htmlentities($flow->base->description));
-} else {
-	$flow->base->description = str_replace("\n", "<br/>", htmlentities($flow->base->description));
-}
-
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
@@ -54,7 +47,7 @@ if ($action == 'delete'){?>
 			<?= t('Flow')?></th>
 		<td>
 			<h1><?= $flow->base->id ?></h1>
-			<span class="right symbol">
+			<span class="symbol">
 				<a href="../edit_flow/<?= $flow_id ?>" title="<?= t('edit')?>"></a>
 				<a title="delete" href="?action=delete"></a>
 			</span>
@@ -74,16 +67,16 @@ if ($action == 'delete'){?>
 			<a href="<?= $model->url(); ?>"><?= $model->name ?></a>
 		</td>
 	</tr>
-	<?php if ($flow->base->description){ ?>
-	<tr>
-		<th><?= t('Description')?></th>
-		<td class="description"><?= $flow->base->description; ?></td>
-	</tr>
-	<?php } ?>
 	<?php if ($flow->base->definition){ ?>
 	<tr>
 		<th><?= t('Definition')?></th>
 		<td class="definition"><?= htmlentities($flow->base->definition); ?></td>
+	</tr>
+	<?php } ?>
+	<?php if ($flow->base->description){ ?>
+	<tr>
+		<th><?= t('Description')?></th>
+		<td class="description"><?= markdown($flow->base->description); ?></td>
 	</tr>
 	<?php } ?>
 </table>

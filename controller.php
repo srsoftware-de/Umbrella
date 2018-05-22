@@ -439,7 +439,6 @@ class Flow extends BaseClass{
 						
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
-				debug(query_insert($sql,$args));
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update flow in database!');
 			}
@@ -1317,12 +1316,12 @@ class Terminal extends BaseClass{
 	}
 	
 	public function instances($options = []){
-		$options['base'] = $this;
-		return TerminalInstance::load($options);
+		return TerminalInstance::load(['terminal_id'=>$this->id]);
 	}
 	
 	public function save(){
 		$db = get_or_create_db();
+		
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE terminals SET';
@@ -1337,9 +1336,9 @@ class Terminal extends BaseClass{
 						$args[':new_id'] = $this->name;
 						$this->update_references($this->name);
 					}
-				}
+				}				
 				if (count($args)>1){
-					$sql = rtrim($sql,',').' WHERE id = :id AND project_id IN (SELECT project_id FROM models WHERE id IN (SELECT id FROM models WHERE project_id = :pid))';
+					$sql = rtrim($sql,',').' WHERE id = :id AND project_id = :pid';
 					$args[':pid'] = $this->project_id;
 					$query = $db->prepare($sql);
 					assert($query->execute($args),'Was no able to update terminal in database!');
@@ -1415,7 +1414,8 @@ class TerminalInstance extends BaseClass{
 			$args[] = $options['terminal_id'];
 		}
 
-		$sql = 'SELECT * FROM terminal_instances WHERE '.implode(' AND ', $where);
+		$sql = 'SELECT * FROM terminal_instances';
+		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load terminals');

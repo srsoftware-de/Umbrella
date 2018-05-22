@@ -6,18 +6,25 @@ include 'controller.php';
 require_login('model');
 
 if ($model_id = param('id')){
-	$model = Model::load(['ids'=>$model_id]);
+	$models = [$model_id => Model::load(['ids'=>$model_id])];
 } else {
-	error('No model id passed!');
-	redirect(getUrl('model'));
+	if ($project_id = param('project')){
+		$models = Model::load(['project_id'=>$project_id]);
+	} else {
+		error('Neither project id nor model id passed!');
+		redirect(getUrl('model'));
+	}
 }
 
 info('This Module is not functional, yet.');
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php';
 
+$flows = [];
+
+foreach ($models as $model) { ?>
 <h1><a href="<?= $model->url() ?>"><?= t('Model: ?',$model->name) ?></a></h1>
 <?= markdown($model->description) ?>
 
@@ -29,7 +36,7 @@ include '../common_templates/messages.php'; ?>
 ?>
 <svg style="max-width: 600px"
 	 viewbox="0 0 <?= 1000*$factor ?> <?= 1000*$factor ?>"
-	 onmouseup="c(evt)">
+	 onmouseup="click(evt)">
 	<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 	<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
@@ -73,6 +80,7 @@ include '../common_templates/messages.php'; ?>
 	<?php foreach ($process->connectors() as $connector){
 	if ($connector->base->direction) continue; // skip outbound connectors
 	foreach ($connector->flows() as $flow){
+		$flows[$flow->base->id] = $flow;
 		if ($flow->end_connector != $connector->id) continue; // skip inner flows ?>
 	<li><?= $flow->base->id ?></li>
 	<?php } } ?>
@@ -83,6 +91,7 @@ include '../common_templates/messages.php'; ?>
 	<?php foreach ($process->connectors() as $connector){
 	if (!$connector->base->direction) continue; // skip outbound connectors
 	foreach ($connector->flows() as $flow){
+		$flows[$flow->base->id] = $flow;
 		if ($flow->start_connector != $connector->id) continue; // skip inner flows ?>
 	<li><?= $flow->base->id ?></li>
 	<?php } } ?>
@@ -93,29 +102,40 @@ include '../common_templates/messages.php'; ?>
 <ul>
 	<?php foreach ($databases as $db){ ?>
 	<li><?= $db->base->id ?></li>
-	<?php }?>
+	<?php	}?>
 </ul>
-<?php } // if databases ?>
-<?php } // foreach process?>
-
+<?php	} // if databases 
+	} // foreach process
+} // foreach $model ?>
 <h2><?= t('Databases'); ?></h2><?php
 $shown = [];
-foreach ($model->terminal_instances() as $terminal){
-	if (!$terminal->isDB() || in_array($terminal->base->id,$shown)) continue; ?>
-	<h3><a href="<?= $terminal->url(); ?>"><?= $terminal->base->id ?></a></h3>
-	<?= markdown($terminal->base->description) ?>
-	<?php
-	$shown[] = $terminal->base->id;
-} // foreach terminal ?>
+foreach ($models as $model){
+	foreach ($model->terminal_instances() as $terminal){
+		if (!$terminal->isDB() || in_array($terminal->base->id,$shown)) continue; ?>
+		<h3><a href="<?= $terminal->url(); ?>"><?= $terminal->base->id ?></a></h3>
+		<?= markdown($terminal->base->description) ?>
+		<?php
+		$shown[] = $terminal->base->id;
+	} // foreach terminal
+} // foreach model ?>
 
 <h2><?= t('Terminals'); ?></h2><?php
 $shown = [];
+foreach ($models as $model){
 foreach ($model->terminal_instances() as $terminal){
 	if ($terminal->isDB() || in_array($terminal->base->id,$shown)) continue; ?>
 	<h3><a href="<?= $terminal->url(); ?>"><?= $terminal->base->id ?></a></h3>
 	<?= markdown($terminal->base->description) ?>
 	<?php
 	$shown[] = $terminal->base->id;
-} // foreach terminal ?>
+	} // foreach terminal
+} // foreach model ?>
+
+<h2><?= t('Flows') ?></h2>
+<?php ksort($flows); foreach ($flows as $flow) { ?>
+	<h3><a href="<?= getUrl('model',$flow->model_id.'/flow/'.$flow->id) ?>"><?= $flow->base->id ?></a></h3>
+<?php if ($flow->base->definition) { echo t('Definition: ?','<code>'.htmlentities($flow->base->definition).'</code>'); } ?>
+<?= markdown($flow->base->description) ?>
+<?php } ?>
 
 <?php include '../common_templates/closure.php';
