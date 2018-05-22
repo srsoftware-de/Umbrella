@@ -8,7 +8,8 @@ var pt = null;
 var reload_timer_handle = null;
 
 function click(evt){
-	var href = location.href.replace(/\/\d*$/,'').replace(/[^\/]*$/,''); // first: strip trailing number, if present. then: strip page				
+	var href = location.href.replace(/\/\d*$/,'').replace(/[^\/]*$/,''); // first: strip trailing number, if present. then: strip page
+	if (evt.target.id == 'backdrop') return;
 	location.href = href + evt.target.id.replace(/_([^_]*)$/,'/$1');
 }
 
