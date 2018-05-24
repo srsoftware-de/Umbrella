@@ -352,92 +352,22 @@ class Document {
 	const STATE_PAYED = 4;
 	const STATE_ERROR = 99;
 	
-	function __construct(array $company = []){
-		if (isset($company['id'])) $this->company_id = $company['id'];
-		if (isset($company['currency'])) $this->currency = $company['currency'];
-		$this->state = static::STATE_NEW;
-		$this->date = time();
-	}
-	
-	function type(){
-		if (!isset($this->type)) $this->type = DocumentType::load(['ids' => $this->type_id]);
-		return $this->type;
-	}
-	
-	function derive($next_type_id = null){
-		if ($next_type_id === null) $next_type_id = $this->type()->next_type_id;
-		if ($next_type_id === null) {
-			error('No successor type defined for documents of type ?',$this->type()->name);
-			redirect(getUrl('document'));
-		}
-		
-		$new_document = new Document();		
-		$new_document->type_id = $next_type_id;
-		
-		$company_settings = CompanySettings::load($this->company_id,$next_type_id);
-		$company_settings->applyTo($new_document);
-		foreach ($this as $field => $value){
-			if (array_key_exists($field,Document::table())  && !isset($new_document->{$field})) $new_document->{$field} = $value;	
-		}
-		unset($new_document->id);
-		$new_document->save();
-		$company_settings->save();
-
-		foreach ($this->positions() as $position) $new_position = $position->copy($new_document);
-
-		return $new_document;
-	}
-
+	/*** static functions ********/
 	static function states(){
 		return [
-			static::STATE_NEW => 'new',
-			static::STATE_SENT => 'sent',
-			static::STATE_DELAYED => 'delayed',
-			static::STATE_PAYED => 'payed',
-			static::STATE_ERROR => 'error',
+		static::STATE_NEW => 'new',
+		static::STATE_SENT => 'sent',
+		static::STATE_DELAYED => 'delayed',
+		static::STATE_PAYED => 'payed',
+		static::STATE_ERROR => 'error',
 		];
 	}
-
-	static function table(){
-		return [
-			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
-			'type_id'			=> ['INT','NOT NULL'],
-			'company_id'		=> ['INT','NOT NULL'],
-			'number'			=> ['TEXT','NOT NULL'],
-			'date'				=> ['TIMESTAMP','NOT NULL'],
-			'state'				=> ['INT','NOT NULL','DEFAULT'=>static::STATE_NEW],
-			'template_id'		=> ['INT','NOT NULL'],
-			'delivery_date'		=> ['VARCHAR'=>100],
-			'head'				=> 'TEXT',
-			'footer'			=> 'TEXT',
-			'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
-			
-			'sender'			=> ['TEXT','NOT NULL'],
-			'tax_number'		=> ['VARCHAR'=>255],
-			'bank_account'		=> 'TEXT',
-			'court'				=> 'TEXT',
-			
-			'customer'			=> 'TEXT',
-			'customer_number'	=> ['VARCHAR'=>255],
-			'customer_tax_number'=> ['VARCHAR'=>255],
-			'customer_email'	=> ['VARCHAR'=>255],
-		];
-	}
-
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-	}
-
+	
 	static function load($options = []){
 		$db = get_or_create_db();
 		$user_companies = request('company','json');
 		$user_company_ids = array_keys($user_companies);
-
+	
 		$args = [];
 		if ($user_company_ids !== null){
 			if (!is_array($user_company_ids)) $user_company_ids = [ $user_company_ids ];
@@ -445,7 +375,7 @@ class Document {
 			$args = $user_company_ids;
 		}
 		$sql = 'SELECT * FROM documents WHERE company_id IN ('.$qmarks.')';
-
+	
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -457,7 +387,7 @@ class Document {
 			$args = array_merge($args, $ids);
 			$sql .= ' AND id IN ('.$qmarks.')';
 		}
-
+	
 		if (isset($options['times'])){
 			$tids = $options['times'];
 			if (!is_array($tids)) $tids = [$tids];
@@ -465,13 +395,13 @@ class Document {
 			$args = array_merge($args, $tids);
 			$sql .= ' AND id IN (SELECT document_id FROM document_positions WHERE time_id IN ('.$qmarks.'))';
 		}
-		
+	
 		$sql .= ' ORDER BY ';
 		if (isset($options['order']) && array_key_exists($options['order'],Document::table())){
 			$sql .= $options['order'].' DESC, ';
 		}
 		$sql .= 'id DESC';
-
+	
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load documents!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -485,7 +415,132 @@ class Document {
 		}
 		return $documents;
 	}
-
+	
+	static function table(){
+		return [
+		'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
+		'type_id'			=> ['INT','NOT NULL'],
+		'company_id'		=> ['INT','NOT NULL'],
+		'number'			=> ['TEXT','NOT NULL'],
+		'date'				=> ['TIMESTAMP','NOT NULL'],
+		'state'				=> ['INT','NOT NULL','DEFAULT'=>static::STATE_NEW],
+		'template_id'		=> ['INT','NOT NULL'],
+		'delivery_date'		=> ['VARCHAR'=>100],
+		'head'				=> 'TEXT',
+		'footer'			=> 'TEXT',
+		'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
+			
+		'sender'			=> ['TEXT','NOT NULL'],
+		'tax_number'		=> ['VARCHAR'=>255],
+		'bank_account'		=> 'TEXT',
+		'court'				=> 'TEXT',
+			
+		'customer'			=> 'TEXT',
+		'customer_number'	=> ['VARCHAR'=>255],
+		'customer_tax_number'=> ['VARCHAR'=>255],
+		'customer_email'	=> ['VARCHAR'=>255],
+		];
+	}
+	
+	/*** instance functions ********/
+	function __construct(array $company = []){
+		if (isset($company['id'])) $this->company_id = $company['id'];
+		if (isset($company['currency'])) $this->currency = $company['currency'];
+		$this->state = static::STATE_NEW;
+		$this->date = time();
+	}
+	
+	function add_position($code,$title,$description,$amount,$unit,$price,$tax){
+		$db = get_or_create_db();
+	
+		$query = $db->prepare('SELECT MAX(pos) FROM document_positions WHERE document_id = :id');
+		assert($query->execute(array(':id'=>$document_id)),'Was not able to get last document position!');
+		$row = $query->fetch(PDO::FETCH_COLUMN);
+		$pos = ($row === null)?1:$row+1;
+	
+		$query = $db->prepare('INSERT INTO document_positions (document_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
+		$args = array(':id'=>$document_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
+		assert($query->execute($args),'Was not able to store new postion for document '.$document_id.'!');
+	}
+	
+	public function company($field = null){
+		if (!isset($this->company)) $this->company = request('company','json',['ids'=>$this->company_id,'single'=>true]);
+		if ($field !== null) return $this->company[$field];
+		return $this->company;
+	}
+	
+	public function company_settings(){
+		if (!isset($this->company_settings)){
+			$this->company_settings = CompanySettings::load($this->company_id);
+		}
+		return $this->company_settings;
+	}
+	
+	public function customer_short(){
+		return reset(explode("\n",$this->customer));
+	}
+	
+	public function date(){
+		return date('Y-m-d',$this->date);
+	}
+	
+	public function delivery_date(){
+		if (!isset($this->delivery_date) || $this->delivery_date === null) return '';
+		return $this->delivery_date;
+	}
+	
+	function derive($next_type_id = null){
+		if ($next_type_id === null) $next_type_id = $this->type()->next_type_id;
+		if ($next_type_id === null) {
+			error('No successor type defined for documents of type ?',$this->type()->name);
+			redirect(getUrl('document'));
+		}
+	
+		$new_document = new Document();
+		$new_document->type_id = $next_type_id;
+	
+		$company_settings = CompanySettings::load($this->company_id,$next_type_id);
+		$company_settings->applyTo($new_document);
+		foreach ($this as $field => $value){
+			if (array_key_exists($field,Document::table())  && !isset($new_document->{$field})) $new_document->{$field} = $value;
+		}
+		unset($new_document->id);
+		$new_document->save();
+		$company_settings->save();
+	
+		foreach ($this->positions() as $position) $new_position = $position->copy($new_document);
+	
+		return $new_document;
+	}
+	
+	function elevate($position_number){
+		if ($position_number<2) return;
+		$positions = $this->positions();
+		$a = $positions[$position_number]->delete(DocumentPosition::SKIP_UPDATE);
+		$b = $positions[$position_number-1]->delete(DocumentPosition::SKIP_UPDATE);
+		$a->patch(['pos'=>$position_number-1])->save();
+		$b->patch(['pos'=>$position_number])->save();
+	}
+	
+	public function mail_text(){
+		$company_settings = CompanySettings::load($this->company,$this->type->id);
+		return $company_settings->type_mail_text;
+	}
+	
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+	}
+	
+	public function positions(){
+		if (!isset($this->positions)) $this->positions = DocumentPosition::load($this);
+		return $this->positions;
+	}
+	
 	public function save(){
 		global $user,$services;
 		$db = get_or_create_db();
@@ -551,75 +606,9 @@ class Document {
 		}
 	}
 	
-	public function company($field = null){
-		if (!isset($this->company)) $this->company = request('company','json',['ids'=>$this->company_id,'single'=>true]);
-		if ($field !== null) return $this->company[$field];
-		return $this->company;
-	}
-	
-	public function company_settings(){
-		if (!isset($this->company_settings)){
-			$this->company_settings = CompanySettings::load($this->company_id);
-		}
-		return $this->company_settings;
-	}
-
-	public function mail_text(){
-		$company_settings = CompanySettings::load($this->company,$this->type->id);
-		return $company_settings->type_mail_text;
-	}
-
-	public function update_mail_text($new_text){
-		$settings = CompanySettings::load($this->company,$this->type->id);
-		$settings->patch(['type_mail_text'=>$new_text]);		
-		$settings->save();
-	}
-
-
-	public function date(){
-		return date('Y-m-d',$this->date);
-	}
-	
-	public function delivery_date(){
-		if (!isset($this->delivery_date) || $this->delivery_date === null) return '';
-		return $this->delivery_date;
-	}
-	
-	
 	public function state(){
 		if (array_key_exists($this->state, Document::states())) return Document::states()[$this->state];
 		return t('unknown state');
-	}
-	
-	public function customer_short(){
-		return reset(explode("\n",$this->customer));
-	}
-	
-	public function positions(){
-		if (!isset($this->positions)) $this->positions = DocumentPosition::load($this);
-		return $this->positions;
-	}
-	
-	function add_position($code,$title,$description,$amount,$unit,$price,$tax){
-		$db = get_or_create_db();
-	
-		$query = $db->prepare('SELECT MAX(pos) FROM document_positions WHERE document_id = :id');
-		assert($query->execute(array(':id'=>$document_id)),'Was not able to get last document position!');
-		$row = $query->fetch(PDO::FETCH_COLUMN);
-		$pos = ($row === null)?1:$row+1;
-	
-		$query = $db->prepare('INSERT INTO document_positions (document_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
-		$args = array(':id'=>$document_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
-		assert($query->execute($args),'Was not able to store new postion for document '.$document_id.'!');
-	}
-	
-	function elevate($position_number){
-		if ($position_number<2) return;
-		$positions = $this->positions();
-		$a = $positions[$position_number]->delete(DocumentPosition::SKIP_UPDATE);
-		$b = $positions[$position_number-1]->delete(DocumentPosition::SKIP_UPDATE);
-		$a->patch(['pos'=>$position_number-1])->save();
-		$b->patch(['pos'=>$position_number])->save();
 	}
 	
 	function sum(){
@@ -636,6 +625,17 @@ class Document {
 		$templates = Template::load($this->company_id);
 		if (!isset($templates[$this->template_id])) return null;
 		return $templates[$this->template_id];
+	}
+	
+	function type(){
+		if (!isset($this->type)) $this->type = DocumentType::load(['ids' => $this->type_id]);
+		return $this->type;
+	}
+	
+	public function update_mail_text($new_text){
+		$settings = CompanySettings::load($this->company,$this->type->id);
+		$settings->patch(['type_mail_text'=>$new_text]);		
+		$settings->save();
 	}
 }
 
