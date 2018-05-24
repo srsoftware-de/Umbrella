@@ -13,6 +13,8 @@ $documents = Document::load($options);
 $doc_types = DocumentType::load();
 $companies = request('company','json');
 
+
+
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -33,7 +35,20 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($documents as $id => $document){
-			if ($document->company_id != $cid) continue; 
+			if ($document->company_id != $cid) continue;
+
+			$type = $doc_types[$document->type_id];
+			
+			$successor = $type->next_type_id ? $doc_types[$type->next_type_id] : null;
+			$successors = null;
+			if ($successor) {
+				$successors = [];
+				while ($successor){
+					$successors[$successor->id] = $successor;
+					$successor = ($successor->next_type_id !== null && $successor->next_type_id != $successor->id) ? $doc_types[$successor->next_type_id] : null;
+				}
+			}
+			
 			$next_type_id = $doc_types[$document->type_id]->next_type_id;
 			$next_type = $next_type_id ? $doc_types[$next_type_id] : null;
 			?>
@@ -45,8 +60,15 @@ include '../common_templates/messages.php'; ?>
 			<td><a href="<?= $document->id ?>/view"><?= $document->customer_short()?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= t($doc_types[$document->type_id]->name) ?></a></td>
 			<td><?php if ($document->state != Document::STATE_PAYED) { ?>
-				<a href="<?= $document->id ?>/step"><?= t('add '.$next_type->name)?></a>
-				<?php } ?>
+				<form method="POST" action="<?= $document->id ?>/step">
+					<select name="type">
+					<?php foreach ($successors as $succ) { ?>
+						<option value="<?= $succ->id ?>"><?= t($succ->name) ?></option>
+					<?php }?>
+					</select>
+					<button type="submit"><?= t('create')?></button>
+				</form>
+				<?php } ?>				
 			</td>
 		</tr>
 		<?php } ?>
@@ -54,5 +76,4 @@ include '../common_templates/messages.php'; ?>
 	</table>
 </fieldset>
 <?php }
-
 include '../common_templates/closure.php';?>

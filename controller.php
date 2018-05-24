@@ -364,16 +364,15 @@ class Document {
 		return $this->type;
 	}
 	
-	function derive(){
-		$new_document = new Document();
-		
-		if ($next_type_id = $this->type()->next_type_id){
-			$new_document->type_id = $next_type_id;
-		} else {
+	function derive($next_type_id = null){
+		if ($next_type_id === null) $next_type_id = $this->type()->next_type_id;
+		if ($next_type_id === null) {
 			error('No successor type defined for documents of type ?',$this->type()->name);
 			redirect(getUrl('document'));
-			die();
 		}
+		
+		$new_document = new Document();		
+		$new_document->type_id = $next_type_id;
 		
 		$company_settings = CompanySettings::load($this->company_id,$next_type_id);
 		$company_settings->applyTo($new_document);

@@ -13,6 +13,7 @@ $translations = array(
 		'Bank account'=>'Bankverbindung',
 		'Bank account: ?'=>'Bankverbindung: ?',
 		'Bookmarks'=>'Lesezeichen',
+		'create'=>'erstellen',
 		'Create new document'=>'Neues Dokument anlegen',
 		'Company'=>'Firma',
 		'Company settings have been updated.'=>'Firmen-Einstellungen wurden aktualisiert',
