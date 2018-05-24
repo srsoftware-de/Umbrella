@@ -140,11 +140,11 @@ class DocumentPosition{
 		$this->document_id = $document->id;
 	}
 
-	public function copy(Document $document){
+	public function copy(Document $document){		
 		$new_position = new DocumentPosition($document);
-		foreach ($this as $field => $value){
-			if (in_array($field, ['id','document_id'])) continue;
-			$new_position->{$field} = $value;
+		foreach ($this as $field => $value){			
+			if (in_array($field, ['dirty','document','document_id','id'])) continue;
+			$new_position->patch([$field=>$value]);
 		}
 		return $new_position->save();
 	}
@@ -507,7 +507,7 @@ class Document {
 		unset($new_document->id);
 		$new_document->save();
 		$company_settings->save();
-	
+		
 		foreach ($this->positions() as $position) $new_position = $position->copy($new_document);
 	
 		return $new_document;
