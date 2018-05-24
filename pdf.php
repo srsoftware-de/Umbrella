@@ -13,7 +13,7 @@ require_login('document');
 
 $id = param('id');
 assert(is_numeric($id),'No valid document id passed to edit!');
-$document = reset(Document::load(['ids'=>$id]));
+$document = Document::load(['ids'=>$id]);
 assert($document !== null,'No document found or accessible for id = '.$id);
 
 require('lib/fpdf181/fpdf.php');

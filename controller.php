@@ -479,8 +479,8 @@ class Document {
 		foreach ($rows as $row){
 			$document = new Document();
 			$document->patch($row,false);
-			//$document->company = $user_companies[$document->company_id];
-			$document->dirty = [];
+			unset($document->dirty);
+			if ($single) return $document;
 			$documents[$row['id']] = $document;
 		}
 		return $documents;
