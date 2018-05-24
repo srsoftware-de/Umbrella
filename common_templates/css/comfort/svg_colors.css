@@ -18,6 +18,7 @@ circle.connector{
 circle.connector:hover{
 	fill: rgba(0,0,0,0.6);
 }
+
 #backdrop{
 	fill: transparent;
 }

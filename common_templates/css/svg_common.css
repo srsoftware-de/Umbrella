@@ -1,0 +1,21 @@
+.model svg{
+	max-width: 100%;
+	max-height: 1000px;
+}
+.arrow{
+	stroke-width: 2;
+}
+circle, ellipse, rect{
+	stroke-width: 2;
+}
+circle.connector:hover{
+	r: 30;
+}
+text{
+	text-anchor:middle;
+	alignment-baseline:middle;
+	font-size:12;
+}
+.arrow:hover circle{
+	r: 50;
+}

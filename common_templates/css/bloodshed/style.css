@@ -297,14 +297,53 @@ fieldset.bookmark > fieldset:hover{
 	left: -105px;
 }
 
-img[alt$=">"] {
+img[src*="pos=right"] {
   float:right;
   margin: 5px 0 5px 5px;
 }
 
-img[alt$="<"] {
+img[src*="pos=left"] {
   float:left;
   margin: 5px 5px 5px 0;
+}
+
+img[src*="width=100"]{
+	max-width: 100px;
+}
+img[src*="width=200"]{
+	max-width: 200px;
+}
+img[src*="width=300"]{
+	max-width: 300px;
+}
+img[src*="width=400"]{
+	max-width: 400px;
+}
+img[src*="width=500"]{
+	max-width: 500px;
+}
+img[src*="width=600"]{
+	max-width: 600px;
+}
+img[src*="width=700"]{
+	max-width: 700px;
+}
+img[src*="width=800"]{
+	max-width: 800px;
+}
+img[src*="width=900"]{
+	max-width: 900px;
+}
+img[src*="width=50%"]{
+	max-width: 50%;
+}
+
+img[src*="width=33%"]{
+	max-width: 33%;
+}
+
+img[src$="width=25%"]{
+	max-width: 25%;
 }
 
 #announce{
@@ -406,5 +445,17 @@ div.search:hover input{
 @media (max-width: 500px){
 	.project-index tr>*:nth-child(2){
 		display: none;
+	}
+}
+@media print{
+	fieldset.note span.right,
+	#logo, #main_menu {
+		display: none;
+	}
+	fieldset.process, fieldset.database{
+		page-break-after: always;
+	}
+	.export>fieldset{
+		border: 0 none;
 	}
 }
