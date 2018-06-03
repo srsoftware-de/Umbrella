@@ -74,17 +74,20 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 <fieldset>
 	<legend>
-		<?= t('Select terminal or endpoint for flow from connector "?"',$connector->base->id); ?>
+		<?= t('Add flow from connector "?"',$connector->base->id); ?>
 	</legend>
-	<label>
-		<?= t('Name') ?><input type="text" name="name" />
-	</label>
-	<label>
-		<?= t('Definition') ?><input type="text" name="definition" />
-	</label>
-	<label>
-		<?= t('Description') ?><textarea name="description"></textarea>
-	</label>
+	<fieldset>
+		<legend><?= t('Name') ?></legend>
+		<input type="text" name="name" />
+	</fieldset>
+	<fieldset>
+		<legend><?= t('Definition') ?></legend>
+		<input type="text" name="definition" />
+	</fieldset>
+	<fieldset>
+		<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+		<textarea name="description"></textarea>
+	</fieldset>
 
 	<?php if ($process->children()) foreach ($process->children() as $child_process){ ?>
 	<fieldset>

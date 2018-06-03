@@ -31,7 +31,7 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add TerminalInstance to "?"',$model->name); ?></legend>
+	<legend><?= t('Add Terminal Instance to "?"',$model->name); ?></legend>
 	<form method="POST">
 	<input type="hidden" name="project_id" value="<?= $model->project_id ?>" />
 	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
@@ -50,7 +50,7 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 	
 	<fieldset>
-		<legend><?= t('Description'); ?></legend>
+		<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 		<textarea name="description"><?= param('description','') ?></textarea>
 	</fieldset>
 	<button type="submit"><?= t('Save') ?></button>

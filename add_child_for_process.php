@@ -52,14 +52,14 @@ include '../common_templates/messages.php'; ?>
 			<?= t('Add child process to process "?"',$process_instance->base->id)?>
 		</legend>
 		<input type="hidden" name="parent" value="<?= $process_instance->base->id ?>" />
-		<label>
-			<?= t('Name') ?>
+		<fieldset>
+			<legend><?= t('Name') ?></legend>
 			<input type="text" name="name" value="" />
-		</label>
-		<label>
-			<?= t('Description') ?>
+		</fieldset>
+		<fieldset>
+			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"></textarea>
-		</label>
+		</fieldset>
 		<button type="submit">
 			<?= t('Save'); ?>
 		</button>

@@ -41,7 +41,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="name" value="<?= $process->base->id ?>" />
 		</label>
 		<label>
-			<?= t('Description') ?>
+			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $process->base->description ?></textarea>
 		</label>
 		<button type="submit">
