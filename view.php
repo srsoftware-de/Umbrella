@@ -6,6 +6,7 @@ include 'controller.php';
 require_login('model');
 
 if ($model_id = param('id')){
+	if (strpos($model_id,'project:')===0) redirect(getUrl('model','?project='.substr($model_id,8))); // notes module may have uri model:project:xxx which links to model/project:xxx/view
 	$model = Model::load(['ids'=>$model_id]);
 } else {
 	error('No model id passed!');
@@ -69,14 +70,14 @@ if ($action == 'delete'){?>
 		<?php foreach ($model->terminal_instances() as $terminal){ if ($terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
 		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description?>"><?= $terminal->base->id ?></a> 
 		<?php $shown[] = $terminal->base->id; } ?>
-		</td>
+		</td>	
 	</tr>
 	<tr>
 		<th><?= t('Databases')?></th>
 		<td class="databases">
-		<?php foreach ($model->terminal_instances() as $terminal){ if (!$terminal->base->type) continue;?>
+		<?php foreach ($model->terminal_instances() as $terminal){ if (!$terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
 		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description ?>"><?= $terminal->base->id ?></a>
-		<?php } ?>
+		<?php $shown[] = $terminal->base->id; } ?>
 		</td>
 	</tr>
 	<?php } 

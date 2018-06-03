@@ -7,7 +7,7 @@ require_login('model');
 
 $projects = request('project','json');
 $options = [];
-if ($project = param('project')) $options['project_id'] = $project;
+if ($project_id = param('project')) $options['project_id'] = $project_id;
 $models = Model::load($options);
 
 include '../common_templates/head.php';
@@ -33,6 +33,7 @@ foreach ($projects as $project){
 <?php foreach ($project['models'] as $model) { ?>
 	<a class="button" href="<?= $model->id ?>/view"><?= $model->name ?></a>
 <?php }?>
+<?php if (isset($services['notes']) && $project_id) echo request('notes','html',['uri'=>'model:project:'.$project['id']],false,NO_CONVERSION); ?>
 </fieldset>
 <?php }
 } ?>
