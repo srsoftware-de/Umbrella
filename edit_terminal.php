@@ -38,14 +38,14 @@ include '../common_templates/messages.php'; ?>
 		<legend>
 			<?= t('Edit terminal "?"',$terminal_instance->base->id)?>
 		</legend>
-		<label>
-			<?= t('Terminal name') ?>
+		<fieldset>
+			<legend><?= t('Name') ?></legend>
 			<input type="text" name="name" value="<?= $terminal_instance->base->id ?>" />
-		</label>
-		<label>
-			<?= t('Terminal description') ?>
+		</fieldset>
+		<fieldset>
+			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $terminal_instance->base->description ?></textarea>
-		</label>
+		</fieldset>
 		<button type="submit">
 			<?= t('Save'); ?>
 		</button>
