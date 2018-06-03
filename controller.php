@@ -652,6 +652,8 @@ class Model extends BaseClass{
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+		
+		$sql .= ' ORDER BY name';
 
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load models');
@@ -729,7 +731,7 @@ class Model extends BaseClass{
 
 	public function process_instances($id = null){
 		if (!isset($this->processes)) $this->processes = ProcessInstance::load(['model_id' => $this->id]);
-		//debug($this->processes);
+		//debug($this->processes,1);
 		if ($id) return $this->processes[$id];
 		return $this->processes;
 	}
@@ -967,7 +969,7 @@ class ProcessInstance extends BaseClass{
 			$args[] = $options['project_id'];
 		}
 		
-		$sql = 'SELECT * FROM process_instances WHERE '.implode(' AND ', $where);
+		$sql = 'SELECT * FROM process_instances WHERE '.implode(' AND ', $where).' ORDER BY process_id';
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		//debug(query_insert($query,$args));
