@@ -104,11 +104,9 @@ if ($action == 'delete'){?>
 				 onwheel="wheel(evt)">
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
-
 				<?php foreach ($model->process_instances() as $process){
 					if ($process->parent === null) $process->svg($model);
 				} // foreach process
-				
 				foreach ($model->terminal_instances() as $term){
  					$term->svg();
  				} // foreach terminal ?>

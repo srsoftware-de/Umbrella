@@ -1138,7 +1138,7 @@ class ProcessInstance extends BaseClass{
 			<?php foreach ($this->connectors() as $conn){
 				if ($arrows){
 					foreach ($conn->flows() as $flow){
-						if ($flow->start_connector == null){
+						if ($flow->start_terminal){
 							$terminal = $model->terminal_instances($flow->start_terminal)->applyFactor($factor);
 							$referenced_terminal_instances[$terminal->id] = $terminal;
 							
@@ -1159,7 +1159,7 @@ class ProcessInstance extends BaseClass{
 							continue;
 						}
 	
-						if ($flow->end_connector == null){
+						if ($flow->end_terminal){
 							$terminal = $model->terminal_instances($flow->end_terminal)->applyFactor($factor);
 								
 							$referenced_terminal_instances[$terminal->id] = $terminal;
@@ -1170,11 +1170,11 @@ class ProcessInstance extends BaseClass{
 							$x2 = -$this->x + $terminal->x + $terminal->base->w/2;
 							$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
 	
-							$proc_pointer = $parent;
-							while ($proc_pointer){
+							$proc_pointer = $this;
+							while (isset($proc_pointer->parent_instance)){
+								$proc_pointer = $proc_pointer->parent_instance;
 								$x2 -= $proc_pointer->x;
 								$y2 -= $proc_pointer->y;
-								$proc_pointer = $proc_pointer->parent;
 							}
 	
 							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
@@ -1183,16 +1183,32 @@ class ProcessInstance extends BaseClass{
 	
 						if ($conn->base->direction){ // OUT
 							if ($flow->start_connector != $conn->id) continue;
-							$end_connector = $parent->connectors($flow->end_connector);
-							
-							if ($end_connector){ // flow goes to connector of parent
-								$x1 = $this->base->r*sin($conn->angle*RAD);
-								$y1 = -$this->base->r*cos($conn->angle*RAD);
-	
-								$x2 = -$this->x + $parent->base->r * sin($end_connector->angle*RAD);
-								$y2 = -$this->y - $parent->base->r * cos($end_connector->angle*RAD);
-	
-								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+							if ($parent === null) { // flow goes to connector of top-level process
+								foreach ($model->process_instances() as $top_process){
+									$end_connector = $top_process->connectors($flow->end_connector);
+									if ($end_connector){
+										$x1 = $this->base->r*sin($conn->angle*RAD);
+										$y1 = -$this->base->r*cos($conn->angle*RAD);
+										
+										$x2 = -$this->x + $top_process->x + $top_process->base->r * sin($end_connector->angle*RAD);
+										$y2 = -$this->y + $top_process->y - $top_process->base->r * cos($end_connector->angle*RAD);
+										
+										arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));										
+										break;
+									}
+								}
+							} else {
+								$end_connector = $parent->connectors($flow->end_connector);
+								
+								if ($end_connector){ // flow goes to connector of parent
+									$x1 = $this->base->r*sin($conn->angle*RAD);
+									$y1 = -$this->base->r*cos($conn->angle*RAD);
+		
+									$x2 = -$this->x + $parent->base->r * sin($end_connector->angle*RAD);
+									$y2 = -$this->y - $parent->base->r * cos($end_connector->angle*RAD);
+		
+									arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+								}
 							}
 						} else { // IN
 							if ($flow->end_connector != $conn->id) continue;
@@ -1237,6 +1253,7 @@ class ProcessInstance extends BaseClass{
 			<?php } // foreach connector
 			$options['arrows'] = true; // arrows may have been disabled on upper level. however, draw them in nested structures
 			foreach ($this->children() as $child) {
+				$child->parent_instance = &$this;
 				$terminal_references = $child->svg($model,$this,$options);
 				$referenced_terminal_instances = array_merge($referenced_terminal_instances,$terminal_references);
 			} ?>

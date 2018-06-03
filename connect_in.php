@@ -107,13 +107,32 @@ include '../common_templates/messages.php'; ?>
 		</ul>
 	</fieldset>
 	<?php }
-	if ($parent = $process->parent_process()) { ?>
+	if ($parent = $process->parent_process()) { // if process has parent ?>
 	<fieldset>
 		<legend>
 			<?= t('Siblings') ?>
 		</legend>
 		<ul>
 			<?php foreach ($parent->children() as $sibling){ if ($process->id == $sibling->id) continue; ?>
+			<li><?= $sibling->base->id ?>
+				<ul>
+				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->base->direction) continue; ?>
+				<li>
+					<label><input type="radio" name="endpoint" value="<?= Flow::TO_SIBLING.':'.$conn->id ?>" /> <?= $conn->base->id ?> (@<?= $conn->angle ?>°)</label>
+				</li>
+				<?php } // foreach connector ?>
+			</ul>
+			</li>
+			<?php } // foreach sibling ?>
+		</ul>
+	</fieldset>	
+	<?php } else { // no parent ?>
+	<fieldset>
+		<legend>
+			<?= t('Siblings') ?>
+		</legend>
+		<ul>
+			<?php foreach ($model->process_instances() as $sibling){ if ($process->id == $sibling->id) continue; ?>
 			<li><?= $sibling->base->id ?>
 				<ul>
 				<?php foreach ($sibling->connectors() as $conn){ if (!$conn->base->direction) continue; ?>
