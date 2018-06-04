@@ -227,7 +227,12 @@
 		global $user;
 		$subject = t('? added a note.',$user->login);
 		$text = t("Open the following site to see the note on \"?\":\n\n?",[$project['name'],getUrl('project',$project['id'].'/view')]);
-		foreach ($users as $u) send_mail($user->email, $u['email'], $subject, $text);
+		$recievers = [];
+		foreach ($users as $u) {
+			if ($user->email == $u['email']) continue;
+			$recievers[] = $u['email'];
+		}
+		send_mail($user->email, $recievers, $subject, $text);
 		info('Sent email notification to users of this project.');
 	}
 ?>

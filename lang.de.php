@@ -19,7 +19,7 @@ $translations = array(
 		'Create new project'=>'Neues Projekt anlegen',
 		'delete'=>'löschen',
 		'Description'=>'Beschreibung',
-		'Description - <a target="_blank" href="?">click here for Markdown and extended Markdown cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Spickzettel für Markdown und erweitertes Markdown hier</a>',
+		'Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Markdown wird unterstützt ↗Spickzettel</a>',
 		'Documents'=>'Dokumente',
 		'edit'=>'bearbeiten',
 		'Edit Project'=>'Projekt bearbeiten',
