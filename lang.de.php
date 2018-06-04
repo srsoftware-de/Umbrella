@@ -53,6 +53,7 @@ $translations = array(
 	'Username'=>'Benutzername',
 	'Users'=>'Benutzer',
 	'User data has been updated.'=>'Daten wurden aktualisiert.',
+	'User did not authorize openid scope.'=>'Benutzer Verwendung der openid nicht autorisiert ("User did not authorize openid scope.")',
 	'? invited you to Umbrella'=>'? hat dich zu Umbrella eingeladen',
 	'Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!'=>'Ihr Login-Servie hat Sie erfolgreich identifiziert, aber ihr Account dort ist mit keinem Account hier verknüpft!',
 	'Your search provided the following results:'=>'Ihre Suche lieferte die folgenden Ergebnisse:',
