@@ -16,10 +16,11 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 }
 
 foreach ($notes as $nid => $note){ ?>
-	<fieldset>
+	<fieldset class="note">
 		<legend><?= $users[$note['user_id']]['login'] . ((isset($note['timestamp']) && $note['timestamp']>0) ? ' - '.date(t('Y-m-d H:i:s'),$note['timestamp']) : '') ?></legend>
 		<?php if ($note['user_id'] == $user->id) {?>
 		<span class="right">
+			<a class="symbol" href="<?= getUrl('notes',$nid.'/view') ?>"></a>
 			<a class="symbol" href="<?= getUrl('notes',$nid.'/delete') ?>"></a>
 		</span>
 		<?php }?>
@@ -31,7 +32,7 @@ foreach ($notes as $nid => $note){ ?>
 	<form action="<?= getUrl('notes','add') ?>" method="POST">
 		<input type="hidden" name="uri" value="<?= $uri ?>" />
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
-		<fieldset class="add invoice">
+		<fieldset class="add note">
 			<legend><?= t('add note - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
 			<textarea name="note"></textarea>
 			<button type="submit"><?= t('add note') ?></button>		

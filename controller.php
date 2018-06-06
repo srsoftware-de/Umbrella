@@ -49,10 +49,14 @@ class Note{
 
 		$sql = 'SELECT * FROM notes WHERE user_id = ?';
 		$args = [$user->id];
-
+                $single = false;
+                
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
-			if (!is_array($ids)) $ids = [$ids];
+			if (!is_array($ids)) {
+                            $single = true;
+                            $ids = [$ids];
+                        }
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
@@ -66,12 +70,25 @@ class Note{
 
 		if (isset($options['uri'])){
 			$uri = $options['uri'];
-			$parts = explode(':', $uri,2);
+			//$parts = explode(':', $uri,2); // was disabled, as model uses uris of the form model:project:xyz
+			$parts = explode(':', $uri);
 			$module = array_shift($parts);
 			$id = array_shift($parts);
-			if ($module != 'files'){
-				$entities = request($module,'json',['ids'=>$id]);
-				if (empty($entities)) return [];
+			//debug(['uri'=>$uri,'parts'=>$parts,'module'=>$module,'id'=>$id]);
+			switch ($module){
+				case 'files':
+					break; // do not call load for files
+				case 'model':
+					if ($id == 'project'){ // uri is of the form model:project:xyz
+						$id = array_shift($parts);
+						$entities = request('project','json',['ids'=>$id]);
+						if (empty($entities)) return [];
+						break;
+					} // uri is of the form model:xyz, go to default section
+				default:
+					$entities = request($module,'json',['ids'=>$id]);
+					if (empty($entities)) return [];
+					break;
 			}
 			$sql = 'SELECT * FROM notes WHERE uri = ?';
 			$args = [$uri];
@@ -93,7 +110,9 @@ class Note{
 		}
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load notes');
-		return $query->fetchAll(INDEX_FETCH);
+		$notes = $query->fetchAll(INDEX_FETCH);
+		if ($single) return reset($notes);
+		return $notes;
 	}
 
 	static function table(){

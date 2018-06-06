@@ -27,14 +27,16 @@ include '../common_templates/messages.php';
 		<th><a href="<?= getUrl('notes','?order=uri&limit=0')?>"><?= t('Use&nbsp;/ URI') ?></a></th>
 		<th><?= t('note') ?></th>
 	</tr>
-<?php foreach ($notes as $n) { 
+<?php foreach ($notes as $id => $n) { 
 	$note = new Note($n['uri'],$n['note'])
 	?>
 	<tr>
-		<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
+		<td>
+			<a href="<?= $note->url() ?>"><?= $note->uri ?></a>
+			<a href="<?= getUrl('notes',$id.'/view') ?>"><?= t('Source'); ?></a>
+		</td>
 		<td class="note"><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
 	</tr>
 <?php } ?>
 </table>
-
 <?php include '../common_templates/closure.php';
