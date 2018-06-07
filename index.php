@@ -23,7 +23,7 @@ include '../common_templates/messages.php'; ?>
 		<?php foreach ($projects as $pid => $project){ ?>
 		<tr class="plist">
 			<td>
-			<a href="#" onclick="return toggle('.project_<?= $pid ?>');"><?= $project['name']; ?></a>
+			<a href="#" onclick="return toggle('.project<?= $pid ?>');"><?= $project['name']; ?></a>
 			</td>
 		</tr>
 		<?php } ?>

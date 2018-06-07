@@ -35,6 +35,7 @@ $translations = array(
 		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
 		'MARKDOWN_HELP'=>'https://www.markdownguide.org/cheat-sheet',
+		'Models'=>'Modelle',
 		'No'=>'Nein',
 		'No extension'=>'keine Verlängerung',
 		'Notes'=>'Notizen',
