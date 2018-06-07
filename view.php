@@ -15,6 +15,7 @@ $note = Note::load($options);
 if ($new_code = param('code')){
 	$note->patch(['note'=>$new_code]);
 	$note->save();
+	redirect($note->url());
 }
 
 
