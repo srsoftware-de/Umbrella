@@ -82,15 +82,15 @@ include '../common_templates/messages.php'; ?>
 	</legend>
 	<fieldset>
 		<legend><?= t('Name') ?></legend>
-		<input type="text" name="name" />
+		<input type="text" name="name" value="<?= param('name','')?>"/>
 	</fieldset>
 	<fieldset>
 		<legend><?= t('Definition') ?></legend>
-		<input type="text" name="definition" />
+		<input type="text" name="definition" value="<?= param('definition','')?>"/>
 	</fieldset>
 	<fieldset>	
 		<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-		<textarea name="description"></textarea>
+		<textarea name="description"><?= param('description','') ?></textarea>
 	</fieldset>
 
 	<?php if ($process->children()) foreach ($process->children() as $child_process){ ?>
