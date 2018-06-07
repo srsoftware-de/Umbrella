@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "awesome";
-    src: url("../fontawesome-webfont.woff");
+	font-family: "awesome";
+	src: url("../fontawesome-webfont.woff");
 }
 *{
 	max-width:100%;
@@ -14,8 +14,8 @@ a{
 	text-decoration: none;
 }
 textarea {
-    width: 100%;
-    min-height: 100px;
+	width: 100%;
+	min-height: 100px;
 }
 
 input[type=text]{
@@ -101,7 +101,7 @@ p a,
 }
 
 table {
-    border-collapse: collapse;
+	border-collapse: collapse;
 }
 tr > *{
 	padding: 5px 10px;
@@ -109,8 +109,8 @@ tr > *{
 
 label.street:after,
 label.location::after {
-    content: "\a ";
-    white-space: pre;
+	content: "\a ";
+	white-space: pre;
 }
 
 .company > fieldset,
@@ -132,8 +132,8 @@ table.time h2{
 }
 
 fieldset {
-    border-radius: 10px;
-    border-width: 1px;
+	border-radius: 10px;
+	border-width: 1px;
 }
 
 .contacts fieldset,
@@ -157,18 +157,18 @@ fieldset.document.list{
 .button,
 input,
 button {
-    border: 0 none;
-    font-weight: bold;
-    margin: 2px 0;
-    padding: 3px;
-    display: inline-block;
+	border: 0 none;
+	font-weight: bold;
+	margin: 2px 0;
+	padding: 3px;
+	display: inline-block;
 }
 
 label.silent_box,
 .change_state,
 input[type="submit"] {
 	clear: both;
-    float: right;
+	float: right;
 }
 
 .symbol{
@@ -186,31 +186,31 @@ input[type="submit"] {
 }
 
 .tasks .project {
-    font-weight: bold;
+	font-weight: bold;
 }
 
 .right-abs {
-    position: absolute;
-    right: 5px;
-    top: 5px;
+	position: absolute;
+	right: 5px;
+	top: 5px;
 }
 .right-fix {
-    position: fixed;
-    right: 5px;
-    top: 5px;
+	position: fixed;
+	right: 5px;
+	top: 5px;
 }
 .hover {
-    border-width: 1px;
-    border-style: solid;
-    border-radius: 5px;
-    max-height: 35px;
-    overflow: hidden;
-    z-index: 10;
+	border-width: 1px;
+	border-style: solid;
+	border-radius: 5px;
+	max-height: 35px;
+	overflow: hidden;
+	z-index: 10;
 }
 
 
 .hover:hover {
-    max-height: unset;
+	max-height: unset;
 }
 
 .hover_h > a:nth-child(n+2){
@@ -226,9 +226,9 @@ input[type="submit"] {
 }
 
 form.document textarea {
-    font-weight: bold;
-    min-height: 90px;
-    width: 100%;
+	font-weight: bold;
+	min-height: 90px;
+	width: 100%;
 }
 
 .pos_price,
@@ -409,6 +409,14 @@ div.search:hover input{
 	display: initial;
 }
 
+.note td.code {
+	width: 50%;
+}
+
+.note td.code textarea {
+	min-height: 200px;
+}
+
 @media (max-width:1199px) {
 	.tasks.list tr>*:nth-child(2){
 		display: none;
@@ -432,7 +440,7 @@ div.search:hover input{
 		display: none;
 	}
 	fieldset.bookmark > fieldset{
-	        max-height: 50px;
+		max-height: 50px;
 	}
 }
 

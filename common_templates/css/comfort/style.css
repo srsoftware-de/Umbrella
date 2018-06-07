@@ -255,6 +255,15 @@ legend{
 	right: 0;
 }
 
+.note td.code {
+	width: 50%;
+}
+
+.note td.code textarea {
+	min-height: 200px;
+        width: 100%;
+}
+
 @media (max-width: 700px){
 	#main_menu{
  		max-width: 30px;

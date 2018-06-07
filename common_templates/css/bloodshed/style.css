@@ -409,6 +409,14 @@ div.search:hover input{
 	display: initial;
 }
 
+.note td.code {
+	width: 50%;
+}
+
+.note td.code textarea {
+	min-height: 200px;
+}
+
 @media (max-width:1199px) {
 	.tasks.list tr>*:nth-child(2){
 		display: none;
