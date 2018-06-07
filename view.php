@@ -5,11 +5,19 @@ include 'controller.php';
 
 require_login('notes');
 
-$options = [];
+$options = ['ids' => param('id')];
+
 if ($order = param('order')) $options['order'] = $order;
 if (($limit = param('limit')) !== null) $options['limit'] = $limit;
 
-$notes = Note::load($options);
+$note = Note::load($options);
+
+if ($new_code = param('code')){
+	$note->patch(['note'=>$new_code]);
+	$note->save();
+}
+
+
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
@@ -22,19 +30,21 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php';
 
 ?>
-<table class="notes">
+<table class="note">
 	<tr>
-		<th><a href="<?= getUrl('notes','?order=uri&limit=0')?>"><?= t('Use&nbsp;/ URI') ?></a></th>
-		<th><?= t('note') ?></th>
+		<th><?= t('usage') ?></th>
+		<th><?= t('rendered output') ?></th>
+		<th><?= t('code') ?></th>
 	</tr>
-<?php foreach ($notes as $id => $note) { ?>
 	<tr>
-		<td>
-			<a href="<?= $note->url() ?>"><?= $note->uri ?></a>
-			<a href="<?= getUrl('notes',$id.'/view') ?>"><?= t('Source'); ?></a>
+		<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
+		<td><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
+		<td class="code">
+			<form method="POST">
+				<textarea name="code"><?= $note->note ?></textarea>
+				<button type="submit"><?= t('Save') ?></button>
+			</form>
 		</td>
-		<td class="note"><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
 	</tr>
-<?php } ?>
 </table>
 <?php include '../common_templates/closure.php';

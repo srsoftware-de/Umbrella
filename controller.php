@@ -1,43 +1,43 @@
 <?php
 function get_or_create_db(){
-        if (!file_exists('db')) assert(mkdir('db'),'Failed to create notes/db directory!');
-        assert(is_writable('db'),'Directory notes/db not writable!');
-        if (!file_exists('db/notes.db')){
-                $db = new PDO('sqlite:db/notes.db');
+	if (!file_exists('db')) assert(mkdir('db'),'Failed to create notes/db directory!');
+	assert(is_writable('db'),'Directory notes/db not writable!');
+	if (!file_exists('db/notes.db')){
+		$db = new PDO('sqlite:db/notes.db');
 
-                $tables = [
-                        'notes'=>Note::table(),
-                ];
+		$tables = [
+			'notes'=>Note::table(),
+		];
 
-                foreach ($tables as $table => $fields){
-                        $sql = 'CREATE TABLE '.$table.' ( ';
-                        foreach ($fields as $field => $props){
-                                $sql .= $field . ' ';
-                                if (is_array($props)){
-                                        foreach ($props as $prop_k => $prop_v){
-                                                switch (true){
-                                                        case $prop_k==='VARCHAR':
-                                                                $sql.= 'VARCHAR('.$prop_v.') '; break;
-                                                        case $prop_k==='DEFAULT':
-                                                                $sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
-                                                        case $prop_k==='KEY':
-                                                                assert($prop_v === 'PRIMARY','Non-primary keys not implemented in invoice/controller.php!');
-                                                                $sql.= 'PRIMARY KEY '; break;
-                                                        default:
-                                                                $sql .= $prop_v.' ';
-                                                }
-                                        }
-                                        $sql .= ", ";
-                                } else $sql .= $props.", ";
-                        }
-                        $sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-                        $query = $db->prepare($sql);
-                        assert($db->query($sql),'Was not able to create '.$table.' table in companies.db!');
-                }
-        } else {
-                $db = new PDO('sqlite:db/notes.db');
-        }
-        return $db;
+		foreach ($tables as $table => $fields){
+			$sql = 'CREATE TABLE '.$table.' ( ';
+			foreach ($fields as $field => $props){
+				$sql .= $field . ' ';
+				if (is_array($props)){
+					foreach ($props as $prop_k => $prop_v){
+						switch (true){
+							case $prop_k==='VARCHAR':
+								$sql.= 'VARCHAR('.$prop_v.') '; break;
+							case $prop_k==='DEFAULT':
+								$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
+							case $prop_k==='KEY':
+								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in invoice/controller.php!');
+								$sql.= 'PRIMARY KEY '; break;
+							default:
+								$sql .= $prop_v.' ';
+						}
+					}
+					$sql .= ", ";
+				} else $sql .= $props.", ";
+			}
+			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+			$query = $db->prepare($sql);
+			assert($db->query($sql),'Was not able to create '.$table.' table in companies.db!');
+		}
+	} else {
+		$db = new PDO('sqlite:db/notes.db');
+	}
+	return $db;
 
 }
 
@@ -49,14 +49,14 @@ class Note{
 
 		$sql = 'SELECT * FROM notes WHERE user_id = ?';
 		$args = [$user->id];
-                $single = false;
-                
+		$single = false;
+
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
-                            $single = true;
-                            $ids = [$ids];
-                        }
+				$single = true;
+				$ids = [$ids];
+			}
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
@@ -110,8 +110,17 @@ class Note{
 		}
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load notes');
-		$notes = $query->fetchAll(INDEX_FETCH);
-		if ($single) return reset($notes);
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$notes = [];
+		foreach ($rows as $id => $row){
+			$note = new Note();
+			$note->id = $id;
+			$note->patch($row);
+			unset($note->dirty);
+			if ($single) return $note;
+			$notes[$id] = $note;
+		}
+		if ($single) return null; // no note found, which implies the loop is skipped
 		return $notes;
 	}
 
@@ -138,16 +147,40 @@ class Note{
 		$this->uri = $uri;
 		$this->note = $note;
 	}
+	
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+		if (empty($this->dirty)) unset($this->dirty);
+	}
 
 	function save(){
 		global $user;
 		$db = get_or_create_db();
-
-		$sql = 'INSERT INTO notes (user_id, uri, note, timestamp) VALUES (:uid, :uri, :note, :time);';
-		$args = [':uid'=>$user->id, ':uri'=>$this->uri, ':note'=>$this->note, ':time'=>time()];
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to save note!');
-
+		
+		if (isset($this->id)){
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE notes SET';
+				$args = [':id'=>$this->id];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE id = :id';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update note in database!');
+			}			
+		} else {
+			$sql = 'INSERT INTO notes (user_id, uri, note, timestamp) VALUES (:uid, :uri, :note, :time);';
+			$args = [':uid'=>$user->id, ':uri'=>$this->uri, ':note'=>$this->note, ':time'=>time()];
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to save note!');
+			$this->id = $db->lastInsertId();
+		}
 	}
 
 	function url(){

@@ -13,9 +13,7 @@ if ($key = param('key')){
 		<th><a href="<?= getUrl('notes','?order=uri&limit=0')?>"><?= t('Use&nbsp;/ URI') ?></a></th>
 				<th><?= t('note') ?></th>
 			</tr>
-		<?php foreach ($notes as $n) { 
-			$note = new Note($n['uri'],$n['note'])
-			?>
+		<?php foreach ($notes as $note) { ?>
 			<tr>
 				<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
 				<td class="note"><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>

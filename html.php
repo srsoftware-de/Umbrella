@@ -17,14 +17,14 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 
 foreach ($notes as $nid => $note){ ?>
 	<fieldset class="note">
-		<legend><?= $users[$note['user_id']]['login'] . ((isset($note['timestamp']) && $note['timestamp']>0) ? ' - '.date(t('Y-m-d H:i:s'),$note['timestamp']) : '') ?></legend>
-		<?php if ($note['user_id'] == $user->id) {?>
+		<legend><?= $users[$note->user_id]['login'] . ((isset($note->timestamp) && $note->timestamp>0) ? ' - '.date(t('Y-m-d H:i:s'),$note->timestamp) : '') ?></legend>
+		<?php if ($note->user_id == $user->id) {?>
 		<span class="right">
 			<a class="symbol" href="<?= getUrl('notes',$nid.'/view') ?>"></a>
 			<a class="symbol" href="<?= getUrl('notes',$nid.'/delete') ?>"></a>
 		</span>
 		<?php }?>
-		<?= $parsedown?$parsedown->parse($note['note']):str_replace("\n", "<br/>", $note['note']) ?>
+		<?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?>
 	</fieldset>
 <?php } ?>
 	

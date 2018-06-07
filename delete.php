@@ -6,16 +6,10 @@ include 'controller.php';
 require_login('notes');
 
 if ($id = param('id')){
-	$notes = Note::load(['ids'=>$id]);
-	if (empty($notes)){
+	$note = Note::load(['ids'=>$id]);
+	if ($note === null){
 		error('There is no note with id "?" or you are not allowed to access it!');
-	} else {
-		foreach ($notes as $id => $note) $note['id'] = $id;
-		if (param('confirm') == 'yes'){
-			$note = new Note($note['uri'],$note['note']);
-			if (Note::delete($id)) redirect($note->url());
-		}
-	}
+	} else if (param('confirm') == 'yes' && Note::delete($id)) redirect($note->url());
 } else {
 	error('No note id passed along with delete call!');
 }
