@@ -34,18 +34,18 @@ include '../common_templates/messages.php';
 <table class="note">
 	<tr>
 		<th><?= t('usage') ?></th>
-		<th><?= t('rendered output') ?></th>
 		<th><?= t('code') ?></th>
+		<th><?= t('rendered output') ?></th>
 	</tr>
 	<tr>
 		<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
-		<td><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
 		<td class="code">
 			<form method="POST">
 				<textarea name="code"><?= $note->note ?></textarea>
 				<button type="submit"><?= t('Save') ?></button>
 			</form>
 		</td>
+		<td><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
 	</tr>
 </table>
 <?php include '../common_templates/closure.php';
