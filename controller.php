@@ -113,7 +113,7 @@
 		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 		
 		if (isset($options['order'])){
-			switch ($options['order']){				
+			switch ($options['order']){
 				case 'description':
 				case 'end_time':
 				case 'start_time':
@@ -121,6 +121,8 @@
 				case 'subject':
 					$sql .= ' ORDER BY '.$options['order'];
 			}
+		} else {
+			$sql .= ' ORDER BY state ASC, end_time DESC';
 		}
 	
 		$db = get_or_create_db();

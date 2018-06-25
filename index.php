@@ -4,7 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('time');
-$times = load_times(['order'=>param('order','state')]);
+$times = load_times(['order'=>param('order')]);
 $task_ids = [];
 
 $parsedown = null;
@@ -12,8 +12,6 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
 	$parsedown = Parsedown::instance();
 }
-
-
 
 foreach ($times as &$time){
 	foreach ($time['task_ids'] as $task_id) $task_ids[$task_id] = 1;
