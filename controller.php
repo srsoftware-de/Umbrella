@@ -26,8 +26,9 @@
 		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
 		$query = $db->prepare('INSERT INTO projects (name, company_id, description, status) VALUES (:name, :cid, :desc, :state);');
 		assert($query->execute(array(':cid'=>$company_id,':name'=>$name,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new project entry in  database');
+		$id = $db->lastInsertId();
 		$project = [
-			'id' => $db->lastInsertId(),
+			'id' => $id,
 			'name' => $name,
 			'description'=>$description,
 		];
