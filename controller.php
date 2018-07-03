@@ -13,7 +13,7 @@ function get_or_create_db(){
 						case $prop_k==='VARCHAR':
 							$sql.= 'VARCHAR('.$prop_v.') '; break;
 						case $prop_k==='DEFAULT':
-							$sql.= 'DEFAULT "'.$prop_v.'" '; break;
+							$sql.= 'DEFAULT '.($prop_v===null?'NULL':'"'.$prop_v.'"').' '; break;
 						case $prop_k==='KEY':
 							assert($prop_v === 'PRIMARY','Non-primary keys not implemented in company/controller.php!');
 							$sql.= 'PRIMARY KEY '; break;
@@ -56,6 +56,8 @@ class Company {
 			'decimals'				=> ['INT','NOT NULL','DEFAULT'=>'2'],
 			'decimal_separator'		=> ['VARCHAR'=>10,'DEFAULT'=>','],
 			'thousands_separator'	=> ['VARCHAR'=>10,'DEFAULT'=>'.'],
+			'last_customer_number'	=> ['INT','DEFAULT'=>NULL],
+			'customer_number_prefix'=> ['VARCHAR'=>255],
 		];
 	}
 
@@ -63,7 +65,7 @@ class Company {
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if ($key === 'id' && isset($this->id)) continue;
-			if (isset($this->{$key}) && $this->{$key} != $val) $this->dirty[] = $key;
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 			$this->{$key} = $val;
 		}
 	}
