@@ -14,7 +14,13 @@ if (post('N')){
 	$vcard->patch($_POST,true);
 	$vcard->save();
 	redirect('../index');
+} elseif ($cnum = post('X-CUSTOMER-NUMBER')){ // allow to patch customer_number
+	unset($vcard->{'X-CUSTOMER-NUMBER'});
+	$vcard->patch(['X-CUSTOMER-NUMBER'=>$cnum],true);
+	$vcard->save();
+	die('Ok');
 }
+
 if (!isset($vcard->ADR)) $vcard->patch('ADR:post_box;extended;street;locality;region;postal code;country');
 if (!isset($vcard->{'X-BANK-ACCOUNT'})) $vcard->{'X-BANK-ACCOUNT'} = '';
 if (!isset($vcard->{'X-CUSTOMER-NUMBER'})) $vcard->{'X-CUSTOMER-NUMBER'} = '';
