@@ -6,7 +6,7 @@
 
 	$reciever = post('reciever',$document->customer_email);
 	$sender = post('sender',$document->company()['email']);
-	$subject = post('subject',t('New document from ?',$document->company()['name']));
+	$subject = post('subject',t('New '.$document->type->name.' from ?',$document->company()['name']));
 	$text = post('text',$document->mail_text());
 
 	if (isset($_POST['reciever'])){
