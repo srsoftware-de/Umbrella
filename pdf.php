@@ -251,7 +251,8 @@ class PDF extends FPDF{
 	}
 	
 	function price_cell($i){
-		$i=($i===null)?t('Price'):$this->format_value($i);
+		if ($i === null) $i = t('Price');
+		if (is_numeric($i)) $i = $this->format_value($i);		
 		$this->Cell(20,7,$i,NO_FRAME,NEWLINE,'R');
 	}
 	
@@ -265,8 +266,8 @@ class PDF extends FPDF{
 		foreach ($this->document->positions() as $pos => $position){
 			$str = 'Pos '.$pos.': ';
 			$this->pos_n_cell($pos);
-			$this->amount_cell($position->amount);			
-			$this->unit_cell($position->unit);							
+			$this->amount_cell($position->amount);
+			$this->unit_cell($position->unit);
 			$this->code_cell($position->item_code);
 			$x = $this->GetX();				
 			$y = $this->GetY();
@@ -277,17 +278,20 @@ class PDF extends FPDF{
 			$this->s_pr_cell($position->single_price);
 			$tot = $position->amount*$position->single_price;
 			$str .= $tot. ', ';
-			$sum += $tot;
-			$this->price_cell($tot);
+			$this->price_cell($position->optional ? 'optional' : $tot);
 			$this->setY($y);
 			$this->setX($x);
 			$this->desc_cell($position->title,$position->description);
 			
 			$tax = $position->tax;
 			$str .= $tax. '% Ust. = '.$tot*$tax/100;
-			if ($tax){
-				if (!isset($taxes[$tax])) $taxes[$tax]=0;
-				$taxes[$tax] += $tot*$tax/100;
+			
+			if ($position->optional) {} else {
+				$sum += $tot;
+				if ($tax){
+					if (!isset($taxes[$tax])) $taxes[$tax]=0;
+					$taxes[$tax] += $tot*$tax/100;
+				}
 			}
 			if ($debug) debug($str);
 		}

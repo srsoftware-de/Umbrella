@@ -129,7 +129,7 @@ if ($position_data = post('position')){
 	foreach ($position_data as $pos => $data){
 		$data['single_price'] = str_replace(',','.',$data['single_price'])*100;// * $data['single_price'];
 		$positions[$pos]->patch($data);
-		$positions[$pos]->save();		
+		$positions[$pos]->save();
 	}
 }
 
@@ -160,7 +160,7 @@ function show_time_estimates($tasks){ ?>
 			<label>
 				<input type="checkbox" name="tasks[<?= $task_id?>]" /><?= $task['name']?>
 				<?php if ($task['est_time']>0) { ?><span class="est_time">(<?= $task['est_time'] ?>&nbsp;<?= t('hours')?>)</span><?php } ?>
-				<span class="description"><?= $task['description']?></span>
+				<span class="description"><?= markdown($task['description'])?></span>
 				<?php if (isset($task['children'])) show_time_estimates($task['children'])?>
 			</label>
 		</li>
@@ -261,9 +261,13 @@ include '../common_templates/messages.php'; ?>
 						<?php if ($position->time_id !== null) {?><br/>
 						<a href="<?= getUrl('time',$position->time_id.'/view') ?>"><?= t('Show time')?></a>
 						<?php } ?>
+						<label>
+							<input type="checkbox" name="position[<?= $pos ?>][optional]" <?= $position->optional ? 'checked="checked"' : '' ?>/>
+							<?= t('optional') ?>
+						</label>
 					</td>
 					<td>
-						<input name="position[<?= $pos?>][title]" value="<?= $position->title ?>" />
+						<input name="position[<?= $pos?>][title]" value="<?= htmlspecialchars($position->title) ?>" />
 						<textarea name="position[<?= $pos?>][description]"><?= $position->description ?></textarea>
 					</td>
 					<td><input class="amount" name="position[<?= $pos?>][amount]" value="<?= $position->amount ?>" /></td>
@@ -296,7 +300,7 @@ include '../common_templates/messages.php'; ?>
 							<?= $project['name']?>
 							<ul>
 							<?php foreach ($project['times'] as $time_id => $time) {
-								if ($time['state'] >= 60) continue;
+								if ($time['state'] >= 40 /* PENDING, COMPLETE, or CANCELED */) continue;
 							?>
 								<li>
 									<label>
@@ -340,7 +344,7 @@ include '../common_templates/messages.php'; ?>
 								<input type="checkbox" name="items[<?= $item_id?>]" />
 								<span class="code"><?= $item['code']?></span>
 								<span class="name"><?= $item['name']?></span>
-								<span class="description"><?= str_replace("\n",'<br/>',$item['description']) ?></span>
+								<span class="description"><?= markdown($item['description']) ?></span>
 							</label>
 						</li>
 						<?php } // foreach project?>
