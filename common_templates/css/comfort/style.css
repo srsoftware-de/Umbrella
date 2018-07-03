@@ -195,7 +195,6 @@ span.hover_h {
 
 label{
 	display: block;
-	width: 400px;
 	position: relative;
 }
 
@@ -208,12 +207,6 @@ legend{
 	padding: 0 5px;
 	border-radius: 5px;
 }
-
-
-
-
-
-
 
 .search input {
 	margin: 5px;
@@ -261,7 +254,83 @@ legend{
 
 .note td.code textarea {
 	min-height: 200px;
-        width: 100%;
+		width: 100%;
+}
+
+.add_positions > ul,
+.requirements > ul {
+	max-height: 400px;
+	overflow: auto;
+}
+
+td input,
+table.vertical{
+	width: 100%;
+}
+
+.document td label{
+	width: unset;
+}
+
+.document.view .add_positions img{
+	display: none;
+}
+
+td input[type=checkbox]{
+	width: unset;
+}
+
+table.vertical span.right{
+	top: -25px;
+}
+
+img[src*="pos=right"] {
+  float:right;
+  margin: 5px 0 5px 5px;
+}
+
+img[src*="pos=left"] {
+  float:left;
+  margin: 5px 5px 5px 0;
+}
+
+img[src*="width=100"]{
+	max-width: 100px;
+}
+img[src*="width=200"]{
+	max-width: 200px;
+}
+img[src*="width=300"]{
+	max-width: 300px;
+}
+img[src*="width=400"]{
+	max-width: 400px;
+}
+img[src*="width=500"]{
+	max-width: 500px;
+}
+img[src*="width=600"]{
+	max-width: 600px;
+}
+img[src*="width=700"]{
+	max-width: 700px;
+}
+img[src*="width=800"]{
+	max-width: 800px;
+}
+img[src*="width=900"]{
+	max-width: 900px;
+}
+img[src*="width=50%"]{
+	max-width: 50%;
+}
+
+img[src*="width=33%"]{
+	max-width: 33%;
+}
+
+img[src$="width=25%"]{
+	max-width: 25%;
 }
 
 @media (max-width: 700px){
