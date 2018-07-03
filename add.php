@@ -17,6 +17,9 @@ $contacts = request('contact','json',null,false,OBJECT_CONVERSION);
 
 if ($customer_contact_id = post('customer')){
 	$customer_vcard  = $contacts->{$customer_contact_id};
+	
+	if (empty($customer_vcard->{'X-CUSTOMER-NUMBER'})) set_customer_number($customer_vcard,$company);
+	
 	$_POST['customer'] = address_from_vcard($customer_vcard);
 	$_POST['customer_number'] = isset($customer_vcard->{'X-CUSTOMER-NUMBER'}) ? $customer_vcard->{'X-CUSTOMER-NUMBER'} : null;
 	$_POST['customer_tax_number'] = isset($customer_vcard->{'X-TAX-NUMBER'}) ? $customer_vcard->{'X-TAX-NUMBER'} : null;
@@ -38,6 +41,11 @@ if ($customer_contact_id = post('customer')){
 	redirect($document->id.'/view');
 }
 
+function customer_num($contact){
+	if (isset($contact->{'X-CUSTOMER-NUMBER'}) && !empty($contact->{'X-CUSTOMER-NUMBER'})) return ' ('.$contact->{'X-CUSTOMER-NUMBER'}.')';
+	return ''; 
+}
+
 $contacts_sorted = [];
 foreach ($contacts as $contact){
 	$short = conclude_vcard($contact);
@@ -57,7 +65,7 @@ include '../common_templates/messages.php'; ?>
 			<select name="customer">
 				<option value=""><?= t('== select a customer ==') ?></option>
 				<?php foreach ($contacts_sorted as $short => $contact) { ?>
-				<option value="<?= $contact->id ?>" <?= (post('customer')==$contact->id)?'selected="true"':''?>><?= $short ?></option>
+				<option value="<?= $contact->id ?>" <?= (post('customer')==$contact->id)?'selected="true"':''?>><?= $short.customer_num($contact) ?></option>
 				<?php }?>				
 			</select>			
 		</fieldset>

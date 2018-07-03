@@ -54,6 +54,14 @@ function markdown($text){
 	}
 }
 
+function set_customer_number(&$vcard,$company){
+	$new_customer_number = $company['last_customer_number']+1;
+	
+	$vcard->{'X-CUSTOMER-NUMBER'} = $company['customer_number_prefix'].$new_customer_number;
+	$response = request('contact','edit/'.$vcard->id,['X-CUSTOMER-NUMBER'=>$vcard->{'X-CUSTOMER-NUMBER'}],false,NO_CONVERSION); // set customer number in contact
+	if ($response == 'Ok') $response = request('company','edit/'.$company['id'],['company'=>['last_customer_number'=>$new_customer_number]]); // set customer nuber in company
+}
+
 class CustomerPrice{
 	static function table(){
 		return [
@@ -136,6 +144,7 @@ class DocumentPosition{
 			'single_price'	=> 'INTEGER',
 			'tax'			=> 'INTEGER',
 			'time_id'		=> 'INTEGER',
+			'optional'		=> ['BOOLEAN','DEFAULT'=>0],
 		];
 	}
 
@@ -185,8 +194,11 @@ class DocumentPosition{
 					$args[':'.$f] = $this->{$f};
 				}
 			}
-			$sql = 'INSERT INTO document_positions ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$sql = 'INSERT INTO document_positions ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';			
 			$query = $db->prepare($sql);
+			/*debug($query);
+			debug($args);
+			debug(query_insert($query,$args),1);*/
 			assert($query->execute($args),'Was not able to insert new row into document_positions');
 		} else {
 			if (!empty($this->dirty)){
