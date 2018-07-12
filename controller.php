@@ -120,7 +120,7 @@
 				$ids = [$ids];
 			}
 			$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-			$sql .= ' WHERE id IN ('.$qMarks.')';
+			$sql .= ' WHERE id IN ('.$qMarks.') ORDER BY login';
 			$args = $ids;
 		}
 
