@@ -6,13 +6,12 @@ if ($page = param('page')){
 	@$xml->loadHTMLFile($page);
 	
 	$headings = [];
-	foreach ($xml->getElementsByTagName('h1') as $head){
-		$txt = $head->nodeValue;
-		if (strpos($txt,"\n")===false) $headings[]=$txt;
-	}
-	foreach ($xml->getElementsByTagName('h2') as $head){
-		$txt = $head->nodeValue;
-		if (strpos($txt,"\n")===false) $headings[]=$txt;
+	foreach (['h1','h2','h3'] as $tag){
+		foreach ($xml->getElementsByTagName($tag) as $head){
+			$txt = trim($head->textContent);
+			if (strpos($txt,"\n")===false) $headings[]=$txt;
+		}
+		if (!empty($headings)) break;
 	}
 	die(json_encode($headings));
 } else {
