@@ -28,7 +28,7 @@ function getHeadings(elem){
 		url: url,
 		dataType: "json",
 		success: function(data){
-			for (var index in data)addDescriptionOption(data[index]);
+			for (var index in data) addDescriptionOption(data[index]);
 		}		
 	});
 }
@@ -36,9 +36,6 @@ function getHeadings(elem){
 getHeadingsTimer = null;
 
 function getHeadings_delayed(){
-	if (getHeadingsTimer != null) {
-		clearTimeout(getHeadingsTimer);
-		console.log('cleared timer #'+getHeadingsTimer);
-	}
+	if (getHeadingsTimer != null) clearTimeout(getHeadingsTimer);
 	getHeadingsTimer = window.setTimeout(getHeadings,200,this);
 }
