@@ -56,10 +56,9 @@ function markdown($text){
 
 function set_customer_number(&$vcard,$company){
 	$new_customer_number = $company['last_customer_number']+1;
-	
 	$vcard->{'X-CUSTOMER-NUMBER'} = $company['customer_number_prefix'].$new_customer_number;
 	$response = request('contact','edit/'.$vcard->id,['X-CUSTOMER-NUMBER'=>$vcard->{'X-CUSTOMER-NUMBER'}],false,NO_CONVERSION); // set customer number in contact
-	if ($response == 'Ok') $response = request('company','edit/'.$company['id'],['company'=>['last_customer_number'=>$new_customer_number]]); // set customer nuber in company
+	if ($response == 'Ok') $response = request('company','edit/'.$company['id'],['company'=>['last_customer_number'=>$new_customer_number]]); // set customer number in company
 }
 
 class CustomerPrice{
@@ -498,7 +497,7 @@ class Document {
 	}
 	
 	public function customer_short(){
-		return reset(explode("\n",$this->customer));
+		return trim(reset(explode("\n",$this->customer)));
 	}
 	
 	public function date(){
@@ -541,6 +540,42 @@ class Document {
 		$b = $positions[$position_number-1]->delete(DocumentPosition::SKIP_UPDATE);
 		$a->patch(['pos'=>$position_number-1])->save();
 		$b->patch(['pos'=>$position_number])->save();
+	}
+	
+	function get_customer_vcard(){
+		global $contacts;
+		
+		if (!isset($contacts) || $contacts === null) $contacts = request('contact','json',null,false,OBJECT_CONVERSION);
+		
+		if (empty($contacts)) return null;
+		$vcard = null;		
+		
+		// compary by customer number
+		if (!empty($this->customer_number)){
+			foreach ($contacts as $contact){
+				if (empty($contact->{'X-CUSTOMER-NUMBER'})) continue;
+				if ($contact->{'X-CUSTOMER-NUMBER'} == $this->customer_number) return $contact;
+			}
+		}
+		
+		// compare by complete address
+		$adr = str_replace(["\r"],'',trim($this->customer));
+		foreach ($contacts as $contact){
+			if ($adr == str_replace(["\r"],'',trim(address_from_vcard($contact)))) return $contact;
+		}
+		
+		// compare by short ad
+		$name = $this->customer_short();
+		// search for match of name line from address
+		foreach ($contacts as $contact){
+			if ($name == conclude_vcard($contact)) return $contact;
+		}
+
+		foreach ($contacts as $contact){// search for partialmatches
+			$short = conclude_vcard($contact);
+			if (strpos($name, $short) !== false || strpos($short, $name) !== false) return $contact;
+		}
+		return null;
 	}
 	
 	public function mail_text(){

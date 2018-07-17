@@ -157,7 +157,7 @@ class PDF extends FPDF{
 	function foot(){
 		$this->SetFont('Arial','',10);
 		$this->Ln();		
-		$this->MultiCell(0, 10, $this->document->footer);
+		$this->MultiCell(0, 6, $this->document->footer);
 	}
 	
 	function generate(){
@@ -169,7 +169,7 @@ class PDF extends FPDF{
 	}
 	
 	function download(){
-		$this->Output('I');		
+		$this->Output('I',$this->document->number.'.pdf');
 	}
 	
 	function store($dir){		

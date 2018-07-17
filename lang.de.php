@@ -68,6 +68,7 @@ $translations = array(
 		'move up'=>'nach oben verschieben',
 		'Net sum'=>'Summe (Netto)',
 		'new'=>'neu',
+		'New confirmation from ?'=>'Neue Auftragsbestätigung von ?',
 		'New invoice from ?'=>'Neue Rechnung von ?',
 		'New offer from ?'=>'Neues Angebot von ?',
 		'No customer number set in document!'=>'Keine Kundennummer im Dokument gesetzt!',

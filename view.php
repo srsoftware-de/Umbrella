@@ -124,10 +124,11 @@ foreach ($tasks as &$task){
 
 unset($project);
 
-if ($position_data = post('position')){
+if ($position_data = post('position')){	
 	$positions = $document->positions();
 	foreach ($position_data as $pos => $data){
 		$data['single_price'] = str_replace(',','.',$data['single_price'])*100;// * $data['single_price'];
+		$data['optional'] = (isset($data['optional']) && $data['optional'] == 'on');
 		$positions[$pos]->patch($data);
 		$positions[$pos]->save();
 	}
