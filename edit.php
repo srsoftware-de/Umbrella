@@ -12,13 +12,13 @@ $task = load_tasks(['ids'=>$task_id]);
 
 // get a map from user ids to permissions
 $project_id = $task['project_id'];
-$task['project'] = request('project','json',['ids'=>$project_id,'users'=>'true','single'=>true]);
-$project_users = request('user','json',['ids'=>array_keys($task['project']['users'])]);
+$projects = request('project','json',['users'=>'true']);
+$project_users = request('user','json',['ids'=>array_keys($projects[$project_id]['users'])]);
 load_users($task,$project_users); // add users to task
 
 load_requirements($task);
 
-if ($name = post('name')){
+if ($name = post('name')){	
 	$task['name'] = $name;
 	
 	if ($start_date = post('start_date')){
@@ -34,10 +34,16 @@ if ($name = post('name')){
 	} else {
 		$task['due_date'] = null;
 	}
-
+	
 	if ($description = post('description')) $task['description'] = $description;
 	$parent = post('parent_task_id');
 	if ($parent !== null) $task['parent_task_id'] = ($parent == 0) ? null : $parent;
+	if ($new_project_id = post('project_id')) {
+		if ($new_project_id != $project_id){
+			$task['project_id'] = $new_project_id;
+			$task['parent_task_id'] = null;
+		}
+	}
 	
 	update_task($task);
 	update_task_requirements($task['id'],post('required_tasks'));
@@ -97,7 +103,11 @@ include '../common_templates/messages.php'; ?>
 	<fieldset><legend><?= t('Edit "?"',$task['name']) ?></legend>
 		<fieldset>
 			<legend><?= t('Project')?></legend>
-			<a href="<?= getUrl('project',$task['project']['id'].'/view')?>" ><?= $task['project']['name']?></a>
+			<select name="project_id">
+			<?php foreach ($projects as $pid => $project){ if ($project['status'] >= PROJECT_STATUS_COMPLETE) continue; ?>
+				<option value="<?= $pid ?>" <?= ($pid == $project_id)?'selected="selected"':''?>><?= $project['name'] ?></option>
+			<?php }?>
+			</select>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$task['project_id'] ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
