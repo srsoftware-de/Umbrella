@@ -55,6 +55,9 @@ function display_tasks($task_list,$parent_task_id){
 		} ?>
 		<li class="<?= task_state($task['status'])?>">
 			<a href="<?= getUrl('task', $tid.'/view'); ?>"><?= $task['name'] ?></a>
+			<?php if (isset($task['est_time']) && $task['est_time']>0) { ?>
+			(<?= $task['est_time']?>&nbsp;h)
+			<?php } ?>
 			<span class="hover_h">
 			<a class="symbol" title="<?= t('edit') ?>" href="../../task/<?= $tid ?>/edit?redirect=../../project/<?= $project_id ?>/view"></a>
 			<a class="symbol" title="<?= t('add subtask') ?>" 	href="../../task/<?= $tid ?>/add_subtask"> </a>
@@ -146,7 +149,9 @@ if ($project){
 			<a class="symbol" href="?closed=show" title="<?= t('show closed tasks')?>"></a>
 			<?php } ?>
 			<br/>
-			<br/><a href="gantt"><?= t('Gantt chart')?></a></th>
+			<br/>
+			<a href="gantt"><?= t('Gantt chart')?></a>
+		</th>
 		<td class="tasks">
 			<?php if ($tasks) {
 				display_tasks($tasks, null);
