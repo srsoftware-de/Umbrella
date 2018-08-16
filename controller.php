@@ -1,7 +1,8 @@
 <?php
 
 	$db_handle = null;
-
+	const MODULE = 'User';
+	
 	function perform_login($login = null, $pass = null){
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
