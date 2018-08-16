@@ -3,6 +3,8 @@
 	const TIME_PERMISSION_OWNER = 1;
 	const TIME_PERMISSION_PARTICIPANT = 2;
 	
+	const MODULE = 'Time';
+	
 	const TIME_STATUS_STARTED = 10; // time tracking started
 	const TIME_STATUS_OPEN = 20; // time tracking concluded. not invoiced
 	const TIME_STATUS_PENDING = 40; // time track used in unsent invoice
