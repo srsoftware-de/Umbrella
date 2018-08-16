@@ -6,6 +6,7 @@
 const CRLF = "\r\n";
 const MULTILINE=true;
 const BEAUTY = true;
+const MODULE = 'Contact';
 
 function get_or_create_db(){
 	if (!file_exists('db')){
