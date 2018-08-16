@@ -6,7 +6,8 @@
 	const RECURSIVE = true;
 	const STORAGE = '/.storage';
 	const DS = '/';
-
+	const MODULE = 'Files';
+	
 	static $projects = null;
 	static $companies = null;
 
@@ -154,6 +155,7 @@
 			$text = t('The file "?" has been uploaded to ?.',[$file_data['name'],$url]);
 			foreach ($users as $u){
 				$reciever = $u['email'];
+				if ($sender == $reciever) continue;
 				send_mail($sender, $reciever, $subject, $text);
 			}
 			info('Notifications were sent.');
