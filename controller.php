@@ -2,7 +2,8 @@
 
 	const PROJECT_PERMISSION_OWNER = 1;
 	const PROJECT_PERMISSION_PARTICIPANT = 2;
-
+	const MODULE = 'Project';
+	
 	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');
 
 	function get_or_create_db(){
