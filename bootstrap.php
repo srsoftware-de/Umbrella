@@ -389,6 +389,13 @@ function html2plain($text){
 	return $text;
 }
 
+function module_version(){
+	if (!defined('MODULE')) return '';
+	if (empty($_SESSION['modules'])) $_SESSION['modules'] = [];
+	if (!isset($_SESSION['modules'][MODULE])) $_SESSION['modules'][MODULE] = exec('git show -s --format=%ci HEAD');
+	return '"'.MODULE.'" module ('.$_SESSION['modules'][MODULE].') - ';
+}
+
 assert_options(ASSERT_ACTIVE,   true);
 assert_options(ASSERT_BAIL,     false);
 assert_options(ASSERT_WARNING,  true);
