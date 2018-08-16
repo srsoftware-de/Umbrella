@@ -1,5 +1,7 @@
 <?php
 
+const MODULE = 'Items';
+
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create item/db directory!');
 	assert(is_writable('db'),'Directory item/db not writable!');
