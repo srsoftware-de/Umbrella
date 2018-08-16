@@ -1,4 +1,7 @@
 <?php
+
+const MODULE = 'Company';
+
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create company/db directory!');
 	assert(is_writable('db'),'Directory company/db not writable!');
