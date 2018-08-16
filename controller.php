@@ -1,4 +1,6 @@
 <?php
+const MODULE = 'Notes';
+
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create notes/db directory!');
 	assert(is_writable('db'),'Directory notes/db not writable!');

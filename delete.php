@@ -28,10 +28,10 @@ include '../common_templates/messages.php';
 ?>
 
 <?php if ($note) { ?>
-<h2><?= t('This will remove the following note:')?></h2>
+<h2><?= t('This will following note:')?></h2>
 <fieldset class="del_note">
 	<legend><?= $user->login ?></legend>
-	<?= $parsedown?$parsedown->parse($note['note']):str_replace("\n", "<br/>", $note['note']) ?>
+	<?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?>
 </fieldset>
 <?= t('Are you sure?')?><br/>
 <a href="?confirm=yes<?= $target?('&redirect='.$target):''?>" class="button"><?= t('Yes')?></a>
