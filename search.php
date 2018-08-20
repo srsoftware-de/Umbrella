@@ -6,26 +6,30 @@ include 'controller.php';
 require_login('bookmark');
 
 if ($key = param('key')){
-	$result = search_bookmarks($key);
-	$tags = $result['tags'];
-	$urls = $result['urls'];
-	
+	$url_hashes = [];
+	foreach (Comment::load(['search'=>$key]) as $comment) $url_hashes[] = $comment->url_hash;
+	$bookmarks = array_merge(Bookmark::load(['url_hash'=>$url_hashes]),Bookmark::load(['search'=>$key]));
+	$tags = Tag::load(['search'=>$key]);
 	$url = getUrl('bookmark');
-	foreach ($tags as $tag){ ?>
+	if (!empty($tags)){ ?>
+	<fieldset class="tags">
+		<legend><?= t('Tags')?></legend>
+	<?php foreach ($tags as $tag => $dummy){ ?>
 	<a class="button" href="<?= $url.$tag.'/view' ?>"><?= $tag ?></a>
-	<?php } 
-	foreach ($urls as $hash => $link ) {?>
+	<?php } ?>
+	</fieldset> <?php } // not empty
+	foreach ($bookmarks as $hash => $bookmark ) {?>
 	<fieldset>
 		<legend>
 			<a class="symbol" href="<?= $url.$hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a class="symbol" href="<?= $url.$hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
-			<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= isset($link['comment']) ? $link['comment']:$link['url']?></a>
+			<a <?= $link['external']?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url?></a>
 		</legend>
-		<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= $link['url'] ?></a>
-		<?php if (isset($link['tags'])) { ?>
+		<a <?= $link['external']?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
+		<?php if (!empty($bookmark->tags())) { ?>
 		<div class="tags">		
-			<?php foreach ($link['tags'] as $related){ ?>
-			<a class="button" href="<?= getUrl('bookmark',$related.'/view') ?>"><?= $related ?></a>
+			<?php foreach ($bookmark->tags() as $tag => $dummy){ ?>
+			<a class="button" href="<?= getUrl('bookmark',$tag.'/view') ?>"><?= $tag ?></a>
 			<?php } ?>
 		</div>
 		<?php } ?>

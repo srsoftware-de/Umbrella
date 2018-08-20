@@ -50,6 +50,47 @@
 		return $db;
 	}
 	
+	function search_bookmarks($key){
+		global $user;
+		$key = '%'.$key.'%';
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND tag LIKE :key GROUP BY tag ORDER BY tag');
+		$query->execute([':uid'=>$user->id, ':key'=>$key]);
+		$tags = array_keys($query->fetchAll(INDEX_FETCH));
+	
+		$query = $db->prepare('SELECT * FROM comments LEFT JOIN url_comments ON comments.hash = url_comments.comment_hash LEFT JOIN urls ON urls.hash = url_comments.url_hash WHERE (comment LIKE :key OR url LIKE :key) AND user_id = :uid');
+		$query->execute([':uid'=>$user->id, ':key'=>$key]);
+		$raw = $query->fetchAll(PDO::FETCH_ASSOC);
+	
+		$query = $db->prepare('SELECT * FROM tags WHERE url_hash = :hash AND user_id = :uid');
+		$urls = [];
+		foreach ($raw as $entry){
+			$hash = $entry['url_hash'];
+			$query->execute([':hash'=>$hash,':uid'=>$user->id]);
+			$urls[$hash] = [
+			'url' => $entry['url'],
+			'comment' => $entry['comment'],
+			'tags' => array_keys($query->fetchAll(INDEX_FETCH)),
+			];
+		}
+		return [ 'tags' => $tags, 'urls' => $urls ];
+	}
+	
+	function load_connected_users(){
+		global $services;
+		$user_ids = [];
+		if (isset($services['company'])) {
+			$c_users = request('company','json',['users'=>'only']);
+			foreach ($c_users as $uid) $user_ids[$uid] = true;
+		}
+		if (isset($services['project'])) {
+			$p_users = array_keys(request('project','json',['users'=>'only']));
+			foreach ($p_users as $uid) $user_ids[$uid] = true;
+		}
+		return request('user','json',['ids'=>array_keys($user_ids)]);
+	}
+	
+	
 	class Bookmark{
 		static function table(){
 			return [
@@ -93,6 +134,10 @@
 				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($options['url_hash']), '?')).')';
 				$args = array_merge($args,$options['url_hash']);
 			}
+			if (isset($options['search'])){
+				$where[] = 'url LIKE ?';
+				$args[] = '%'.$options['search'].'%';
+			}
 			
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
 			$sql .= ' GROUP BY hash';
@@ -107,7 +152,7 @@
 				$args[] = $options['limit'];
 			}
 			
-			//debug(query_insert($sql,$args),1);
+			//debug(query_insert($sql,$args));
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			//debug(query_insert($query,$args),1);
@@ -222,7 +267,11 @@
 				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($options['url_hash']), '?')).')';
 				$args = array_merge($args,$options['url_hash']);
 			}
-
+			
+			if (isset($options['search'])){
+				$where[] = 'comment LIKE ?';
+				$args[] = '%'.$options['search'].'%';
+			}
 				
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
 			
@@ -307,6 +356,11 @@
 				$single = true;
 			}
 			
+			if (isset($options['search'])){
+				$where[] = 'tag LIKE ?';
+				$args[] = '%'.$options['search'].'%';
+			}
+			
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
 			
 			$sql .= ' COLLATE NOCASE';
@@ -362,45 +416,5 @@
 			unset($this->dirty);
 			return $this;
 		}
-	}
-	
-	function search_bookmarks($key){
-		global $user;
-		$key = '%'.$key.'%';
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND tag LIKE :key GROUP BY tag ORDER BY tag');
-		$query->execute([':uid'=>$user->id, ':key'=>$key]);
-		$tags = array_keys($query->fetchAll(INDEX_FETCH));
-				
-		$query = $db->prepare('SELECT * FROM comments LEFT JOIN url_comments ON comments.hash = url_comments.comment_hash LEFT JOIN urls ON urls.hash = url_comments.url_hash WHERE (comment LIKE :key OR url LIKE :key) AND user_id = :uid');
-		$query->execute([':uid'=>$user->id, ':key'=>$key]);
-		$raw = $query->fetchAll(PDO::FETCH_ASSOC);
-		
-		$query = $db->prepare('SELECT * FROM tags WHERE url_hash = :hash AND user_id = :uid');
-		$urls = [];
-		foreach ($raw as $entry){
-			$hash = $entry['url_hash'];
-			$query->execute([':hash'=>$hash,':uid'=>$user->id]);
-			$urls[$hash] = [
-				'url' => $entry['url'],
-				'comment' => $entry['comment'],
-				'tags' => array_keys($query->fetchAll(INDEX_FETCH)),
-			];			
-		}
-		return [ 'tags' => $tags, 'urls' => $urls ];
-	}
-
-	function load_connected_users(){
-		global $services;
-		$user_ids = [];
-		if (isset($services['company'])) {
-			$c_users = request('company','json',['users'=>'only']);
-			foreach ($c_users as $uid) $user_ids[$uid] = true;
-		}
-		if (isset($services['project'])) {
-			$p_users = array_keys(request('project','json',['users'=>'only']));
-			foreach ($p_users as $uid) $user_ids[$uid] = true;
-		}
-		return request('user','json',['ids'=>array_keys($user_ids)]);
 	}
 ?>
