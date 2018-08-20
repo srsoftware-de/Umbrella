@@ -278,6 +278,10 @@ fieldset.bookmark > fieldset{
 	overflow: hidden;
 }
 
+fieldset.bookmark > fieldset.tags{
+	max-height: unset;
+}
+
 fieldset.bookmark > fieldset:hover{
 	max-height: unset;
 }
