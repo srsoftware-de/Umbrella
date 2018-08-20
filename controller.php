@@ -50,32 +50,6 @@
 		return $db;
 	}
 	
-	function search_bookmarks($key){
-		global $user;
-		$key = '%'.$key.'%';
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND tag LIKE :key GROUP BY tag ORDER BY tag');
-		$query->execute([':uid'=>$user->id, ':key'=>$key]);
-		$tags = array_keys($query->fetchAll(INDEX_FETCH));
-	
-		$query = $db->prepare('SELECT * FROM comments LEFT JOIN url_comments ON comments.hash = url_comments.comment_hash LEFT JOIN urls ON urls.hash = url_comments.url_hash WHERE (comment LIKE :key OR url LIKE :key) AND user_id = :uid');
-		$query->execute([':uid'=>$user->id, ':key'=>$key]);
-		$raw = $query->fetchAll(PDO::FETCH_ASSOC);
-	
-		$query = $db->prepare('SELECT * FROM tags WHERE url_hash = :hash AND user_id = :uid');
-		$urls = [];
-		foreach ($raw as $entry){
-			$hash = $entry['url_hash'];
-			$query->execute([':hash'=>$hash,':uid'=>$user->id]);
-			$urls[$hash] = [
-			'url' => $entry['url'],
-			'comment' => $entry['comment'],
-			'tags' => array_keys($query->fetchAll(INDEX_FETCH)),
-			];
-		}
-		return [ 'tags' => $tags, 'urls' => $urls ];
-	}
-	
 	function load_connected_users(){
 		global $services;
 		$user_ids = [];
