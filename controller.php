@@ -142,6 +142,15 @@
 			$query->execute([':hash'=>$this->url_hash,':uid'=>$user->id]);
 		}
 		
+		function json(){
+			return json_encode([
+					'hash'=>$this->url_hash,
+					'url'=>$this->url,
+					'timestamp'=>$this->timestamp,
+					'comment'=>$this->comment()->comment,
+					'tags'=>array_keys($this->tags())]);
+		}
+		
 		function patch($data = array()){
 			if (!isset($this->dirty)) $this->dirty = [];
 			foreach ($data as $key => $val){
@@ -355,27 +364,6 @@
 		}
 	}
 	
-	function load_url($hash,$load_details = true){
-		global $user;
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM urls WHERE hash = :hash;');
-		$query->execute([':hash'=>$hash]);
-		$url = $query->fetch(PDO::FETCH_ASSOC);
-
-		if ($load_details){
-			$query = $db->prepare('SELECT comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash = :hash AND user_id = :uid;');
-			$query->execute([':hash'=>$hash,':uid'=>$user->id]);
-			$row = $query->fetch(PDO::FETCH_ASSOC);
-			if ($row) $url['comment']= $row['comment'];
-	
-			$query = $db->prepare('SELECT tag FROM tags WHERE user_id = :uid AND url_hash = :hash ORDER BY TAG COLLATE NOCASE');
-			$query->execute([':hash'=>$hash,':uid'=>$user->id]);
-			$tags = $query->fetchAll(PDO::FETCH_ASSOC);
-			foreach ($tags as $tag) $url['tags'][] = $tag['tag'];
-		}
-		return $url;
-	}
-	
 	function search_bookmarks($key){
 		global $user;
 		$key = '%'.$key.'%';
@@ -400,17 +388,6 @@
 			];			
 		}
 		return [ 'tags' => $tags, 'urls' => $urls ];
-	}
-
-	function delete_link($link){
-		global $user;
-		$url_hash = sha1($link['url']);
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM tags WHERE url_hash = :hash AND user_id = :uid;');
-		$query->execute([':hash'=>$url_hash,':uid'=>$user->id]);
-
-		$query = $db->prepare('DELETE FROM url_comments WHERE url_hash = :hash AND user_id = :uid;');
-		$query->execute([':hash'=>$url_hash,':uid'=>$user->id]);
 	}
 
 	function load_connected_users(){

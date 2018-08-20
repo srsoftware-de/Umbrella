@@ -10,7 +10,5 @@ if (!$url_hash) {
 		$url_hash = sha1($url);
 	} else error('No url or url hash passed!');
 }
-
-$link = load_url($url_hash);
-
-echo json_encode($link);
+$bookmark = Bookmark::load(['url_hash'=>$url_hash]);
+echo $bookmark->json();
