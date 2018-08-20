@@ -5,6 +5,7 @@ include 'controller.php';
 
 require_login('bookmark');
 $tags = Tag::load(['order'=>'tag ASC']);
+debug($tags,1);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

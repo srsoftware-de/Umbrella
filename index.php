@@ -14,22 +14,6 @@ if ($share_user = param('share_user_id')) {
 }
 
 $urls = Bookmark::load(['order' => 'timestamp DESC', 'limit' => param('limit',40)]);
-
-
-$options = [ 'index'=>'hash', 'url_hash' => array_keys($urls) ];
-$tags = Tag::load($options);
-foreach ($tags as $hash => $tag) $urls[$hash]->tags = $tag['tags'];
-
-
-$comments = Comment::load($options);
-foreach ($urls as $hash => &$url){
-	$url->external=true;
-	if (isset($comments[$hash])) $url->comment = $comments[$hash]['comment'];
-	foreach ($services as $name => $service){
-		if (strpos($url->url,$service['path']) === 0) $url->external = false;
-	}
-}
-
 $users = load_connected_users();
 
 include '../common_templates/head.php';
@@ -48,13 +32,11 @@ include '../common_templates/messages.php'; ?>
 			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= isset($bookmark->comment) ? $bookmark->comment:$bookmark->url ?></a>
 		</legend>
 		<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
-		<?php if (isset($bookmark->tags)) { ?>
 		<div class="tags">		
-			<?php foreach ($bookmark->tags as $related){ ?>
-			<a class="button" href="<?= getUrl('bookmark',$related.'/view') ?>"><?= $related ?></a>
+			<?php foreach ($bookmark->tags() as $tag){ ?>
+			<a class="button" href="<?= getUrl('bookmark',$tag->tag.'/view') ?>"><?= $tag->tag ?></a>
 			<?php } ?>
 		</div>
-		<?php } ?>
 		<fieldset class="share">
 			<legend><?= t('share')?></legend>
 			<form method="POST">

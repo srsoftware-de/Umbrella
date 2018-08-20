@@ -82,7 +82,7 @@
 		}
 		
 		function tags(){
-			if (empty($this->tags)) $this->tags = array_keys(Tag::load([ 'url_hash' => $this->url_hash ]));
+			if (empty($this->tags)) $this->tags = Tag::load([ 'url_hash' => $this->url_hash ]);
 			return $this->tags;
 		}
 	}
@@ -115,7 +115,6 @@
 		function load($options){
 			global $user;
 			
-			$index = isset($options['index']) ? $options['index']:'tags';
 			$sql = 'SELECT tag, url_hash FROM tags';
 			
 			$where = ['user_id = ?'];
@@ -142,26 +141,28 @@
 			assert($query->execute($args),'Was not able to request tag list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$tags = [];
-			
-			switch ($index){
-				case 'hash':
-					foreach ($rows as $row){
-						$hash = $row['url_hash'];
-						if (isset($tags[$hash])) {
-							$tags[$hash]['tags'][] = $row['tag'];
-						} else $tags[$hash]['tags'] = [$row['tag']];
-					}
-					break;
-				default: // i.e. 'tags'
-					foreach ($rows as $row){
-						$tag = $row['tag'];
-						if (isset($tags[$tag])) {
-							$tags[$tag]['hashes'][] = $row['url_hash'];
-						} else $tags[$tag]['hashes'] = [$row['url_hash']];
-					}
+
+			foreach ($rows as $row){
+				$tag = $row['tag'];
+				if (empty($tags[$tag])){
+					$t = new Tag();
+					$t->url_hashes = [$row['url_hash']];
+					unset($row['url_hash']);
+					$t->patch($row);
+					unset($t->dirty);
+					$tags[$tag] = $t;
+				} else $tags[$tag]->url_hashes[] = $row['url_hash'];
 			}
-			
 			return $tags;
+		}
+		
+		function patch($data = array()){
+			if (!isset($this->dirty)) $this->dirty = [];
+			foreach ($data as $key => $val){
+				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+				$this->{$key} = $val;
+			}
+			return $this;
 		}
 	}
 	
