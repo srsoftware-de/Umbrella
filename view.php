@@ -10,6 +10,8 @@ if ($share_user = param('share_user_id')) {
 	$bookmark->share($share_user,param('notify'));
 }
 
+
+
 $id = param('id');
 if (!id) error('No tag passed to view!');
 
@@ -29,7 +31,7 @@ include '../common_templates/messages.php'; ?>
 		<legend>
 			<a class="symbol" href="../<?= $hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a class="symbol" href="../<?= $hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>			
-			<a <?= $link['external']?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= ($bookmark->comment()) ? $bookmark->comment()->comment:$bookmark->url?></a>
+			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url ?></a>
 		</legend>
 		<a <?= $link['external']?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
 		<div class="tags">		

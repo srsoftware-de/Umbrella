@@ -95,7 +95,7 @@
 		}
 		
 		static function load($options){
-			global $user;
+			global $services,$user;
 			$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash';
 			$where = ['user_id = ?'];
 			$args = [$user->id];
@@ -138,6 +138,13 @@
 				unset($row['tag']);
 				unset($row['hash']);
 				$b->patch($row);
+				
+				$b->patch(['external'=>true]);
+				foreach ($services as $name => $service){
+					if (strpos($b->url,$service['path']) === 0) $b->external = false;
+				}
+				
+				
 				unset($b->dirty);
 				
 				if ($single) return $b;
