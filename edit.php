@@ -5,9 +5,10 @@ include 'controller.php';
 
 require_login('bookmark');
 if ($url_hash = param('id')){
-	$link = load_url($url_hash);
-	if (param('url')) {
-		$tag = update_url($link);
+	$bookmark = Bookmark::load(['url_hash'=>$url_hash]);
+	if ($url = param('url')) {
+		$bookmark->update(param('url'),param('tags_string'),param('comment'));
+		
 		if ($redirect = param('returnTo')){
 			redirect($redirect);
 		} else redirect(getUrl('bookmark',$tag.'/view'));
@@ -23,18 +24,18 @@ if ($url_hash){ ?>
 
 <form method="POST">
 <fieldset>
-	<legend><?= t('Edit URL ?','"'.$link['url'].'"'); ?></legend>
+	<legend><?= t('Edit URL ?','"'.$bookmark->url.'"'); ?></legend>
 	<label>
 		<?= t('New Url'); ?>
-		<input type="text" name="url" value="<?= $link['url'] ?>" />
+		<input type="text" name="url" value="<?= $bookmark->url ?>" />
 	</label><br/>
 	<label>
 		<?= t('Description'); ?>
-		<textarea name="comment"><?= $link['comment'] ?></textarea>
+		<textarea name="comment"><?= $bookmark->comment()->comment ?></textarea>
 	</label>	<br/>
 	<label>
 		<?= t('Tags'); ?>
-		<input type="text" name="tags" value="<?= implode(' ',$link['tags']) ?>" /><br/>
+		<input type="text" name="tags_string" value="<?= implode(' ',array_keys($bookmark->tags())) ?>" /><br/>
 		</label>
 	<input type="submit" />
 </fieldset>

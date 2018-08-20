@@ -3,16 +3,47 @@
 	const MODULE = 'Bookmark';
 
 	function get_or_create_db(){
-		if (!file_exists('db')){
-			assert(mkdir('db'),'Failed to create tag/db directory!');
-		}
-		assert(is_writable('db'),'Directory tag/db not writable!');
-		if (!file_exists('db/tasks.db')){
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create bookmark/db directory!');
+		assert(is_writable('db'),'Directory bookmark/db not writable!');
+		if (!file_exists('db/tags.db')){
 			$db = new PDO('sqlite:db/tags.db');
-			$db->query('CREATE TABLE tags (tag VARCHAR(255) NOT NULL, url_hash VARCHAR(255) NOT NULL, user_id int NOT NULL, UNIQUE(tag, url_hash, user_id));');			
-			$db->query('CREATE TABLE urls (hash VARCHAR(255) PRIMARY KEY, url TEXT NOT NULL, timestamp INT NOT NULL DEFAULT 0);');
-			$db->query('CREATE TABLE comments (hash VARCHAR(255) PRIMARY KEY, comment TEXT NOT NULL)');
-			$db->query('CREATE TABLE url_comments (url_hash VARCHAR(255) NOT NULL, comment_hash VARCHAR(255) NOT NULL, user_id INT NOT NULL, UNIQUE(url_hash, user_id));');
+	
+			$tables = [
+				'tags'=>Tag::table(),
+				'urls'=>Bookmark::table(),
+				'comments'=>Comment::table(),
+				'url_comments'=>Bookmark::url_table(),
+			];
+	
+			foreach ($tables as $table => $fields){
+				$sql = 'CREATE TABLE '.$table.' ( ';
+				foreach ($fields as $field => $props){
+					if ($field == 'UNIQUE') {
+						$field .='('.implode(',',$props).')';
+						$props = null;
+					}
+					$sql .= $field . ' ';
+					if (is_array($props)){
+						foreach ($props as $prop_k => $prop_v){
+							switch (true){
+								case $prop_k==='VARCHAR':
+									$sql.= 'VARCHAR('.$prop_v.') '; break;
+								case $prop_k==='DEFAULT':
+									$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
+								case $prop_k==='KEY':
+									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in bookmark/controller.php!');
+									$sql.= 'PRIMARY KEY '; break;
+								default:
+									$sql .= $prop_v.' ';
+							}
+						}
+						$sql .= ", ";
+					} else $sql .= $props.", ";
+				}
+				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+				$query = $db->prepare($sql);
+				assert($db->query($sql),'Was not able to create '.$table.' table in tags.db!');
+			}
 		} else {
 			$db = new PDO('sqlite:db/tags.db');
 		}
@@ -20,6 +51,34 @@
 	}
 	
 	class Bookmark{
+		static function table(){
+			return [
+				'hash'				=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+				'url'				=> ['TEXT','NOT NULL'],
+				'timestamp'			=> ['INT','NOT NULL','DEFAULT 0'],
+			];
+		}
+		
+		static function url_table(){
+			return [
+				'url_hash'			=> ['VARCHAR'=>255,'NOT NULL'],
+				'comment_hash'		=> ['VARCHAR'=>255,'NOT NULL'],
+				'user_id'			=> ['INT','NOT NULL'],
+				'UNIQUE'			=> ['url_hash','user_id'],
+			];
+		}
+		
+		static function add($url,$tags_string,$comment_text){
+			global $user;
+			
+			$bookmark = (new Bookmark())->patch(['url'=>$url])->save();
+		
+			$comment = (new Comment())->patch(['comment'=>$comment_text,'url_hash'=>$bookmark->url_hash])->save()->assign($user->id);
+			
+			$tags = is_array($tags_string) ? $tags_string : explode(' ',str_replace(',', ' ', $tags_string));
+			foreach ($tags as $tag) (new Tag())->patch(['tag'=>$tag,'url_hashes'=>[$bookmark->url_hash],'user_id'=>$user->id])->save();
+		}
+		
 		static function load($options){
 			global $user;
 			$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash';
@@ -73,12 +132,32 @@
 			return $this->comment;
 		}
 		
+		function delete(){
+			global $user;
+			$db = get_or_create_db();
+			$query = $db->prepare('DELETE FROM tags WHERE url_hash = :hash AND user_id = :uid;');
+			$query->execute([':hash'=>$this->url_hash,':uid'=>$user->id]);
+			
+			$query = $db->prepare('DELETE FROM url_comments WHERE url_hash = :hash AND user_id = :uid;');
+			$query->execute([':hash'=>$this->url_hash,':uid'=>$user->id]);
+		}
+		
 		function patch($data = array()){
 			if (!isset($this->dirty)) $this->dirty = [];
 			foreach ($data as $key => $val){
 				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 				$this->{$key} = $val;
 			}
+			return $this;
+		}
+		
+		function save(){
+			$this->patch(['url_hash'=>sha1($this->url)]);
+			$db = get_or_create_db();
+			$query = $db->prepare('INSERT OR IGNORE INTO urls (hash, url, timestamp) VALUES (:hash, :url, :time );');
+			$args = [':hash'=>$this->url_hash,':url'=>$this->url,':time'=>time()];
+			assert($query->execute($args),'Was not able to store url in database');
+			unset($this->dirty);
 			return $this;
 		}
 		
@@ -103,9 +182,22 @@
 			if (empty($this->tags)) $this->tags = Tag::load([ 'url_hash' => $this->url_hash, 'order'=>'tag ASC']);
 			return $this->tags;
 		}
+		
+		function update($url,$tags_string,$comment_text){
+			global $user;
+			$this->delete();
+			Bookmark::add($url, $tags_string, $comment_text);
+		}
 	}
 	
 	class Comment{
+		static function table(){
+			return [
+				'hash'				=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+				'comment'			=> ['TEXT','NOT NULL'],
+			];
+		}
+		
 		static function load($options){
 			global $user;			
 			$sql = 'SELECT * FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash';
@@ -140,13 +232,17 @@
 				if ($single) return $c;
 				$comments[$hash] = $c;
 			}
+			if ($single) return null;
 			return $comments;
 		}
 		
 		function assign($user_id){
 			$db = get_or_create_db();
 			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:url_hash, :comment_hash, :uid)');
-			$query->execute([':url_hash'=>$this->url_hash,':comment_hash'=>$this->comment_hash,':uid'=>$user_id]);
+			$args = [':url_hash'=>$this->url_hash,':comment_hash'=>$this->comment_hash,':uid'=>$user_id];
+			$query->execute($args);
+			unset($this->dirty);
+			return $this;
 		}
 		
 		function patch($data = array()){
@@ -157,9 +253,31 @@
 			}
 			return $this;
 		}
+		
+		function save(){
+			assert($this->comment !== null && $this->comment != '',t('Comment must not be empty'));
+			
+			$this->patch(['comment_hash'=>sha1($this->comment)]);
+			
+			$db = get_or_create_db();
+			$query = $db->prepare('INSERT OR IGNORE INTO comments (hash, comment) VALUES (:hash, :comment );');
+			$args = [':hash'=>$this->comment_hash,':comment'=>$this->comment];
+			assert($query->execute($args));
+			unset($this->dirty);
+			return $this;
+		}
 	}
 	
 	class Tag{
+		static function table(){
+			return [
+				'tag'				=> ['VARCHAR'=>255,'NOT NULL'],
+				'url_hash'			=> ['VARCHAR'=>255,'NOT NULL'],
+				'user_id'			=> ['INT','NOT NULL'],
+				'UNIQUE'			=> ['tag', 'url_hash', 'user_id'],
+			];
+		}
+		
 		static function load($options){
 			global $user;
 			
@@ -228,88 +346,13 @@
 		function save(){
 			$db = get_or_create_db();
 			$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid)');
-			foreach ($this->url_hashes as $hash) $query->execute([':tag'=>$this->tag,':hash'=>$hash,':uid'=>$this->user_id]);
-		}
-	}
-	
-	function save_tag($url = null,$tags = null,$comment = null){
-		global $user;
-		assert($url !== null && $url != '','No value set for url!');
-		assert($tags !== null,'No tags set');
-		if (!is_array($tags)) $tags = explode(' ',str_replace(',', ' ', $tags));
-		$url_hash = sha1($url);
-		
-		$comment_hash = ($comment !== null && $comment != '') ? sha1($comment) : null;
-		
-		$db = get_or_create_db();
-		$query = $db->prepare('INSERT OR IGNORE INTO urls (hash, url, timestamp) VALUES (:hash, :url, :time);');
-		assert($query->execute([':hash'=>$url_hash,':url'=>$url,':time'=>time()]),'Was not able to store url in database');
-		
-		if ($comment_hash !== null) {
-			$query = $db->prepare('INSERT OR IGNORE INTO comments (hash, comment) VALUES (:hash, :comment);');
-			assert($query->execute([':hash'=>$comment_hash,':comment'=>$comment]));
-				
-			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:uhash, :chash, :uid)');
-			$query->execute([':uhash'=>$url_hash,':chash'=>$comment_hash,':uid'=>$user->id]); 
-		}
-		
-		$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid);');
-		foreach ($tags as $tag) {
-			if ($tag != '')	assert($query->execute([':tag'=>strtolower($tag),':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to save tag '.$tag);		
-		}
-		return $tag;
-	}
-	
-	function load_tag($tag = null){
-		global $services,$user;
-		assert($tag !== null,'Called load tag, but no tag given!');
-		$db = get_or_create_db();
-		
-		$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid AND tag = :tag');
-		assert($query->execute([':uid'=>$user->id,':tag'=>$tag]),'Was not able to laod tag form database!');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		
-		if ($rows){
-			$url_hashes = [];
-			foreach ($rows as $row) $url_hashes[] = $row['url_hash'];
-			
-			$qMarks = str_repeat("?,", count($url_hashes)-1) . "?";
-			
-			$query = $db->prepare("SELECT * FROM urls WHERE hash IN ($qMarks) ORDER BY timestamp DESC");
-			assert($query->execute($url_hashes),'Was not able to load urls for tag!');
-			$urls = $query->fetchAll(INDEX_FETCH);
-			
-			$query = $db->prepare("SELECT tag FROM tags WHERE url_hash = :hash");
-			foreach ($urls as $hash => &$url){
-				$query->execute([':hash'=>$hash]);
-				$tags = $query->fetchAll(INDEX_FETCH);
-				foreach ($tags as $related => $dummy) {
-					if ($related != $tag) $url['tags'][] = $related;
-				}
-				$url['external']=true;
-				foreach ($services as $name => $service){
-					if (strpos($url['url'],$service['path']) === 0) $url['external'] = false;
-				}	
+			foreach ($this->url_hashes as $hash) {
+				$args = [':tag'=>$this->tag,':hash'=>$hash,':uid'=>$this->user_id];
+				$query->execute($args);
 			}
-
-			$query = $db->prepare("SELECT url_hash, comment_hash FROM url_comments WHERE user_id = ? AND url_hash IN ($qMarks)");
-			array_unshift($url_hashes, $user->id);
-			assert($query->execute($url_hashes),'Was not able to load urls for tag!');
-			$rows = $query->fetchAll(INDEX_FETCH);
-			if ($rows){
-				$qMarks = str_repeat("?,", count($rows)-1) . "?";
-				$query = $db->prepare("SELECT * FROM comments WHERE hash = :hash");
-				foreach ($rows as $url_hash => $row){
-					$query->execute([':hash'=>$row['comment_hash']]);
-					$comment = $query->fetch(PDO::FETCH_ASSOC);
-					$urls[$url_hash]['comment'] = $comment['comment'];
-				}				
-			}
-
+			unset($this->dirty);
+			return $this;
 		}
-		$tag = objectFrom(['tag'=>$tag]);
-		$tag->links = $urls;
-		return $tag;
 	}
 	
 	function load_url($hash,$load_details = true){
@@ -368,13 +411,6 @@
 
 		$query = $db->prepare('DELETE FROM url_comments WHERE url_hash = :hash AND user_id = :uid;');
 		$query->execute([':hash'=>$url_hash,':uid'=>$user->id]);
-	}
-
-	function update_url($link){
-		delete_link($link);
-		$tag = save_tag(param('url'),param('tags'),param('comment'));
-		info('Bookmark has been updated.');
-		return $tag;
 	}
 
 	function load_connected_users(){
