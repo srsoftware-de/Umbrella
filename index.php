@@ -7,10 +7,21 @@ require_login('bookmark');
 
 if ($share_user = param('share_user_id')) share_bookmark($share_user,param('share_url_hash'),param('notify',false));
 
+$urls = Bookmark::load(['order' => 'timestamp DESC', 'limit' => param('limit',40)]);
 
+$options = [ 'index'=>'hash', 'hashes' => array_keys($urls) ];
+$tags = Tag::load($options);
+foreach ($tags as $hash => $tag) $urls[$hash]['tags'] = $tag['tags'];
 
+$comments = Comment::load($options);
+foreach ($urls as $hash => &$url){
+	$url['external']=true;
+	if (isset($comments[$hash])) $url['comment'] = $comments[$hash]['comment'];
+	foreach ($services as $name => $service){
+		if (strpos($url['url'],$service['path']) === 0) $url['external'] = false;
+	}
+}
 
-$urls = get_new_urls(param('id',40)); // latest => show 20, latest/15 => show 15
 $users = load_connected_users();
 
 include '../common_templates/head.php';

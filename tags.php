@@ -4,7 +4,8 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('bookmark');
-$tags = get_tag_list();
+$tags = Tag::load(['order'=>'tag ASC']);
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -22,7 +23,7 @@ include '../common_templates/messages.php'; ?>
 	<legend>Tags</legend>
 <?php
 	$letter = null;
-	foreach ($tags as $tag => $data){
+	foreach ($tags as $tag => $dummy){
 		$id = false;
 		$char = strtoupper($tag[0]);
 		if ($letter != $char){

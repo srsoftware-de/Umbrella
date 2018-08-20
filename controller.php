@@ -18,49 +18,106 @@
 		}
 		return $db;
 	}
-
-	function get_tag_list(){
-		global $user;
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM tags WHERE user_id = :uid ORDER BY tag COLLATE NOCASE');
-		assert($query->execute([':uid'=>$user->id]),'Was not able to request tag list!');
-		return $query->fetchAll(INDEX_FETCH);
-	}
-
-	function get_new_urls($limit = null){
-		global $user,$services;
-		$db = get_or_create_db();
-		$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash WHERE user_id = :uid GROUP BY hash ORDER BY timestamp DESC';
-		$args = [':uid' => $user->id];
-		if ($limit !== null){
-			$sql .= ' LIMIT :limit';
-			$args[':limit']=$limit;
-		}
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to request url list!');
-		$urls = $query->fetchAll(INDEX_FETCH);
-		$hashes = array_keys($urls);
-		$qmarks = implode(',', array_fill(0, count($hashes), '?'));
-		$hashes[] = $user->id; // add user id
-
-		$query = $db->prepare('SELECT tag,url_hash FROM tags WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
-		assert($query->execute($hashes),'Was not able to request tags for url list!');
-		$tags = $query->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($tags as $tag) $urls[$tag['url_hash']]['tags'][] = $tag['tag'];
-
-		$query = $db->prepare('SELECT url_hash,comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash WHERE url_hash IN ('.$qmarks.') AND user_id = ?');
-		assert($query->execute($hashes),'Was not able to request comments for url list!');
-		$comments = $query->fetchAll(INDEX_FETCH);
-		foreach ($urls as $hash => &$url){
-			$url['external']=true;
-			if (isset($comments[$hash])) $url['comment'] = $comments[$hash]['comment'];
-			foreach ($services as $name => $service){
-				if (strpos($url['url'],$service['path']) === 0) $url['external'] = false;
+	
+	class Bookmark{
+		function load($options){
+			global $user;
+			$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash WHERE user_id = :uid GROUP BY hash';
+			$args = [':uid' => $user->id];
+				
+			if (isset($options['order'])){
+				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
+				$sql.= ' ORDER BY '.implode(', ',$order);
 			}
+			if (isset($options['limit'])){
+				$sql.= ' LIMIT :lmt';
+				$args[':lmt'] = $options['limit'];
+			}
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to request url list!');
+			return $query->fetchAll(INDEX_FETCH);
 		}
-		return $urls;
 	}
+	
+	class Comment{
+		function load($options){
+			global $user;			
+			$sql = 'SELECT url_hash,comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash';
+			$where = ['user_id = ?'];
+			$args =  [ $user->id ];
+			
+			if (isset($options['url_hash'])){
+				$hashes = is_array($options['url_hash']) ? $options['url_hash'] : [$options['url_hash']];
+				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($hashes), '?')).')';
+				$args = array_merge($args,$hashes);
+			}
 
+				
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
+			
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to request comment list!');
+			
+			return $query->fetchAll(INDEX_FETCH);
+		}
+	}
+	
+	class Tag{
+		function load($options){
+			global $user;
+			
+			$index = isset($options['index']) ? $options['index']:'tags';
+			$sql = 'SELECT tag, url_hash FROM tags';
+			
+			$where = ['user_id = ?'];
+			$args =  [ $user->id ];
+			
+			if (isset($options['hashes'])){					
+				$hashes = is_array($options['hashes']) ? $options['hashes'] : [$options['hashes']];
+				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($hashes), '?')).')';
+				$args = array_merge($args,$hashes);
+			}
+			
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
+			
+			$sql .= ' COLLATE NOCASE';
+				
+			if (isset($options['order'])){
+				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
+				$sql.= ' ORDER BY '.implode(', ',$order);
+			}
+			
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			
+			assert($query->execute($args),'Was not able to request tag list!');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$tags = [];
+			
+			switch ($index){
+				case 'hash':
+					foreach ($rows as $row){
+						$hash = $row['url_hash'];
+						if (isset($tags[$hash])) {
+							$tags[$hash]['tags'][] = $row['tag'];
+						} else $tags[$hash]['tags'] = [$row['tag']];
+					}
+					break;
+				default: // i.e. 'tags'
+					foreach ($rows as $row){
+						$tag = $row['tag'];
+						if (isset($tags[$tag])) {
+							$tags[$tag]['hashes'][] = $row['url_hash'];
+						} else $tags[$tag]['hashes'] = [$row['url_hash']];
+					}
+			}
+			
+			return $tags;
+		}
+	}
+	
 	function save_tag($url = null,$tags = null,$comment = null){
 		global $user;
 		assert($url !== null && $url != '','No value set for url!');
