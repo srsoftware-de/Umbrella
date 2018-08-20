@@ -100,7 +100,7 @@
 		}
 		
 		function tags(){
-			if (empty($this->tags)) $this->tags = Tag::load([ 'url_hash' => $this->url_hash ]);
+			if (empty($this->tags)) $this->tags = Tag::load([ 'url_hash' => $this->url_hash, 'order'=>'tag ASC']);
 			return $this->tags;
 		}
 	}
@@ -160,18 +160,24 @@
 	}
 	
 	class Tag{
-		function load($options){
+		static function load($options){
 			global $user;
 			
 			$sql = 'SELECT * FROM tags';
 			
 			$where = ['user_id = ?'];
 			$args =  [ $user->id ];
-			
-			if (isset($options['url_hash'])){					
+			$single = false;
+			if (isset($options['url_hash'])){
 				$hashes = is_array($options['url_hash']) ? $options['url_hash'] : [$options['url_hash']];
 				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($hashes), '?')).')';
 				$args = array_merge($args,$hashes);
+			}
+			
+			if (isset($options['tag'])){
+				$where[] = 'tag = ?';
+				$args[] = $options['tag'];
+				$single = true;
 			}
 			
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
@@ -197,11 +203,17 @@
 					$t->url_hashes = [$row['url_hash']];
 					unset($row['url_hash']);
 					$t->patch($row);
-					unset($t->dirty);
+					unset($t->dirty);					
 					$tags[$tag] = $t;
 				} else $tags[$tag]->url_hashes[] = $row['url_hash'];
 			}
+			if ($single) return reset($tags);
 			return $tags;
+		}
+		
+		function bookmarks(){
+			if (empty($this->bookmarks)) $this->bookmarks = Bookmark::load(['url_hash'=>$this->url_hashes]);
+			return $this->bookmarks;
 		}
 		
 		function patch($data = array()){

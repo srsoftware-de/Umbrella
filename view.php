@@ -10,10 +10,10 @@ if ($share_user = param('share_user_id')) {
 	$bookmark->share($share_user,param('notify'));
 }
 
-$tag = param('id');
-if (!$tag) error('No tag passed to view!');
+$id = param('id');
+if (!id) error('No tag passed to view!');
 
-$tag = load_tag($tag);
+$tag = Tag::load(['tag'=>$id]);
 $users = load_connected_users();
 
 include '../common_templates/head.php';
@@ -24,25 +24,24 @@ include '../common_templates/messages.php'; ?>
 <fieldset class="bookmark">
 	<legend><?= t('Tag "?"',$tag->tag) ?></legend>
 	
-	<?php foreach ($tag->links as $hash => $link ) {?>
+	<?php foreach ($tag->bookmarks() as $hash => $bookmark ) {?>
 	<fieldset>
 		<legend>
 			<a class="symbol" href="../<?= $hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a class="symbol" href="../<?= $hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>			
-			<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= isset($link['comment']) ? $link['comment']:$link['url']?></a>
+			<a <?= $link['external']?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= ($bookmark->comment()) ? $bookmark->comment()->comment:$bookmark->url?></a>
 		</legend>
-		<a <?= $link['external']?'target="_blank"':''?> href="<?= $link['url'] ?>" ><?= $link['url'] ?></a>
-		<?php if (isset($link['tags'])) { ?>
+		<a <?= $link['external']?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
 		<div class="tags">		
-			<?php foreach ($link['tags'] as $related){ ?>
-			<a class="button" href="../<?= $related ?>/view"><?= $related ?></a>
+			<?php foreach ($bookmark->tags() as $tag){ ?>
+			<a class="button" href="../<?= $tag->tag ?>/view"><?= $tag->tag ?></a>
 			<?php } ?>
 		</div>
-		<?php } ?>
 		<fieldset class="share">
 			<legend><?= t('share')?></legend>
 			<form method="POST">
 				<input type="hidden" name="share_url_hash" value="<?= $hash?>" />
+				<input type="hidden" name="notify" value="1" />
 				<select name="share_user_id">
 				<option value=""><?= t('select user')?></option>
 				<?php foreach ($users as $uid => $some_user) {
