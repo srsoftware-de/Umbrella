@@ -20,7 +20,7 @@
 	}
 	
 	class Bookmark{
-		function load($options){
+		static function load($options){
 			global $user;
 			$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash';
 			$where = ['user_id = ?'];
@@ -68,6 +68,11 @@
 			return $bookmarks;
 		}
 		
+		function comment(){
+			if (empty($this->comment)) $this->comment = Comment::load(['url_hash'=>$this->url_hash]);
+			return $this->comment;
+		}
+		
 		function patch($data = array()){
 			if (!isset($this->dirty)) $this->dirty = [];
 			foreach ($data as $key => $val){
@@ -78,7 +83,11 @@
 		}
 		
 		function share($user_id, $notify = true){
-			debug($this,1);
+			foreach ($this->tags() as $tag){
+				$tag->patch(['user_id'=>$user_id]);
+				$tag->save();
+			}
+			die();
 		}
 		
 		function tags(){
@@ -88,16 +97,20 @@
 	}
 	
 	class Comment{
-		function load($options){
+		static function load($options){
 			global $user;			
-			$sql = 'SELECT url_hash,comment FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash';
+			$sql = 'SELECT * FROM url_comments LEFT JOIN comments ON url_comments.comment_hash = comments.hash';
 			$where = ['user_id = ?'];
 			$args =  [ $user->id ];
 			
+			$single = false;
 			if (isset($options['url_hash'])){
-				$hashes = is_array($options['url_hash']) ? $options['url_hash'] : [$options['url_hash']];
-				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($hashes), '?')).')';
-				$args = array_merge($args,$hashes);
+				if (!is_array($options['url_hash'])){
+					$options['url_hash'] = [$options['url_hash']];
+					$single = true;
+				}
+				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($options['url_hash']), '?')).')';
+				$args = array_merge($args,$options['url_hash']);
 			}
 
 				
@@ -107,7 +120,27 @@
 			$query = $db->prepare($sql);
 			assert($query->execute($args),'Was not able to request comment list!');
 			
-			return $query->fetchAll(INDEX_FETCH);
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$comments = [];
+			foreach ($rows as $row){
+				$hash = $row['comment_hash'];
+				unset($row['hash']);
+				$c = new Comment();
+				$c->patch($row);
+				unset($c->dirty);
+				if ($single) return $c;
+				$comments[$hash] = $c;
+			}
+			return $comments;
+		}
+		
+		function patch($data = array()){
+			if (!isset($this->dirty)) $this->dirty = [];
+			foreach ($data as $key => $val){
+				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+				$this->{$key} = $val;
+			}
+			return $this;
 		}
 	}
 	
@@ -115,7 +148,7 @@
 		function load($options){
 			global $user;
 			
-			$sql = 'SELECT tag, url_hash FROM tags';
+			$sql = 'SELECT * FROM tags';
 			
 			$where = ['user_id = ?'];
 			$args =  [ $user->id ];
@@ -163,6 +196,10 @@
 				$this->{$key} = $val;
 			}
 			return $this;
+		}
+		
+		function save(){
+			debug('Tag.save not implemented ('.$this->tag.')');
 		}
 	}
 	

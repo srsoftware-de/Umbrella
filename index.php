@@ -10,10 +10,11 @@ if ($share_user = param('share_user_id')) {
 	$bookmark->share($share_user,param('notify'));
 	
 	
-	share_bookmark($share_user,param('share_url_hash'),param('notify',false));
+	//share_bookmark($share_user,param('share_url_hash'),param('notify',false));
 }
 
 $urls = Bookmark::load(['order' => 'timestamp DESC', 'limit' => param('limit',40)]);
+
 $users = load_connected_users();
 
 include '../common_templates/head.php';
@@ -29,7 +30,7 @@ include '../common_templates/messages.php'; ?>
 		<legend>
 			<a class="symbol" href="<?= $hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a class="symbol" href="<?= $hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
-			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= isset($bookmark->comment) ? $bookmark->comment:$bookmark->url ?></a>
+			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url ?></a>
 		</legend>
 		<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
 		<div class="tags">		
