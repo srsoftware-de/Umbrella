@@ -22,21 +22,68 @@
 	class Bookmark{
 		function load($options){
 			global $user;
-			$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash WHERE user_id = :uid GROUP BY hash';
-			$args = [':uid' => $user->id];
+			$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash';
+			$where = ['user_id = ?'];
+			$args = [$user->id];
+			$single = false;
+			if (isset($options['url_hash'])){
+				if (!is_array($options['url_hash'])){
+					$options['url_hash'] = [$options['url_hash']];
+					$single = true;
+				}
+				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($options['url_hash']), '?')).')';
+				$args = array_merge($args,$options['url_hash']);
+			}
+			
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
+			$sql .= ' GROUP BY hash';
 				
 			if (isset($options['order'])){
 				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
 				$sql.= ' ORDER BY '.implode(', ',$order);
 			}
+			
 			if (isset($options['limit'])){
-				$sql.= ' LIMIT :lmt';
-				$args[':lmt'] = $options['limit'];
+				$sql.= ' LIMIT ?';
+				$args[] = $options['limit'];
 			}
+			
+			//debug(query_insert($sql,$args),1);
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to request url list!');
-			return $query->fetchAll(INDEX_FETCH);
+			//debug(query_insert($query,$args),1);
+			assert($query->execute($args),'Was not able to request bookmark list!');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$bookmarks = [];
+			foreach ($rows as $row){
+				$b = new Bookmark();
+				unset($row['tag']);
+				unset($row['hash']);
+				$b->patch($row);
+				unset($b->dirty);
+				
+				if ($single) return $b;
+				$bookmarks[$row['url_hash']] = $b;
+			} 
+			return $bookmarks;
+		}
+		
+		function patch($data = array()){
+			if (!isset($this->dirty)) $this->dirty = [];
+			foreach ($data as $key => $val){
+				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+				$this->{$key} = $val;
+			}
+			return $this;
+		}
+		
+		function share($user_id, $notify = true){
+			debug($this,1);
+		}
+		
+		function tags(){
+			if (empty($this->tags)) $this->tags = array_keys(Tag::load([ 'url_hash' => $this->url_hash ]));
+			return $this->tags;
 		}
 	}
 	
@@ -74,8 +121,8 @@
 			$where = ['user_id = ?'];
 			$args =  [ $user->id ];
 			
-			if (isset($options['hashes'])){					
-				$hashes = is_array($options['hashes']) ? $options['hashes'] : [$options['hashes']];
+			if (isset($options['url_hash'])){					
+				$hashes = is_array($options['url_hash']) ? $options['url_hash'] : [$options['url_hash']];
 				$where[] = 'url_hash IN ('.implode(',', array_fill(0, count($hashes), '?')).')';
 				$args = array_merge($args,$hashes);
 			}
