@@ -8,9 +8,6 @@ require_login('bookmark');
 if ($share_user = param('share_user_id')) {
 	$bookmark = Bookmark::load(['url_hash'=>param('share_url_hash')]);
 	$bookmark->share($share_user,param('notify'));
-	
-	
-	//share_bookmark($share_user,param('share_url_hash'),param('notify',false));
 }
 
 $urls = Bookmark::load(['order' => 'timestamp DESC', 'limit' => param('limit',40)]);

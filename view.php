@@ -5,7 +5,10 @@ include 'controller.php';
 
 require_login('bookmark');
 
-if ($share_user = param('share_user_id')) share_bookmark($share_user,param('share_url_hash'));
+if ($share_user = param('share_user_id')) {
+	$bookmark = Bookmark::load(['url_hash'=>param('share_url_hash')]);
+	$bookmark->share($share_user,param('notify'));
+}
 
 $tag = param('id');
 if (!$tag) error('No tag passed to view!');

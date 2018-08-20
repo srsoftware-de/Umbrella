@@ -83,11 +83,20 @@
 		}
 		
 		function share($user_id, $notify = true){
+			global $user;
 			foreach ($this->tags() as $tag){
 				$tag->patch(['user_id'=>$user_id]);
 				$tag->save();
 			}
-			die();
+			$this->comment()->assign($user_id);
+			
+			info('Your bookmark has been shared.');
+			if ($notify){
+				$recipient = request('user','json',['ids'=>$user_id]);
+				if (send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$user->login),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$this->url,getUrl('bookmark')]))){
+					info('Notification has been sent to user.');
+				}
+			}
 		}
 		
 		function tags(){
@@ -132,6 +141,12 @@
 				$comments[$hash] = $c;
 			}
 			return $comments;
+		}
+		
+		function assign($user_id){
+			$db = get_or_create_db();
+			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:url_hash, :comment_hash, :uid)');
+			$query->execute([':url_hash'=>$this->url_hash,':comment_hash'=>$this->comment_hash,':uid'=>$user_id]);
 		}
 		
 		function patch($data = array()){
@@ -199,7 +214,9 @@
 		}
 		
 		function save(){
-			debug('Tag.save not implemented ('.$this->tag.')');
+			$db = get_or_create_db();
+			$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid)');
+			foreach ($this->url_hashes as $hash) $query->execute([':tag'=>$this->tag,':hash'=>$hash,':uid'=>$this->user_id]);
 		}
 	}
 	
@@ -360,32 +377,5 @@
 			foreach ($p_users as $uid) $user_ids[$uid] = true;
 		}
 		return request('user','json',['ids'=>array_keys($user_ids)]);
-	}
-
-	function share_bookmark($user_id,$url_hash,$notify_user = true){
-		global $user;
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT tag FROM tags WHERE url_hash = :hash AND user_id = :uid');
-		assert($query->execute([':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to read your tags.');
-		$tags = array_keys($query->fetchAll(INDEX_FETCH));
-		$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid)');
-		foreach ($tags as $tag) $query->execute([':tag'=>$tag,':hash'=>$url_hash,':uid'=>$user_id]);
-		$query = $db->prepare('SELECT comment_hash FROM url_comments WHERE url_hash = :hash AND user_id = :uid');
-		assert($query->execute([':hash'=>$url_hash,':uid'=>$user->id]),'Was not able to read comment for url.');
-		$comment_hashes = array_keys($query->fetchAll(INDEX_FETCH));
-		if (!empty($comment_hashes)){
-			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:url_hash, :comment_hash, :uid)');
-			foreach ($comment_hashes as $comment_hash) $query->execute([':url_hash'=>$url_hash,':comment_hash'=>$comment_hash,':uid'=>$user_id]);
-		}		
-		info('Your bookmark has been shared.');
-		
-		if ($notify_user){
-			$url = load_url($url_hash);
-			$recipient = request('user','json',['ids'=>$user_id]);
-			if (send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$user->login),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$url['url'],getUrl('bookmark')]))){
-				info('Notification has been sent to user.');
-			}
-			
-		}
 	}
 ?>
