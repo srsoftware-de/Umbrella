@@ -4,24 +4,7 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('time');
-$times = load_times(['order'=>param('order')]);
-$task_ids = [];
-
-$parsedown = null;
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$parsedown = Parsedown::instance();
-}
-
-foreach ($times as &$time){
-	foreach ($time['task_ids'] as $task_id) $task_ids[$task_id] = 1;
-	if ($parsedown) $time['description'] = $parsedown->parse($time['description']);	
-}
-unset($time);
-$tasks = request('task','json',['ids'=>array_keys($task_ids)]);
-$project_ids = [];
-foreach ($tasks as $task) $project_ids[$task['project_id']] = 1;
-$projects = request('project','json',['ids'=>array_keys($project_ids)]);
+$times = Timetrack::load(['order'=>param('order')]);
 
 $show_complete = param('complete') == 'show';
 
@@ -52,11 +35,10 @@ if ($show_complete){ ?>
 	</tr>
 	
 <?php foreach ($times as $id => $time){ 
-	if (!$show_complete && $time['state'] == TIME_STATUS_COMPLETE) continue;
+	if (!$show_complete && $time->state == TIME_STATUS_COMPLETE) continue;
 	$time_projects=[];
-	foreach ($time['task_ids'] as $task_id){
-		$pid = $tasks[$task_id]['project_id'];
-		$time_projects[$pid] = $projects[$pid]['name'];
+	foreach ($time->tasks() as $task){
+		$time_projects[$task['project_id']] = $task['project']['name'];
 	} ?>
 	<tr class="project<?= implode(' project',array_keys($time_projects))?>">
 		<td>
@@ -66,14 +48,14 @@ if ($show_complete){ ?>
 			</span>
 		<?php }?>
 		</td>
-		<td><a href="<?= $id ?>/view"><?= $time['subject'] ?></a></td>
-		<td><a href="<?= $id ?>/view"><?= $time['description'] ?></a></td>
-		<td><a href="<?= $id ?>/view"><?= $time['start_time']?date('Y-m-d H:i',$time['start_time']):''; ?></a></td>
-		<td><a href="<?= $id ?>/view"><?= $time['end_time']?date('Y-m-d H:i',$time['end_time']):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
-		<td><a href="<?= $id ?>/view"><?= $time['end_time']?round(($time['end_time']-$time['start_time'])/3600,2):'' ?></a></td>
-		<td><a href="<?= $id ?>/edit"><?= t(state_text($time['state'])) ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time->subject ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time->description ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time->start_time?date('Y-m-d H:i',$time->start_time):''; ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $time->end_time?round(($time->end_time-$time->start_time)/3600,2):'' ?></a></td>
+		<td><a href="<?= $id ?>/edit"><?= t(state_text($time->state)) ?></a></td>
 		<td>
-			<?php if ($time['end_time']) { ?>
+			<?php if ($time->end_time) { ?>
 			<a class="symbol" title="<?= t('edit') ?>" href="<?= $id ?>/edit"></a>
 			<?php } ?>
 			<a class="symbol" title="<?= t('drop') ?>" href="<?= $id ?>/drop"></a>

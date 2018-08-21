@@ -19,28 +19,198 @@
 						];
 	$TIME_PERMISSIONS = array(TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant');
 	
+	function get_or_create_db(){
+		$table_filename = 'times.db';
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create time/db directory!');
+		assert(is_writable('db'),'Directory time/db not writable!');
+		if (!file_exists('db/'.$table_filename)){
+			$db = new PDO('sqlite:db/'.$table_filename);
+	
+			$tables = [
+				'times'=>Timetrack::table(),
+				'task_times'=>Timetrack::task_table(),
+			];
+	
+			foreach ($tables as $table => $fields){
+				$sql = 'CREATE TABLE '.$table.' ( ';
+				foreach ($fields as $field => $props){
+					if ($field == 'UNIQUE') {
+						$field .='('.implode(',',$props).')';
+						$props = null;
+					}
+					$sql .= $field . ' ';
+					if (is_array($props)){
+						foreach ($props as $prop_k => $prop_v){
+							switch (true){
+								case $prop_k==='VARCHAR':
+									$sql.= 'VARCHAR('.$prop_v.') '; break;
+								case $prop_k==='DEFAULT':
+									$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
+								case $prop_k==='KEY':
+									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in time/controller.php!');
+									$sql.= 'PRIMARY KEY '; break;
+								default:
+									$sql .= $prop_v.' ';
+							}
+						}
+						$sql .= ", ";
+					} else $sql .= $props.", ";
+				}
+				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+				$query = $db->prepare($sql);
+				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
+			}
+		} else {
+			$db = new PDO('sqlite:db/'.$table_filename);
+		}
+		return $db;
+	}
+	
+	class Timetrack{
+		static function table(){
+			return [
+				'id'				=> ['INTEGERR','KEY'=>'PRIMARY'],
+				'user_id'			=> ['INT','NOT NULL'],
+				'subject'			=> ['VARCHAR'=>255,'NOT NULL'],
+				'description'		=> 'TEXT',
+				'start_time'		=> 'TIMESTAMP',
+				'end_time'			=> 'TIMESTAMP',
+				'state'				=> ['INT','NOT NULL','DEFAULT 10'],
+			];
+		}
+		
+		static function task_table(){
+			return [
+				'task_id'		=> ['INT','NOT NULL'],
+				'time_id'		=> ['INT','NOT NULL'],
+				'PRIMARY KEY'	=> '(task_id, time_id)',
+			];
+		}
+		
+		function load($options){
+			global $parsedown, $user;
+			$ids_only = isset($options['ids_only']) && $options['ids_only'];
+			
+			$sql = 'SELECT id,* FROM times';
+			$where = [];
+			$args = [];
+			
+			if (empty($options['task_ids'])) {
+				$where[] = 'user_id = ?';
+				$args[] = $user->id;
+			}
+			
+			if (isset($options['ids'])){
+				$ids = $options['ids'];
+				if (!is_array($ids)) $ids = [$ids];
+				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				$where[] = 'id IN ('.$qMarks.')';
+				$args = array_merge($args, $ids);
+			}
+			
+			if (isset($options['search'])){
+				$key = '%'.$options['search'].'%';
+				$where[] = ' (subject LIKE ? OR description LIKE ?)';
+				$args = array_merge($args,[$key,$key]);
+			}
+		
+			if (!empty($options['task_ids'])){
+				$ids = $options['task_ids'];
+				if (!is_array($ids)) $ids = [$ids];
+				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				$where[] = 'id IN (SELECT time_id FROM task_times WHERE task_id IN ('.$qMarks.'))';
+				$args = array_merge($args, $ids);
+			}
+			
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+			
+			if (isset($options['order'])){
+				switch ($options['order']){
+					case 'description':
+					case 'end_time':
+					case 'start_time':
+					case 'state':
+					case 'subject':
+						$sql .= ' ORDER BY '.$options['order'];
+				}
+			} else {
+				$sql .= ' ORDER BY state ASC, end_time DESC';
+			}
+		
+			$db = get_or_create_db();
+			//debug(query_insert($sql, $args),1);
+			$query = $db->prepare($sql);
+			//debug($query,1);
+			assert($query->execute($args),'Was not able to load times!');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			
+			$times = [];
+			$task_ids = [];
+			foreach ($rows as $row){
+				$time = new Timetrack();
+				$time->patch($row);
+				if ($parsedown) $time->description = $parsedown->parse($time->description);
+				unset($time->dirty);
+				$task_ids = array_merge($task_ids,$time->task_ids());
+				$times[$time->id] = $time;
+			}
+			$task_ids = array_unique($task_ids);
+			
+			$project_ids = [];
+			$tasks = request('task','json',['ids'=>$task_ids]);
+			$projects = request('project','json',['ids'=>array_keys($project_ids)]);
+			foreach ($tasks as &$task) $task['project'] = $projects[$task['project_id']];
+				
+			foreach ($times as &$time){
+				foreach ($time->tasks as $task_id => $dummy) {
+					$task = $tasks[$task_id];
+					$project_ids[$task['project_id']] = true;
+					$time->tasks[$task_id] = $task;
+				}
+			}
+			
+			return $times;
+		}
+		
+		function patch($data = array()){
+			if (!isset($this->dirty)) $this->dirty = [];
+			foreach ($data as $key => $val){
+				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+				$this->{$key} = $val;
+			}
+			return $this;
+		}
+		
+		function tasks(){
+			if (empty($this->tasks)) $this->task_ids();
+			$ids_of_missing_tasks = [];
+			foreach ($this->tasks as $task_id => $task) {
+				if (empty($task)) $ids_of_missing_tasks[] = $task_id;
+			}
+			if (!empty($ids_of_missing_tasks)){
+				debug('re-loading tasks');
+				$tasks = request('task','json',['ids'=>$ids_of_missing_tasks]);
+				foreach ($tasks as $task_id => $task) $this->tasks[$task_id] = $task;
+			}
+			return $this->tasks;
+		}
+		
+		function task_ids(){
+			if (empty($this->tasks)) {
+				$sql = 'SELECT task_id FROM task_times WHERE time_id = :tid';
+				$args = [':tid'=>$this->id];
+				$db = get_or_create_db();
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was not able to load task ids!');
+				$this->tasks = $query->fetchAll(INDEX_FETCH);
+			}
+			return array_keys($this->tasks);
+		}
+	}
+	
 	function state_text($state){
 		$t = TIME_STATES;
 		return $t[$state];
-	}
-
-	function get_or_create_db(){
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create time/db directory!');
-		assert(is_writable('db'),'Directory time/db not writable!');
-		if (!file_exists('db/times.db')){
-			$db = new PDO('sqlite:db/times.db');
-			$db->query('CREATE TABLE times (id INTEGER PRIMARY KEY,
-							user_id INTEGER NOT NULL,
-							subject VARCHAR(255) NOT NULL,
-							description TEXT,
-							start_time TIMESTAMP,
-							end_time TIMESTAMP,
-							state INT NOT NULL DEFAULT 10);');
-			$db->query('CREATE TABLE task_times (task_id INT NOT NULL, time_id INT NOT NULL, PRIMARY KEY(task_id, time_id));');
-		} else {
-			$db = new PDO('sqlite:db/times.db');
-		}
-		return $db;
 	}
 	
 	function appendDescription($time_id, $subject, $description){
@@ -193,5 +363,11 @@
 		foreach ($time_id as $id){
 			assert($query->execute([':state'=>$state,':uid'=>$user->id,':id'=>$id]),'Was not able to update state of time '.$id.'!');
 		}
+	}
+	
+	$parsedown = null;
+	if (file_exists('../lib/parsedown/Parsedown.php')){
+		include '../lib/parsedown/Parsedown.php';
+		$parsedown = Parsedown::instance();
 	}
 ?>
