@@ -46,9 +46,9 @@ include '../common_templates/messages.php';
 			<?= t('State')?></th><td><?= t($time->state()); ?>
 			<?php if ($time->end_time) { ?>
 			<span class="change_state">&rarr;
-				<a href="update_state?OPEN=2&returnTo=<?= location('*') ?>"><?= t('open')?></a> | 
-				<a href="update_state?PENDING=2&returnTo=<?= location('*') ?>"><?= t('pending')?></a> |
-				<a href="update_state?COMPLETED=2&returnTo=<?= location('*') ?>"><?= t('completed')?></a>
+				<a href="update_state?state=open&returnTo=<?= location('*') ?>"><?= t('open')?></a> | 
+				<a href="update_state?state=pending&returnTo=<?= location('*') ?>"><?= t('pending')?></a> |
+				<a href="update_state?state=complete&returnTo=<?= location('*') ?>"><?= t('completed')?></a>
 			</span>
 			<?php } ?>
 		</td>

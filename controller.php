@@ -291,17 +291,6 @@
 		}
 	}
 
-	function set_state($time_id = null,$state = TIME_STATUS_OPEN){
-		global $user;
-		assert($time_id !== null,'Invalid time id (null) submited to set_state!');
-		if (!is_array($time_id)) $time_id = [$time_id];
-		$db = get_or_create_db();
-		$query = $db->prepare('UPDATE times SET state = :state WHERE user_id = :uid AND id = :id');
-		foreach ($time_id as $id){
-			assert($query->execute([':state'=>$state,':uid'=>$user->id,':id'=>$id]),'Was not able to update state of time '.$id.'!');
-		}
-	}
-	
 	class Formatter{
 		function parse($text){
 			return str_replace("\n", '<br/>', $text);
