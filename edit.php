@@ -7,7 +7,7 @@ require_login('time');
 $time_id = param('id');
 if (!$time_id) error('No time id passed to view!');
 
-$time = Timetrack::load(['ids'=>$time_id,'single'=>true]);
+$time = Timetrack::load(['ids'=>$time_id]);
 
 if ($subject = post('subject')){
 	$time->update($subject,post('description'),post('start'),post('end'),post('state'))->save();

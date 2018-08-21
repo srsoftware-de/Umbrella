@@ -7,7 +7,7 @@ require_login('time');
 $time_id = param('id');
 if (!$time_id) error('No time id passed to view!');
 
-$time = Timetrack::load(['ids'=>$time_id,'single'=>true]);
+$time = Timetrack::load(['ids'=>$time_id]);
 
 $title = $time->subject.' - Umbrella';
 $documents = isset($services['invoice']) ? request('invoice','json',['times'=>$time_id]) : null;

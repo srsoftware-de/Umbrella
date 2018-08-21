@@ -259,12 +259,12 @@
 		function update($subject = null,$description = null,$start = null,$end = null,$state = TIME_STATUS_OPEN){
 			assert($subject !== null,'Subject must not be null!');
 			$start_time = strtotime($start);
-			assert($start_time !== false,'Invalid start time passed to update_time!');
+			assert($start_time !== false,'Invalid start time passed to time.update!');
 	
 			$end_time = strtotime($end);
 			if (!$end_time) $end_time = null;
 			if ($end_time === null) $state = TIME_STATUS_STARTED;
-			$this->patch(compact(['subject','description','start_time','end_time']));
+			$this->patch(compact(['subject','description','start_time','end_time','state']));
 			return $this;
 		}
 	}
