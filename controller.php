@@ -94,8 +94,7 @@
 		
 		static function load($options){
 			global $parsedown, $user;
-			$ids_only = isset($options['ids_only']) && $options['ids_only'];
-			
+
 			$sql = 'SELECT id,* FROM times';
 			$where = [];
 			$args = [];
@@ -248,6 +247,11 @@
 			return $this;
 		}
 		
+		function state(){
+			$t = TIME_STATES;
+			return $t[$this->state];
+		}
+		
 		function tasks(){
 			if (empty($this->tasks)) $this->task_ids();
 			$ids_of_missing_tasks = [];
@@ -285,97 +289,6 @@
 			$this->patch(compact(['subject','description','start_time','end_time','state']));
 			return $this;
 		}
-	}
-	
-	function state_text($state){
-		$t = TIME_STATES;
-		return $t[$state];
-	}
-	
-	function load_times($options = array()){
-		global $user;
-		$ids_only = isset($options['ids_only']) && $options['ids_only'];
-		
-		$sql = 'SELECT id,*';
-		$where = [];
-		$args = [];
-		
-		$select_by_task_ids = (isset($options['task_ids']) && !empty($options['task_ids']));
-		
-		$sql .= ' FROM times';
-		if (!$select_by_task_ids) {
-			$where[] = 'user_id = ?';
-			$args[] = $user->id;
-		}
-		
-		if (isset($options['ids'])){
-			$ids = $options['ids'];
-			if (!is_array($ids)) $ids = [$ids];
-			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$where[] = 'id IN ('.$qMarks.')';
-			$args = array_merge($args, $ids);
-		}
-		
-		if (isset($options['key'])){
-			$key = '%'.$options['key'].'%';
-			$where[] = ' (subject LIKE ? OR description LIKE ?)';
-			$args = array_merge($args,[$key,$key]);
-		}
-	
-		if ($select_by_task_ids){
-			$ids = $options['task_ids'];
-			if (!is_array($ids)) $ids = [$ids];
-			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$where[] = 'id IN (SELECT time_id FROM task_times WHERE task_id IN ('.$qMarks.'))';
-			$args = array_merge($args, $ids);
-		}
-		
-		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
-		
-		if (isset($options['order'])){
-			switch ($options['order']){
-				case 'description':
-				case 'end_time':
-				case 'start_time':
-				case 'state':
-				case 'subject':
-					$sql .= ' ORDER BY '.$options['order'];
-			}
-		} else {
-			$sql .= ' ORDER BY state ASC, end_time DESC';
-		}
-	
-		$db = get_or_create_db();
-		//debug(query_insert($sql, $args),1);
-		$query = $db->prepare($sql);
-		//debug($query,1);
-		assert($query->execute($args),'Was not able to load times!');
-		$times = $query->fetchAll(INDEX_FETCH);
-		
-		if (isset($options['single']) && $options['single']) {
-			foreach ($times as $time_id => $time){
-				$query = $db->prepare('SELECT task_id FROM task_times WHERE time_id = :tid');
-				assert($query->execute([':tid'=>$time_id]),'Was not able to load task ids associated with times!');
-				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-				foreach ($rows as $row) $time['task_ids'][] = $row['task_id'];
-				return $time;
-			}
-		}
-		
-		$count = count($times);
-		if ($count>0){
-			$qMarks = str_repeat('?,',$count-1).'?';
-			$query = $db->prepare('SELECT time_id,task_id FROM task_times WHERE time_id IN ('.$qMarks.')' );
-			assert($query->execute(array_keys($times)),'Was not able to load task ids associated with times!');
-		
-			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-			foreach ($rows as $row){
-				$time_id = $row['time_id'];
-				$times[$time_id]['task_ids'][] = $row['task_id'];
-			}
-		}
-		
-		return $times;
 	}
 
 	function set_state($time_id = null,$state = TIME_STATUS_OPEN){
