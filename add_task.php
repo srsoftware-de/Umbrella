@@ -8,15 +8,27 @@ $task_id = param('tid');
 if (!$task_id) error('No task id passed!');
 
 $task = request('task','json',['ids'=>$task_id]);
-$tracks = get_open_tracks($user->id);
+$times = Timetrack::load(['open'=>true]);
 
-$selected = post('timetrack');
-
-if (count($tracks)<1) $selected = start_time($user->id);
+$selected = null;
+if (count($times)<1) {
+	$selected = Timetrack::startNew();
+} else {
+	$sel_idx = post('timetrack');
+	switch ($sel_idx){
+		case null:
+			break;
+		case 0:
+			$selected = Timetrack::startNew();
+			break;
+		default:
+			$selected = $times[$sel_idx];
+	}
+}
 
 if ($selected !== null){
-	assign_task($task,$selected);
-	redirect($selected.'/view');
+	$selected->assign_task($task)->save();
+	redirect($selected->id.'/view');
 }
 
 include '../common_templates/head.php'; 
@@ -27,8 +39,8 @@ include '../common_templates/messages.php'; ?>
 	<fieldset><legend><?= t('Add Task "?" to Timetrack',$task['name']) ?></legend>
 		<fieldset><legend><?= t('Open timetracks') ?></legend>
 			<select name="timetrack">
-				<?php foreach ($tracks as $id => $track){ ?>
-				<option value="<?= $id ?>"><?= $track['subject'] ?></option>
+				<?php foreach ($times as $id => $track){ ?>
+				<option value="<?= $id ?>"><?= $track->subject ?></option>
 				<?php } ?>
 				<option value="0"><?= t('Start new time track')?></option>				
 			</select>

@@ -4,5 +4,5 @@ include '../bootstrap.php';
 include 'controller.php';
 require_login('time');
 
-start_time($user->id);
+Timetrack::startNew();
 redirect('index');

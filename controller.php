@@ -67,6 +67,11 @@
 	}
 	
 	class Timetrack{
+		static function startNew(){
+			global $user;
+			return (new Timetrack())->patch(['user_id'=>$user->id,'subject'=>t('started timetrack'),'start_time'=>time(),'state'=>TIME_STATUS_STARTED])->save();
+		}
+		
 		static function table(){
 			return [
 				'id'				=> ['INTEGERR','KEY'=>'PRIMARY'],
@@ -113,8 +118,12 @@
 			
 			if (isset($options['search'])){
 				$key = '%'.$options['search'].'%';
-				$where[] = ' (subject LIKE ? OR description LIKE ?)';
+				$where[] = '(subject LIKE ? OR description LIKE ?)';
 				$args = array_merge($args,[$key,$key]);
+			}
+			
+			if (isset($options['open']) && $options['open']){
+				$where[] = 'end_time IS NULL';
 			}
 		
 			if (!empty($options['task_ids'])){
@@ -175,6 +184,12 @@
 			return $times;
 		}
 		
+		function assign_task($task = null){
+			$this->patch(['description'=>$this->description."\n\n".$task['description'],'subject'=>$task['name']]);
+			$this->tasks[$task['id']] = $task;
+			return $this;
+		}
+		
 		function delete(){
 			$db = get_or_create_db();
 			$query = $db->prepare('DELETE FROM times WHERE id = :tid');
@@ -222,19 +237,13 @@
 				}			
 				$sql = 'INSERT INTO times ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 				$query = $db->prepare($sql);
-				debug(query_insert($query, $args),1);
-				assert($query->execute($args),'Was not able to insert new document');	
+				//debug(query_insert($query, $args),1);
+				assert($query->execute($args),'Was not able to insert new timetrack');
 				$this->id = $db->lastInsertId();
 			}
 			
-			if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
-				$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
-				$tags = [];
-				foreach ($raw_tags as $tag){
-					if (trim($tag) != '') $tags[]=$tag;
-				}
-				request('bookmark','add',['url'=>getUrl('document').$this->id.'/view','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
-			}
+			$query = $db->prepare('INSERT OR IGNORE INTO task_times (task_id, time_id) VALUES (:task, :time)');
+			foreach ($this->tasks as $task_id => $task) assert($query->execute(array(':task'=>$task_id,':time'=>$this->id)),'Was not able to assign task to timetrack.');
 			
 			return $this;
 		}
@@ -283,37 +292,6 @@
 		return $t[$state];
 	}
 	
-	function appendDescription($time_id, $subject, $description){
-		$db = get_or_create_db();
-		$query = $db->prepare('UPDATE times SET subject = :subject, description = IFNULL(description,"") || :desc WHERE id = :tid');
-		$args = [ ':subject' => $subject, ':desc' => $description."\n\n", ':tid'=>$time_id];
-		if (!$query->execute($args)) warn('Was not able to update timetrack description.');
-	}
-
-	function assign_task($task = null,$time_id = null){
-		appendDescription($time_id, $task['name'], $task['description']);
-		$db = get_or_create_db();
-		$query = $db->prepare('INSERT OR IGNORE INTO task_times (task_id, time_id) VALUES (:task, :time)');
-		assert($query->execute(array(':task'=>$task['id'],':time'=>$time_id)),'Was not able to assign task to timetrack.');
-	}
-
-	function start_time($user_id = null){
-		assert(is_numeric($user_id),'No valid user id passed to start_time');
-		$db = get_or_create_db();
-		$query = $db->prepare('INSERT INTO times (user_id, subject, start_time, state) VALUES (:uid, :subj, :start, :state)');
-		assert($query->execute(array(':uid'=>$user_id,':subj'=>t('started timetrack'),':start'=>time(),':state'=>TIME_STATUS_STARTED)),'Was not able to create new time entry!');
-		return $db->lastInsertId();
-	}
-
-	function drop_time($time_id = null){
-		assert(is_numeric($time_id),'No valid time id passed to drop_time');
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM times WHERE id = :tid');
-		assert($query->execute(array(':tid'=>$time_id)),'Was not able to drop time entry!');
-		$query = $db->prepare('DELETE FROM task_times WHERE time_id = :tid');
-		assert($query->execute(array(':tid'=>$time_id)),'Was not able to drop task_time entry!');		
-	}
-
 	function load_times($options = array()){
 		global $user;
 		$ids_only = isset($options['ids_only']) && $options['ids_only'];
@@ -398,15 +376,6 @@
 		}
 		
 		return $times;
-	}
-
-	function get_open_tracks($user_id = null){
-		assert(is_numeric($user_id),'No valid user id passed to get_open_tasks!');
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM times WHERE end_time IS NULL AND user_id = :uid');
-		assert($query->execute(array(':uid'=>$user_id)),'Was not able to read open time tracks.');
-		$tracks = $query->fetchAll(INDEX_FETCH);
-		return $tracks;
 	}
 
 	function set_state($time_id = null,$state = TIME_STATUS_OPEN){
