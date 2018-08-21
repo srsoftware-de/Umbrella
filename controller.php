@@ -152,7 +152,6 @@
 			foreach ($rows as $row){
 				$time = new Timetrack();
 				$time->patch($row);
-				if ($parsedown) $time->description = $parsedown->parse($time->description);
 				unset($time->dirty);
 				$task_ids = array_merge($task_ids,$time->task_ids());
 				$times[$time->id] = $time;
@@ -185,6 +184,52 @@
 			return $this;
 		}
 		
+		function save(){
+			global $user,$services;
+			$db = get_or_create_db();
+			if (isset($this->id)){
+				if (!empty($this->dirty)){
+					$sql = 'UPDATE times SET';
+					$args = [':id'=>$this->id];
+					foreach ($this->dirty as $field){
+						$sql .= ' '.$field.'=:'.$field.',';
+						$args[':'.$field] = $this->{$field};
+					}
+					$sql = rtrim($sql,',').' WHERE id = :id';
+					$query = $db->prepare($sql);
+					//debug(query_insert($query, $args),1);
+					assert($query->execute($args),'Was no able to update time in database!');
+					$this->dirty = [];
+				}
+			} else {
+				$known_fields = array_keys(Timetrack::table());
+				$fields = [];
+				$args = [];
+				foreach ($known_fields as $f){
+					if (isset($this->{$f})){
+						$fields[]=$f;
+						$args[':'.$f] = $this->{$f};
+					}
+				}			
+				$sql = 'INSERT INTO times ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+				$query = $db->prepare($sql);
+				debug(query_insert($query, $args),1);
+				assert($query->execute($args),'Was not able to insert new document');	
+				$this->id = $db->lastInsertId();
+			}
+			
+			if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
+				$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+				$tags = [];
+				foreach ($raw_tags as $tag){
+					if (trim($tag) != '') $tags[]=$tag;
+				}
+				request('bookmark','add',['url'=>getUrl('document').$this->id.'/view','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
+			}
+			
+			return $this;
+		}
+		
 		function tasks(){
 			if (empty($this->tasks)) $this->task_ids();
 			$ids_of_missing_tasks = [];
@@ -209,6 +254,18 @@
 				$this->tasks = $query->fetchAll(INDEX_FETCH);
 			}
 			return array_keys($this->tasks);
+		}
+		
+		function update($subject = null,$description = null,$start = null,$end = null,$state = TIME_STATUS_OPEN){
+			assert($subject !== null,'Subject must not be null!');
+			$start_time = strtotime($start);
+			assert($start_time !== false,'Invalid start time passed to update_time!');
+	
+			$end_time = strtotime($end);
+			if (!$end_time) $end_time = null;
+			if ($end_time === null) $state = TIME_STATUS_STARTED;
+			$this->patch(compact(['subject','description','start_time','end_time']));
+			return $this;
 		}
 	}
 	
@@ -369,9 +426,17 @@
 		}
 	}
 	
+	class Formatter{
+		function parse($text){
+			return str_replace("\n", '<br/>', $text);
+		}
+	}
+	
 	$parsedown = null;
 	if (file_exists('../lib/parsedown/Parsedown.php')){
 		include '../lib/parsedown/Parsedown.php';
 		$parsedown = Parsedown::instance();
+	} else {
+		$parsedown = new Formatter();
 	}
 ?>
