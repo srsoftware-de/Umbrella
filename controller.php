@@ -87,13 +87,14 @@
 			];
 		}
 		
-		function load($options){
+		static function load($options){
 			global $parsedown, $user;
 			$ids_only = isset($options['ids_only']) && $options['ids_only'];
 			
 			$sql = 'SELECT id,* FROM times';
 			$where = [];
 			$args = [];
+			$single = false;
 			
 			if (empty($options['task_ids'])) {
 				$where[] = 'user_id = ?';
@@ -101,11 +102,13 @@
 			}
 			
 			if (isset($options['ids'])){
-				$ids = $options['ids'];
-				if (!is_array($ids)) $ids = [$ids];
-				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				if (!is_array($options['ids'])) {
+					$single = true;
+					$options['ids'] = [$options['ids']];
+				}
+				$qMarks = str_repeat('?,', count($options['ids'])-1).'?';
 				$where[] = 'id IN ('.$qMarks.')';
-				$args = array_merge($args, $ids);
+				$args = array_merge($args, $options['ids']);
 			}
 			
 			if (isset($options['search'])){
@@ -167,8 +170,9 @@
 					$project_ids[$task['project_id']] = true;
 					$time->tasks[$task_id] = $task;
 				}
+				if ($single) return $time;
 			}
-			
+			if ($single) return null;
 			return $times;
 		}
 		
