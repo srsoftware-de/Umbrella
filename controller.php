@@ -175,6 +175,15 @@
 			return $times;
 		}
 		
+		function delete(){
+			$db = get_or_create_db();
+			$query = $db->prepare('DELETE FROM times WHERE id = :tid');
+			assert($query->execute(array(':tid'=>$this->id)),'Was not able to drop time entry!');
+			$query = $db->prepare('DELETE FROM task_times WHERE time_id = :tid');
+			assert($query->execute(array(':tid'=>$this->id)),'Was not able to drop task_time entry!');
+			unset($this->id);
+		}
+		
 		function patch($data = array()){
 			if (!isset($this->dirty)) $this->dirty = [];
 			foreach ($data as $key => $val){
@@ -389,21 +398,6 @@
 		}
 		
 		return $times;
-	}
-
-	function update_time($time_id = null,$subject = null,$description = null,$start = null,$end = null,$state = TIME_STATUS_OPEN){
-		assert(is_numeric($time_id),'Invalid time id passed to update_time!');
-		assert($subject !== null,'Subject must not be null!');
-		$start_time = strtotime($start);
-		assert($start_time !== false,'Invalid start time passed to update_time!');
-
-		$end_time = strtotime($end);
-		if (!$end_time) $end_time = null;
-		if ($end_time === null) $state = TIME_STATUS_STARTED;
-
-		$db = get_or_create_db();
-		$query = $db->prepare('UPDATE times SET subject = :sub, description = :desc, start_time = :start, end_time = :end, state = :state WHERE id = :tid');		
-		assert($query->execute(array(':tid'=>$time_id,':sub'=>$subject,':desc'=>$description,':start'=>$start_time,':end'=>$end_time, ':state' => $state)),'Was not able to update time entry');
 	}
 
 	function get_open_tracks($user_id = null){
