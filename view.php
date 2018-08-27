@@ -5,11 +5,11 @@ include 'controller.php';
 
 require_login('project');
 $show_confirm_question = false;
+
 if ($project_id = param('id')){
-	$project = load_projects(['ids'=>$project_id,'single'=>true]);	
+	$project = Project::load(['ids'=>$project_id]);
 	if ($project){
-		$user_ids = load_users($project);
-		$current_user_is_owner = $project['users'][$user->id]['permissions'] == PROJECT_PERMISSION_OWNER;
+		$current_user_is_owner = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
 
 		if ($remove_user_id = param('remove_user')){
 			if ($current_user_is_owner){
@@ -22,23 +22,22 @@ if ($project_id = param('id')){
 			} else error('You are not allowed to remove users from this project');
 		}
 
-		$users = request('user','json',['ids'=>$user_ids]);
 		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
 
-		if (param('note_added')) send_note_notification($project,$users);
+		if (param('note_added')) $project->send_note_notification();
 
-		if ($project['company_id'] > 0 && isset($services['company'])){
-			$project['company'] = request('company','json',['ids'=>$project['company_id']]);
+		if ($project->company_id > 0 && isset($services['company'])){
+			$project->company = request('company','json',['ids'=>$project->company_id]);
 		}
 
-		$title = t('Umprella: Project ?',$project['name']);
+		$title = t('Umprella: Project ?',$project->name);
 		$show_closed_tasks = param('closed') == 'show';
 
 		if (file_exists('../lib/parsedown/Parsedown.php')){
 			include '../lib/parsedown/Parsedown.php';
-			$project['description'] = Parsedown::instance()->parse($project['description']);
+			$project->description = Parsedown::instance()->parse($project->description);
 		} else {
-			$project['description'] = str_replace("\n", "<br/>", $project['description']);
+			$project->description = str_replace("\n", "<br/>", $project->description);
 		}
 	} else error('You are not member of this project!');
 } else error('No project id passed to view!');
@@ -110,20 +109,20 @@ if ($project){
 				<a class="symbol" title="<?= t('complete')?>" href="complete?redirect=../index"></a>
 				<a class="symbol" title="<?= t('cancel')?>" href="cancel?redirect=../index"></a>
 				<a class="symbol" title="<?= t('edit') ?>" href="edit"></a>
-				<a class="symbol" title="<?= t('add task')?>" href="../../task/add_to_project/<?= $project_id ?>"> </a>
+				<a class="symbol" title="<?= t('add task')?>" href="../../task/add_to_project/<?= $project->id ?>"> </a>
 				<a class="symbol" title="<?= t('add user')?>" href="add_user"></a>
 			</span>
-			<h1><?= $project['name'] ?></h1>
+			<h1><?= $project->name ?></h1>
 		</td>
 	</tr>
-	<?php if (isset($project['company'])) { ?>
+	<?php if (isset($project->company)) { ?>
 	<tr>
 		<th><?= t('Company') ?></th>
-		<td><a href="<?=getUrl('company')?>"><?= $project['company']['name'] ?></a></td>
+		<td><a href="<?=getUrl('company')?>"><?= $project->company['name'] ?></a></td>
 	</tr>
 	<?php } ?>
 	<tr>
-		<th><?= t('Description')?></th><td><?= $project['description']; ?></td>
+		<th><?= t('Description')?></th><td><?= $project->description; ?></td>
 	</tr>
 	<?php if ($est_time) { ?>
 	<tr>
@@ -135,9 +134,9 @@ if ($project){
 		<th><?= t('Related') ?></th>
 		<td>
 			<?php if (isset($services['files'])) { ?>
-			<a href="<?= getUrl('files','?path=project/'.$project_id) ?>"><span class="symbol"></span> <?= t('files') ?></a>&nbsp;
+			<a href="<?= getUrl('files','?path=project/'.$project->id) ?>"><span class="symbol"></span> <?= t('files') ?></a>&nbsp;
 			<?php }  if (isset($services['model'])) { ?>
-			<a href="<?= getUrl('model','?project='.$project_id) ?>"><span class="symbol"></span> <?= t('models') ?></a>&nbsp;
+			<a href="<?= getUrl('model','?project='.$project->id) ?>"><span class="symbol"></span> <?= t('models') ?></a>&nbsp;
 			<?php } ?>
 		</td>
 	</tr>
@@ -156,20 +155,20 @@ if ($project){
 			<?php if ($tasks) {
 				display_tasks($tasks, null);
 			} else { ?>
-			<a class="symbol" href="<?= getUrl('task','add_to_project/'.$project_id) ?>"></a>
-			<a href="<?= getUrl('task','add_to_project/'.$project_id) ?>"><?= t('add task') ?></a>
+			<a class="symbol" href="<?= getUrl('task','add_to_project/'.$project->id) ?>"></a>
+			<a href="<?= getUrl('task','add_to_project/'.$project->id) ?>"><?= t('add task') ?></a>
 			<?php } ?>
 		</td>
 	</tr>
-	<?php if ($project['users']){ ?>
+	<?php if ($project->users){ ?>
 	<tr>
 		<th><?= t('Users')?></th>
 		<td>
 			<ul>
-			<?php foreach ($project['users'] as $uid => $perms) { ?>
+			<?php foreach ($project->users as $uid => $usr) { ?>
 				<li>
-					<?= $users[$uid]['login'].' ('.t($PROJECT_PERMISSIONS[$perms['permissions']]).')'; ?>
-					<?php if ($current_user_is_owner && $uid != $user->id) { ?><a class="symbol" title="<?= t('remove ? from project',$users[$uid]['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
+					<?= $usr['data']['login'].' ('.t($PROJECT_PERMISSIONS[$usr['permission']]).')'; ?>
+					<?php if ($current_user_is_owner && $uid != $user->id) { ?><a class="symbol" title="<?= t('remove ? from project',$usr['data']['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
 				</li>
 			<?php } ?>
 			</ul>

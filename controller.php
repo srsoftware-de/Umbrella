@@ -83,7 +83,10 @@
 				foreach ($project->users as $id => $permission) $project->users[$id] = ['permission'=>$permission,'data'=>$users[$id]];
 			}
 			
-			if ($single) return null;
+			if ($single) {
+				if (empty($projects)) return null;
+				return reset($projects);
+			}
 			/*if (isset($options['users'])){
 				foreach ($projects as $pid => &$proj) $proj['users'] = connected_users(['ids'=>$pid]);
 			}*/
@@ -97,6 +100,19 @@
 				$this->{$key} = $val;
 			}
 			return $this;
+		}
+		
+		function send_note_notification(){
+			global $user;
+			$subject = t('? added a note.',$user->login);
+			$text = t("Open the following site to see the note on \"?\":\n\n?",[$this->name,getUrl('project',$this->id.'/view')]);
+			$recievers = [];
+			foreach ($this->users as $u) {
+				if ($user['data']['email'] == $u['email']) continue;
+				$recievers[] = $user['data']['email'];
+			}
+			send_mail($user->email, $recievers, $subject, $text);
+			info('Sent email notification to users of this project.');
 		}
 	}
 
@@ -250,13 +266,9 @@
 		} else $sql .= ' ORDER BY name COLLATE NOCASE';
 
 		$db = get_or_create_db();
-		//debug(query_insert($sql, $args),1);
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load projects!');
 		$projects = $query->fetchAll(INDEX_FETCH);
-		if (isset($options['users'])){
-			foreach ($projects as $pid => &$proj) $proj['users'] = connected_users(['ids'=>$pid]);
-		}
 		if ($single) return reset($projects);
 		return $projects;
 	}
@@ -317,18 +329,5 @@
 	function hour($date){
 		if ($date === null||$date == '') return null;
 		return strtotime($date) / 3600;
-	}
-	
-	function send_note_notification($project,$users){
-		global $user;
-		$subject = t('? added a note.',$user->login);
-		$text = t("Open the following site to see the note on \"?\":\n\n?",[$project['name'],getUrl('project',$project['id'].'/view')]);
-		$recievers = [];
-		foreach ($users as $u) {
-			if ($user->email == $u['email']) continue;
-			$recievers[] = $u['email'];
-		}
-		send_mail($user->email, $recievers, $subject, $text);
-		info('Sent email notification to users of this project.');
 	}
 ?>
