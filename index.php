@@ -5,9 +5,8 @@ include 'controller.php';
 
 $title = t('Umbrella: Projects');
 require_login('project');
-$projects = load_projects(['order'=>param('order')]);
-$all_user_ids = load_users($projects);
-$users = request('user','json',['ids'=>$all_user_ids]);
+
+$projects = Project::load(['order'=>param('order')]);
 $show_closed = param('closed') == 'show' || param('order') == 'status';
 $companies = isset($services['company']) ? request('company','json') : null;
 
@@ -30,28 +29,28 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Actions')?></th>
 	</tr>
 <?php foreach ($projects as $id => $project){
-	if (!$show_closed && $project['status']>50) continue;
+	if (!$show_closed && $project->status>50) continue;
 	?>
 	<tr>
-		<td><a href="<?= $id ?>/view"><?= $project['name'] ?></a></td>
+		<td><a href="<?= $id ?>/view"><?= $project->name ?></a></td>
 		<?php if ($companies) { ?>
-		<td><?php if (isset($companies[$project['company_id']])) {
-			$company = $companies[$project['company_id']]; ?>
+		<td><?php if (isset($companies[$project->company_id])) {
+			$company = $companies[$project->company_id]; ?>
 			<a href="<?= getUrl('company',$company['id'].'/view') ?>"><?= $company['name'] ?></a>
 			<?php } ?>
 		</td>
 		<?php }?>
-		<td><?= t(project_state($project['status'])) ?></td>
+		<td><?= t(project_state($project->status)) ?></td>
 		<td>
-		<?php foreach ($project['users'] as $uid => $perm) {?>
-		<?= $users[$uid]['login']?><br/>
+		<?php foreach ($project->users as $uid => $user) {?>
+		<?= $user['data']['login'] ?><br/>
 		<?php } ?>
 		</td>
 		<td>
 			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
-			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $project['status'] == PROJECT_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('cancel')?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $project['status'] == PROJECT_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('do open')?>"     href="<?= $id ?>/open?redirect=../index"     class="<?= $project['status'] == PROJECT_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $project->status == PROJECT_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('cancel')?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $project->status == PROJECT_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('do open')?>"     href="<?= $id ?>/open?redirect=../index"     class="<?= $project->status == PROJECT_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 		</td>
 	</tr>
 <?php } ?>

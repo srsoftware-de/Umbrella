@@ -5,6 +5,100 @@
 	const MODULE = 'Project';
 	
 	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');
+	
+	class Project{
+		static function load($options = []){
+			global $user;
+			$sql = 'SELECT id,* FROM projects';
+			
+			$where = ['id IN (SELECT project_id FROM projects_users WHERE user_id = ?)'];
+			$args = [$user->id];
+				
+			$single = false;
+			if (isset($options['ids'])){
+				$ids = $options['ids'];			
+				if (!is_array($ids)) {
+					$ids = [$ids];
+					$single = true;
+				}
+				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				$where[] ='id IN ('.$qMarks.')';
+				$args = array_merge($args, $ids); 
+			}
+	
+			if (isset($options['company_ids'])){
+				$ids = $options['company_ids'];
+				if (!is_array($ids)) $ids = [$ids];
+				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				$where[] = 'company_id IN ('.$qMarks.')';
+				$args = array_merge($args, $ids);			
+			}
+	
+			if (isset($options['key'])){
+				$key = '%'.$options['key'].'%';
+				$where = '(name LIKE ? OR description LIKE ?)';
+				$args = array_merge($args, [$key,$key]);
+			}
+	
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
+			
+			if (isset($options['order'])){
+				switch ($options['order']){
+					case 'status':
+						$sql .= ' ORDER BY '.$options['order'].' COLLATE NOCASE';
+						break;
+					case 'company':
+						$sql .= ' ORDER BY company_id DESC';
+						break;
+				}
+			} else $sql .= ' ORDER BY name COLLATE NOCASE';
+	
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to load projects!');
+			$projects = [];
+			$rows = $query->fetchAll(INDEX_FETCH);
+			foreach ($rows as $pid => $row){
+				$project = new Project();
+				$project->patch($row);
+				unset($project->dirty);
+				$projects[$pid] = $project;
+			}
+			$qMarks = str_repeat('?,', count($projects)-1).'?';
+			$sql = 'SELECT * FROM projects_users WHERE project_id IN ('.$qMarks.')';
+			$query = $db->prepare($sql);
+			assert($query->execute(array_keys($projects)),'Was not able to load project users!');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			
+			$uids = [];
+			foreach ($rows as $row){
+				$pid = $row['project_id'];
+				$uid = $row['user_id'];
+				$projects[$pid]->users[$uid] = $row['permissions'];
+				$uids[$uid] = true;
+			}
+			
+			$users = request('user','json',['ids'=>array_keys($uids)]);
+			foreach ($projects as &$project){
+				foreach ($project->users as $id => $permission) $project->users[$id] = ['permission'=>$permission,'data'=>$users[$id]];
+			}
+			
+			if ($single) return null;
+			/*if (isset($options['users'])){
+				foreach ($projects as $pid => &$proj) $proj['users'] = connected_users(['ids'=>$pid]);
+			}*/
+			return $projects;
+		}
+		
+		function patch($data = array()){
+			if (!isset($this->dirty)) $this->dirty = [];
+			foreach ($data as $key => $val){
+				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+				$this->{$key} = $val;
+			}
+			return $this;
+		}
+	}
 
 	function get_or_create_db(){
 		if (!file_exists('db')){
