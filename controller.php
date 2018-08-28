@@ -6,6 +6,54 @@
 	
 	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');
 	
+	function get_or_create_db(){
+		$table_filename = 'projects.db';
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create project/db directory!');
+		assert(is_writable('db'),'Directory project/db not writable!');
+		if (!file_exists('db/'.$table_filename)){
+			$db = new PDO('sqlite:db/'.$table_filename);
+	
+			$tables = [
+				'projects'=>Project::table(),
+				'projects_users'=>Project::users_table(),
+			];
+	
+			foreach ($tables as $table => $fields){
+				$sql = 'CREATE TABLE '.$table.' ( ';
+				foreach ($fields as $field => $props){
+					if ($field == 'UNIQUE'||$field == 'PRIMARY KEY') {
+						$field .='('.implode(',',$props).')';
+						$props = null;
+					}
+					$sql .= $field . ' ';
+					if (is_array($props)){
+						foreach ($props as $prop_k => $prop_v){
+							switch (true){
+								case $prop_k==='VARCHAR':
+									$sql.= 'VARCHAR('.$prop_v.') '; break;
+								case $prop_k==='DEFAULT':
+									$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
+								case $prop_k==='KEY':
+									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in project/controller.php!');
+									$sql.= 'PRIMARY KEY '; break;
+								default:
+									$sql .= $prop_v.' ';
+							}
+						}
+						$sql .= ", ";
+					} else $sql .= $props.", ";
+				}
+				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+				debug($sql);
+				$query = $db->prepare($sql);
+				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
+			}
+		} else {
+			$db = new PDO('sqlite:db/'.$table_filename);
+		}
+		return $db;
+	}
+	
 	class Project{
 		static function load($options = []){
 			global $user;
@@ -93,12 +141,107 @@
 			return $projects;
 		}
 		
+		static function table(){
+			return [
+				'id'=> [ 'INT', 'KEY'=>'PRIMARY' ],
+				'company_id' => 'INT',
+				'name' => [ 'VARCHAR'=>255, 'NOT NULL' ],
+				'description' => 'TEXT',
+				'status' => [ 'INT', 'DEFAULT'=>PROJECT_STATUS_OPEN ],
+			];
+		}
+		
+		static function users_table(){
+			return [
+				'project_id' => [ 'INT', 'NOT NULL' ],
+				'user_id' => [ 'INT', 'NOT NULL' ],
+				'permissions' => [ 'INT', 'DEFAULT'=>PROJECT_PERMISSION_OWNER ],
+				'PRIMARY KEY' => [ 'project_id', 'user_id' ],
+			];
+		}
+		
+		function addUser($new_user,$permission = PROJECT_PERMISSION_PARTICIPANT){
+			global $user;
+			assert(is_numeric($this->id),'project id must be numeric, is '.$project->id);
+			assert(is_array($new_user),'$new_user must be user object, is '.$new_user);
+			assert(is_numeric($permission),'permission must be numeric, is '.$permission);
+			$db = get_or_create_db();
+			$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
+			assert($query->execute(array(':pid'=>$this->id,':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign project to user!');
+			if (param('notify') == 'on'){
+				$sender = $user->email;
+				$reciever = $new_user['email'];
+				$subject = t('? added you to a project',$user->login);
+				$text = t('You have been added to the project "?": ?',[$this->name,getUrl('project',$this->id.'/view')]);
+				if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
+			}
+		}
+		
 		function patch($data = array()){
 			if (!isset($this->dirty)) $this->dirty = [];
 			foreach ($data as $key => $val){
 				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
 				$this->{$key} = $val;
 			}
+			return $this;
+		}
+		
+		public function save(){
+			$db = get_or_create_db();
+			$known_fields = array_keys(Project::table());
+			if (isset($this->id)){
+				
+				$sql = 'UPDATE projects SET';
+				$args = [];
+				
+				foreach ($this->dirty as $field){
+					if (in_array($field, $known_fields)){
+						$sql .= ' '.$field.'=:'.$field.',';
+						$args[':'.$field] = $this->{$field};
+					}
+				}
+				
+				if (!empty($args)){
+					$sql = rtrim($sql,',').' WHERE id = :id';
+					$args[':id'] = $this->id;
+					$query = $db->prepare($sql);
+					assert($query->execute($args),'Was no able to update project in database!');
+				}
+			} else {
+				$fields = [];
+				$args = [];
+				foreach ($known_fields as $f){
+					if (isset($this->{$f})){
+						$fields[]=$f;
+						$args[':'.$f] = $this->{$f};
+					}
+				}
+				$query = $db->prepare('INSERT INTO projects ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+				assert($query->execute($args),'Was not able to insert new project');
+		
+				$this->id = $db->lastInsertId();
+			}
+			
+			if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
+				$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
+				$tags = [];
+				foreach ($raw_tags as $tag){
+					if (trim($tag) != '') $tags[]=$tag;
+				}
+			
+				$url = getUrl('project',$id.'/view');
+				$hash = sha1($url);
+			
+				request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$this->name),'tags'=>$tags]);
+			
+				$users = connected_users(['ids'=>$id]);
+			
+				foreach ($users as $uid => $u){
+					if ($uid == $user->id) continue;
+					request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
+				}
+			}
+			
 			return $this;
 		}
 		
@@ -114,93 +257,6 @@
 			send_mail($user->email, $recievers, $subject, $text);
 			info('Sent email notification to users of this project.');
 		}
-	}
-
-	function get_or_create_db(){
-		if (!file_exists('db')){
-			assert(mkdir('db'),'Failed to create project/db directory!');
-		}
-		assert(is_writable('db'),'Directory project/db not writable!');
-		if (!file_exists('db/projects.db')){
-			$db = new PDO('sqlite:db/projects.db');
-			$db->query('CREATE TABLE projects (id INTEGER PRIMARY KEY, company_id INT, name VARCHAR(255) NOT NULL, description TEXT, status INT DEFAULT '.PROJECT_STATUS_OPEN.');');
-			$db->query('CREATE TABLE projects_users (project_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT 1, PRIMARY KEY(project_id, user_id));');
-		} else {
-			$db = new PDO('sqlite:db/projects.db');
-		}
-		return $db;
-	}
-
-	function add_project($name,$description = null,$company_id=null){
-		global $user,$services;
-		$db = get_or_create_db();
-		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
-		$query = $db->prepare('INSERT INTO projects (name, company_id, description, status) VALUES (:name, :cid, :desc, :state);');
-		assert($query->execute(array(':cid'=>$company_id,':name'=>$name,':desc'=>$description,':state'=>PROJECT_STATUS_OPEN)),'Was not able to create new project entry in  database');
-		$id = $db->lastInsertId();
-		$project = [
-			'id' => $id,
-			'name' => $name,
-			'description'=>$description,
-		];
-		add_user_to_project($project,['id'=>$user->id],PROJECT_PERMISSION_OWNER);
-
-		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
-			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
-			$tags = [];
-			foreach ($raw_tags as $tag){
-				if (trim($tag) != '') $tags[]=$tag;
-			}
-
-			$url = getUrl('project',$id.'/view');
-			$hash = sha1($url);
-
-			request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$name),'tags'=>$tags]);
-
-			$users = connected_users(['ids'=>$id]);
-
-			foreach ($users as $uid => $u){
-				if ($uid == $user->id) continue;
-				request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
-			}
-		}
-		return $project;
-	}
-
-	function update_project($id,$name,$description = null,$company_id = null){
-		global $services,$user;
-		$db = get_or_create_db();
-		assert(is_numeric($id),'invalid project id passed!');
-		assert($name !== null && trim($name) != '','Project name must not be empty or null!');
-		$query = $db->prepare('UPDATE projects SET company_id = :cid, name = :name, description = :desc WHERE id = :id;');
-		assert($query->execute(array(':id' => $id, ':cid'=>$company_id, ':name'=>$name,':desc'=>$description)),'Was not able to alter project entry in database');
-		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
-			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
-			$tags = [];
-			foreach ($raw_tags as $tag){
-				if (trim($tag) != '') $tags[]=$tag;
-			}
-			
-			$url = getUrl('project',$id.'/view');
-			$hash = sha1($url);
-				
-			request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$name),'tags'=>$tags]);
-
-			$users = connected_users(['ids'=>$id]);
-			
-			foreach ($users as $uid => $u){
-				if ($uid == $user->id) continue;			
-				request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
-			}
-		}
-	}
-
-	function set_project_state($project_id, $state){
-		$db = get_or_create_db();
-		assert(is_numeric($project_id),'invalid project id passed!');
-		assert(is_numeric($state),'invalid state passed!');
-		$query = $db->prepare('UPDATE projects SET status = :state WHERE id = :id;');
-		assert($query->execute(array(':state' => $state,':id'=>$project_id)),'Was not able to alter project state in database');
 	}
 
 	function connected_users($options = []){
@@ -273,47 +329,6 @@
 		return $projects;
 	}
 
-	function load_users(&$projects){
-		assert(is_array($projects),'No projects passed to load_project!');
-		$db = get_or_create_db();
-				
-		$user_ids = [];
-		$query = $db->prepare('SELECT user_id, permissions FROM projects_users WHERE project_id = :pid');
-
-		
-		if (isset($projects['id'])){
-			assert($query->execute([':pid'=>$projects['id']]));
-			$users = $query->fetchAll(INDEX_FETCH);
-			$projects['users'] = $users;
-			foreach ($users as $id => $permissions) $user_ids[$id] = true;
-		} else {
-			foreach ($projects as &$project){
-				assert($query->execute([':pid'=>$project['id']]));
-				$users = $query->fetchAll(INDEX_FETCH);
-				$project['users'] = $users;
-				foreach ($users as $id => $permissions) $user_ids[$id] = true;
-			}
-		}
-		return array_keys($user_ids);
-	}
-
-	function add_user_to_project($project = null,$new_user = null,$permission = PROJECT_PERMISSION_PARTICIPANT){
-		global $user;
-		assert(is_array($project),'project id must be numeric, is '.$project_id);
-		assert(is_array($new_user),'$new_user must be user object, is '.$new_user);
-		assert(is_numeric($permission),'permission must be numeric, is '.$permission);
-		$db = get_or_create_db();
-		$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
-		assert($query->execute(array(':pid'=>$project['id'],':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign project to user!');
-		if (param('notify') == 'on'){
-			$sender = $user->email;
-			$reciever = $new_user['email'];
-			$subject = t('? added you to a project',$user->login);
-			$text = t('You have been added to the project "?": ?',[$project['name'],getUrl('project',$project['id'].'/view')]);
-			if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
-		}
-	}
-	
 	function remove_user($project_id,$user_id){
 		global $user;
 		$db = get_or_create_db();

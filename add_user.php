@@ -6,21 +6,20 @@ include 'controller.php';
 require_login('project');
 
 if ($project_id = param('id')){
-	$project = load_projects(['ids'=>$project_id,'single'=>true]);
-	load_users($project);
-	$title = $project['name'].' - Umbrella';
+	$project = Project::load(['ids'=>$project_id]);
+	$title = $project->name.' - Umbrella';
 
 	// only project owner has allowance to add new users
-	$allowed = $project['users'][$user->id]['permissions'] == PROJECT_PERMISSION_OWNER;
+	$allowed = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
 	
 	if (!$allowed){
 		error('You are not allowed to edit the user list of this project!');
 		redirect(getUrl('project',$project_id.'/view'));
 	}
 	
-	$users = request('user','json');		
+	$users = request('user','json');
 	if ($new_uid = post('new_user_id')){
-		add_user_to_project($project,$users[$new_uid]);
+		$project->addUser($users[$new_uid]);
 		redirect('view');
 	}
 } else {
@@ -36,7 +35,7 @@ include '../common_templates/messages.php';
 
 if ($allowed){ ?>
 <form method="POST">
-	<fieldset><legend><?= t('Add user to ?',$project['name'])?></legend>
+	<fieldset><legend><?= t('Add user to ?',$project->name)?></legend>
 		<fieldset>
 			<select name="new_user_id">
 				<option value="" selected="true"><?= t('== Select a user ==')?></option>

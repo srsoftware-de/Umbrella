@@ -4,20 +4,18 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('project');
-$project_id = param('id');
-if (!$project_id) error('No project id passed to view!');
-
-
-if ($name = post('name')){
-	update_project($project_id,$name,post('description'),post('company'));
-	if ($redirect=param('redirect')){
-		redirect($redirect);
-	} else {
-		redirect('view');
+if ($project_id = param('id')){
+	$project = Project::load(['ids'=>$project_id]);
+	if ($name = post('name')){
+		$project->patch($_POST)->save();
+		if ($redirect=param('redirect')){
+			redirect($redirect);
+		} else {
+			redirect('view');
+		}
 	}
 }
 
-$project = load_projects(['ids'=>$project_id,'single'=>true]);
 $companies = isset($services['company']) ? request('company','json') : null;
 
 if (isset($services['bookmark'])){
@@ -36,21 +34,21 @@ include '../common_templates/messages.php'; ?>
 		<?php if ($companies) { ?>
 		<fieldset>
 			<legend><?= t('Company') ?></legend>
-			<select name="company">
+			<select name="company_id">
 				<option value="0"><?= t('== no company assigned =='); ?></option>
 				<?php foreach($companies as $company) { ?>
-				<option value="<?= $company['id'] ?>" <?= $company['id'] == $project['company_id']?'selected="true"':''?>><?= $company['name'] ?></option>
+				<option value="<?= $company['id'] ?>" <?= $company['id'] == $project->company_id ?'selected="true"':''?>><?= $company['name'] ?></option>
 				<?php } ?>
 			</select>
 		</fieldset>
 		<?php } ?>
 		<fieldset>
 			<legend><?= t('Name')?></legend>
-			<input type="text" name="name" value="<?= htmlspecialchars($project['name']); ?>"/>
+			<input type="text" name="name" value="<?= htmlspecialchars($project->name); ?>"/>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="description"><?= $project['description']?></textarea>
+			<textarea name="description"><?= $project->description ?></textarea>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset>

@@ -4,11 +4,15 @@ include '../bootstrap.php';
 include 'controller.php';
 require_login('project');
 
-$project_id = param('id');
-if (!$project_id) error('No project id passed!');
-set_project_state($project_id,PROJECT_STATUS_CANCELED);
-if ($redirect=param('redirect')){
-	redirect($redirect);
+if ($project_id = param('id')) {
+	$project = Project::load(['ids'=>$project_id]);
+	$project->patch(['status'=>PROJECT_STATUS_CANCELED])->save();
+	if ($redirect=param('redirect')){
+		redirect($redirect);
+	} else {
+		redirect('view');
+	}
 } else {
-	redirect('view');
+	error('No project id passed!');
+	redirect(getUrl('project'));
 }

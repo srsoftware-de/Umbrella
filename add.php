@@ -5,9 +5,10 @@ include 'controller.php';
 
 require_login('project');
 if ($name = post('name')){
-	$project = add_project($name,post('description'),post('company'));
+	$project = new Project();
+	$project->patch($_POST)->save()->addUser(['id'=>$user->id,'email'=>$user->email],PROJECT_PERMISSION_OWNER);
 	if (param('from') == 'task') die(json_encode($project)); // used for task-to-project conversion
-	redirect(getUrl('project',$project['id'].'/view'));
+	redirect(getUrl('project',$project->id.'/view'));
 }
 
 $companies = isset($services['company']) ? request('company','json') : null;
@@ -21,7 +22,7 @@ include '../common_templates/messages.php'; ?>
 		<?php if ($companies) { ?>
 		<fieldset>
 			<legend><?= t('Company')?></legend>
-			<select name="company">
+			<select name="company_id">
 				<option value=""><?= t('no company')?></option>
 			<?php foreach($companies as $company) { ?>
 				<option value="<?= $company['id'] ?>"><?= $company['name'] ?></a>
