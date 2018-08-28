@@ -14,4 +14,4 @@ if ($users = param('users')) {
 	if ($users == 'only') die(json_encode(connected_users($options)));
 	$options['users'] = $users;
 }
-die(json_encode(load_projects($options)));
+die(json_encode(Project::load($options)));
