@@ -55,6 +55,26 @@
 	}
 	
 	class Project{
+		static function connected_users($options = []){
+			global $user;
+			$sql = 'SELECT user_id,* FROM projects_users WHERE project_id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
+			$args = [$user->id];
+		
+			if (isset($options['ids'])){
+				$ids = $options['ids'];
+				if (!is_array($ids)) $ids = [$ids];
+				$qmarks = str_repeat('?,', count($ids)-1).'?';
+				$sql .= ' AND project_id IN ('.$qmarks.')';
+				$args = array_merge($args,$ids);
+			}
+		
+			$sql .= ' GROUP BY user_id';
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to read connected users.');
+			return $query->fetchAll(INDEX_FETCH);
+		}
+		
 		static function load($options = []){
 			global $user;
 			$sql = 'SELECT id,* FROM projects';
@@ -137,9 +157,6 @@
 				if (empty($projects)) return null;
 				return reset($projects);
 			}
-			/*if (isset($options['users'])){
-				foreach ($projects as $pid => &$proj) $proj['users'] = connected_users(['ids'=>$pid]);
-			}*/
 			return $projects;
 		}
 		
@@ -186,6 +203,18 @@
 				$this->{$key} = $val;
 			}
 			return $this;
+		}
+		
+		function remove_user($user_id){
+			global $user;
+			$db = get_or_create_db();
+		
+			request('task','withdraw_user',['project_id'=>$this->id,'user_id'=>$user_id]);
+		
+			$query = $db->prepare('DELETE FROM projects_users WHERE project_id = :pid AND user_id = :uid');
+			assert($query->execute([':pid'=>$this->id,':uid'=>$user_id]),'Was not able to remove user from project!');
+		
+			info('User has been removed from project.');
 		}
 		
 		public function save(){
@@ -237,7 +266,7 @@
 			
 				request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$this->name),'tags'=>$tags]);
 			
-				$users = connected_users(['ids'=>$this->id]);
+				$users = Project::connected_users(['ids'=>$this->id]);
 			
 				foreach ($users as $uid => $u){
 					if ($uid == $user->id) continue;
@@ -262,88 +291,6 @@
 		}
 	}
 
-	function connected_users($options = []){
-		global $user;
-		$sql = 'SELECT user_id,* FROM projects_users WHERE project_id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
-		$args = [$user->id];
-
-		if (isset($options['ids'])){
-			$ids = $options['ids'];
-			if (!is_array($ids)) $ids = [$ids];
-			$qmarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' AND project_id IN ('.$qmarks.')';
-			$args = array_merge($args,$ids);
-		}
-
-		$sql .= ' GROUP BY user_id';
-		$db = get_or_create_db();
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read connected users.');
-		return $query->fetchAll(INDEX_FETCH);
-	}
-
-	function load_projects($options = array()){
-		global $user;
-		$sql = 'SELECT id,* FROM projects WHERE id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
-		$args = [$user->id];
-		
-		$single = false;
-		if (isset($options['ids'])){
-			$ids = $options['ids'];			
-			if (!is_array($ids)) {
-				$ids = [$ids];
-				$single = true;
-			}
-			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' AND id IN ('.$qMarks.')';
-			$args = array_merge($args, $ids); 
-		}
-
-		if (isset($options['company_ids'])){
-			$ids = $options['company_ids'];
-			if (!is_array($ids)) $ids = [$ids];
-			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$sql .= ' AND company_id IN ('.$qMarks.')';
-			$args = array_merge($args, $ids);			
-		}
-
-		if (isset($options['key'])){
-			$key = '%'.$options['key'].'%';
-			$sql .= ' AND (name LIKE ? OR description LIKE ?)';
-			$args = array_merge($args, [$key,$key]);
-		}
-
-		if (isset($options['order'])){
-			switch ($options['order']){
-				case 'status':
-					$sql .= ' ORDER BY '.$options['order'].' COLLATE NOCASE';
-					break;
-				case 'company':
-					$sql .= ' ORDER BY company_id DESC';
-					break;
-			}
-		} else $sql .= ' ORDER BY name COLLATE NOCASE';
-
-		$db = get_or_create_db();
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load projects!');
-		$projects = $query->fetchAll(INDEX_FETCH);
-		if ($single) return reset($projects);
-		return $projects;
-	}
-
-	function remove_user($project_id,$user_id){
-		global $user;
-		$db = get_or_create_db();
-		
-		request('task','withdraw_user',['project_id'=>$project_id,'user_id'=>$user_id]);
-		
-		$query = $db->prepare('DELETE FROM projects_users WHERE project_id = :pid AND user_id = :uid');
-		assert($query->execute([':pid'=>$project_id,':uid'=>$user_id]),'Was not able to remove user from project!');
-		
-		info('User has been removed from project.');
-	}
-	
 	function hour($date){
 		if ($date === null||$date == '') return null;
 		return strtotime($date) / 3600;

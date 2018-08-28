@@ -14,7 +14,7 @@ if ($project_id = param('id')){
 		if ($remove_user_id = param('remove_user')){
 			if ($current_user_is_owner){
 				if (param('confirm')==='yes'){
-					remove_user($project_id,$remove_user_id);
+					$project->remove_user($remove_user_id);
 					unset($project['users'][$remove_user_id]);
 				} else {
 					$show_confirm_question = true;
