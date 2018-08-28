@@ -3,10 +3,11 @@
 	const MODULE = 'Bookmark';
 
 	function get_or_create_db(){
+		$table_filename = 'tags.db';
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create bookmark/db directory!');
 		assert(is_writable('db'),'Directory bookmark/db not writable!');
-		if (!file_exists('db/tags.db')){
-			$db = new PDO('sqlite:db/tags.db');
+		if (!file_exists('db/'.$table_filename)){
+			$db = new PDO('sqlite:db/'.$table_filename);
 	
 			$tables = [
 				'tags'=>Tag::table(),
@@ -18,7 +19,7 @@
 			foreach ($tables as $table => $fields){
 				$sql = 'CREATE TABLE '.$table.' ( ';
 				foreach ($fields as $field => $props){
-					if ($field == 'UNIQUE') {
+					if ($field == 'UNIQUE'||$field == 'PRIMARY KEY') {
 						$field .='('.implode(',',$props).')';
 						$props = null;
 					}
@@ -42,10 +43,10 @@
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 				$query = $db->prepare($sql);
-				assert($db->query($sql),'Was not able to create '.$table.' table in tags.db!');
+				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
-			$db = new PDO('sqlite:db/tags.db');
+			$db = new PDO('sqlite:db/'.$table_filename);
 		}
 		return $db;
 	}
@@ -149,7 +150,8 @@
 				
 				if ($single) return $b;
 				$bookmarks[$row['url_hash']] = $b;
-			} 
+			}
+			if ($single) return null;
 			return $bookmarks;
 		}
 		

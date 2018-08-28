@@ -13,7 +13,7 @@ if ($share_user = param('share_user_id')) {
 
 
 $id = param('id');
-if (!id) error('No tag passed to view!');
+if (!$id) error('No tag passed to view!');
 
 $tag = Tag::load(['tag'=>$id]);
 $users = load_connected_users();
@@ -33,7 +33,7 @@ include '../common_templates/messages.php'; ?>
 			<a class="symbol" href="../<?= $hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>			
 			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url ?></a>
 		</legend>
-		<a <?= $link['external']?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
+		<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
 		<div class="tags">		
 			<?php foreach ($bookmark->tags() as $tag){ ?>
 			<a class="button" href="../<?= $tag->tag ?>/view"><?= $tag->tag ?></a>

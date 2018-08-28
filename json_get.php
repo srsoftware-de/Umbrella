@@ -11,4 +11,4 @@ if (!$url_hash) {
 	} else error('No url or url hash passed!');
 }
 $bookmark = Bookmark::load(['url_hash'=>$url_hash]);
-echo $bookmark->json();
+if (!empty($bookmark)) echo $bookmark->json();
