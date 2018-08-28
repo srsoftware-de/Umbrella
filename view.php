@@ -7,7 +7,7 @@ require_login('project');
 $show_confirm_question = false;
 
 if ($project_id = param('id')){
-	$project = Project::load(['ids'=>$project_id]);
+	$project = Project::load(['ids'=>$project_id,'users'=>true]);
 	if ($project){
 		$current_user_is_owner = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
 

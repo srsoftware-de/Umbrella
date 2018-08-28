@@ -84,7 +84,7 @@
 	
 			if (isset($options['key'])){
 				$key = '%'.$options['key'].'%';
-				$where = '(name LIKE ? OR description LIKE ?)';
+				$where[] = '(name LIKE ? OR description LIKE ?)';
 				$args = array_merge($args, [$key,$key]);
 			}
 	
@@ -113,22 +113,24 @@
 				$projects[$pid] = $project;
 			}
 			$qMarks = str_repeat('?,', count($projects)-1).'?';
-			$sql = 'SELECT * FROM projects_users WHERE project_id IN ('.$qMarks.')';
-			$query = $db->prepare($sql);
-			assert($query->execute(array_keys($projects)),'Was not able to load project users!');
-			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			if (isset($options['users']) && $options['users']==true){
+				$sql = 'SELECT * FROM projects_users WHERE project_id IN ('.$qMarks.')';
+				$query = $db->prepare($sql);
+				assert($query->execute(array_keys($projects)),'Was not able to load project users!');
+				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+				
+				$uids = [];
+				foreach ($rows as $row){
+					$pid = $row['project_id'];
+					$uid = $row['user_id'];
+					$projects[$pid]->users[$uid] = $row['permissions'];
+					$uids[$uid] = true;
+				}
 			
-			$uids = [];
-			foreach ($rows as $row){
-				$pid = $row['project_id'];
-				$uid = $row['user_id'];
-				$projects[$pid]->users[$uid] = $row['permissions'];
-				$uids[$uid] = true;
-			}
-			
-			$users = request('user','json',['ids'=>array_keys($uids)]);
-			foreach ($projects as &$project){
-				foreach ($project->users as $id => $permission) $project->users[$id] = ['permission'=>$permission,'data'=>$users[$id]];
+				$users = request('user','json',['ids'=>array_keys($uids)]);
+				foreach ($projects as &$project){
+					foreach ($project->users as $id => $permission) $project->users[$id] = ['permission'=>$permission,'data'=>$users[$id]];
+				}
 			}
 			
 			if ($single) {

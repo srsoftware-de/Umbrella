@@ -4,4 +4,4 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_login('project');
-die(json_encode(load_projects()));
+die(json_encode(Project::load()));

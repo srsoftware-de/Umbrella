@@ -6,7 +6,7 @@ include 'controller.php';
 $title = t('Umbrella: Projects');
 require_login('project');
 
-$projects = Project::load(['order'=>param('order')]);
+$projects = Project::load(['order'=>param('order'),'users'=>true]);
 $show_closed = param('closed') == 'show' || param('order') == 'status';
 $companies = isset($services['company']) ? request('company','json') : null;
 

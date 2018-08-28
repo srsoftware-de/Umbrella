@@ -6,7 +6,7 @@ include 'controller.php';
 require_login('project');
 
 if ($project_id = param('id')){
-	$project = Project::load(['ids'=>$project_id]);
+	$project = Project::load(['ids'=>$project_id,'users'=>true]);
 	$title = $project->name.' - Umbrella';
 
 	// only project owner has allowance to add new users
