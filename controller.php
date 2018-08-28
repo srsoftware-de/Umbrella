@@ -189,6 +189,7 @@
 		}
 		
 		public function save(){
+			global $services,$user;
 			$db = get_or_create_db();
 			$known_fields = array_keys(Project::table());
 			if (isset($this->id)){
@@ -231,12 +232,12 @@
 					if (trim($tag) != '') $tags[]=$tag;
 				}
 			
-				$url = getUrl('project',$id.'/view');
+				$url = getUrl('project',$this->id.'/view');
 				$hash = sha1($url);
 			
 				request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$this->name),'tags'=>$tags]);
 			
-				$users = connected_users(['ids'=>$id]);
+				$users = connected_users(['ids'=>$this->id]);
 			
 				foreach ($users as $uid => $u){
 					if ($uid == $user->id) continue;
