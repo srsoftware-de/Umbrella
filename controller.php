@@ -1,7 +1,8 @@
-<?php
+<?php include '../bootstrap.php';
 
 const RAD = 0.01745329;
 const MODULE = 'Model';
+$title = t('Umbrella Model Management');
 
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create model/db directory!');
@@ -74,18 +75,7 @@ function markdown($text){
 	}
 }
 
-class BaseClass{
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-	}
-}
-
-class Connector extends BaseClass{
+class Connector extends UmbrellaObjectWithId{
 	/* static functions */
 	const DIR_IN = 0;
 	const DIR_OUT = 1;
@@ -203,7 +193,7 @@ class Connector extends BaseClass{
 	}
 }
 
-class ConnectorInstance extends BaseClass{
+class ConnectorInstance extends UmbrellaObjectWithId{
 	/* static functions */
 	static function fields(){
 		return [
@@ -351,7 +341,7 @@ class ConnectorInstance extends BaseClass{
 	}
 }
 
-class Flow extends BaseClass{
+class Flow extends UmbrellaObjectWithId{
 	/** static methods **/
 	const TO_CONNECTOR = 0;
 	const TO_TERMINAL = 1;
@@ -470,7 +460,7 @@ class Flow extends BaseClass{
 	}
 }
 
-class FlowInstance extends BaseClass{
+class FlowInstance extends UmbrellaObjectWithId{
 	/** static **/
 	
 	static function fields(){
@@ -591,7 +581,7 @@ class FlowInstance extends BaseClass{
 	}
 }
 
-class Model extends BaseClass{
+class Model extends UmbrellaObjectWithId{
 	/** static functions **/
 	static function fields(){
 		return [
@@ -739,20 +729,22 @@ class Model extends BaseClass{
 
 	public function save(){
 		$db = get_or_create_db();
+		$known_fields = array_keys(Model::fields());
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE models SET';
 				$args = [':id'=>$this->id];
-				foreach ($this->dirty as $field){
-					$sql .= ' '.$field.'=:'.$field.',';
-					$args[':'.$field] = $this->{$field};
+							foreach ($this->dirty as $field){
+					if (in_array($field, $known_fields)){
+						$sql .= ' '.$field.'=:'.$field.',';
+						$args[':'.$field] = $this->{$field};
+					}
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update model in database!');
 			}
 		} else {
-			$known_fields = array_keys(Model::fields());
 			$fields = [];
 			$args = [];
 			foreach ($known_fields as $f){
@@ -779,7 +771,7 @@ class Model extends BaseClass{
 	}
 }
 
-class Process extends BaseClass{
+class Process extends UmbrellaObjectWithId{
 	/** static functions **/
 	static function fields(){
 		return [
@@ -917,7 +909,7 @@ class Process extends BaseClass{
 	}
 }
 
-class ProcessInstance extends BaseClass{
+class ProcessInstance extends UmbrellaObjectWithId{
 	/** static functions **/
 	static function fields(){
 		return [
@@ -1267,7 +1259,7 @@ class ProcessInstance extends BaseClass{
 	}
 }
 
-class Terminal extends BaseClass{
+class Terminal extends UmbrellaObjectWithId{
 	const TERMINAL = 0;
 	const DATABASE = 1;
 	
@@ -1390,7 +1382,7 @@ class Terminal extends BaseClass{
 	}
 }
 
-class TerminalInstance extends BaseClass{
+class TerminalInstance extends UmbrellaObjectWithId{
 
 	/** static functions **/
 	static function fields(){

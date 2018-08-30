@@ -58,6 +58,7 @@ $translations = array(
 		'Tasks'=>'Aufgaben',
 		'This will also remove all flows from/to the connector. Are you sure?'=>'Dies wird auch Flüsse vom/zum Verbinder löschen. Sind Sie sicher?',
 		'Timetrack'=>'Zeiterfassung',
+		'Umbrella Model Management'=>'Umbrella Modellverwaltung',
 		'Users'=>'Benutzer',
 		'Y-m-d H:i:s'=>'d.m.Y H:i:s',
 		'Yes'=>'Ja',
