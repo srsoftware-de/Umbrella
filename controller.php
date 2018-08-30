@@ -1,5 +1,7 @@
-<?php
+<?php include '../bootstrap.php';
+
 const MODULE = 'Notes';
+$title = t('Umbrella Notes Management');
 
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create notes/db directory!');
@@ -43,7 +45,7 @@ function get_or_create_db(){
 
 }
 
-class Note{
+class Note extends UmbrellaObjectWithId{
 
 	static function load($options = []){
 		global $user;
@@ -150,16 +152,6 @@ class Note{
 		$this->note = $note;
 	}
 	
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-		if (empty($this->dirty)) unset($this->dirty);
-	}
-
 	function save(){
 		global $user;
 		$db = get_or_create_db();

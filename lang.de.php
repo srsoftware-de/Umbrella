@@ -19,6 +19,7 @@ $translations = array(
 		'Tasks'=>'Aufgaben',
 		'This will remove the following note:'=>'Sie sind dabei, die folgende Notiz zu löschen:',
 		'Timetrack'=>'Zeiterfassung',
+		'Umbrella Notes Management'=>'Umbrella Notizverwaltung',
 		'Use&nbsp;/ URI'=>'Verwendung&nbsp;/ URI',
 		'Users'=>'Benutzer',
 		'Yes'=>'Ja',

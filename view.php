@@ -1,14 +1,8 @@
-<?php $title = 'Umbrella Notes Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('notes');
 
 $options = ['ids' => param('id')];
-
-if ($order = param('order')) $options['order'] = $order;
-if (($limit = param('limit')) !== null) $options['limit'] = $limit;
 
 $note = Note::load($options);
 
@@ -17,8 +11,6 @@ if ($new_code = param('code')){
 	$note->save();
 	redirect($note->url());
 }
-
-
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
