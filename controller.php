@@ -1,6 +1,7 @@
-<?php
+<?php include '../bootstrap.php';
 
 const MODULE = 'Items';
+$title = t('Umbrella Item Management');
 
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create item/db directory!');
@@ -44,7 +45,7 @@ function get_or_create_db(){
 
 }
 
-class Item{
+class Item extends UmbrellaObjectWithId{
 	static function table(){
 		return [
 			'id'		=> ['INTEGER','KEY'=>'PRIMARY'],
@@ -109,15 +110,6 @@ class Item{
 			$items[$item->id] = $item;
 		}
 		return $items;
-	}
-
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
 	}
 
 	public function save(){

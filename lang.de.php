@@ -23,6 +23,7 @@ $translations = array(
 		'Tasks'=>'Aufgaben',
 		'Tax'=>'Steuersatz',
 		'Timetrack'=>'Zeiterfassung',
+		'Umbrella Item Management'=>'Umbrella Artikelverwaltung',
 		'Unit'=>'Einheit',
 		'Users'=>'Benutzer',
 );

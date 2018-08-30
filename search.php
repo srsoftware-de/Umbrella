@@ -1,7 +1,4 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('items');
 
@@ -11,7 +8,7 @@ $company = null;
 if ($company_id = param('company')){
 	$company = $companies[$company_id];
 }
-
+?>
 <fieldset class="companies">
 <?php
 	$order = param('order','code');

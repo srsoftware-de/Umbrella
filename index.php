@@ -1,7 +1,4 @@
-<?php $title = 'Umbrella Item Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('items');
 

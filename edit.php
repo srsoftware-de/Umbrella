@@ -1,9 +1,6 @@
-<?php $title = 'Umbrella Item Management';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
-
-require_login('invoice');
+require_login('items');
 
 if ($id = param('id')){
 	$item = Item::load(['ids'=>$id,'single'=>true]);
