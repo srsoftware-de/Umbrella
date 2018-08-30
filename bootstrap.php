@@ -396,6 +396,21 @@ function module_version(){
 	return '"'.MODULE.'" module ('.$_SESSION['modules'][MODULE].') - ';
 }
 
+class UmbrellaObject{
+	function patch($data = array()){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+		return $this;
+	}
+}
+
+class UmbrellaObjectWithId extends UmbrellaObject{
+	
+}
+
 assert_options(ASSERT_ACTIVE,   true);
 assert_options(ASSERT_BAIL,     false);
 assert_options(ASSERT_WARNING,  true);
