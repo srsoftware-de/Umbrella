@@ -1,9 +1,7 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('project');
+
 $show_confirm_question = false;
 
 if ($project_id = param('id')){

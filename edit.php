@@ -1,9 +1,7 @@
-<?php $title = 'Umbrella Project Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('project');
+
 if ($project_id = param('id')){
 	$project = Project::load(['ids'=>$project_id]);
 	if ($name = post('name')){

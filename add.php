@@ -1,9 +1,7 @@
-<?php $title = 'Umbrella Project Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('project');
+
 if ($name = post('name')){
 	$project = new Project();
 	$project->patch($_POST)->save()->addUser(['id'=>$user->id,'email'=>$user->email],PROJECT_PERMISSION_OWNER);

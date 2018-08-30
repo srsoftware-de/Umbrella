@@ -1,8 +1,9 @@
-<?php
+<?php include '../bootstrap.php';
 
 	const PROJECT_PERMISSION_OWNER = 1;
 	const PROJECT_PERMISSION_PARTICIPANT = 2;
 	const MODULE = 'Project';
+	$title = t('Umbrella Project Management');
 	
 	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');
 	
@@ -54,7 +55,7 @@
 		return $db;
 	}
 	
-	class Project{
+	class Project extends UmbrellaObjectWithId{
 		static function connected_users($options = []){
 			global $user;
 			$sql = 'SELECT user_id,* FROM projects_users WHERE project_id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
@@ -194,15 +195,6 @@
 				$text = t('You have been added to the project "?": ?',[$this->name,getUrl('project',$this->id.'/view')]);
 				if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
 			}
-		}
-		
-		function patch($data = array()){
-			if (!isset($this->dirty)) $this->dirty = [];
-			foreach ($data as $key => $val){
-				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-				$this->{$key} = $val;
-			}
-			return $this;
 		}
 		
 		function remove_user($user_id){

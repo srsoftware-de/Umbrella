@@ -1,7 +1,5 @@
-<?php $title = 'Umbrella Project Management';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
 require_login('project');
 
 if ($project_id = param('id')) {
