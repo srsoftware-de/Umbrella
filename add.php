@@ -1,10 +1,6 @@
-<?php
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('contact');
-
-$title = t('Umbrella: Contacts');
 
 if (post('EMAIL')){
 	$vcard = new VCard($_POST);

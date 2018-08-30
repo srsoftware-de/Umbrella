@@ -1,4 +1,4 @@
-<?php
+<?php include '../bootstrap.php';
 
 // all classes: __toString() creates human-readable string
 // all classes: __format() creates VCF-formatted string
@@ -7,6 +7,8 @@ const CRLF = "\r\n";
 const MULTILINE=true;
 const BEAUTY = true;
 const MODULE = 'Contact';
+
+$title = t('Umbrella Contact Management');
 
 function get_or_create_db(){
 	if (!file_exists('db')){

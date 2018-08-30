@@ -1,9 +1,5 @@
-<?php
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
-
-$title = t('Umbrella: Contacts');
 require_login('contact');
 
 $vcards = VCard::load();
