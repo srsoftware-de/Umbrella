@@ -397,7 +397,7 @@ function module_version(){
 }
 
 class UmbrellaObject{
-	function patch($data = array()){
+	function patch($data = []){
 		if (!isset($this->dirty)) $this->dirty = [];
 		foreach ($data as $key => $val){
 			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
@@ -408,7 +408,15 @@ class UmbrellaObject{
 }
 
 class UmbrellaObjectWithId extends UmbrellaObject{
-	
+	function patch($data = []){
+		if (!isset($this->dirty)) $this->dirty = [];
+		foreach ($data as $key => $val){
+			if ($key === 'id' && isset($this->id)) continue; // don't patch the id!
+			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
+			$this->{$key} = $val;
+		}
+		return $this;
+	}
 }
 
 assert_options(ASSERT_ACTIVE,   true);
