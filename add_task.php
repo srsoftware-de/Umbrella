@@ -1,7 +1,5 @@
-<?php $title = 'Umbrella Task Management';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
 require_login('time');
 
 $task_id = param('tid');

@@ -1,7 +1,5 @@
-<?php $title = 'Umbrella Time Tracking';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
 require_login('time');
 
 Timetrack::startNew();

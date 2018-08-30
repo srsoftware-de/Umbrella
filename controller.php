@@ -1,4 +1,4 @@
-<?PHp
+<?PHP include '../bootstrap.php';
 
 	const TIME_PERMISSION_OWNER = 1;
 	const TIME_PERMISSION_PARTICIPANT = 2;
@@ -18,6 +18,8 @@
 						 TIME_STATUS_STARTED => 'started'
 						];
 	$TIME_PERMISSIONS = array(TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant');
+	
+	$title = t('Umbrella Timetracking');
 	
 	function get_or_create_db(){
 		$table_filename = 'times.db';
@@ -66,7 +68,7 @@
 		return $db;
 	}
 	
-	class Timetrack{
+	class Timetrack extends UmbrellaObjectWithId{
 		static function startNew(){
 			global $user;
 			return (new Timetrack())->patch(['user_id'=>$user->id,'subject'=>t('started timetrack'),'start_time'=>time(),'state'=>TIME_STATUS_STARTED])->save();
@@ -196,15 +198,6 @@
 			$query = $db->prepare('DELETE FROM task_times WHERE time_id = :tid');
 			assert($query->execute(array(':tid'=>$this->id)),'Was not able to drop task_time entry!');
 			unset($this->id);
-		}
-		
-		function patch($data = array()){
-			if (!isset($this->dirty)) $this->dirty = [];
-			foreach ($data as $key => $val){
-				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-				$this->{$key} = $val;
-			}
-			return $this;
 		}
 		
 		function save(){

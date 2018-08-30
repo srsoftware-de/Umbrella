@@ -42,6 +42,7 @@ $translations = array(
 		'This will remove the time "?"'=>'Zeit "?" löschen?',
 		'Time'=>'Zeit',
 		'Timetrack'=>'Zeiterfassung',
+		'Umbrella Timetracking'=>'Umbrella Zeiterfassung',
 		'Users'=>'Benutzer',
 		'Yes'=>'ja',
 );
