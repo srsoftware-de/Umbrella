@@ -1,11 +1,14 @@
-<?php
+<?php include '../bootstrap.php';
+
 const MODULE = 'Document';
+$title = t('Umbrella Document Management');
 
 function get_or_create_db(){
+	$table_filename = 'documents.db';
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create document/db directory!');
 	assert(is_writable('db'),'Directory document/db not writable!');
-	if (!file_exists('db/documents.db')){
-		$db = new PDO('sqlite:db/documents.db');
+	if (!file_exists('db/'.$table_filename)){
+		$db = new PDO('sqlite:db/'.$table_filename);
 
 		$tables = [
 			'documents'=>Document::table(),
@@ -19,6 +22,10 @@ function get_or_create_db(){
 		foreach ($tables as $table => $fields){
 			$sql = 'CREATE TABLE '.$table.' ( ';
 			foreach ($fields as $field => $props){
+				if ($field == 'UNIQUE') {
+					$field .='('.implode(',',$props).')';
+					$props = null;
+				}
 				$sql .= $field . ' ';
 				if (is_array($props)){
 					foreach ($props as $prop_k => $prop_v){
@@ -39,10 +46,10 @@ function get_or_create_db(){
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 			$query = $db->prepare($sql);
-			assert($db->query($sql),'Was not able to create companies table in companies.db!');
+			assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
 		}
 	} else {
-		$db = new PDO('sqlite:db/documents.db');
+		$db = new PDO('sqlite:db/'.$table_filename);
 	}
 	return $db;
 }
@@ -63,7 +70,7 @@ function set_customer_number(&$vcard,$company){
 	if ($response == 'Ok') $response = request('company','edit/'.$company['id'],['company'=>['last_customer_number'=>$new_customer_number]]); // set customer number in company
 }
 
-class CustomerPrice{
+class CustomerPrice extends UmbrellaObject{
 	static function table(){
 		return [
 			'company_id'	=> ['INT','NOT NULL'],
@@ -86,15 +93,6 @@ class CustomerPrice{
 			return $customerPrice;
 		}
 		return null;
-	}
-	
-	public function patch($data = array(),$set_dirty = true){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-		return $this;
 	}
 	
 	public function save(){
@@ -129,7 +127,7 @@ class CustomerPrice{
 	}
 }
 
-class DocumentPosition{
+class DocumentPosition extends UmbrellaObject{
 	const UPDATE_REMAINING = true;
 	const SKIP_UPDATE = false;
 	
@@ -166,15 +164,6 @@ class DocumentPosition{
 			$new_position->patch([$field=>$value]);
 		}
 		return $new_position->save();
-	}
-
-	public function patch($data = array(),$set_dirty = true){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-		return $this;
 	}
 
 	public function save(){
@@ -258,7 +247,7 @@ class DocumentPosition{
 	
 }
 
-class CompanySettings{
+class CompanySettings extends UmbrellaObject{
 	function __construct($company_id,$doc_type_id){
 		$this->company_id = $company_id;
 		$this->document_type_id = $doc_type_id;
@@ -282,15 +271,6 @@ class CompanySettings{
 		foreach ($rows as $row) $companySettings->patch($row);
 		$companySettings->dirty = [];
 		return $companySettings;		
-	}
-	
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-		return $this;
 	}
 	
 	function applyTo(Document $document){
@@ -367,7 +347,7 @@ class CompanySettings{
 	}
 }
 
-class Document {
+class Document extends UmbrellaObjectWithId{
 	const STATE_NEW = 1;
 	const STATE_SENT = 2;
 	const STATE_DELAYED = 3;
@@ -585,15 +565,6 @@ class Document {
 		return $company_settings->type_mail_text;
 	}
 	
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-	}
-	
 	public function positions(){
 		if (!isset($this->positions)) $this->positions = DocumentPosition::load($this);
 		return $this->positions;
@@ -697,7 +668,7 @@ class Document {
 	}
 }
 
-class DocumentType{
+class DocumentType extends UmbrellaObjectWithId{
 	static function table(){
 		return [
 			'id'						=> ['INTEGER','KEY'=>'PRIMARY'],
@@ -749,15 +720,6 @@ class DocumentType{
 		return $types;
 	}
 
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
-	}
-
 	public function save(){
 		global $user;
 		$db = get_or_create_db();
@@ -791,7 +753,7 @@ class DocumentType{
 	}
 }
 
-class Template{
+class Template extends UmbrellaObjectWithId{
 	static function table(){
 		return [
 			'id'						=> ['INTEGER','KEY'=>'PRIMARY'],
@@ -822,15 +784,6 @@ class Template{
 		global $services;
 		if ($file_path !== null && isset($services['files'])) {
 			$this->template = request('files','download?file='.$file_path,null,false,NO_CONVERSSION);
-		}
-	}
-
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
 		}
 	}
 

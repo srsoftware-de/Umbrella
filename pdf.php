@@ -1,7 +1,6 @@
-<?php $title = 'Umbrella Document Management';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
+require_login('document');
 
 const RIGHT=0;
 const NEWLINE=1;

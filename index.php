@@ -1,9 +1,5 @@
-<?php
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
-
-$title = t('Umbrella: Document Management');
 require_login('document');
 
 $options = [];
