@@ -1,7 +1,7 @@
-<?php
-
+<?php include '../bootstrap.php';
 	const MODULE = 'Bookmark';
-
+	$title = 'Umbrella Bookmark Management';
+	
 	function get_or_create_db(){
 		$table_filename = 'tags.db';
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create bookmark/db directory!');
@@ -66,7 +66,7 @@
 	}
 	
 	
-	class Bookmark{
+	class Bookmark extends UmbrellaObject{
 		static function table(){
 			return [
 				'hash'				=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
@@ -145,7 +145,6 @@
 					if (strpos($b->url,$service['path']) === 0) $b->external = false;
 				}
 				
-				
 				unset($b->dirty);
 				
 				if ($single) return $b;
@@ -177,15 +176,6 @@
 					'timestamp'=>$this->timestamp,
 					'comment'=>$this->comment()->comment,
 					'tags'=>array_keys($this->tags())]);
-		}
-		
-		function patch($data = array()){
-			if (!isset($this->dirty)) $this->dirty = [];
-			foreach ($data as $key => $val){
-				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-				$this->{$key} = $val;
-			}
-			return $this;
 		}
 		
 		function save(){
@@ -227,7 +217,7 @@
 		}
 	}
 	
-	class Comment{
+	class Comment extends UmbrellaObject{
 		static function table(){
 			return [
 				'hash'				=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
@@ -286,15 +276,6 @@
 			return $this;
 		}
 		
-		function patch($data = array()){
-			if (!isset($this->dirty)) $this->dirty = [];
-			foreach ($data as $key => $val){
-				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-				$this->{$key} = $val;
-			}
-			return $this;
-		}
-		
 		function save(){
 			assert($this->comment !== null && $this->comment != '',t('Comment must not be empty'));
 			
@@ -309,7 +290,7 @@
 		}
 	}
 	
-	class Tag{
+	class Tag extends UmbrellaObject{
 		static function table(){
 			return [
 				'tag'				=> ['VARCHAR'=>255,'NOT NULL'],
@@ -378,15 +359,6 @@
 		function bookmarks(){
 			if (empty($this->bookmarks)) $this->bookmarks = Bookmark::load(['url_hash'=>$this->url_hashes]);
 			return $this->bookmarks;
-		}
-		
-		function patch($data = array()){
-			if (!isset($this->dirty)) $this->dirty = [];
-			foreach ($data as $key => $val){
-				if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-				$this->{$key} = $val;
-			}
-			return $this;
 		}
 		
 		function save(){

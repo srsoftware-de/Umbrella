@@ -1,7 +1,4 @@
-<?php $title = 'Umbrella Bookmark Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('bookmark');
 $tags = Tag::load(['order'=>'tag ASC']);

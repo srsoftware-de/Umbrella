@@ -1,7 +1,4 @@
-<?php $title = 'Umbrella Bookmark Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('bookmark');
 if ($url_hash = param('id')){
