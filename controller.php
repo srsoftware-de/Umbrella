@@ -1,6 +1,7 @@
-<?php
+<?php include '../bootstrap.php';
 
 const MODULE = 'Company';
+$title = 'Umbrella Company Management';
 
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create company/db directory!');
@@ -38,7 +39,7 @@ function get_or_create_db(){
 
 }
 
-class Company {
+class Company extends UmbrellaObjectWithId{
 	function __construct($name = null){
 		assert($name !== null,'Company name must not be empty');
 		$this->name = $name;
@@ -62,15 +63,6 @@ class Company {
 			'last_customer_number'	=> ['INT','DEFAULT'=>NULL],
 			'customer_number_prefix'=> ['VARCHAR'=>255],
 		];
-	}
-
-	function patch($data = array()){
-		if (!isset($this->dirty)) $this->dirty = [];
-		foreach ($data as $key => $val){
-			if ($key === 'id' && isset($this->id)) continue;
-			if (!isset($this->{$key}) || $this->{$key} != $val) $this->dirty[] = $key;
-			$this->{$key} = $val;
-		}
 	}
 
 	public function save(){

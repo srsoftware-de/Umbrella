@@ -1,6 +1,5 @@
 <?php
 
-include '../bootstrap.php';
 include 'controller.php';
 
 require_login('company');

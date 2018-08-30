@@ -1,15 +1,11 @@
-<?php $title = 'Umbrella Company Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('company');
 
 $id = param('id');
 $company = reset(Company::load($id));
 if ($data = param('company')){
-	$company->patch($data);
-	$company->save();
+	$company->patch($data)->save();
 }
 
 
