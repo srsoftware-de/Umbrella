@@ -1,9 +1,7 @@
-<?php $title = 'Umbrella Files';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('files');
+
 $rel_file = param('file');
 if (in_array($rel_file,['company','project','user/'.$user->id])){
 	error('You are not allowed to rename "?"!',$rel_file);

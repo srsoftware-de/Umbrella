@@ -1,4 +1,4 @@
-<?php
+<?php include '../bootstrap.php';
 
 	const FILE_PERMISSION_OWNER = 1;
 	const FILE_PERMISSION_READ  = 2;
@@ -7,7 +7,8 @@
 	const STORAGE = '/.storage';
 	const DS = '/';
 	const MODULE = 'Files';
-	
+
+	$title = 'Umbrella File Management';
 	static $projects = null;
 	static $companies = null;
 

@@ -1,9 +1,7 @@
-<?php $title = 'Umbrella Files';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('files');
+
 $path = param('path');
 $target = param('target');
 if ($target === null) redirect('index');
