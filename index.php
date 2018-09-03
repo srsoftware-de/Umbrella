@@ -32,8 +32,7 @@ include '../common_templates/messages.php'; ?>
 <table class="tasks list">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
-		<th><a href="?order=parent_task_id"><?= t('Parent task')?></a></th>
-		<th><a href="?order=project_id"><?= t('Project')?></a></th>
+		<th><a href="?order=project_id"><?= t('Project')?></a> / <a href="?order=parent_task_id"><?= t('Parent task')?></a></th>
 		<th><a href="?order=status"><?= t('Status')?></a></th>
 		<th><a href="?order=start_date"><?= t('Start')?></a></th>
 		<th><a href="?order=due_date"><?= t('Due')?></a></th>
@@ -55,14 +54,12 @@ include '../common_templates/messages.php'; ?>
 	<tr class="project<?= $task['project_id']?>">
 		<td class="<?= task_state($task['status'])?>"><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
 		<td>
-			<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
-			<a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a>
-			<?php } ?>
-		</td>
-		<td>
 			<span class="hover_h">
-			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a>&nbsp;<a href="#" class="symbol" onclick="return toggle('.project<?= $task['project_id'] ?>');"></a>&nbsp;<a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $task['project_id'] ?>)')"></a>
+			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a><a href="#" class="symbol" onclick="return toggle('.project<?= $task['project_id'] ?>');">&nbsp;</a><a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $task['project_id'] ?>)')">&nbsp;</a>
 			</span>
+			<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
+			: <a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a>
+			<?php } ?>
 		</td>
 		<td><?= t(task_state($task['status'])) ?></td>
 		<td><?= $task['start_date'] ?></td>
