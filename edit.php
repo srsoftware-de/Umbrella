@@ -190,6 +190,6 @@ include '../common_templates/messages.php'; ?>
 		<input type="submit" />
 	</fieldset>
 </form>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id,'form'=>false],false,NO_CONVERSSION);
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id,'form'=>false],false,NO_CONVERSION);
 
 include '../common_templates/closure.php'; ?>
