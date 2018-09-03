@@ -3,9 +3,12 @@ include 'controller.php';
 include '../bootstrap.php';
 
 require_login('rtc'); 
+warn('The RTC module is currently under development.');
+warn('Most functions will not work at the moment.');
 
 include '../common_templates/head.php';
-include '../common_templates/main_menu.php'; ?> 
+include '../common_templates/main_menu.php'; 
+include '../common_templates/messages.php'; ?>
 
 <fieldset>
 	<legend><?= t('WebRTC') ?></legend>
@@ -80,6 +83,11 @@ var peerConnectionConfig = {
 	'iceServers': [
 		{'urls': 'stun:stun.stunprotocol.org:3478'},
 		{'urls': 'stun:stun.l.google.com:19302'},
+		{
+		urls: 'turn:keawe.de:3478',
+		username: 'srichter',
+		credential: 'schwanzuslongus'
+	},
 	]
 };
 
@@ -109,6 +117,7 @@ function errorHandler(error) {
 function getUserMediaSuccess(stream) {
 	localStream = stream;
 	localVideo.srcObject = stream;
+	//remoteVideo.srcObject = stream;
 }
 
 function gotIceCandidate(event) {
@@ -121,6 +130,7 @@ function gotIceCandidate(event) {
 function gotRemoteStream(event) {
 	logtrace('got remote stream');
 	console.log(event.streams);
+	console.log(event.streams[0].getVideoTracks());
 	remoteVideo.srcObject = event.streams[0];
 }
 
