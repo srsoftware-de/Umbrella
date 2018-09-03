@@ -1,0 +1,1 @@
+<a class="symbol" title="<?= t('new chat') ?>" href="<?= getUrl('rtc','new')?>"></a>
