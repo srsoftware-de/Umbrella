@@ -15,7 +15,6 @@ function get_or_create_db(){
 
 		$tables = [
 			'channels'=>Channel::table(),
-			'channels_users'=>Channel::users_table(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -53,48 +52,51 @@ function get_or_create_db(){
 	return $db;
 }
 
-class Channel extends UmbrellaObjectWithId{
+class Channel extends UmbrellaObject{
 	static function table(){
 		return [
-			'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
-			'hash'				=> ['VARCHAR'=>255,'NOT NULL'],
-			'subject'			=> ['TEXT'],
-		];
-	}
-	
-	static function users_table(){
-		return [
-			'channel_id'	=> ['INT','NOT NULL'],
-			'user_id'		=> ['INT','NOT NULL'],
-			'UNIQUE'		=> ['channel_id','user_id'],
+			'users' => ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+			'hash'  => ['VARCHAR'=>255,'NOT NULL'],
 		];
 	}
 	
 	static function load($options = []){
 		global $services,$user;
-		$sql = 'SELECT * FROM channels LEFT JOIN channels_users ON channels.id = channels_users.channel_id';
-		$where = ['user_id = ?'];
-		$args = [$user->id];
-		$single = false;
+		
+		$sql = 'SELECT * FROM channels';
+		$where = ['users LIKE ?'];
+		$args = ['% '.$user->id.' %'];
+		
 		if (isset($options['search'])){
 			$where[] = 'subject LIKE ?';
 			$args[] = '%'.$options['search'].'%';
 		}
 		
 		$single = false;
-		if (isset($options['ids'])){
-			$ids = $options['ids'];			
-			if (!is_array($ids)) {
-				$ids = [$ids];
+		if (isset($options['users'])){
+			$users = $options['users'];
+			if (!is_array($users)) $users = explode(',',$users);
+			$users[] = $user->id;
+			$users = array_unique($users);
+			sort($users);
+			$where[] = 'users = ?';
+			$args[] = ' '.implode(' ',$users).' ';
+			$single = true;
+		}
+		
+		if (isset($options['hashes'])){
+			$hashes = $options['hashes'];
+			if (!is_array($hashes)) {
+				$hashes = [$hashes];
 				$single = true;
 			}
-			$qMarks = str_repeat('?,', count($ids)-1).'?';
-			$where[] ='id IN ('.$qMarks.')';
-			$args = array_merge($args, $ids);
+			$qMarks = str_repeat('?,', count($hashes)-1).'?';
+			$where[] ='hash IN ('.$qMarks.')';
+			$args = array_merge($args, $hashes);
 		}
 		
 		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
-			
+		
 		if (isset($options['order'])){
 			$order = is_array($options['order']) ? $options['order'] : [$options['order']];
 			$sql.= ' ORDER BY '.implode(', ',$order);
@@ -114,27 +116,27 @@ class Channel extends UmbrellaObjectWithId{
 		$channels = [];
 		foreach ($rows as $row){
 			$c = new Channel();
-			unset($row['user_id']);
+			$row['users'] = explode(' ',trim($row['users']));
 			$c->patch($row);
-			
 			unset($c->dirty);
-			
 			if ($single) return $c;
-			$channels[$row['id']] = $c;
+			$channels[$row['hash']] = $c;
 		}
 		if ($single) return null;
-		
-		$qMarks = empty($channels)?'':'?'.str_repeat(',?', count($channels)-1);
-		$args = array_keys($channels);
-		$sql = 'SELECT * FROM channels_users WHERE channel_id IN ('.$qMarks.')';
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to request channel user list!');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($rows as $row){
-			$cid = $row['channel_id'];
-			$channels[$cid]->users[] = $row['user_id'];
-		}
 		return $channels;
+	}
+	
+	function addUsers($users = []){
+		$this->users = array_unique(array_merge($this->users, $users));
+		sort($this->users);
+		$users = ' '.implode(' ',$this->users).' ';
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM channels WHERE hash = :hash OR users = :users');
+		$args = [':hash'=>$this->hash,':users'=>$users];
+		$query->execute($args);
+		$query = $db->prepare('INSERT OR IGNORE INTO channels (users, hash) VALUES (:users, :hash );');
+		assert($query->execute($args),'Was not able to update channel in database');
+		return $this;
 	}
 	
 	function open(){
@@ -142,49 +144,18 @@ class Channel extends UmbrellaObjectWithId{
 	}
 	
 	function save(){
-		global $services,$user;
+		global $user;
+		if (!in_array($user->id,$this->users)) $this->users[]=$user->id;
+		asort($this->users);
+		$users = ' '.implode(' ',$this->users).' ';
+		$this->patch(['hash'=>md5($users.'@'.time())]);
 		$db = get_or_create_db();
-		$known_fields = array_keys(Channel::table());
-		if (isset($this->id)){
-			
-			$sql = 'UPDATE channels SET';
-			$args = [];
-			
-			foreach ($this->dirty as $field){
-				if (in_array($field, $known_fields)){
-					$sql .= ' '.$field.'=:'.$field.',';
-					$args[':'.$field] = $this->{$field};
-				}
-			}
-			
-			if (!empty($args)){
-				$sql = rtrim($sql,',').' WHERE id = :id';
-				$args[':id'] = $this->id;
-				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update channel in database!');
-			}
-		} else {
-			if (empty($this->hash)) $this->patch(['hash'=>md5($this->subject.time())]);
-			
-			$fields = [];
-			$args = [];
-			foreach ($known_fields as $f){
-				if (isset($this->{$f})){
-					$fields[]=$f;
-					$args[':'.$f] = $this->{$f};
-				}
-			}
-			$query = $db->prepare('INSERT INTO channels ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
-			assert($query->execute($args),'Was not able to insert new channel');
-	
-			$this->id = $db->lastInsertId();
-			unset($this->dirty);
-		}
-		
-		$sql = 'INSERT OR IGNORE INTO channels_users (channel_id, user_id) VALUES (:cid, :uid)';
+		$sql = 'INSERT OR IGNORE INTO channels (users, hash) VALUES (:users, :hash );';
 		$query = $db->prepare($sql);
-		$query->execute([':cid'=>$this->id,':uid'=>$user->id]);
-		foreach ($this->users as $uid) $query->execute([':cid'=>$this->id,':uid'=>$uid]);
+		$args = [':hash'=>$this->hash,':users'=>$users];
+		assert($query->execute($args),'Was not able to store channel in database');
+		
+		unset($this->dirty);
 		return $this;
 	}
 	

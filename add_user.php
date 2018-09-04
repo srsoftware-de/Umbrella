@@ -2,30 +2,31 @@
 
 require_login('rtc');
 
-$subject = param('subject',t('new conversation'));
-if ($selected_users = param('users')){
-	$channel = new Channel();
-	$channel->patch(['users'=>$selected_users]);
-	$channel->save();
-	redirect(getUrl('rtc',$channel->hash.'/open'));
+if ($hash = param('id')){
+	$channel = Channel::load(['hashes'=>$hash]);
+	if ($users = param('users')) $channel->addUsers($users)->open();
+} else {
+	warn('No channel hash given!');
+	redirect(getUrl('rtc'));
 }
 
-$users_raw = request('user','json');
 $users = [];
-
+$users_raw = request('user','json');
 foreach ($users_raw as $uid => $u) $users[$uid] = $u['login'];
 asort($users,SORT_REGULAR|SORT_FLAG_CASE);
 
+
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php'; 
+include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Select users to invite to conversation')?></legend>
-		<?php foreach ($users as $uid => $login){ 
-			if ($uid == $user->id) continue; ?>
+		<legend><?= t('Add users to "?"',$channel->hash)?></legend>
+		<?php foreach ($users as $uid => $login){
+			if (in_array($uid, $channel->users)) continue; ?>
 			<label>
 				<input type="checkbox" name="users[]" value="<?= $uid ?>">
 				<?= $login ?>
