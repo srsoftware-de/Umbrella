@@ -166,16 +166,15 @@ class Channel extends UmbrellaObject{
 		$args=[];
 		if (empty($this->hash)){
 			$this->patch(['hash'=>md5($users.'@'.time())]);
-			$sql = 'INSERT OR IGNORE INTO channels (users, hash) VALUES (:users, :hash );';
-			$args = [':hash'=>$this->hash,':users'=>$users];			
+			$sql = 'INSERT OR IGNORE INTO channels (users, hash, invite_time) VALUES ( :users, :hash, :invite_time );';
 		} else {
 			if (!empty($this->dirty['users'])){
 				$query = $db->prepare('DELETE FROM channels WHERE users = :users');
 				$query->execute([':users'=>$users]);
 			}
 			$sql = 'UPDATE channels SET users = :users, invite_time = :invite_time WHERE hash = :hash';
-			$args = [':hash'=>$this->hash,':users'=>$users,':invite_time'=>$this->invite_time];
 		}
+		$args = [':hash'=>$this->hash,':users'=>$users,':invite_time'=>$this->invite_time];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to store channel in database');
 		
