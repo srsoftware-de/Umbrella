@@ -1,7 +1,7 @@
 <?php include '../bootstrap.php';
 
 const MODULE = 'Bookmark';
-$title = 'Umbrella Bookmark Management';
+$title = 'Umbrella Real Time Chat';
 
 warn('The RTC module is currently under development.');
 warn('Most functions will not work at the moment.');
@@ -57,6 +57,7 @@ class Channel extends UmbrellaObject{
 		return [
 			'users' => ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
 			'hash'  => ['VARCHAR'=>255,'NOT NULL'],
+			'invite_time' => ['INT','NOT NULL','DEFAULT'=>'0'],
 		];
 	}
 	
@@ -127,20 +128,32 @@ class Channel extends UmbrellaObject{
 	}
 	
 	function addUsers($users = []){
-		$this->users = array_unique(array_merge($this->users, $users));
-		sort($this->users);
-		$users = ' '.implode(' ',$this->users).' ';
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM channels WHERE hash = :hash OR users = :users');
-		$args = [':hash'=>$this->hash,':users'=>$users];
-		$query->execute($args);
-		$query = $db->prepare('INSERT OR IGNORE INTO channels (users, hash) VALUES (:users, :hash );');
-		assert($query->execute($args),'Was not able to update channel in database');
-		return $this;
+		$this->patch(['users'=>array_merge($this->users, $users)]);
+		return $this->invite($users,'https://meet.jit.si/'.$this->hash);
+		
+	}
+	
+	function invite($users,$url){
+		global $user;
+		
+		$users = request('user','json',['ids'=>$users]);
+		$recievers = [];
+		foreach ($users as $uid => $u){
+			if ($uid == $user->id) continue;
+			$recievers[] = $u['email'];
+		}
+		
+		$subject = t('? has invited you to a conversation',$user->login);
+		$message = t('Go to ? to join the conversation. Go to ? to see a list of your conversations.',[$url,getUrl('rtc')]);
+		send_mail($user->email,$recievers,$subject,$message);
+		return $this->patch(['invite_time'=>time()])->save();
 	}
 	
 	function open(){
-		redirect('https://meet.jit.si/'.$this->hash);
+		global $user;
+		$url = 'https://meet.jit.si/'.$this->hash;
+		if (empty($this->invite_time) || $this->invite_time < (time()-1800)) $this->invite($this->users,$url);
+		redirect($url);
 	}
 	
 	function save(){
@@ -148,11 +161,22 @@ class Channel extends UmbrellaObject{
 		if (!in_array($user->id,$this->users)) $this->users[]=$user->id;
 		asort($this->users);
 		$users = ' '.implode(' ',$this->users).' ';
-		$this->patch(['hash'=>md5($users.'@'.time())]);
 		$db = get_or_create_db();
-		$sql = 'INSERT OR IGNORE INTO channels (users, hash) VALUES (:users, :hash );';
+		$sql = null;
+		$args=[];
+		if (empty($this->hash)){
+			$this->patch(['hash'=>md5($users.'@'.time())]);
+			$sql = 'INSERT OR IGNORE INTO channels (users, hash) VALUES (:users, :hash );';
+			$args = [':hash'=>$this->hash,':users'=>$users];			
+		} else {
+			if (!empty($this->dirty['users'])){
+				$query = $db->prepare('DELETE FROM channels WHERE users = :users');
+				$query->execute([':users'=>$users]);
+			}
+			$sql = 'UPDATE channels SET users = :users, invite_time = :invite_time WHERE hash = :hash';
+			$args = [':hash'=>$this->hash,':users'=>$users,':invite_time'=>$this->invite_time];
+		}
 		$query = $db->prepare($sql);
-		$args = [':hash'=>$this->hash,':users'=>$users];
 		assert($query->execute($args),'Was not able to store channel in database');
 		
 		unset($this->dirty);

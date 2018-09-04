@@ -3,12 +3,7 @@
 require_login('rtc');
 
 $subject = param('subject',t('new conversation'));
-if ($selected_users = param('users')){
-	$channel = new Channel();
-	$channel->patch(['users'=>$selected_users]);
-	$channel->save();
-	redirect(getUrl('rtc',$channel->hash.'/open'));
-}
+if ($selected_users = param('users')) (new Channel())->patch(['users'=>$selected_users])->save()->open();
 
 $users_raw = request('user','json');
 $users = [];
