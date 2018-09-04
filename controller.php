@@ -3,9 +3,6 @@
 const MODULE = 'Bookmark';
 $title = 'Umbrella Real Time Chat';
 
-warn('The RTC module is currently under development.');
-warn('Most functions will not work at the moment.');
-
 function get_or_create_db(){
 	$table_filename = 'rtc.db';
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create rtp/db directory!');
@@ -165,7 +162,7 @@ class Channel extends UmbrellaObject{
 		$sql = null;
 		$args=[];
 		if (empty($this->hash)){
-			$this->patch(['hash'=>md5($users.'@'.time())]);
+			$this->patch(['hash'=>md5($users.'@'.time()),'invite_time'=>0]);
 			$sql = 'INSERT OR IGNORE INTO channels (users, hash, invite_time) VALUES ( :users, :hash, :invite_time );';
 		} else {
 			if (!empty($this->dirty['users'])){
