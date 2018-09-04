@@ -170,7 +170,12 @@ include '../common_templates/messages.php'; ?>
 	<?php } ?>
 	<?php if (isset($task['users']) && !empty($task['users'])){ ?>
 	<tr>
-		<th><?= t('Users')?></th>
+		<th>
+			<?= t('Users')?> 
+			<?php if (isset($services['rtc'])) { ?>
+			<a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task['users']))) ?>"></a>
+			<?php } ?>
+		</th>
 		<td>
 			<ul>
 			<?php foreach ($task['users'] as $uid => $u) { ?>
@@ -180,6 +185,7 @@ include '../common_templates/messages.php'; ?>
 					<?php if (
 						($task['users'][$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) 
 						&& $u['permissions'] != TASK_PERMISSION_OWNER){ ?>
+					<?php if (isset($services['rtc']) && $uid != $user->id) { ?><a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php } ?>
 					<a class="symbol" href="drop_user?uid=<?= $uid ?>"></a>
 					<?php } ?>
 				</li>
