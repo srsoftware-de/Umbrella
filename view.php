@@ -40,7 +40,6 @@ if ($project_id = param('id')){
 	} else error('You are not member of this project!');
 } else error('No project id passed to view!');
 
-
 function display_tasks($task_list,$parent_task_id){
 	global $show_closed_tasks,$project_id;
 	$first = true;
@@ -160,13 +159,20 @@ if ($project){
 	</tr>
 	<?php if ($project->users){ ?>
 	<tr>
-		<th><?= t('Users')?></th>
+		<th><?= t('Users')?>
+		<?php if (isset($services['rtc'])) { ?>
+		<a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($project->users))) ?>"></a>
+		<?php } ?>
+		</th>
 		<td>
 			<ul>
 			<?php foreach ($project->users as $uid => $usr) { ?>
 				<li>
 					<?= $usr['data']['login'].' ('.t($PROJECT_PERMISSIONS[$usr['permission']]).')'; ?>
-					<?php if ($current_user_is_owner && $uid != $user->id) { ?><a class="symbol" title="<?= t('remove ? from project',$usr['data']['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
+					<?php if ($uid != $user->id) {
+						if (isset($services['rtc'])) { ?><a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php }
+						if ($current_user_is_owner) { ?><a class="symbol" title="<?= t('remove ? from project',$usr['data']['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
+					<?php } // user matches?>
 				</li>
 			<?php } ?>
 			</ul>
