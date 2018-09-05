@@ -46,7 +46,7 @@ if ($action == 'delete'){?>
 			<span class="symbol">
 				<a href="../edit_process/<?= $process_id ?>" title="<?= t('edit')?>"></a>
 				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add inflow connector')?>"></a>
-				<a href="../add_connector_to_process/<?= $process_id ?>?direction=<?= Connector::DIR_OUT ?>" title="<?= t('add inflow connector')?>"></a>
+				<a href="../add_connector_to_process/<?= $process_id ?>?direction=<?= Connector::DIR_OUT ?>" title="<?= t('add outflow connector')?>"></a>
 				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add new child process')?>"></a>
 				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>
