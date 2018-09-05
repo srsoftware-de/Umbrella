@@ -14,6 +14,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
+		'Models' => 'Modelle',
 		'new conversation'=>'neue Unterhaltung',
 		'Notes'=>'Notizen',
 		'Select users to invite to conversation'=>'Nutzer auswählen, die zur Konversation eingeladen werden sollen',

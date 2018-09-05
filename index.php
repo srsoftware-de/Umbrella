@@ -21,7 +21,7 @@ include '../common_templates/messages.php'; ?>
 		<td><a target="_blank" href="<?= $base_url.$hash.'/open' ?>"><?= $hash ?></a></td>
 		<td>
 		<?php foreach ($channel->users() as $u){ ?> 
-			<span><?= $u['login']?></span>	
+			<div><?= $u['login']?></div>	
 		<?php }?>
 		</td>
 		<td>
