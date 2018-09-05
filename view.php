@@ -111,4 +111,5 @@ if ($action == 'delete'){?>
 		</td>
 	</tr>
 </table>
-<?php include '../common_templates/closure.php';
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'model:'.$model_id],false,NO_CONVERSION); 
+include '../common_templates/closure.php';
