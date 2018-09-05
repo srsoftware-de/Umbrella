@@ -110,6 +110,13 @@ if ($action == 'delete'){?>
 			</svg>
 		</td>
 	</tr>
-</table>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'model:'.$model_id],false,NO_CONVERSION); 
-include '../common_templates/closure.php';
+	<?php if (isset($services['notes'])) {
+		$notes = request('notes','html',['uri'=>'model:'.$model_id],false,NO_CONVERSION);
+		if ($notes){ ?>
+	<tr>
+		<th><?= t('Notes')?></th>
+		<td><?= $notes ?></td>
+	</tr>
+	<?php }}?>
+</table> 
+<?php include '../common_templates/closure.php';
