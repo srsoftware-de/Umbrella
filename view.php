@@ -50,7 +50,7 @@ if ($action == 'delete'){?>
 			<a href="<?= getUrl('project',$model->project_id.'/view'); ?>"><?= $model->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
-			<a class="symbol" title="show other models"   href="<?= getUrl('model').'?project='.$model->project_id ?>"></a>
+			<a class="symbol" title="<?= t('show other models') ?>"   href="<?= getUrl('model').'?project='.$model->project_id ?>"></a>
 			</td>
 	</tr>
 	<?php if ($model->description){ ?>
