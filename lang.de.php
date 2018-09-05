@@ -30,6 +30,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
+		'Models' => 'Modelle',
 		'move one level up'=>'eine Ebene nach oben gehen',
 		'NO'=>'Nein',
 		'Notes'=>'Notizen',
