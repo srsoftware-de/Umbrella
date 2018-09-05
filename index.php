@@ -59,6 +59,6 @@
 	Anschließend musst du nur noch die von dir gewählten Branches in der Datei config.php aktivieren, eine Vorlage dafür findest du in config.template.php.</p>
 </fieldset>
 <p>
-	<a class="button" href="task">Login</a>
+	<a class="button" href="project">Login</a>
 </p>
 <?php include 'common_templates/closure.php'; ?>
