@@ -33,6 +33,7 @@ $translations = array(
 		'Log out ?'=>'? ausloggen',
 		'Location'=>'Ort',
 		'locality'=>'Ort',
+		'Models' => 'Modelle',
 		'name'=>'Name',
 		'Notes'=>'Notizen',
 		'ORG'=>'Organisation',
