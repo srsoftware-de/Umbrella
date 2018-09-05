@@ -42,8 +42,8 @@ if ($action == 'delete'){?>
 		<th><?= t('Terminal')?></th>
 		<td>
 			<span class="right symbol">
-				<a href="../edit_terminal/<?= $terminal->id ?>"></a>
-				<a href="?action=delete"></a>
+				<a href="../edit_terminal/<?= $terminal->id ?>" title="<?= t('edit terminal') ?>"></a>
+				<a href="?action=delete" title="<?= t('delete terminal') ?>"></a>
 			</span>
 			<h1><?= $terminal->base->id ?></h1>
 		</td>
@@ -52,7 +52,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Model')?></th>
 		<td class="model">
 			<a href="<?= getUrl('model',$model->id.'/view'); ?>"><?= $model->name ?></a>
-			<a class="symbol" title="show other models"   href="<?= getUrl('model').'?project='.$terminal->base->project_id ?>"></a>
+			<a class="symbol" title="<?= t('show other models') ?>"   href="<?= getUrl('model').'?project='.$terminal->base->project_id ?>"></a>
 		</td>
 	</tr>
 	<tr>
