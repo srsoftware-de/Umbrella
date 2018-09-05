@@ -187,18 +187,18 @@ function param($name,$default = null){
 
 function info($message,$args = null){
 	if ($message === null) return;
-	$_SESSION['infos'][] = t($message,$args);
+	$_SESSION['infos'][crc32($message)] = t($message,$args);
 }
 
 function warn($message,$args = null){
 	if ($message === null) return;
-	$_SESSION['warnings'][] = t($message,$args);
+	$_SESSION['warnings'][crc32($message)] = t($message,$args);
 }
 
 
 function error($message,$args = null){
 	if ($message === null) return;
-	$_SESSION['errors'][] = t($message,$args);
+	$_SESSION['errors'][crc32($message)] = t($message,$args);
 }
 
 function debug($object,$die = false,$exclude = false){
