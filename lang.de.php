@@ -12,6 +12,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
+		'Models' => 'Modelle',
 		'No'=>'Nein',
 		'note'=>'Notiz',
 		'Notes'=>'Notizen',
