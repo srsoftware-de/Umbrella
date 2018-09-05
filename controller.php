@@ -33,7 +33,7 @@ function get_or_create_db(){
 							case $prop_k==='VARCHAR':
 								$sql.= 'VARCHAR('.$prop_v.') '; break;
 							case $prop_k==='DEFAULT':
-								$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
+								$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 							case $prop_k==='KEY':
 								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in document/controller.php!');
 								$sql.= 'PRIMARY KEY '; break;

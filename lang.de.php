@@ -65,6 +65,7 @@ $translations = array(
 		'Local court: ?'=>'Amtsgericht: ?',
 		'Log out ?'=>'? ausloggen',
 		'Manage templates' => 'Vorlagen verwalten',
+		'Models' => 'Modelle',
 		'move up'=>'nach oben verschieben',
 		'Net sum'=>'Summe (Netto)',
 		'new'=>'neu',
