@@ -45,7 +45,7 @@ if ($action == 'delete'){?>
 			<h1><?= $flow->base->id ?></h1>
 			<span class="symbol">
 				<a href="../edit_flow/<?= $flow_id ?>" title="<?= t('edit')?>"></a>
-				<a title="delete" href="?action=delete"></a>
+				<a title="<?= t('delete') ?>" href="?action=delete"></a>
 			</span>
 		</td>
 	</tr>
