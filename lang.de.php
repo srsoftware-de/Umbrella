@@ -24,6 +24,7 @@ $translations = array(
 		'Items'=>'Artikel',
 		'latest bookmarks'=>'neuste Lesezeichen',
 		'Log out ?'=>'? ausloggen',
+		'Models' => 'Modelle',
 		'New Url'=>'Neue Url:',
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
