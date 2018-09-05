@@ -55,6 +55,7 @@ $translations = array(
 		'Models' => 'Modelle',
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
+		'Notes for "?"'=>'Notizen zu "?"',
 		'outbound connector'=>'ausgehender Verbinder',
 		'Outflows'=>'ausgehende Datenströme',
 		'Process'=>'Prozess',

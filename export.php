@@ -109,6 +109,15 @@ $flows = [];?>
 		<?php	} // if databases ?>
 	</fieldset>
 	<?php } // foreach process ?>
+	
+	<?php if (isset($services['notes'])) {
+		$notes = request('notes','html',['form'=>false,'uri'=>'model:'.$model->id],false,NO_CONVERSION);
+		if ($notes){ ?>
+		<h2><?= t('Notes for "?"',$model->name) ?></h2>
+		<?= $notes ?>
+	<?php } }?>
+	
+	
 	<?php } // foreach $model ?>
 	
 	<?php 
@@ -154,10 +163,10 @@ $flows = [];?>
 		<?= markdown($flow->base->description) ?>
 	</fieldset>
 	<?php } ?>	
-	<?php if (isset($services['notes'])) {
+	<?php if ($project_id && isset($services['notes'])) {
 		$notes = request('notes','html',['form'=>false,'uri'=>'model:project:'.$project_id],false,NO_CONVERSION);
 		if ($notes){ ?>
-		<h2><?= t('Notes') ?></h2>
+		<h2><?= t('Notes for "?"',reset($models)->project['name']) ?></h2>
 		<?= $notes ?>
 		<?php } 
 	}?>
