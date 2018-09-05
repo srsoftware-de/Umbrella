@@ -60,7 +60,7 @@ if ($action == 'delete'){?>
 		<td class="project">
 			<a href="<?= getUrl('project',$model->project_id.'/view'); ?>"><?= $model->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a class="symbol" title="show project files"  href="<?= getUrl('files').'?path=project/'.$model->project_id ?>"target="_blank"></a>
+			<a class="symbol" title="<?= t('show project files') ?>"  href="<?= getUrl('files').'?path=project/'.$model->project_id ?>"target="_blank"></a>
 			</td>
 	</tr>
 	<?php if ($terminal->base->description){ ?>
