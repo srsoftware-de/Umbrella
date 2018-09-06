@@ -89,9 +89,16 @@ class Item extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		if (!empty($where)){
-			$sql .= ' WHERE '.implode(' AND ',$where);
+		if (!empty($options['search'])){
+			$key = '%'.$options['search'].'%';
+			$where[] = '(code LIKE ? OR name LIKE ? OR description LIKE ? OR unit LIKE ?)';
+			$args[] = $key;
+			$args[] = $key;
+			$args[] = $key;
+			$args[] = $key;
 		}
+		
+		if (!empty($where))$sql .= ' WHERE '.implode(' AND ',$where);
 		if (isset($options['order']) && array_key_exists($options['order'],static::table())) $sql .= ' ORDER BY '.$options['order'].' ASC';
 		$query = $db->prepare($sql);
 
