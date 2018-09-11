@@ -30,24 +30,7 @@ include '../common_templates/messages.php'; ?>
 			<th><a href="?order=type_id"><?= t('Document type') ?></a></th>
 			<th><?= t('Actions')?></th>
 		</tr>
-		<?php foreach ($documents as $id => $document){
-			if ($document->company_id != $cid) continue;
-
-			$type = $doc_types[$document->type_id];
-			
-			$successor = $type->next_type_id ? $doc_types[$type->next_type_id] : null;
-			$successors = null;
-			if ($successor) {
-				$successors = [];
-				while ($successor){
-					$successors[$successor->id] = $successor;
-					$successor = ($successor->next_type_id !== null && $successor->next_type_id != $successor->id) ? $doc_types[$successor->next_type_id] : null;
-				}
-			}
-			
-			$next_type_id = $doc_types[$document->type_id]->next_type_id;
-			$next_type = $next_type_id ? $doc_types[$next_type_id] : null;
-			?>
+		<?php foreach ($documents as $id => $document){ if ($document->company_id != $cid) continue; ?>
 		<tr>
 			<td><a href="<?= $document->id ?>/view"><?= $document->number ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->sum().' '.$document->currency ?></a></td>
@@ -58,7 +41,7 @@ include '../common_templates/messages.php'; ?>
 			<td><?php if ($document->state != Document::STATE_PAYED) { ?>
 				<form method="POST" action="<?= $document->id ?>/step">
 					<select name="type">
-					<?php foreach ($successors as $succ) { ?>
+					<?php foreach ($doc_types[$document->type_id]->successors() as $succ) { ?>
 						<option value="<?= $succ->id ?>"><?= t($succ->name) ?></option>
 					<?php }?>
 					</select>

@@ -751,6 +751,20 @@ class DocumentType extends UmbrellaObjectWithId{
 			$this->id = $db->lastInsertId();
 		}
 	}
+	
+	private static $all = [];
+	
+	public function successors(){
+		if (empty(DocumentType::$all)) DocumentType::$all = DocumentType::load();
+		$successors = [];
+		$succ_id = $this->next_type_id;
+		while ($succ_id){
+			$successor = DocumentType::$all[$succ_id];
+			$successors[$succ_id] = $successor;
+			$succ_id = ($successor->next_type_id == $succ_id) ? null : $successor->next_type_id;
+		}
+		return $successors;
+	}
 }
 
 class Template extends UmbrellaObjectWithId{

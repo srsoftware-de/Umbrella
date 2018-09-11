@@ -224,6 +224,15 @@ include '../common_templates/messages.php'; ?>
 				</select>
 			</label>
 		</fieldset>
+		
+		<fieldset class="steps">
+			<legend><?= t('Create successor document') ?></legend>
+			<ul>
+				<?php foreach ($document->type()->successors() as $type){ ?>
+				<li><a href="step?type=<?= $type->id ?>"><?= t('Create ?',t($type->name))?></a></li>
+				<?php }?>
+			</ul>
+		</fieldset>
 
 		<fieldset class="header">
 			<legend>
