@@ -192,7 +192,9 @@
 				$sender = $user->email;
 				$reciever = $new_user['email'];
 				$subject = t('? added you to a project',$user->login);
-				$text = t('You have been added to the project "?": ?',[$this->name,getUrl('project',$this->id.'/view')]);
+				$text = t('You have been added to the project "?": ?',[$this->name,getUrl('project',$this->id.'/view')])."\n";
+				$text .= t('This means you are now able to file bugs, add tasks to this projects and view the progress of this project.')."\n";
+				$text .= t('Navigate to the aforementioned linkt to login to the Umbrella Project Management Suite.');
 				if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
 			}
 		}
@@ -207,6 +209,7 @@
 			assert($query->execute([':pid'=>$this->id,':uid'=>$user_id]),'Was not able to remove user from project!');
 		
 			info('User has been removed from project.');
+			unset($this->users[$user_id]);
 		}
 		
 		public function save(){

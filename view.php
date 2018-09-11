@@ -13,7 +13,6 @@ if ($project_id = param('id')){
 			if ($current_user_is_owner){
 				if (param('confirm')==='yes'){
 					$project->remove_user($remove_user_id);
-					unset($project['users'][$remove_user_id]);
 				} else {
 					$show_confirm_question = true;
 				}
@@ -24,9 +23,7 @@ if ($project_id = param('id')){
 
 		if (param('note_added')) $project->send_note_notification();
 
-		if ($project->company_id > 0 && isset($services['company'])){
-			$project->company = request('company','json',['ids'=>$project->company_id]);
-		}
+		if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
 
 		$title = t('Umprella: Project ?',$project->name);
 		$show_closed_tasks = param('closed') == 'show';
@@ -91,8 +88,9 @@ include '../common_templates/messages.php';
 if ($project){
 	if ($show_confirm_question){ ?>
 <fieldset>
-	<legend><?= t('Confirm removal of "?" from project?',$users[$remove_user_id]['login'])?></legend>
-	<?= t('User will no longer have access to this projects. Task assigned to "?" will be assigned to you. Are you sure?',$users[$remove_user_id]['login'])?><br/>
+
+	<legend><?= t('Confirm removal of "?" from project?',$project->users[$remove_user_id]['data']['login'])?></legend>
+	<?= t('User will no longer have access to this projects. Task assigned to "?" will be assigned to you. Are you sure?',$project->users[$remove_user_id]['data']['login'])?><br/>
 	<a class="button" href="?remove_user=<?= $remove_user_id?>&confirm=yes"><?= t('Yes')?></a>
 	<a class="button" href="view"><?= t('No')?></a>
 </fieldset>
