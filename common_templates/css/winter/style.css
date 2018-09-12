@@ -22,6 +22,10 @@ input[type=text]{
 	width: 100%;
 }
 
+td.connectors form input{
+	width: 200px;
+}
+
 img#logo{
 	position: fixed;
 	top: 10px;
@@ -166,6 +170,7 @@ button {
 
 label.silent_box,
 .change_state,
+td.connectors button[type="submit"],
 input[type="submit"] {
 	clear: both;
 	float: right;

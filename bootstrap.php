@@ -3,6 +3,7 @@
 include 'config.php';
 
 define('INDEX_FETCH',PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
+const DS = '/';
 const NO_CONVERSION = 1;
 const ARRAY_CONVERSION = 2;
 const OBJECT_CONVERSION = 3;
@@ -265,7 +266,7 @@ function request($service = null,$path,$data = array(), $debug = false,$decode =
  * checks if a user is logged in and forces a login of not.
  */
 function require_login($service_name = null){
-	global $services,$user,$theme;
+	global $user,$theme;
 	if ($revoke = param('revoke')) die(revoke_token($revoke));
 	assert($service_name !== null,'require_login called without a service name!');
 	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
