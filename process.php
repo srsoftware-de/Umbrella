@@ -14,7 +14,7 @@ if (!$process_id){
 	redirect(getUrl('model'));
 }
 
- $model = Model::load(['ids'=>$model_id]);
+$model = Model::load(['ids'=>$model_id]);
 $process = $model->process_instances($process_id);
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
@@ -23,6 +23,17 @@ if ($action == 'delete' && param('confirm')=='true'){
 }
 
 $connectors = $process->connectors();
+
+if ($conn_names = param('connector_names')){
+	foreach ($conn_names as $conn_id => $name){
+		$connector = $connectors[$conn_id];
+		if ($connector->base->id == $name) continue;
+		unset($connector->base->id);
+		$connector->base->patch(['name' => $name])->save();
+		$connector->patch(['connector_id'=>$name])->save();
+	}
+}
+
 
 include '../common_templates/head.php';
 
@@ -90,11 +101,18 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Connectors')?></th>
 		<td class="connectors">
-			<ul>
-			<?php foreach ($process->connectors() as $conn) { ?>
-				<li title="<?= $conn->description ?>"><span class="symbol"><?= $conn->base->direction?'':''?></span> <?= $conn->base->id ?></li>
-			<?php } ?>
-			</ul>
+			<form method="POST">
+				<button type="submit"><?= t('update names')?></button>
+				<ul>
+				<?php foreach ($process->connectors() as $conn) { ?>
+					<li title="<?= $conn->description ?>">
+						<span class="symbol"><?= $conn->base->direction?'':''?></span>
+						<input type="text" name="connector_names[<?= $conn->id ?>]" value="<?= $conn->base->id ?>" />
+					</li>
+				<?php } ?>
+				</ul>
+				
+			</form>
 		</td>
 	</tr>
 	<?php } ?>
