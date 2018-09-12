@@ -1186,7 +1186,7 @@ class ProcessInstance extends UmbrellaObjectWithId{
 										$x2 = -$this->x + $top_process->x + $top_process->base->r * sin($end_connector->angle*RAD);
 										$y2 = -$this->y + $top_process->y - $top_process->base->r * cos($end_connector->angle*RAD);
 										
-										arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));										
+										arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
 										break;
 									}
 								}
@@ -1232,7 +1232,7 @@ class ProcessInstance extends UmbrellaObjectWithId{
 					} // foreach flow */
 				} // if draw arrows
 			?>
-			<a xlink:href="connect_<?= $conn->base->direction == Connector::DIR_IN ? 'in':'out' ?>/<?= $conn->id ?>">
+			<a xlink:href="<?= getUrl('model',$model->id.DS.'connect_'.($conn->base->direction == Connector::DIR_IN ? 'in':'out').DS.$conn->id) ?>">
 				<circle
 						class="connector"
 						cx="0"
