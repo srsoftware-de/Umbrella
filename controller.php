@@ -365,7 +365,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare('INSERT OR IGNORE INTO tags (tag, url_hash, user_id) VALUES (:tag, :hash, :uid)');
 			foreach ($this->url_hashes as $hash) {
-				$args = [':tag'=>$this->tag,':hash'=>$hash,':uid'=>$this->user_id];
+				$args = [':tag'=>strtolower($this->tag),':hash'=>$hash,':uid'=>$this->user_id];
 				$query->execute($args);
 			}
 			unset($this->dirty);
