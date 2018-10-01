@@ -278,8 +278,8 @@
 			$text = t("Open the following site to see the note on \"?\":\n\n?",[$this->name,getUrl('project',$this->id.'/view')]);
 			$recievers = [];
 			foreach ($this->users as $u) {
-				if ($user['data']['email'] == $u['email']) continue;
-				$recievers[] = $user['data']['email'];
+				if ($u['data']['email'] == $user->email) continue;
+				$recievers[] = $u['data']['email'];
 			}
 			send_mail($user->email, $recievers, $subject, $text);
 			info('Sent email notification to users of this project.');
