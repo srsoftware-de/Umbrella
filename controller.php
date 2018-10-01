@@ -1,10 +1,11 @@
 <?php
 
 	const TASK_PERMISSION_OWNER = 1;
-	const TASK_PERMISSION_PARTICIPANT = 2;
+	const TASK_PERMISSION_READ_WRITE = 2;
+	const TASK_PERMISSION_READ = 4;
 	const MODULE = 'Task';
 	
-	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owner',TASK_PERMISSION_PARTICIPANT=>'participant');
+	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owner',TASK_PERMISSION_READ_WRITE=>'read + write',TASK_PERMISSION_READ=>'read only');
 
 	function get_or_create_db(){
 		if (!file_exists('db')){
@@ -206,12 +207,12 @@
 			'due_date'=>$due_date,			
 		];
 		
-		add_user_to_task($task,['id'=>$user->id,'email'=>$user->email,'login'=>$user->login],TASK_PERMISSION_OWNER);
+		add_user_to_task($task,['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>TASK_PERMISSION_OWNER]);
 		$hash = isset($services['bookmark']) ? setTags($name,$task['id']) : false;
 		
 		foreach ($users as $id => $new_user) {
 			if ($id == $user->id) continue;
-			add_user_to_task($task,$new_user,TASK_PERMISSION_PARTICIPANT);
+			add_user_to_task($task,$new_user);
 			if ($hash) request('bookmark','index',['share_user_id'=>$id,'share_url_hash'=>$hash,'notify'=>false]);
 		}
 		return $task;
@@ -350,12 +351,13 @@
 		// check
 		assert(array_key_exists('id',$task),'$task array does not contain "id"');
 		assert(array_key_exists('id', $new_user),'$new_user array does not contain "id"');
-		assert(is_numeric($permission),'permission must be numeric, is '.$permission);
+		assert(array_key_exists('permission', $new_user),'$new_user array does not contain "permission"');
+		assert(is_numeric($new_user['permission']),'new_user[permission] must be numeric, is '.$new_user['permission']);
 		
 		// assign
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm);');
-		assert($query->execute(array(':tid'=>$task['id'],':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign task to user!');
+		assert($query->execute(array(':tid'=>$task['id'],':uid'=>$new_user['id'], ':perm'=>$new_user['permission'])),'Was not able to assign task to user!');
 		
 		
 		// share tags

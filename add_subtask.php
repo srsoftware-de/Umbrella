@@ -13,14 +13,20 @@ if (!$project_id) error('Was not able to determine project for this task!');
 
 $name = post('name');
 $description = post('description');
-$user_ids = param('users');
+$user_permissions = param('users');
 
 $project = request('project','json',['ids'=>$project_id,'users'=>'true']);
 $project_users = request('user','json',['ids'=>array_keys($project['users'])]);
 
 if ($name){
-	if (is_array($user_ids) && !empty($user_ids)){
-		$users = array_intersect_key($project_users, array_flip($user_ids));		
+	if (is_array($user_permissions) && !empty($user_permissions)){
+		$users = [];
+		foreach ($project_users as $uid => $u){
+			$perm = $uid == $user->id ? TASK_PERMISSION_OWNER : $user_permissions[$uid];
+			if ($perm == 0) continue;
+			$u['permission'] = $perm;
+			$users[$uid] = $u;
+		}
 		add_task($name,$description,$project_id,$parent_task_id, post('start_date'), post('due_date'),$users);
 		redirect('../'.$parent_task_id.'/view');
 	} else error('Selection of at least one user is required!');
@@ -53,11 +59,24 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Users') ?></legend>
-			<select name="users[]" multiple="true">
-			<?php foreach ($project_users as $id => $u){ ?>
-				<option value="<?= $id ?>" <?= ($id == $user->id)?'selected="true"':''?>><?= $u['login'] ?></option>
+			<table>
+				<tr>
+					<th><?= t('User')?></th>
+					<th title="<?= t('read + write')?>"><?= t('R/W')?></th>
+					<th title="<?= t('read only')?>"><?= t('R')?></th>
+					<th title="<?= t('no access')?>">–</th>
+				</tr>
+			<?php foreach ($project_users as $id => $u) { 
+				$owner = $id == $user->id;
+				?>
+				<tr>
+					<td><?= $u['login']?></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= TASK_PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked"':'' ?>/></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>"    value="<?= TASK_PERMISSION_READ ?>" /></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>"    value="0" <?= $owner?'':'checked="checked"' ?>/></td>
+				</tr>
 			<?php } ?>
-			</select>
+			</table>
 			<label>
 				<input type="checkbox" name="notify" checked="true" />
 				<?= t('notify users') ?>
