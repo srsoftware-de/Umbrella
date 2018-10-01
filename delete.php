@@ -19,7 +19,6 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; 
 
 ?>
@@ -31,8 +30,9 @@ include '../common_templates/messages.php';
 	<?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?>
 </fieldset>
 <?= t('Are you sure?')?><br/>
-<a href="?confirm=yes<?= $target?('&redirect='.$target):''?>" class="button"><?= t('Yes')?></a>
+<a href="?confirm=yes<?= empty($target)?'':('&redirect='.$target)?>" class="button"><?= t('Yes')?></a>
 <a href="view" class="button"><?= t('No')?></a>
 
-<?php } ?>
-<?php include '../common_templates/bottom.php';
+<?php }
+
+include '../common_templates/closure.php';
