@@ -17,9 +17,10 @@ $project_permissions = request('project','json',['ids'=>$task['project_id'],'use
 
 // load user data
 $project_users = request('user','json',['ids'=>array_keys($project_permissions)]);
-load_users($task,$project_users); // add users to task
 
-foreach ($task['users'] as $uid => $task_user) unset($project_users[$uid]);
+foreach ($project_users as $uid => &$usr) $usr['permission'] = $project_permissions[$uid]['permissions'];
+
+load_users($task,$project_users); // add users to task
 
 $title = $task['name'].' - Umbrella';
 
@@ -36,13 +37,14 @@ if (empty($project_users)) {
 	redirect('view');
 }
 
-if ($new_user = param('new_user')){
-	if (array_key_exists($new_user, $project_users)){ // only users of the project may be added to the task
-		add_user_to_task($task,$project_users[$new_user]);
-		redirect('view');
-	} else {
-		error('You are not allowed to add users to this task, who are not member of the project.');
+if ($users = param('users')){
+	$users = array_intersect_key($users,$project_users); // only users of the project may be added to the task
+	foreach ($users as $uid => $dummy){
+		$u = $project_users[$uid];
+		$u['permission'] = $users[$uid]['permission'];
+		add_user_to_task($task,$u);
 	}
+	redirect('view');
 }
 
 include '../common_templates/head.php';
@@ -52,20 +54,31 @@ include '../common_templates/messages.php';
 if ($allowed){ ?>
 <h1><?= t('Add user to "?"',$task['name']) ?></h1>
 <form method="POST">
-	<fieldset><legend><?= t('Add user to task') ?></legend>
-		<fieldset>
-			<select name="new_user">
-				<?php if (count($project_users)>1) { ?>
-					<option value="" selected="true"><?= t('= Select a user =') ?>'</option>
-				<?php }
-					foreach ($project_users as $id => $u){ ?>
-				<option value="<?= $id ?>"><?= $u['login']?></option>
-				<?php }?>
-			</select>
-			<label>
+	<fieldset>
+		<legend><?= t('Add user to task') ?></legend>
+		<table>
+			<tr>
+				<th><?= t('User')?></th>
+				<th title="<?= t('owner')?>"><?= t('owner')?></th>
+				<th title="<?= t('read + write')?>"><?= t('R/W')?></th>
+				<th title="<?= t('read only')?>"><?= t('R')?></th>
+				<th title="<?= t('no access')?>">–</th>
+			</tr>
+			<?php foreach ($project_users as $id => $u) { 
+				$perm = isset($task['users'][$id]) ? $task['users'][$id]['permissions'] : 0; 
+			?>
+			<tr>
+				<td><?= $u['login']?></td>
+				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('owner')?>" value="<?= TASK_PERMISSION_OWNER ?>" <?= $perm == TASK_PERMISSION_OWNER ? 'checked="checked"':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= TASK_PERMISSION_READ_WRITE ?>" <?= $perm == TASK_PERMISSION_READ_WRITE ? 'checked="checked"':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>"    value="<?= TASK_PERMISSION_READ ?>" <?= $perm == TASK_PERMISSION_READ ? 'checked="checked"':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>"    value="0" <?= $perm == 0 ? 'checked="checked"':'' ?>/></td>
+			</tr>
+			<?php } ?>
+		</table>
+		<p>
 			<input type="checkbox" name="notify" checked="true"><?= t('notify user') ?>
-			</label>
-		</fieldset>
+		</p>
 		<button type="submit"><?= t('add user') ?></button>
 	</fieldset>
 </form>

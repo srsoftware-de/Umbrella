@@ -346,7 +346,7 @@
 		$task['users'] = $users;		
 	}
 	
-	function add_user_to_task($task,$new_user = null,$permission = TASK_PERMISSION_PARTICIPANT){
+	function add_user_to_task($task,$new_user = null){
 		global $user,$services;
 		// check
 		assert(array_key_exists('id',$task),'$task array does not contain "id"');
@@ -354,11 +354,18 @@
 		assert(array_key_exists('permission', $new_user),'$new_user array does not contain "permission"');
 		assert(is_numeric($new_user['permission']),'new_user[permission] must be numeric, is '.$new_user['permission']);
 		
+		$args = [':tid'=>$task['id'],':uid'=>$new_user['id']];
 		// assign
 		$db = get_or_create_db();
-		$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm);');
-		assert($query->execute(array(':tid'=>$task['id'],':uid'=>$new_user['id'], ':perm'=>$new_user['permission'])),'Was not able to assign task to user!');
 		
+		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid;');
+		assert($query->execute($args),'Was not able to assign task to user!');
+		
+		if ($new_user['permission'] != 0){
+			$args[':perm'] = $new_user['permission'];
+			$query = $db->prepare('INSERT OR IGNORE INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm);');
+			assert($query->execute($args),'Was not able to assign task to user!');
+		}
 		
 		// share tags
 		if (isset($services['bookmark'])){
