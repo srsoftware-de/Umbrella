@@ -28,7 +28,7 @@ if ($name){
 			$users[$uid] = $u;
 		}
 		add_task($name,$description,$project_id,$parent_task_id, post('start_date'), post('due_date'),$users);
-		redirect('../'.$parent_task_id.'/view');
+		redirect(getUrl('task',$parent_task_id.'/view'));
 	} else error('Selection of at least one user is required!');
 }
 
@@ -94,8 +94,8 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Start date')?></legend>
 			<input name="start_date" type="date" value="<?= date('Y-m-d');?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
 		</fieldset>
-        <fieldset>
-        	<legend><?= t('Due date')?></legend>
+	        <fieldset>
+			<legend><?= t('Due date')?></legend>
 			<input name="due_date" type="date" value="<?= $task['due_date'] ?>" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
 		</fieldset>
 		<button type="submit"><?= t('add subtask'); ?></button>
