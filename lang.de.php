@@ -21,6 +21,7 @@ $translations = array(
 		'Description'=>'Beschreibung',
 		'Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Markdown wird unterstützt ↗Spickzettel</a>',
 		'Documents'=>'Dokumente',
+		'do open'=>'öffnen',
 		'edit'=>'bearbeiten',
 		'Edit Project'=>'Projekt bearbeiten',
 		'Estimated time'=>'Erwartete Zeit',
