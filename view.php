@@ -12,15 +12,16 @@ if (!$document) {
 
 $projects = request('project','json',['company_ids'=>$document->company_id]); // get all projects of the documents' company
 $tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
+
 if ($services['time']){
 	if (isset($document->company_id) && $document->company_id !== null){
 		$times = request('time','json',['task_ids'=>array_keys($tasks)]); // get all times for tasks of the project
+		
 		$user_ids = [];
 		foreach ($times as $time_id => $time){
 			$user_ids[$time['user_id']] = true; // add user id of time to user_ids list
-			foreach ($time['task_ids'] as $task_id){
-				if (!isset($tasks[$task_id])) continue;
-				$task = $tasks[$task_id]; // search task in task list
+			foreach ($time['tasks'] as $task_id => $task){
+				if (!isset($tasks[$task_id])) continue; //task does not belong to user's projects
 				$time['tasks'][$task_id] = $task; // add task to time
 				$project_id = $task['project_id']; // add time to times of (project of task)
 				$projects[$project_id]['times'][$time_id] = $time;
