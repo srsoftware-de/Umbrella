@@ -23,6 +23,7 @@ $translations = array(
 	'List of login services' => 'Liste der Login-Services',
 	'List of users'=>'Liste der Benutzer',
 	'login'=>'Benutzername',
+	'Login as ?'=>'Als ? anmelden',
 	'Login using email and password'=>'Mit Email und Passwort einloggen',
 	'Login using OAuth 2 / OpenID Connect'=>'Mit OAuth 2 / OpenID Connect einloggen',
 	'Log in using ? account.'=>'Mit ?-Account einloggen',
