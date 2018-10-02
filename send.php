@@ -52,7 +52,7 @@
 		<legend><?= t('Text')?></legend>
 		<textarea name="text"><?= $text ?></textarea>
 	</fieldset>
-	<input type="submit" />
+	<button type="submit"><?= t('Send mail') ?></button>
 	<a class="button" href="view"><?= t('Go back') ?></a>
 </fieldset>
 </form>

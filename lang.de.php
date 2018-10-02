@@ -101,6 +101,7 @@ $translations = array(
 		'== select a customer =='=>'Kunde auswählen',
 		'Select a file'=>'Datei auswählen',
 		'Select a folder to place document:'=>'Ordner zum Ablegen des Dokuments wählen:',
+		'Send mail' => 'Email absenden',
 		'Send ? via mail'=>'? per Mail versenden',
 		'Send to ?'=>'An ? senden',
 		'sent'=>'versendet',

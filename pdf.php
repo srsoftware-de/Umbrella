@@ -42,11 +42,11 @@ class PDF extends FPDF{
 		$this->SetX(10);
 		$this->SetFont('Arial','U',7);
 
-		$sender = str_replace("\n", ', ', $this->document->sender);
+		$sender = str_replace(["\r\n","\n"], ', ', $this->document->sender);
 		$this->Cell(0,8,$sender,NO_FRAME,DOWN,'L');
 
 		$this->SetFont('Arial','',10);
-		$customer = explode("\n", $this->document->customer);		
+		$customer = explode("\n", str_replace("\r\n","\n",$this->document->customer));		
 		foreach ($customer as $line){
 			$this->Cell(0,5,$line,NO_FRAME,DOWN,'L');
 		}
@@ -59,7 +59,7 @@ class PDF extends FPDF{
 		$this->SetX(130);
 
 		// Title
-		$sender = explode("\n", $this->document->sender);
+		$sender = explode("\n", str_replace("\r\n","\n",$this->document->sender));
 		foreach ($sender as $line){
 			$this->Cell(70,4,$line,NO_FRAME,DOWN,'R');
 		}

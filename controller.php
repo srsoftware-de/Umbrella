@@ -239,7 +239,7 @@ class DocumentPosition extends UmbrellaObject{
 			$query = $db->prepare('UPDATE document_positions SET pos = pos-1 WHERE document_id = :iid AND pos > :pos');
 			assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]));
 			if (isset($this->time_id) && $this->time_id !== null && isset($services['time'])){
-				request('time','update_state',['OPEN'=>$this->time_id]);
+				request('time','update_state',['id'=>$this->time_id,'state'=>'open']);
 			}
 		}
 		return $this;
