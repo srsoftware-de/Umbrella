@@ -20,6 +20,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Log out ?'=>'? ausloggen',
+		'Models' => 'Modelle',
 		'No'=>'Nein',
 		'No open time track existing!'=>'Es läuft keine Zeiterfassung!',
 		'Notes'=>'Notizen',
