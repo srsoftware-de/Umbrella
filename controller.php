@@ -355,31 +355,40 @@
 		assert(is_numeric($new_user['permission']),'new_user[permission] must be numeric, is '.$new_user['permission']);
 		
 		$args = [':tid'=>$task['id'],':uid'=>$new_user['id']];
-		// assign
+
 		$db = get_or_create_db();
 		
-		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid;');
-		assert($query->execute($args),'Was not able to assign task to user!');
 		
-		if ($new_user['permission'] != 0){
+		if ($new_user['permission'] == 0){ // deassign
+			$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != :perm;');
+			$args[':perm'] = TASK_PERMISSION_OWNER;
+			assert($query->execute($args),'Was not able to remove user from task!');
+		} else { // assign
+			$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
+			assert($query->execute($args),'Was not able to request task assignment!');
+			$rows = $query->fetchAll();
+			
 			$args[':perm'] = $new_user['permission'];
-			$query = $db->prepare('INSERT OR IGNORE INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm);');
-			assert($query->execute($args),'Was not able to assign task to user!');
-		}
-		
-		// share tags
-		if (isset($services['bookmark'])){
-			$url = getUrl('task',$task['id'].'/view');
-			request('bookmark','index',['share_user_id'=>$new_user['id'],'share_url_hash'=>sha1($url)]);
-		}
-		
-		// notify
-		if (param('notify') == 'on'){
-			$sender = $user->email;
-			$reciever = $new_user['email'];
-			$subject = t('? assigned you to a task',$user->login);
-			$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
-			if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
+			if (empty($rows)){
+				$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm );');
+			} else {
+				$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid ;'); 
+			}
+			assert($query->execute($args),'Was not able to write task assignment!');
+			// share tags
+			if (isset($services['bookmark'])){
+				$url = getUrl('task',$task['id'].'/view');
+				request('bookmark','index',['share_user_id'=>$new_user['id'],'share_url_hash'=>sha1($url)]);
+			}
+			
+			// notify if newly assigned
+			if (empty($rows) && param('notify') == 'on'){
+				$sender = $user->email;
+				$reciever = $new_user['email'];
+				$subject = t('? assigned you to a task',$user->login);
+				$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
+				if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
+			}	
 		}
 	}
 	

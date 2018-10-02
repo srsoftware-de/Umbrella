@@ -50,6 +50,7 @@ $translations = array(
 		'Participant'=>'Teilnehmer',
 		'participant'=>'Teilnehmer',
 		'pending'=>'ausstehend',
+		'Permissions'=>'Berechtigungen',
 		'Prerequisites'=>'Voraus&shy;setzungen',
 		'Project'=>'Projekt',
 		'Projects'=>'Projekte',

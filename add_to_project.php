@@ -54,13 +54,13 @@ include '../common_templates/messages.php'; ?>
 			</label>
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Users') ?></legend>
+			<legend><?= t('Permissions') ?></legend>
 			<table>
 				<tr>
 					<th><?= t('User')?></th>
-					<th title="<?= t('read + write')?>"><?= t('R/W')?></th>
-					<th title="<?= t('read only')?>"><?= t('R')?></th>
-					<th title="<?= t('no access')?>">–</th>
+					<th title="<?= t('read + write')?>" class="symbol"></th>
+					<th title="<?= t('read only')?>" class="symbol"></th>
+					<th title="<?= t('no access')?>" class="symbol"></th>
 				</tr>
 			<?php foreach ($project_users as $id => $u) { 
 				$owner = $id == $user->id;

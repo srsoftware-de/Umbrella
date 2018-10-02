@@ -25,7 +25,7 @@ load_users($task,$project_users); // add users to task
 $title = $task['name'].' - Umbrella';
 
 $allowed = isset($task['users'][$user->id]['permissions'])
-        && in_array($task['users'][$user->id]['permissions'], [TASK_PERMISSION_OWNER,TASK_PERMISSION_PARTICIPANT]);
+        && in_array($task['users'][$user->id]['permissions'], [TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
 
 if (!$allowed){
 	error('You are not allowed to edit the user list of this task!');
@@ -39,9 +39,9 @@ if (empty($project_users)) {
 
 if ($users = param('users')){
 	$users = array_intersect_key($users,$project_users); // only users of the project may be added to the task
-	foreach ($users as $uid => $dummy){
+	foreach ($users as $uid => $perm){
 		$u = $project_users[$uid];
-		$u['permission'] = $users[$uid]['permission'];
+		$u['permission'] = $perm;
 		add_user_to_task($task,$u);
 	}
 	redirect('view');
