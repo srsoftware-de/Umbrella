@@ -25,6 +25,8 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 
+
+
 if (isset($services['contact'])){
 	$contact = request('contact','json',['assgined'=>true]);
 	if ($contact){
@@ -34,9 +36,7 @@ if (isset($services['contact'])){
 	<legend>
 		<?= isset($contact['FN'])?$contact['FN']:$contact['N']['given'].' '.$contact['N']['family']?>
 	</legend>
-	<?php if (isset($contact['TEL'])) { 
-	
-		?>
+	<?php if (isset($contact['TEL'])) { ?>
 	<fieldset>
 		<legend><?= t('Phone numbers')?></legend>
 		<table>
@@ -46,7 +46,11 @@ if (isset($services['contact'])){
 			</tr>
 			<?php foreach ($contact['TEL'] as $number) { ?>
 			<tr>
-				<th><?= t($number['param']['TYPE']) ?></th>
+				<th>
+				<?php if (is_array($number['param']['TYPE'])) { 
+					foreach ($number['param']['TYPE'] as $type) echo t($type).' ';
+				} else echo t($number['param']['TYPE']) ?>
+				</th>
 				<th><?= $number['val']?></th>
 			</tr>
 			<?php } ?>
