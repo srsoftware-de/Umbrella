@@ -329,7 +329,7 @@
 		info('Task has been deleted.');
 	}
 	
-	function load_users(&$task,$project_users){
+	function load_users(&$task,$project_users = null){
 		$id = $task['id'];
 		assert(is_numeric($id),'Invalid task id passed to load_users!');
 		$db = get_or_create_db();
@@ -340,7 +340,7 @@
 		$users = array();
 		foreach ($results as $result){
 			$user_id = $result['user_id'];
-			$users[$user_id] = $project_users[$user_id];
+			$users[$user_id] = empty($project_users)?[]:$project_users[$user_id];
 			$users[$user_id]['permissions'] = $result['permissions'];
 		}
 		$task['users'] = $users;		
@@ -445,5 +445,10 @@
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$query->closeCursor();
 		return reset(array_keys($rows));
+	}
+	
+	function write_access($task){
+		global $user;
+		return in_array($task['users'][$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
 	}
 ?>

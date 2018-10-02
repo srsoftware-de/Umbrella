@@ -39,6 +39,8 @@ if ($task_id){
 	}
 } else /*no task id*/ error('No task id passed to view!');
 
+$write_access = write_access($task);
+
 function display_children($task){
 	global $show_closed_children,$task_id,$services;
 	if (!isset($task['children'])) return; ?>
@@ -79,7 +81,9 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Task')?></th>
 		<td>
 			<h1><?= $task['name'] ?></h1>
+			<?php if ($write_access) { ?>
 			<span class="right">
+				
 				<a title="<?= t('edit')?>"		href="edit"		class="symbol"></a>
 				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"> </a>
 				<a title="<?= t('add user')?>" href="add_user" class="symbol"></a>
@@ -94,6 +98,7 @@ include '../common_templates/messages.php'; ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
 				<?php } ?>
 			</span>
+			<?php } ?>
 		</td>
 	</tr>
 	<tr>
@@ -101,7 +106,7 @@ include '../common_templates/messages.php'; ?>
 		<td class="project">
 			<a href="<?= getUrl('project',$task['project_id'].'/view'); ?>"><?= $task['project']['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$task['project_id'] ?>" class="symbol" title="show project files" target="_blank"></a>
+			<a href="<?= getUrl('files').'?path=project/'.$task['project_id'] ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
 			</td>
 	</tr>
 	<?php if ($task['parent_task_id']) { ?>
@@ -173,7 +178,7 @@ include '../common_templates/messages.php'; ?>
 		<th>
 			<?= t('Users')?> 
 			<?php if (isset($services['rtc'])) { ?>
-			<a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task['users']))) ?>"></a>
+			<a class="symbol" target="_blank" title="<?= t('Start conversation with all users of this task') ?>" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task['users']))) ?>"></a>
 			<?php } ?>
 		</th>
 		<td>
@@ -182,11 +187,11 @@ include '../common_templates/messages.php'; ?>
 				<li>
 					<?= $u['login'] ?>
 					(<?= t($TASK_PERMISSIONS[$u['permissions']]) ?>)
-					<?php if (
-						($task['users'][$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) 
-						&& $u['permissions'] != TASK_PERMISSION_OWNER){ ?>
-					<?php if (isset($services['rtc']) && $uid != $user->id) { ?><a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php } ?>
-					<a class="symbol" href="drop_user?uid=<?= $uid ?>"></a>
+					<?php if (isset($services['rtc']) && $uid != $user->id) { ?><a class="symbol" target="_blank" title="<?= t('Start conversation') ?>" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php } ?>
+					<?php if ( // deletion of user only possible if:
+						($task['users'][$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task 
+						&& $u['permissions'] != TASK_PERMISSION_OWNER){ // but only if user to be removed is not owner ?> 
+					<a class="symbol" title="<?= t('De-assign user from task') ?>" href="drop_user?uid=<?= $uid ?>"></a>
 					<?php } ?>
 				</li>
 			<?php } ?>

@@ -18,6 +18,13 @@ $user_permissions = param('users');
 $project = request('project','json',['ids'=>$project_id,'users'=>'true']);
 $project_users = request('user','json',['ids'=>array_keys($project['users'])]);
 
+load_users($task,$project_users); // add users to task
+
+if (!write_access($task)) {
+	error('You are not allowed to add sub-tasks to this task!');
+	redirect('view');
+}
+
 if ($name){
 	if (is_array($user_permissions) && !empty($user_permissions)){
 		$users = [];

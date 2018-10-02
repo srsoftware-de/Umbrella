@@ -16,6 +16,11 @@ $projects = request('project','json',['users'=>'true']);
 $project_users = request('user','json',['ids'=>array_keys($projects[$project_id]['users'])]);
 load_users($task,$project_users); // add users to task
 
+if (!write_access($task)) {
+	error('You are not allowed to edit this task!');
+	redirect('view');
+}
+
 load_requirements($task);
 
 if ($name = post('name')){	
@@ -113,7 +118,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Task')?></legend>
-			<input type="text" name="name" value="<?= htmlspecialchars($task['name']) ?>" autofocus="true"/>
+			<input type="text" name="name" value="<?= htmlspecialchars($task['name']) ?>" autofocus="autofocus"/>
 		</fieldset>
 		<?php if ($project_tasks){?>
 		<fieldset>
