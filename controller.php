@@ -5,7 +5,6 @@
 	const FILE_PERMISSION_WRITE = 3;
 	const RECURSIVE = true;
 	const STORAGE = '/.storage';
-	const DS = '/';
 	const MODULE = 'Files';
 
 	$title = 'Umbrella File Management';
