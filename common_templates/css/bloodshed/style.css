@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "awesome";
-    src: url("../fontawesome-webfont.woff");
+	font-family: "awesome";
+	src: url("../fontawesome-webfont.woff");
 }
 *{
 	max-width:100%;
@@ -14,12 +14,16 @@ a{
 	text-decoration: none;
 }
 textarea {
-    width: 100%;
-    min-height: 100px;
+	width: 100%;
+	min-height: 100px;
 }
 
 input[type=text]{
 	width: 100%;
+}
+
+td.connectors form input{
+	width: 200px;
 }
 
 img#logo{
@@ -101,7 +105,7 @@ p a,
 }
 
 table {
-    border-collapse: collapse;
+	border-collapse: collapse;
 }
 tr > *{
 	padding: 5px 10px;
@@ -109,8 +113,8 @@ tr > *{
 
 label.street:after,
 label.location::after {
-    content: "\a ";
-    white-space: pre;
+	content: "\a ";
+	white-space: pre;
 }
 
 .company > fieldset,
@@ -132,8 +136,8 @@ table.time h2{
 }
 
 fieldset {
-    border-radius: 10px;
-    border-width: 1px;
+	border-radius: 10px;
+	border-width: 1px;
 }
 
 .contacts fieldset,
@@ -157,15 +161,16 @@ fieldset.document.list{
 .button,
 input,
 button {
-    border: 0 none;
-    font-weight: bold;
-    margin: 2px 0;
-    padding: 3px;
-    display: inline-block;
+	border: 0 none;
+	font-weight: bold;
+	margin: 2px 0;
+	padding: 3px;
+	display: inline-block;
 }
 
 label.silent_box,
 .change_state,
+td.connectors button[type="submit"],
 input[type="submit"] {
 	clear: both;
 	float: right;
@@ -173,7 +178,8 @@ input[type="submit"] {
 
 .symbol{
 	font-family: awesome;
-	font-size: 22px;
+	font-size: 20px;
+	font-weight: normal;
 }
 
 #main_menu .symbol{
@@ -287,7 +293,7 @@ fieldset.bookmark > fieldset:hover{
 }
 .bookmark>fieldset>a{
 	word-wrap: break-word;
-	display: block;	
+	display: block;
 	min-width: auto;
 }
 
@@ -444,7 +450,7 @@ div.search:hover input{
 		display: none;
 	}
 	fieldset.bookmark > fieldset{
-	        max-height: 50px;
+		max-height: 50px;
 	}
 }
 
