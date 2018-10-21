@@ -39,6 +39,7 @@ $translations = array(
 		'== no company assigned =='=>'== keine Firma assoziiert ==',
 		'Notes'=>'Notizen',
 		'Notification email has been sent to ?'=>'Email-Benachrichtigung wurde an ? gesendet',
+		'notify user'=>'Nutzer benachrichtigen',
 		'open'=>'offen',
 		"Open the following site to see the note on \"?\":\n\n?"=>"Gehe zur folgenden Seite, um die Anmerkung zu \"?\" zu lesen:\n\n?",
 		'owner'=>'Eigentümer',

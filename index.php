@@ -43,10 +43,10 @@ include '../common_templates/messages.php'; ?>
 		<?php } ?>
 		</td>
 		<td>
-			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
-			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $project->status == PROJECT_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('cancel')?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $project->status == PROJECT_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('do open')?>"     href="<?= $id ?>/open?redirect=../index"     class="<?= $project->status == PROJECT_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('edit')?>"      href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
+			<a title="<?= t('complete') ?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $project->status == PROJECT_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('cancel') ?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $project->status == PROJECT_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('do open') ?>"  href="<?= $id ?>/open?redirect=../index"     class="<?= $project->status == PROJECT_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 		</td>
 	</tr>
 <?php } ?>
