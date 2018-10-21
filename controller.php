@@ -175,9 +175,9 @@
 				
 			foreach ($times as &$time){
 				foreach ($time->tasks as $task_id => $dummy) {
-					$task = $tasks[$task_id];
-					$project_ids[$task['project_id']] = true;
-					$time->tasks[$task_id] = $task;
+					$time_task = $tasks[$task_id];
+					$project_ids[$time_task['project_id']] = true;
+					$time->tasks[$task_id] = $time_task;
 				}
 				if ($single) return $time;
 			}
@@ -186,8 +186,13 @@
 		}
 		
 		function assign_task($task = null){
-			$this->patch(['description'=>$this->description."\n\n".$task['description'],'subject'=>$task['name']]);
-			$this->tasks[$task['id']] = $task;
+			if (isset($this->tasks[$task['id']])){
+				info('The task "?" already was assigned to this timetrack.',$task['name']);
+			} else {
+				$new_description = (empty($this->description) ? '':$this->description."\n\n") . $task['description'];
+				$this->patch(['description'=>$new_description,'subject'=>$task['name']]);
+				$this->tasks[$task['id']] = $task;
+			}
 			return $this;
 		}
 		
