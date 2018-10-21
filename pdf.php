@@ -127,7 +127,7 @@ class PDF extends FPDF{
 		// Arial italic 8
 		$this->SetFont('Arial','',8);
 
-		$bank_account = str_replace("\n", ", ", $this->document->bank_account);
+		$bank_account = str_replace(["\r\n","\n"], ", ", $this->document->bank_account);
 		$this->SetY(-15);
 		$this->Cell(0,5,t('Bank account: ?',$bank_account),NO_FRAME,NEWLINE,'L');
 		$this->Cell(0,5,t('Local court: ?',$this->document->court),NO_FRAME,NEWLINE,'L');

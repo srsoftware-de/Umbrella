@@ -592,18 +592,17 @@ class Document extends UmbrellaObjectWithId{
 					if (!empty($time_ids)){
 						$state = null;
 						switch ($this->state){
-							case static::STATE_NEW:
 							case static::STATE_SENT:
 							case static::STATE_DELAYED:
-								$state = 'PENDING';
+								$state = 'pending';
 								break;
 							case static::STATE_PAYED:
-								$state = 'COMPLETED';
+								$state = 'complete';
 								break;
 							default:
-								$state = 'OPEN';
+								$state = 'open';
 						}
-						request('time','update_state',[$state=>implode(',',$time_ids)]);
+						request('time','update_state',['id'=>$time_ids,'state'=>$state]);
 					}
 				}
 				$this->dirty = [];

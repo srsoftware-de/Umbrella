@@ -383,7 +383,7 @@ include '../common_templates/messages.php'; ?>
 				<?= t('Template')?>
 			</legend>
 			<select name="document[template_id]">
-				<option value=""><?= t('No document template selected')?></option>
+				<option value=""><?= t('No document template selected!')?></option>
 				<?php foreach ($templates as $template) {?>
 				<option value="<?= $template->id ?>" <?= $template->id == $document->template_id ? 'selected="true"':'' ?>><?= $template->name ?></option>
 				<?php }?>
