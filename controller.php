@@ -388,6 +388,7 @@
 				$subject = t('? assigned you to a task',$user->login);
 				$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
 				if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
+				info('Notification email has been sent.');
 			}	
 		}
 	}
