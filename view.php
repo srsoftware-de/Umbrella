@@ -7,7 +7,7 @@ if (!$time_id) error('No time id passed to view!');
 
 $time = Timetrack::load(['ids'=>$time_id]);
 $title = $time->subject.' - Umbrella';
-$documents = isset($services['invoice']) ? request('invoice','json',['times'=>$time_id]) : null;
+$documents = isset($services['document']) ? request('document','json',['times'=>$time_id]) : null;
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -69,7 +69,7 @@ include '../common_templates/messages.php';
 		<td class="documents">
 			<ul>
 			<?php foreach ($documents as $did => $document) { ?>
-				<li><a href="<?= getUrl('invoice', $did.'/view'); ?>"><?= $document['number'] ?></a></li>
+				<li><a href="<?= getUrl('document', $did.'/view'); ?>"><?= $document['number'] ?></a></li>
 			<?php } ?>
 			</ul>
 		</td>
