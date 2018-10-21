@@ -2,20 +2,24 @@
 require_login('time');
 
 if ($time_id = param('id')){
-	$time = Timetrack::load(['ids'=>$time_id]);
+	$times = Timetrack::load(['ids'=>$time_id]);
+	$single = !is_array($times);
+	if ($single) $times = [$times];
 	
-	if ($new_state = param('state')){
-		switch ($new_state){
-			case 'open':
-				$time->patch(['state'=>TIME_STATUS_OPEN]); break;
-			case 'pending':
-				$time->patch(['state'=>TIME_STATUS_PENDING]); break;
-			case 'complete':
-				$time->patch(['state'=>TIME_STATUS_COMPLETE]); break;
+	foreach ($times as $time){
+		if ($new_state = param('state')){
+			switch ($new_state){
+				case 'open':
+					$time->patch(['state'=>TIME_STATUS_OPEN]); break;
+				case 'pending':
+					$time->patch(['state'=>TIME_STATUS_PENDING]); break;
+				case 'complete':
+					$time->patch(['state'=>TIME_STATUS_COMPLETE]); break;
+			}
+			$time->save();
 		}
-		$time->save();
 	}
-	$redirect = getUrl('time',$time_id.DS.'view');
+	$redirect = getUrl('time',$single ? $time_id.DS.'view':'');
 }
 
 if ($pending_time_ids = param('PENDING')){ // used by document/view
