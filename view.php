@@ -31,7 +31,7 @@ include '../common_templates/messages.php';
 			<?php if ($time->end_time) { ?>
 			... <?= date('Y-m-d H:i',$time->end_time);?> (<?= t('? hours',round(($time->end_time-$time->start_time)/3600,2)) ?>)
 			<?php } else { ?>
-			(open)
+			(<?= t('started'); ?>)
 			<?php } ?>
 			</h2>
 		</td>
