@@ -7,7 +7,7 @@ if ($company_id = param('company')){
 } else $prefix = 'user:'.$user->id.':';
 
 $locations = Location::load(['prefix'=>$prefix,'order'=>'name']);
-if (empty($locations)) redirect(getUrl('stock','add_location?return_to='.location()));
+if (empty($locations)) redirect(getUrl('stock','add_location?'.($company_id?'company='.$company_id.'&':'').'return_to='.location()));
 
 $next_id = Item::getNextId($prefix);
 
@@ -21,7 +21,7 @@ if (!empty($code)){
 	$item = new Item();
 	$item->patch(['id'=>$next_id,'code'=>$code,'name'=>param('name'),'location'=>$location]);
 	$item->save();
-	redirect(getUrl('stock',$item->id.'/add_property'));
+	redirect(getUrl('stock',$item->id.'/add_property'.($company_id?'?company='.$company_id:'')));
 }
 
 include '../common_templates/head.php';

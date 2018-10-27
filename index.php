@@ -36,7 +36,7 @@ include '../common_templates/messages.php'; ?>
 			<?= empty($prop)?'':$prop->value ?>&nbsp;<?= empty($prop)?'':$prop->unit() ?>
 		</td>
 		<td>
-			<a class="button" href="<?= getUrl('stock',$item->id.'/add_property')?>"><?= t('Add property')?></a>
+			<a class="button" href="<?= getUrl('stock',$item->id.'/add_property'.($company_id?'?company='.$company_id:''))?>"><?= t('Add property')?></a>
 		</td>
 	</tr>
 	<?php $first = true; while (!empty($properties)) { 
