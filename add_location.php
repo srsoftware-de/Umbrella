@@ -1,7 +1,4 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
 require_login('stock');
 
@@ -13,7 +10,9 @@ $new_id = param('new_id');
 $name = param('name');
 if ($new_id && $name){
 	$location = new Location();
-	$location->patch($_POST)->patch(['new_id'=>$prefix.$new_id])->save();
+	$location->patch($_POST)->patch(['new_id'=>$prefix.$new_id]);
+	if ($loc_id = param('location_id')) $location->patch(['location_id'=>$prefix.$loc_id]);
+	$location->save();
 	
 	redirect(param('return_to',getUrl('stock')));
 }

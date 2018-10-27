@@ -1,7 +1,13 @@
 <?php
-
+	include '../bootstrap.php';
+	
 	const MODULE = 'Stock';
 	$title = 'Umbrella Stock Management';
+	
+	const TYPE_STRING = 0;
+	const TYPE_INT    = 1;
+	const TYPE_FLOAT  = 2;
+	const TYPE_BOOL   = 3;
 		
 	function get_or_create_db(){
 		$table_filename = 'stock.db';
@@ -13,7 +19,6 @@
 			$tables = [
 				'items'=>Item::table(),
 				'locations'=>Location::table(),
-				'item_types'=>ItemType::table(),
 				'item_props'=>ItemProperty::table(),
 				'properties'=>Property::table(),
 			];
@@ -45,7 +50,7 @@
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 				$query = $db->prepare($sql);
-				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.' ("'.$sql.'") !');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
@@ -74,6 +79,79 @@
 			return $prefix.(array_pop($parts)+1);
 		}
 		
+		static function load($options){
+			global $user;
+		
+			$sql = 'SELECT * FROM items';
+		
+			$where = [];
+			$args =  [];
+			$single = false;
+			
+			if (isset($options['ids'])){
+				$ids = $options['ids'];
+				if (!is_array($ids)){
+					$single = true;
+					$ids = [$ids];
+				}
+				$qmarks = implode(',', array_fill(0, count($ids), '?'));
+				$where[] = 'id IN ('.$qmarks.')';
+				$args = array_merge($args,$ids);
+			} else {
+				assert(isset($options['prefix']),'No Item Id Prefix set!');
+				
+				$prefix = $options['prefix'];
+				
+				$where[] = 'id LIKE ?';
+				$args[] = $prefix.'%';
+			}
+			
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
+		
+			$sql .= ' COLLATE NOCASE';
+		
+			if (isset($options['order'])){
+				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
+				$sql.= ' ORDER BY '.implode(', ',$order);
+			}
+		
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			//debug(query_insert($query, $args),1);
+			assert($query->execute($args),'Was not able to request item type list!');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$items = [];
+		
+			foreach ($rows as $row){
+				$item = new Item();
+				$item->patch($row);
+				unset($item->dirty);
+				if ($single) return $item;
+				$items[$item->id] = $item;
+			}
+			if ($single) return reset($items);
+			return $items;
+		}
+		
+		static function loadCodes($prefix){
+			$sql = 'SELECT code FROM items WHERE id LIKE :key GROUP BY code ORDER BY code';
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			$args = [':key'=>$prefix.'%'];
+			assert($query->execute($args),'Was not able to read item codes');
+			return $query->fetchAll();
+		}
+		
+		function location(){
+			if (empty($this->location)) $this->location = Location::load(['ids'=>$this->location_id]);
+			return $this->location;
+		}
+		
+		function properties(){
+			if (empty($this->properties)) $this->properties = ItemProperty::load(['item_id'=>$this->id]);
+			return $this->properties;
+		}
+		
 		function save(){
 			$db = get_or_create_db();
 			$args = [':id'=>$this->id,':code'=>$this->code,':loc'=>$this->location->id];
@@ -89,89 +167,80 @@
 		}
 	}
 	
-	class ItemProperty{
+	class ItemProperty extends UmbrellaObject{
 		static function table(){
 			return [
 				'item_id'			=> ['INT','NOT NULL'],
-				'property'			=> ['INT','NOT NULL'],
+				'prop_id'			=> ['INT','NOT NULL'],
 				'value'				=> ['VARCHAR'=>255,'NOT NULL'],
-				'PRIMARY KEY'		=> ['item_id','property']
-			];
-		}
-	}
-	
-	class ItemType extends UmbrellaObject{
-		static function table(){
-			return [
-				'code'				=> ['VARCHAR'=>255,'NOT NULL'],
-				'property'			=> ['INT','NOT NULL'],
-				'value'				=> ['VARCHAR'=>255,'NOT NULL'],
-				'PRIMARY KEY'		=> ['code','property']
+				'PRIMARY KEY'		=> ['item_id','prop_id']
 			];
 		}
 		
 		static function load($options){
 			global $user;
-				
-			$sql = 'SELECT * FROM item_types';
-				
+		
+			$sql = 'SELECT * FROM item_props';
+		
 			$where = [];
 			$args =  [];
 			$single = false;
-			
-			assert(isset($options['prefix']),'No Item Code Prefix set!');
-			
-			$prefix = $options['prefix'];
-				
-			if (isset($options['code'])){
-				$code = $options['code'];
-				if (!is_array($code)){
-					$single = true;
-					$code = [$code];
-				}
-				$qmarks = implode(',', array_fill(0, count($code), '?'));
-				$where[] = 'code IN ('.$qmarks.')';
-				foreach ($code as $c) $args[] = $prefix.$c;
+		
+			if (isset($options['item_id'])){
+				$where[] = 'item_id = ?';
+				$args[] = $options['item_id'];
 			} else {
-				$where[] = 'code LIKE ?';
-				$args[] = $prefix.'%';
+				assert(isset($options['prefix']),'No Item Code Prefix set!');
+				if (isset($options['prefix'])){
+					$where[] = 'item_id LIKE ?';
+					$args[] = $options['prefix'].'%';
+				}
 			}
-			
-				
+		
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
-				
+		
 			$sql .= ' COLLATE NOCASE';
 		
 			if (isset($options['order'])){
 				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
 				$sql.= ' ORDER BY '.implode(', ',$order);
 			}
-				
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args),1);
-			assert($query->execute($args),'Was not able to request item type list!');
+			assert($query->execute($args),'Was not able to request item property list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-			$types = [];
+			$props = [];
 		
-			warn('Loading of properties not fully implemented');
 			foreach ($rows as $row){
+				$prop = new ItemProperty();
+				$prop->patch($row);
+				unset($prop->dirty);
+				if ($single) return $prop;
+				$props[] = $prop;
 			}
-			if ($single) return reset($types);
-			return $types;
+			if ($single) return reset($props);
+			return $props;
+		}
+		
+		function name(){
+			return $this->property()->name;
+		}
+		
+		function property(){
+			if (empty($this->property)) $this->property = Property::load(['ids'=>$this->prop_id]);
+			return $this->property;
 		}
 		
 		function save(){
 			$db = get_or_create_db();
-			$args = [':code'=>$this->code,':prop'=>$this->property->id,':value'=>$this->value];
+			$args = [':item_id'=>$this->item_id,':prop_id'=>$this->property->id,':value'=>$this->value];
 			
-			$query = $db->prepare('INSERT OR IGNORE INTO item_types (code, property, value) VALUES (:code, :prop, :value );');
-			//debug(query_insert($query, $args));
-			assert($query->execute($args),'Was not able to insert new entry into item_types table');
+			$query = $db->prepare('INSERT OR IGNORE INTO item_props (item_id, prop_id, value) VALUES (:item_id, :prop_id, :value);');
+			assert($query->execute($args),'Was not able to store property in database');
 			
-			$query = $db->prepare('UPDATE item_types SET value = :value WHERE code = :code AND property = :prop');
-			assert($query->execute($args),'Was not able to update entry in item_types table');
-					
+			$query = $db->prepare('UPDATE item_props SET value = :value WHERE item_id = :item_id AND prop_id = :prop_id');
+			assert($query->execute($args),'Was not able to store property in database');
 			unset($this->dirty);
 			return $this;
 		}
@@ -195,12 +264,22 @@
 			$where = [];
 			$args =  [];
 			$single = false;
-				
-			assert(isset($options['prefix']),'No Item Code Prefix set!');
-				
-			if (isset($options['prefix'])){
-				$where[] = 'id LIKE ?';
-				$args[] = $options['prefix'].'%';
+
+			if (isset($options['ids'])){
+				$ids = $options['ids'];
+				if (!is_array($ids)){
+					$single = true;
+					$ids = [$ids];
+				}
+				$qmarks = implode(',', array_fill(0, count($ids), '?'));
+				$where[] = 'id IN ('.$qmarks.')';
+				$args = array_merge($args,$ids);
+			} else {
+				assert(isset($options['prefix']),'No Item Code Prefix set!');
+				if (isset($options['prefix'])){
+					$where[] = 'id LIKE ?';
+					$args[] = $options['prefix'].'%';
+				}
 			}
 		
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
@@ -227,6 +306,16 @@
 			}
 			if ($single) return reset($locations);
 			return $locations;
+		}
+		
+		function full(){
+			if (!empty($this->location_id)) return $this->parent_loc()->full().' / '.$this->name;
+			return $this->name;
+		}
+		
+		function parent_loc(){
+			if (empty($this->parent) && !empty($this->location_id)) $this->parent = Location::load(['ids'=>$this->location_id]);
+			return $this->parent;
 		}
 		
 		function save(){
@@ -267,6 +356,17 @@
 			$args =  [];
 			$single = false;
 				
+			if (isset($options['ids'])){
+				$ids = $options['ids'];
+				if (!is_array($ids)){
+					$single = true;
+					$ids = [$ids];
+				}
+				$qmarks = implode(',', array_fill(0, count($ids), '?'));
+				$where[] = 'id IN ('.$qmarks.')';
+				$args = array_merge($args,$ids);
+			}	
+			
 			if (isset($options['name'])){
 				$names = $options['name'];
 				if (!is_array($names)){
@@ -276,8 +376,8 @@
 				$qmarks = implode(',', array_fill(0, count($names), '?'));
 				$where[] = 'name IN ('.$qmarks.')';
 				$args = array_merge($args,$names);
-			}	
-		
+			}
+				
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
 		
 			$sql .= ' COLLATE NOCASE';
