@@ -17,9 +17,6 @@ if ($new_id && $name){
 	redirect(param('return_to',getUrl('stock')));
 }
 $locations = Location::load(['prefix'=>$prefix,'order'=>'name']);
-debug(['prefix'=>$prefix,'item_code'=>$item_code,'locations'=>$locations]);
-
-warn('Location selection not implemented, yet');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -34,16 +31,19 @@ include '../common_templates/messages.php'; ?>
 				<th><?= t('Location id')?></th>
 				<td><input type="text" name="new_id" <?= empty($new_id)?'':'value="'.$new_id.'" '?>/></td>
 			</tr>
+			<?php if (!empty($locations)){?>
 			<tr>
 				<th><?= t('Where is this location?')?></th>
 				<td>
 					<select name="location_id">
+						<option value=""><?= t('No location') ?></option>
 					<?php foreach ($locations as $location){ $id = explode(':',$location->id); ?>
 						<option value="<?= array_pop($id) ?>"><?= $location->name ?></option>
 					<?php } // foreach location?>
 					</select>
 				</td>
 			</tr>
+			<?php } // locations not empty ?>
 			<tr>
 				<th><?= t('Name')?></th>
 				<td><input type="text" name="name" <?= empty($name)?'':'value="'.$name.'" '?>/></td>

@@ -2,8 +2,6 @@
 
 require_login('stock');
 
-
-
 if ($company_id = param('company')){
 	$prefix = 'company:'.$company_id.':';
 } else $prefix = 'user:'.$user->id.':';
@@ -21,9 +19,9 @@ $code = $selection == 'new_code' ? param('new_code') : $selection;
 
 if (!empty($code)){
 	$item = new Item();
-	$item->patch(['id'=>$next_id,'code'=>$code,'location'=>$location]);
+	$item->patch(['id'=>$next_id,'code'=>$code,'name'=>param('name'),'location'=>$location]);
 	$item->save();
-	redirect(getUrl('stock'));
+	redirect(getUrl('stock',$item->id.'/add_property'));
 }
 
 include '../common_templates/head.php';
@@ -52,6 +50,12 @@ include '../common_templates/messages.php'; ?>
 				<td></td>
 			</tr>
 			<tr>
+				<th><?= t('Enter name/description')?></th>
+				<td>
+					<input type="text" name="name"/></td>
+				<td></td>
+			</tr>
+			<tr>
 				<th><?= t('Select location of item')?></th>
 				<td>
 					<select name="location_id">
@@ -66,8 +70,7 @@ include '../common_templates/messages.php'; ?>
 			</tr>
 		</table>
 		
-		
-		<button type="submit"><?= t('Continue')?></button>
+		<button class="right" type="submit"><?= t('Continue')?></button>
 	</form>
 </fieldset>
 

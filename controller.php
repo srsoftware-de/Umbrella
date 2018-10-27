@@ -63,18 +63,20 @@
 			return [
 				'id'				=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
 				'code'				=> ['VARCHAR'=>255,'NOT NULL'],
-				'location_id'		=> ['INT','NOT NULL'],
+				'name'				=> ['TEXT'],
+				'location_id'		=> ['INT'],
 			];
 		}
 		
 		function getNextId($prefix){
-			$sql = 'SELECT id FROM items WHERE id LIKE :prefix ORDER BY id DESC LIMIT 1';
+			$sql = 'SELECT id,code FROM items WHERE id LIKE :prefix';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			assert($query->execute([':prefix'=>$prefix.'%']),'Was not able to read item ids from database.');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			if (empty($rows)) return $prefix.'1';
-			$row = reset($rows);
+			$row = array_pop($rows);
+			
 			$parts = explode(':',$row['id']);
 			return $prefix.(array_pop($parts)+1);
 		}
@@ -113,7 +115,7 @@
 			if (isset($options['order'])){
 				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
 				$sql.= ' ORDER BY '.implode(', ',$order);
-			}
+			} 
 		
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
@@ -154,12 +156,12 @@
 		
 		function save(){
 			$db = get_or_create_db();
-			$args = [':id'=>$this->id,':code'=>$this->code,':loc'=>$this->location->id];
+			$args = [':id'=>$this->id,':code'=>$this->code,':name'=>$this->name,':loc'=>$this->location->id];
 				
-			$query = $db->prepare('INSERT OR IGNORE INTO items (id, code, location_id) VALUES (:id, :code, :loc );');
+			$query = $db->prepare('INSERT OR IGNORE INTO items (id, code, name, location_id) VALUES (:id, :code, :name, :loc );');
 			assert($query->execute($args),'Was not able to insert new entry into items table');
 
-			$query = $db->prepare('UPDATE OR IGNORE items SET code = :code, location_id = :loc WHERE id = :id ');
+			$query = $db->prepare('UPDATE OR IGNORE items SET code = :code, name = :name, location_id = :loc WHERE id = :id ');
 			assert($query->execute($args),'Was not able to update entry in item_types table');
 				
 			unset($this->dirty);
@@ -180,7 +182,7 @@
 		static function load($options){
 			global $user;
 		
-			$sql = 'SELECT * FROM item_props';
+			$sql = 'SELECT item_id, prop_id, value FROM item_props LEFT JOIN properties ON id=prop_id'; // join is done to allow ordering by name
 		
 			$where = [];
 			$args =  [];
@@ -204,6 +206,8 @@
 			if (isset($options['order'])){
 				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
 				$sql.= ' ORDER BY '.implode(', ',$order);
+			} else {
+				$sql.= ' ORDER BY name';
 			}
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
@@ -244,6 +248,11 @@
 			unset($this->dirty);
 			return $this;
 		}
+		
+		function unit(){
+			return $this->property()->unit;
+		}
+		
 	}
 	
 	class Location extends UmbrellaObject{
@@ -344,22 +353,24 @@
 				'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
 				'name'				=> ['VARCHAR'=>255,'NOT NULL'],
 				'type'				=> ['INT','NOT NULL'],
+				'unit'				=> ['VARCHAR'=>255],
 			];
 		}
 		
 		static function getRelated($item_code){
-			$sql = 'SELECT properties.id, name, type 
+			$sql = 'SELECT properties.id, properties.name, type, unit 
 					FROM items 
 						LEFT JOIN item_props ON item_id=items.id
 						LEFT JOIN properties ON properties.id = prop_id
-					WHERE code = :code
+					WHERE code = :code 
 					  AND properties.id IS NOT NULL
-					GROUP BY name
+					GROUP BY properties.name
 					COLLATE NOCASE
-					ORDER BY name ASC';
+					ORDER BY properties.name ASC';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			$args = [':code'=>$item_code];
+			//debug(query_insert($sql, $args),1);
 			assert($query->execute($args),'Was not able to request related properties for '.$item_code);
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$props = [];
@@ -372,7 +383,7 @@
 			return $props;
 		}
 		
-		static function load($options){
+		static function load($options = []){
 			global $user;
 		
 			$sql = 'SELECT * FROM properties';
@@ -403,18 +414,17 @@
 				$args = array_merge($args,$names);
 			}
 				
-			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
-		
-			$sql .= ' COLLATE NOCASE';
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where).' COLLATE NOCASE';
 		
 			if (isset($options['order'])){
 				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
 				$sql.= ' ORDER BY '.implode(', ',$order);
-			}
+			} else $sql .= ' ORDER BY name ASC';
 		
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to request item type list!');
+			//debug(query_insert($query, $args),1);
+			assert($query->execute($args),'Was not able to request property list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$properties = [];
 
@@ -446,8 +456,8 @@
 					assert($query->execute($args),'Was no able to update property in database!');
 				}
 			} else {
-				$sql = 'INSERT INTO properties (name, type) VALUES (:name, :type);';
-				$args = [':name'=>$this->name, ':type'=>$this->type];
+				$sql = 'INSERT INTO properties (name, type, unit) VALUES (:name, :type, :unit);';
+				$args = [':name'=>$this->name, ':type'=>$this->type, ':unit'=>$this->unit];
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was not able to save note!');
 				$this->id = $db->lastInsertId();

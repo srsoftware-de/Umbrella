@@ -13,7 +13,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<table>
+<table class="stock">
 	<tr>
 		<th><?= t('ID')?></th>
 		<th><?= t('Code')?></th>
@@ -21,10 +21,11 @@ include '../common_templates/messages.php'; ?>
 		<th colspan="2"><?= t('Properties')?></th>
 		<th><?= t('Actions')?></th>
 	</tr>
-	<?php foreach ($items as $item){ 
+	<?php while (!empty($items)){
+		$item = array_pop($items); 
 		$properties = $item->properties();
 		$prop = empty($properties) ? null : array_shift($properties); ?>
-	<tr>
+	<tr class="first">
 		<td><?= substr($item->id,strlen($prefix)) ?></td>
 		<td><?= $item->code ?></td>
 		<td><?= $item->location()->full() ?></td>
@@ -32,24 +33,25 @@ include '../common_templates/messages.php'; ?>
 			<?= empty($prop)?'':$prop->name() ?>
 		</td>
 		<td>
-			<?= empty($prop)?'':$prop->value ?>
+			<?= empty($prop)?'':$prop->value ?>&nbsp;<?= empty($prop)?'':$prop->unit() ?>
 		</td>
 		<td>
 			<a class="button" href="<?= getUrl('stock',$item->id.'/add_property')?>"><?= t('Add property')?></a>
 		</td>
 	</tr>
-	<?php while (!empty($properties)) { 
+	<?php $first = true; while (!empty($properties)) { 
 	$prop = array_shift($properties); ?>
 	<tr>
-		<td colspan="3"></td>
+		<td></td>
+		<td colspan="2"><?= $first ? $item->name : ''?></td>
 		<td>
 			<?= empty($prop)?'':$prop->name() ?>
 		</td>
 		<td colspan="2">
-			<?= empty($prop)?'':$prop->value ?>
+			<?= empty($prop)?'':$prop->value ?>&nbsp;<?= empty($prop)?'':$prop->unit() ?>
 		</td>
 	</tr>
-	<?php } // while properties not empty ?>
+	<?php $first = false; } // while properties not empty ?>
 	<?php } // foreach item?>
 </table>
 
