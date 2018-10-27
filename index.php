@@ -50,6 +50,12 @@ foreach ($companies as $company){ ?>
 		<?php } ?>
 		</ul>
 	</fieldset>
+	<?php if (isset($services['stock'])) { ?>
+	<fieldset>
+		<legend><?= t('Stock management') ?></legend>
+		<a class="button" href="<?= getUrl('stock','?company='.$company->id )?>"><?= t('Go to stock management') ?></a>
+	</fieldset>
+	<?php } ?>
 </fieldset>
 
 <?php }
