@@ -1,0 +1,1 @@
+<a class="symbol" title="<?= t('add link') ?>" href="<?= getUrl('stock','add')?>"></a>

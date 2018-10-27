@@ -3,8 +3,7 @@
 include '../bootstrap.php';
 include 'controller.php';
 
-$title = t('Umbrella: Stock Management');
-//require_login('stock');
+require_login('stock');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
