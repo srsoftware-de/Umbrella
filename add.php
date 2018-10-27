@@ -16,13 +16,14 @@ $next_id = Item::getNextId($prefix);
 $location = ($location_id = param('location_id')) ? $locations[$prefix.$location_id] : null;
 $codes = Item::loadCodes($prefix);
 
-if ($item_code = param('code')){
-	if ($item_code != 'new_code'){
-		$item = new Item();
-		$item->patch(['id'=>$next_id,'code'=>$item_code,'location'=>$location]);
-		$item->save();
-		redirect(getUrl('stock'));
-	}	
+$selection = param('code_selection');
+$code = $selection == 'new_code' ? param('new_code') : $selection;
+
+if (!empty($code)){
+	$item = new Item();
+	$item->patch(['id'=>$next_id,'code'=>$code,'location'=>$location]);
+	$item->save();
+	redirect(getUrl('stock'));
 }
 
 include '../common_templates/head.php';
@@ -33,25 +34,21 @@ include '../common_templates/messages.php'; ?>
 <fieldset>
 	<legend><?= t('Add new item to stock') ?></legend>
 	<form method="POST">
-		<?php if (empty($item_code)) { ?>
-		<label>
-			<?= t('Select item code')?>
-			<select name="code">
-				<option value="new_code"><?= t('New code')?></option>
-				<?php foreach ($item_types as $item_type) { ?>
-				<option value="<?= $item_type->code ?>"><?= $item_type->code ?></option>
-				<?php } ?>
-			</select>
-		</label>
-		<?php } /* empty item_code */ elseif ($item_code == 'new_code') { ?>
 		<table>
 			<tr>
 				<th><?= t('Item Id')?></th>
 				<td colspan="2"><?= $next_id ?></td>
 			</tr>
 			<tr>
-				<th><?= t('Enter new item code')?></th>
-				<td><input type="text" name="code"/></td>
+				<th><?= t('Select item code or enter new')?></th>
+				<td>
+					<select name="code_selection">
+						<option value="new_code"><?= t('New code')?></option>
+						<?php foreach ($codes as $code) { ?>
+						<option value="<?= reset($code) ?>"><?= reset($code) ?></option>
+						<?php } ?>
+					</select>
+					<input type="text" name="new_code"/></td>
 				<td></td>
 			</tr>
 			<tr>
@@ -69,8 +66,6 @@ include '../common_templates/messages.php'; ?>
 			</tr>
 		</table>
 		
-		<?php } /* item_code = new_code */ else { ?>
-		<?php } ?>
 		
 		<button type="submit"><?= t('Continue')?></button>
 	</form>

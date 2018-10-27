@@ -18,6 +18,9 @@ if (($name = param('name')) && ($value = param('value'))){
 }
 
 
+$item_props = $item->properties();
+$related_props = Property::getRelated($item->code);
+debug(['item'=>$item,'related'=>$related_props]);
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -30,8 +33,31 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Type of new property') ?></th>
 			<th><?= t('Value of new property') ?></th>
 		</tr>
+		<?php foreach ($related_props as $prop) { ?>
 		<tr>
-			<td><input type="text" name="name" /></td>
+			<td>
+				<?= $prop->name ?>
+			</td>
+			<td>
+				<?php switch ($prop->type){					
+					case 1: echo t('Integer'); break;
+					case 2: echo t('Float'); break;
+					case 3: echo t('Boolean'); break;
+					default: echo t('String'); break;
+				}	?>
+			</td>
+			<td>
+				<input type="text" name="related[<?= $prop->id ?>]" value="<?= isset($item_props[$prop->id]) ? $item_props[$prop->id]->value : ''?>" />
+			</td>
+		</tr>		
+		<?php } // foreach related property?>
+		
+		
+		
+		<tr>
+			<td>
+				<input type="text" name="name" />
+			</td>
 			<td>
 				<select name="type">
 					<option value="<?= TYPE_STRING ?>"><?= t('String') ?></option>

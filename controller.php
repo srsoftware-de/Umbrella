@@ -217,7 +217,7 @@
 				$prop->patch($row);
 				unset($prop->dirty);
 				if ($single) return $prop;
-				$props[] = $prop;
+				$props[$prop->prop_id] = $prop;
 			}
 			if ($single) return reset($props);
 			return $props;
@@ -345,6 +345,31 @@
 				'name'				=> ['VARCHAR'=>255,'NOT NULL'],
 				'type'				=> ['INT','NOT NULL'],
 			];
+		}
+		
+		static function getRelated($item_code){
+			$sql = 'SELECT properties.id, name, type 
+					FROM items 
+						LEFT JOIN item_props ON item_id=items.id
+						LEFT JOIN properties ON properties.id = prop_id
+					WHERE code = :code
+					  AND properties.id IS NOT NULL
+					GROUP BY name
+					COLLATE NOCASE
+					ORDER BY name ASC';
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			$args = [':code'=>$item_code];
+			assert($query->execute($args),'Was not able to request related properties for '.$item_code);
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$props = [];
+			foreach ($rows as $row){
+				$property = new Property();
+				$property->patch($row);
+				$props[$property->id] = $property;
+				unset($property->dirty);
+			}
+			return $props;
 		}
 		
 		static function load($options){
