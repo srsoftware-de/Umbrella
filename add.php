@@ -65,7 +65,7 @@ include '../common_templates/messages.php'; ?>
 					</select>
 				</td>
 				<td>
-					<a class="button" href="<?= getUrl('stock','add_location?return_to='.location()); ?>"><?= t('Add stock location')?></a>
+					<a class="button" href="<?= getUrl('stock','add_location?'.($company_id?'company='.$company_id.'&':'').'return_to='.location()); ?>"><?= t('Add stock location')?></a>
 				</td>
 			</tr>
 		</table>

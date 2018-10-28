@@ -28,7 +28,7 @@ include '../common_templates/messages.php'; ?>
 	<tr class="first">
 		<td><?= substr($item->id,strlen($prefix)) ?></td>
 		<td><?= $item->code ?></td>
-		<td><?= $item->location()->full() ?></td>
+		<td><a href="<?= getUrl('stock',$item->id.'/alter_location'.($company_id?'?company='.$company_id:'')) ?>"><?= $item->location()->full() ?></a></td>
 		<td>
 			<?= empty($prop)?'':$prop->name() ?>
 		</td>

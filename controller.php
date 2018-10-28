@@ -136,7 +136,7 @@
 		}
 		
 		static function loadCodes($prefix){
-			$sql = 'SELECT code FROM items WHERE id LIKE :key GROUP BY code ORDER BY code';
+			$sql = 'SELECT code FROM items WHERE id LIKE :key GROUP BY code ORDER BY code COLLATE NOCASE';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			$args = [':key'=>$prefix.'%'];
