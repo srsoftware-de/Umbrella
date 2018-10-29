@@ -74,21 +74,22 @@ class Note extends UmbrellaObjectWithId{
 
 		if (isset($options['uri'])){
 			$uri = $options['uri'];
-			//$parts = explode(':', $uri,2); // was disabled, as model uses uris of the form model:project:xyz
-			$parts = explode(':', $uri);
+			$parts = explode(':', $uri,2); // was disabled, as model uses uris of the form model:project:xyz
 			$module = array_shift($parts);
 			$id = array_shift($parts);
 			//debug(['uri'=>$uri,'parts'=>$parts,'module'=>$module,'id'=>$id]);
 			switch ($module){
 				case 'files':
 					break; // do not call load for files
-				case 'model':
-					if ($id == 'project'){ // uri is of the form model:project:xyz
-						$id = array_shift($parts);
-						$entities = request('project','json',['ids'=>$id]);
+				case 'model': // uris are of the form model:project:<project id> or model:<model id>
+					if (strpos($id, 'project:')===0){ // in the first case: request project
+						$parts = explode(':', $id);
+						$entities = request('project','json',['ids'=>$array_pop($parts)]);
 						if (empty($entities)) return [];
 						break;
-					} // uri is of the form model:xyz, go to default section
+					}
+
+				// uri is of the form model:xyz, go to default section
 				default:
 					$entities = request($module,'json',['ids'=>$id]);
 					if (empty($entities)) return [];
@@ -113,6 +114,7 @@ class Note extends UmbrellaObjectWithId{
 			$args[] = $limit;
 		}
 		$query = $db->prepare($sql);
+		//debug(query_insert($sql, $args));
 		assert($query->execute($args),'Was not able to load notes');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$notes = [];

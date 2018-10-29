@@ -28,7 +28,7 @@ include '../common_templates/messages.php';
 	<tr>
 		<td>
 			<a href="<?= $note->url() ?>"><?= $note->uri ?></a>
-			<a href="<?= getUrl('notes',$id.'/view') ?>"><?= t('Source'); ?></a>
+			<a class="symbol" href="<?= getUrl('notes',$id.'/view') ?>"></a>
 		</td>
 		<td class="note"><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
 	</tr>

@@ -19,6 +19,7 @@ $translations = array(
 		'note'=>'Notiz',
 		'Notes'=>'Notizen',
 		'Projects'=>'Projekte',
+		'Stock'=>'Inventar',
 		'Tasks'=>'Aufgaben',
 		'This will remove the following note:'=>'Sie sind dabei, die folgende Notiz zu löschen:',
 		'Timetrack'=>'Zeiterfassung',
