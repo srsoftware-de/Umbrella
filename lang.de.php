@@ -69,6 +69,7 @@ $translations = array(
 		'Select terminal or endpoint for flow to connector "?"'=>'Terminal oder Endpunkt für Datenfluss zum Verbinder "?" wählen',
 		'show other models'=>'andere Modelle anzeigen',
 		'show project files'=>'Projektdateien anzeigen',
+		'Stock'=>'Inventar',
 		'Tasks'=>'Aufgaben',
 		'This will also remove all flows from/to the connector. Are you sure?'=>'Dies wird auch Flüsse vom/zum Verbinder löschen. Sind Sie sicher?',
 		'Timetrack'=>'Zeiterfassung',
