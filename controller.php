@@ -8,7 +8,9 @@
 	const TYPE_INT    = 1;
 	const TYPE_FLOAT  = 2;
 	const TYPE_BOOL   = 3;
-		
+	
+	$base_url = getUrl('stock');
+	
 	function get_or_create_db(){
 		$table_filename = 'stock.db';
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create '.strtolower(MODULE).'/db directory!');
@@ -357,20 +359,23 @@
 			];
 		}
 		
-		static function getRelated($item_code){
+		static function getRelated($item){
 			$sql = 'SELECT properties.id, properties.name, type, unit 
 					FROM items 
 						LEFT JOIN item_props ON item_id=items.id
 						LEFT JOIN properties ON properties.id = prop_id
-					WHERE code = :code 
+					WHERE items.id LIKE :prefix 
+					  AND code = :code 
 					  AND properties.id IS NOT NULL
 					GROUP BY properties.name
 					COLLATE NOCASE
 					ORDER BY properties.name ASC';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			$args = [':code'=>$item_code];
-			//debug(query_insert($sql, $args),1);
+			$parts = explode(':',$item->id);
+			array_pop($parts);
+			$args = [':code'=>$item->code,':prefix'=>implode(':', $parts).':%'];
+			//debug(query_insert($query, $args),1);
 			assert($query->execute($args),'Was not able to request related properties for '.$item_code);
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$props = [];
@@ -413,7 +418,7 @@
 				$where[] = 'name IN ('.$qmarks.')';
 				$args = array_merge($args,$names);
 			}
-				
+			
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where).' COLLATE NOCASE';
 		
 			if (isset($options['order'])){

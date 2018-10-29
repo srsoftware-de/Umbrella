@@ -3,6 +3,7 @@
 $translations = array(
 		'Actions'=>'Aktionen',
 		'Add existing property (from other items)'=>'Existierende Eigenschaft (von anderen Objekten) hinzufügen',
+		'add item'=>'Objekt hinzufügen',
 		'Add new item to stock'=>'Neues Objekt zum Inventar hinzufügen',
 		'Add property'=>'Eigenschaft hinzufügen',
 		'Add stock location'=>'Lagerort hinzufügen',
@@ -37,6 +38,7 @@ $translations = array(
 		'prop_type_2' => 'Gleitkommazahl',
 		'prop_type_3' => 'Wahrheitswert',
 		'Project'=>'Projekt',
+		'Projects'=>'Projekte',
 		'Properties'=>'Eigenschaften',
 		'Properties of ?'=>'Eigenschaften von ?',
 		'Save'=>'Speichern',
@@ -44,9 +46,11 @@ $translations = array(
 		'Select item code or enter new'=>'Artikel-Code auswählen oder neuen erstellen',
 		'Select location of item'=>'Lagerort für Objekt wählen',
 		'Stock'=>'Inventar',
+		'Stock index'=>'Inventar-Übersicht',
 		'String'=>'Zeichenkette',
 		'Tasks'=>'Aufgaben',
 		'Timetrack'=>'Zeiterfassung',
+		'To view the stock of one of your companies, click on its name:'=>'Um die Objekte einer Ihrer Firmen anzuzeigen, klicken Sie auf deren Name:',
 		'Type of property'=>'Typ der Eigenschaft',
 		'Type of new property'=>'Typ der neuen Eigenschaft',
 		'Umbrella: Stock Management'=>'Umbrella: Inventarverwaltung',
@@ -54,5 +58,6 @@ $translations = array(
 		'Value of new property'=>'Wert der neuen Eigenschaft',
 		'Value'=>'Wert',
 		'Where is this location?'=>'Wo befindet sich der Ort',
-		
+		'You are viewing the items of <b>?</b>.'=>'Sie sehen die Objekte von <b>?</b>.',
+
 );

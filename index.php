@@ -2,57 +2,58 @@
 
 require_login('stock');
 
-if ($company_id = param('company')){
-	$prefix = 'company:'.$company_id.':';
-} else $prefix = 'user:'.$user->id.':';
+$companies = isset($services['company']) ? request('company','json') : null;
+$prefix = param('id');
+if ($prefix) {
+	$parts = explode(':', $prefix,2);
+	$realm = array_shift($parts);
+	$realm_id = array_shift($parts);
+	switch ($realm){
+		case 'company':
+			$owner = $companies[$realm_id]['name'];
+			break;
+		default:
+			$prefix = null;
+	}
+}
+if (!$prefix){
+	$prefix = 'user:'.$user->id;
+	$owner = $user->login;
+}
 
-$items = Item::load(['prefix'=>$prefix]);
+$items = Item::load(['prefix'=>$prefix.':']);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php'; 
+
+if ($companies){ ?>
+<fieldset>
+	<legend><?= t('Companies')?></legend>
+	<?= t('You are viewing the items of <b>?</b>.',$owner)?><br/>
+	<?= t('To view the stock of one of your companies, click on its name:')?>
+	<?php 
+	foreach ($companies as $company){ ?>
+	<a class="button" href="<?= $base_url.'company:'.$company['id'].DS.'index'?>"><?= $company['name'] ?></a>
+	<?php } // foreach company	?>
+</fieldset>
+<?php } // if companies ?>
 
 <table class="stock">
 	<tr>
 		<th><?= t('ID')?></th>
 		<th><?= t('Code')?></th>
+		<th><?= t('Name')?></th>
 		<th><?= t('Location')?></th>
-		<th colspan="2"><?= t('Properties')?></th>
-		<th><?= t('Actions')?></th>
 	</tr>
-	<?php while (!empty($items)){
-		$item = array_pop($items); 
-		$properties = $item->properties();
-		$prop = empty($properties) ? null : array_shift($properties); ?>
-	<tr class="first">
-		<td><?= substr($item->id,strlen($prefix)) ?></td>
-		<td><?= $item->code ?></td>
-		<td><a href="<?= getUrl('stock',$item->id.'/alter_location'.($company_id?'?company='.$company_id:'')) ?>"><?= $item->location()->full() ?></a></td>
-		<td>
-			<?= empty($prop)?'':$prop->name() ?>
-		</td>
-		<td>
-			<?= empty($prop)?'':$prop->value ?>&nbsp;<?= empty($prop)?'':$prop->unit() ?>
-		</td>
-		<td>
-			<a class="button" href="<?= getUrl('stock',$item->id.'/add_property'.($company_id?'?company='.$company_id:''))?>"><?= t('Add property')?></a>
-		</td>
-	</tr>
-	<?php $first = true; while (!empty($properties)) { 
-	$prop = array_shift($properties); ?>
+	<?php foreach ($items as $item){ $url = $base_url.$item->id.DS.'view' ?>
 	<tr>
-		<td></td>
-		<td colspan="2"><?= $first ? $item->name : ''?></td>
-		<td>
-			<?= empty($prop)?'':$prop->name() ?>
-		</td>
-		<td colspan="2">
-			<?= empty($prop)?'':$prop->value ?>&nbsp;<?= empty($prop)?'':$prop->unit() ?>
-		</td>
+		<td><a href="<?= $url ?>"><?= substr($item->id,strlen($prefix)+1) ?></a></td>
+		<td><a href="<?= $url ?>"><?= $item->code ?></a></td>
+		<td><a href="<?= $url ?>"><?= $item->name ?></a></td>
+		<td><a href="<?= getUrl('stock',$item->id.'/alter_location'.($company_id?'?company='.$company_id:'')) ?>"><?= $item->location()->full() ?></a></td>
 	</tr>
-	<?php $first = false; } // while properties not empty ?>
 	<?php } // foreach item?>
 </table>
-
 <?php include '../common_templates/closure.php'; ?>

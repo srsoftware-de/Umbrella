@@ -2,17 +2,17 @@
 
 require_login('stock');
 
-if ($company_id = param('company')){
-	$prefix = 'company:'.$company_id.':';
-} else $prefix = 'user:'.$user->id.':';
-
-$locations = Location::load(['prefix'=>$prefix,'order'=>'name']);
-
 if ($id = param('id')){
 	$item = Item::load(['ids'=>$id]);
+	
+	$parts = explode(':', $id);
+	array_pop($parts);
+	$prefix = implode(':', $parts);
+	$locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
+	
 	if ($location_id = param('location_id')){
 		$item->patch(['location'=>$locations[$location_id]])->save();
-		redirect(getUrl('stock',$company_id?'?company='.$company_id:''));
+		redirect($base_url.$id.DS.'view');
 	}
 } else {
 	error('No id passed to alter_location!');

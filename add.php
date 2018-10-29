@@ -2,17 +2,19 @@
 
 require_login('stock');
 
-if ($company_id = param('company')){
-	$prefix = 'company:'.$company_id.':';
-} else $prefix = 'user:'.$user->id.':';
+$companies = isset($services['company']) ? request('company','json') : null;
 
-$locations = Location::load(['prefix'=>$prefix,'order'=>'name']);
-if (empty($locations)) redirect(getUrl('stock','add_location?'.($company_id?'company='.$company_id.'&':'').'return_to='.location()));
+$prefix = param('id');
+if (!$prefix) $prefix = 'user:'.$user->id;
 
-$next_id = Item::getNextId($prefix);
+$locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
 
-$location = ($location_id = param('location_id')) ? $locations[$prefix.$location_id] : null;
-$codes = Item::loadCodes($prefix);
+if (empty($locations)) redirect($base_url.$prefix.DS.'add_location');
+
+$next_id = Item::getNextId($prefix.':');
+
+$location = ($location_id = param('location_id')) ? $locations[$prefix.':'.$location_id] : null;
+$codes = Item::loadCodes($prefix.':');
 
 $selection = param('code_selection');
 $code = $selection == 'new_code' ? param('new_code') : $selection;
@@ -65,7 +67,7 @@ include '../common_templates/messages.php'; ?>
 					</select>
 				</td>
 				<td>
-					<a class="button" href="<?= getUrl('stock','add_location?'.($company_id?'company='.$company_id.'&':'').'return_to='.location()); ?>"><?= t('Add stock location')?></a>
+					<a class="button" href="<?= $base_url.$prefix.DS.'add_location?return_to='.location('*'); ?>"><?= t('Add stock location')?></a>
 				</td>
 			</tr>
 		</table>

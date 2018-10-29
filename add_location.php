@@ -2,21 +2,20 @@
 
 require_login('stock');
 
-if ($company_id = param('company')){
-	$prefix = 'company:'.$company_id.':';
-} else $prefix = 'user:'.$user->id.':';
+$prefix = param('id');
+if (!$prefix) $prefix = 'user:'.$user->id;
 
 $new_id = param('new_id');
 $name = param('name');
 if ($new_id && $name){
 	$location = new Location();
-	$location->patch($_POST)->patch(['new_id'=>$prefix.$new_id]);
-	if ($loc_id = param('location_id')) $location->patch(['location_id'=>$prefix.$loc_id]);
+	$location->patch($_POST)->patch(['new_id'=>$prefix.':'.$new_id]);
+	if ($loc_id = param('location_id')) $location->patch(['location_id'=>$prefix.':'.$loc_id]);
 	$location->save();
 	
-	redirect(param('return_to',getUrl('stock')));
+	redirect(param('return_to',$base_url.$prefix.DS.'index'));
 }
-$locations = Location::load(['prefix'=>$prefix,'order'=>'name']);
+$locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

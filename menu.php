@@ -1,2 +1,1 @@
-
-<a class="symbol" title="<?= t('add link') ?>" href="<?= getUrl('stock','add'.($company_id?'?company='.$company_id:''))?>"></a>
+<a class="symbol" title="<?= t('add item') ?>" href="<?= $base_url.$prefix.DS.'add'?>"></a>

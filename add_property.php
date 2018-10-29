@@ -7,7 +7,7 @@ if ($item_id = param('id')){
 } else error('No item id given!');
 
 $item_props = $item->properties();
-$related_props = Property::getRelated($item->code);
+$related_props = Property::getRelated($item);
 $all_props = Property::load();
 
 $redirect = null;
@@ -22,7 +22,7 @@ if ($new_prop = param('new_prop')){
 		$item_prop->patch(['property'=>$property,'value'=>$new_prop['value'],'item_id'=>$item_id]);
 		$item_prop->save();
 		
-		$redirect = getUrl('stock',$company_id?'?company='.$company_id:'');
+		$redirect = $base_url.$item_id.DS.'view';
 	}
 }
 $selected_prop = param('selected_prop');
@@ -33,7 +33,7 @@ if (!empty($selected_prop) && !empty($selected_value)){
 	$item_prop = new ItemProperty();
 	$item_prop->patch(['property'=>$property,'value'=>$selected_value,'item_id'=>$item_id]);
 	$item_prop->save();
-	$redirect = getUrl('stock',$company_id?'?company='.$company_id:'');
+	$redirect = $base_url.$item_id.DS.'view';
 }
 
 $related = param('related');
@@ -45,7 +45,7 @@ foreach ($related as $prop_id => $value){
 	$item_prop = new ItemProperty();
 	$item_prop->patch(['property'=>$property,'value'=>$value,'item_id'=>$item_id]);
 	$item_prop->save();
-	$redirect = getUrl('stock',$company_id?'?company='.$company_id:'');
+	$redirect = $base_url.$item_id.DS.'view';
 }
 
 if ($redirect) redirect($redirect);
