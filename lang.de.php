@@ -28,5 +28,6 @@ $translations = array(
 		'Users'=>'Benutzer',
 		'Yes'=>'Ja',
 		'Y-m-d H:i:s'=>'d.m.Y H:i:s',
+		'Your last ? notes'=>'Ihre letzten ? Notizen',
 		
 );
