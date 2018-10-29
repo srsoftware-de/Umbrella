@@ -9,9 +9,11 @@ include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php';
+include '../common_templates/messages.php'; ?>
 
-foreach ($companies as $company){ ?>
+<div>
+
+<?php foreach ($companies as $company){ ?>
 
 <fieldset class="company">
 	<legend>
@@ -53,11 +55,10 @@ foreach ($companies as $company){ ?>
 	<?php if (isset($services['stock'])) { ?>
 	<fieldset>
 		<legend><?= t('Stock management') ?></legend>
-		<a class="button" href="<?= getUrl('stock','?company='.$company->id )?>"><?= t('Go to stock management') ?></a>
+		<a class="button" href="<?= getUrl('stock','company:'.$company->id.DS.'index' )?>"><?= t('go to stock management') ?></a>
 	</fieldset>
 	<?php } ?>
 </fieldset>
-
-<?php }
-
-include '../common_templates/closure.php';
+<?php } ?>
+</div>
+<?php include '../common_templates/closure.php';

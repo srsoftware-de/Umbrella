@@ -36,7 +36,7 @@ include '../common_templates/messages.php';
 	<fieldset><legend><?=  t('Add user to Project "?"',$company->name) ?></legend>
 		<fieldset>
 			<select name="new_user">
-				<option value="" selected="true">= Select a user =</option>
+				<option value="" selected="selected">= <?= t('Select a user') ?> =</option>
 				<?php foreach ($user_list as $id => $u){ if (in_array($id,$company->users())) continue; ?>
 				<option value="<?= $id ?>"><?= $u['login']?></option>
 				<?php }?>
