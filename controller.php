@@ -179,6 +179,13 @@ class Company extends UmbrellaObjectWithId{
 		return $this->users;
 	}
 
+	public function drop_user($user_id = null){
+		assert($user_id !== null,'Trying to drop "null" user from company! Aborting');
+		$db = get_or_create_db();
+		$query = $db->prepare('DELETE FROM companies_users WHERE company_id = :cid AND user_id = :uid');
+		assert($query->execute([':cid'=>$this->id,':uid'=>$user_id]),'Was not able to remove assignment in database!');
+	}
+	
 	public function add_user($user_id = null){
 		assert($user_id !== null,'Trying to assign "null" as user to company! Aborting');
 		$db = get_or_create_db();

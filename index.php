@@ -48,7 +48,9 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('current users')?></legend>
 		<ul>
 		<?php foreach ($company->users() as $uid) { ?>	
-			<li><?= $user_list[$uid]['login']?></li>
+			<li>
+				<?= $user_list[$uid]['login']?> <a class="symbol" href="<?= getUrl('company',$company->id.DS.'drop_user?user='.$uid) ?>" title="<?= t('Drop user') ?>"></a>
+			</li>
 		<?php } ?>
 		</ul>
 	</fieldset>
