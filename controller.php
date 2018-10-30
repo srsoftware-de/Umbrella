@@ -150,6 +150,7 @@
 				$sql .= ' ORDER BY state ASC, end_time DESC';
 			}
 		
+			/* Fetch times from time db. Collect task ids of times */
 			$db = get_or_create_db();
 			//debug(query_insert($sql, $args),1);
 			$query = $db->prepare($sql);
@@ -157,32 +158,51 @@
 			assert($query->execute($args),'Was not able to load times!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 			
-			$times = [];
+			$all_times = [];
 			$task_ids = [];
 			foreach ($rows as $row){
 				$time = new Timetrack();
 				$time->patch($row);
 				unset($time->dirty);
 				$task_ids = array_merge($task_ids,$time->task_ids());
-				$times[$time->id] = $time;
+				$all_times[$time->id] = $time;
 			}
 			$task_ids = array_unique($task_ids);
+
+			/* Fetch tasks referenced by times */
+			$referenced_tasks = request('task','json',['ids'=>$task_ids]);
 			
-			$project_ids = [];
-			$tasks = request('task','json',['ids'=>$task_ids]);
-			$projects = request('project','json',['ids'=>array_keys($project_ids)]);
-			foreach ($tasks as &$task) $task['project'] = $projects[$task['project_id']];
-				
-			foreach ($times as &$time){
+
+			/* Fetch all projects and filter by referencing takss */
+			$projects = isset($options['project_id']) ? request('project','json',['ids'=>$options['project_id']]) : request('project','json');
+			
+			/* assign projects to tasks, thereby filter tasks:
+			 * only task which belong to a loaded projects will be kept */
+			$filtered_tasks = [];
+			foreach ($referenced_tasks as $tid => &$task) {
+				$pid = $task['project_id'];
+				if (isset($projects[$pid])){
+					$task['project'] = $projects[$pid];
+					$filtered_tasks[$tid] = $task;
+				}
+			}
+			
+			/* assign tasks to times, thereby filter times:
+			 * only times, which have at least one task in the list of filtered tasks are kept.
+			 * This ensures, in turn, that only tasks of the selected project(s) are shown.
+			 */
+			$filtered_times = [];
+			foreach ($all_times as &$time){
 				foreach ($time->tasks as $task_id => $dummy) {
-					$time_task = $tasks[$task_id];
-					$project_ids[$time_task['project_id']] = true;
-					$time->tasks[$task_id] = $time_task;
+					if (isset($filtered_tasks[$task_id])){
+						$time->tasks[$task_id] = $filtered_tasks[$task_id];
+						$filtered_times[$time->id] = $time;
+					}
 				}
 				if ($single) return $time;
 			}
 			if ($single) return null;
-			return $times;
+			return $filtered_times;
 		}
 		
 		function assign_task($task = null){

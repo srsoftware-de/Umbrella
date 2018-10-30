@@ -2,8 +2,9 @@
 
 require_login('time');
 
-$times = Timetrack::load(['order'=>param('order','state')]);
-
+$options = ['order'=>param('order','state')];
+if ($project_id = param('project')) $options['project_id'] = [$project_id];
+$times = Timetrack::load($options);
 $show_complete = param('complete') == 'show';
 
 header('Content-Type: application/csv');

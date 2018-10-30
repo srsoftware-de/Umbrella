@@ -2,10 +2,11 @@
 
 require_login('time');
 
-$times = Timetrack::load(['order'=>param('order')]);
+$options = ['order'=>param('order')];
+if ($project_id = param('project')) $options['project_id'] = [$project_id];
+$times = Timetrack::load($options);
 
 $show_complete = param('complete') == 'show';
-
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -16,9 +17,8 @@ if ($show_complete){ ?>
 <a class="symbol" title="<?= t('export times')?>" href="export?complete=show"></a>
 <?php } else { ?> 
 <a class="symbol" title="<?= t('show completed times') ?>" href="?complete=show"></a>
-<a class="symbol" title="<?= t('export times to CSV')?>" href="export"></a>
+<a class="symbol" title="<?= t('export times to CSV')?>" href="export<?= $project_id ? '?project='.$project_id:''?>"></a>
 <?php } ?>
-
 
 <table>
 	<tr>
@@ -42,7 +42,7 @@ if ($show_complete){ ?>
 		<td>
 		<?php foreach ($time_projects as $pid => $name){?>
 			<span class="hover_h">
-				<a href="<?= getUrl('project',$pid.'/view') ?>"><?= $name ?></a>&nbsp;<a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $pid ?>)')"></a>
+				<a href="<?= getUrl('project',$pid.'/view') ?>"><?= $name ?></a>&nbsp;<a href="<?= getUrl('time','?project='.$pid)?>" class="symbol" ></a>
 			</span>
 		<?php }?>
 		</td>
