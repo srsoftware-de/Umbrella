@@ -12,8 +12,8 @@ header('Content-Type: application/csv');
 header('Content-Disposition: attachment; filename="timetrack.csv";');
 ?>
 "<?= t('Projects')?>";"<?= t('Subject')?>";"<?= t('Description')?>";"<?= t('Start')?>";"<?= t('End')?>";"<?= t('Hours')?>";"<?= t('State')?>"
-<?php foreach ($times as $id => $time){ ?>"<?php  
-	if (!$show_complete && $time->state == TIME_STATUS_COMPLETE) continue;
+<?php foreach ($times as $id => $time){
+	if (!$show_complete && $time->state == TIME_STATUS_COMPLETE) continue; ?>"<?php
 	$projects = [];
 	foreach ($time->tasks as $task_id => $task) $projects[$task['project']['name']]=true;
 	echo implode(', ', array_keys($projects));

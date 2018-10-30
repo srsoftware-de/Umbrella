@@ -38,6 +38,7 @@ $translations = array(
 		'start tracking'=>'Zeiterfassung starten',
 		'started timetrack'=>'lauende Zeiterfassung',
 		'State'=>'Status',
+		'Stock'=>'Inventar',
 		'Subject'=>'Betreff',
 		'Tasks'=>'Aufgaben',
 		'The task "?" already was assigned to this timetrack.'=>'Die Aufgabe "?" war dieser erfassten Zeit bereits zugeordnet.',
