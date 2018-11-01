@@ -2,20 +2,30 @@
 
 require_login('stock');
 
-if ($id = param('id')){
-	$item = Item::load(['ids'=>$id]);
-	
-	$parts = explode(':', $id);
-	array_pop($parts);
-	$prefix = implode(':', $parts);
-	$locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
-	
-	if ($location_id = param('location_id')){
-		$item->patch(['location'=>$locations[$location_id]])->save();
-		redirect($base_url.$id.DS.'view');
+if ($item_id = param('id')){
+	$parts = explode(':', $item_id);
+	$realm = $parts[0];
+	$realm_id = $parts[1];
+	switch ($realm){
+		case 'company':
+			$company = request($realm,'json',['ids'=>$realm_id]);
+			assert(!empty($company),t('You are not allowed to access items of this ?',$realm));
+			break;
+		case 'user':
+			assert($realm_id == $user->id,t('You are not allowed to access items of this ?',$realm));
+			break;
 	}
-} else {
-	error('No id passed to alter_location!');
+	$item = Item::load(['ids'=>$item_id]);
+	$num = array_pop($parts);
+	$prefix = implode(':', $parts);
+	if (!$item) redirect($base_url.$prefix.DS.'add');
+} else error('No item id supplied!');
+
+$locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
+	
+if ($location_id = param('location_id')){
+	$item->patch(['location'=>$locations[$location_id]])->save();
+	redirect($base_url.$item_id.DS.'view');
 }
 
 include '../common_templates/head.php';
@@ -25,6 +35,7 @@ include '../common_templates/messages.php'; ?>
 
 <fieldset>
 	<legend><?= t('Alter location of ?',$item->name) ?></legend>
+	<a class="button" href="<?= $base_url.$prefix.DS.'add_location' ?>"><?= t('Add stock location') ?></a>
 	<form method="POST">
 		<select name="location_id">
 		<?php foreach ($locations as $location) { ?>

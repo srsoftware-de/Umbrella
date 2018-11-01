@@ -7,10 +7,12 @@ $translations = array(
 		'Add new item to stock'=>'Neues Objekt zum Inventar hinzufügen',
 		'Add property'=>'Eigenschaft hinzufügen',
 		'Add stock location'=>'Lagerort hinzufügen',
+		'Alter location of ?'=>'Ort von ? ändern',
 		'(automatically assigned)'=>'(automatisch zugewiesen)',
 		'Bookmarks' => 'Lesezeichen',
 		'Boolean'=>'Wahrheitswert',
 		'Company'=>'Firma',
+		'Companies'=>'Firmen',
 		'Contacts'=>'Kontakte',
 		'Continue'=>'Weiter',
 		'Create new property'=>'Neue Eigenschaft anlegen',
@@ -33,6 +35,7 @@ $translations = array(
 		'New code'=>'Neuer Code',
 		'No location'=>'Kein übergeordneter Ort',
 		'Notes'=>'Notizen',
+		'Overview'=>'Übersicht',
 		'prop_type_0' => 'Zeichenkette',
 		'prop_type_1' => 'Ganzzahl',
 		'prop_type_2' => 'Gleitkommazahl',
@@ -59,5 +62,4 @@ $translations = array(
 		'Value'=>'Wert',
 		'Where is this location?'=>'Wo befindet sich der Ort',
 		'You are viewing the items of <b>?</b>.'=>'Sie sehen die Objekte von <b>?</b>.',
-
 );

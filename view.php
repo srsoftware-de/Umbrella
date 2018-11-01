@@ -3,25 +3,40 @@
 require_login('stock');
 
 if ($item_id = param('id')){
-	$item = Item::load(['ids'=>$prefix.$item_id]);	
+	$parts = explode(':', $item_id);
+	$realm = $parts[0];
+	$realm_id = $parts[1];
+	switch ($realm){
+		case 'company':
+			$company = request($realm,'json',['ids'=>$realm_id]);
+			assert(!empty($company),t('You are not allowed to access items of this ?',$realm));
+			break;
+		case 'user':
+			assert($realm_id == $user->id,t('You are not allowed to access items of this ?',$realm));
+			break;
+	}
+	$item = Item::load(['ids'=>$item_id]);
+	$num = array_pop($parts);
+	$prefix = implode(':', $parts);
+	if (!$item) redirect($base_url.$prefix.DS.'add');
 } else error('No item id supplied!');
 
-$parts = explode(':', $item_id);
-array_pop($parts);
-$index_url = $base_url.implode(':', $parts).'/index';
+$index_url = $base_url.$prefix.DS.'index';
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<h2><?= $item->name ?></h2>
+<fieldset>
+	<legend><?= $item->name ?></legend>
 <table class="stock">
 	<tr>
-		<th><?= t('ID')?></th>
+		<th><a href="<?= $base_url.$prefix.':'.($num-1).DS.'view' ?>">&lt;</a> <?= t('ID')?> <a href="<?= $base_url.$prefix.':'.($num+1).DS.'view' ?>">&gt;</a></th>
 		<th><?= t('Code')?></th>
 		<td colspan="2">
 			<a class="button" href="<?= $index_url ?>"><?= t('Stock index')?></a>
+			<a class="button" href="<?= getUrl('files','?path='.str_replace(':', DS,$prefix).DS.'stock'.DS.'item:'.$num)?>"><?= t('Files')?></a>
 			<a class="button" href="<?= getUrl('stock',$item_id.'/add_property'.($company_id?'?company='.$company_id:''))?>"><?= t('Add property')?></a>
 		</td>
 	</tr>
@@ -61,7 +76,7 @@ include '../common_templates/messages.php'; ?>
 	<?php $first = false; } // while properties not empty ?>
 	
 </table>
-
+</fieldset>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'stock:'.$item->id],false,NO_CONVERSION); 
 
 include '../common_templates/closure.php'; ?>

@@ -3,8 +3,23 @@
 require_login('stock');
 
 if ($item_id = param('id')){
+	$parts = explode(':', $item_id);
+	$realm = $parts[0];
+	$realm_id = $parts[1];
+	switch ($realm){
+		case 'company':
+			$company = request($realm,'json',['ids'=>$realm_id]);
+			assert(!empty($company),t('You are not allowed to access items of this ?',$realm));
+			break;
+		case 'user':
+			assert($realm_id == $user->id,t('You are not allowed to access items of this ?',$realm));
+			break;
+	}
 	$item = Item::load(['ids'=>$item_id]);
-} else error('No item id given!');
+	$num = array_pop($parts);
+	$prefix = implode(':', $parts);
+	if (!$item) redirect($base_url.$prefix.DS.'add');
+} else error('No item id supplied!');
 
 $item_props = $item->properties();
 $related_props = Property::getRelated($item);
