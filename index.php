@@ -25,7 +25,9 @@ if (!$prefix){
 	$owner = $user->login;
 }
 
-$items = Item::load(['prefix'=>$prefix.':']);
+$options = ['prefix'=>$prefix.':'];
+if ($order = param('order')) $options['order']=$order;
+$items = Item::load($options);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -48,10 +50,10 @@ if ($companies){ ?>
 	<legend><?= t('Overview')?></legend>
 	<table class="stock">
 		<tr>
-			<th><?= t('ID')?></th>
-			<th><?= t('Code')?></th>
-			<th><?= t('Name')?></th>
-			<th><?= t('Location')?></th>
+			<th><a href="?order=id"><?= t('ID')?></a></th>
+			<th><a href="?order=code"><?= t('Code')?></a></th>
+			<th><a href="?order=name"><?= t('Name')?></a></th>
+			<th><a href="?order=location"><?= t('Location')?></a></th>
 		</tr>
 		<?php while (!empty($items)){ $item=array_pop($items); $url = $base_url.$item->id.DS.'view' ?>
 		<tr>
