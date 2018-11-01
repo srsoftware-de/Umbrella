@@ -84,7 +84,7 @@
 		}
 		
 		static function load($options){
-			global $user;
+			global $user,$services;
 		
 			$sql = 'SELECT * FROM items';
 		
@@ -92,7 +92,29 @@
 			$args =  [];
 			$single = false;
 			
-			if (isset($options['ids'])){
+			if (isset($options['search'])){
+				$key = $options['search'];
+				
+				$companies = isset($services['company']) ? request('company','json') : null;
+				
+				$cond = '(id LIKE ?';
+				$args[] = 'user:'.$user->id.':%';
+				
+				if (!empty($companies)){
+					foreach ($companies as $cid => $dummy){
+						$cond .= ' OR id LIKE ?';
+						$args[] = 'company:'.$cid.':%';
+					}
+				}
+				$cond .= ')';
+				
+				$where[] = $cond;
+				
+				
+				$where[] = 'code LIKE ? OR name LIKE ?';
+				$args[] = "%$key%";
+				$args[] = "%$key%";
+			} elseif (isset($options['ids'])){
 				$ids = $options['ids'];
 				if (!is_array($ids)){
 					$single = true;
@@ -115,8 +137,16 @@
 			$sql .= ' COLLATE NOCASE';
 		
 			if (isset($options['order'])){
-				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
-				$sql.= ' ORDER BY '.implode(', ',$order);
+				switch ($options['order']){
+					case 'code':
+					case 'id':
+					case 'name':
+						$sql.= ' ORDER BY '.$options['order'].' DESC';
+						break;
+					case 'location':
+						$sql.= ' ORDER BY location_id';
+						break;
+				}
 			} 
 		
 			$db = get_or_create_db();
