@@ -4,8 +4,8 @@
 	
 	function get_or_create_db(){
 		$table_filename = 'tags.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create bookmark/db directory!');
-		assert(is_writable('db'),'Directory bookmark/db not writable!');
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create '.strtolower(MODULE).'/db directory!');
+		assert(is_writable('db'),'Directory '.strtolower(MODULE).'/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 	
@@ -32,7 +32,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in bookmark/controller.php!');
+									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
