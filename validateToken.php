@@ -1,5 +1,6 @@
 <?php $title = 'Umbrella login';
 
+include '../bootstrap.php';
 include 'controller.php';
 
 assert(isset($_POST['token']),'No token set!');
@@ -11,7 +12,9 @@ $db = get_or_create_db();
 $query = $db->prepare('SELECT * FROM tokens WHERE token = :token AND expiration > :time');
 assert($query->execute(array(':token'=>$token,':time'=>time())),'Was not able to check token');
 $results = $query->fetchAll(PDO::FETCH_ASSOC);
-assert(count($results>0),'Token not found');
+
+assert(!empty($results),'Token not found');
+
 $token = $results[0];
 
 // stretch expiration time

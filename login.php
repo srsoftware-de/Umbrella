@@ -15,6 +15,7 @@ if ($admin->pass == sha1('admin') && $admin->login == 'admin') info(t('The defau
 $login_services = get_login_services();
 
 $redirect = param('returnTo');
+if (!empty($redirect) && isset($_SESSION['token'])) redirect($redirect.'?token='.$_SESSION['token']); 
 
 include '../common_templates/head.php';
 include '../common_templates/messages.php';
@@ -27,14 +28,12 @@ if (!empty($login_services)) { ?>
 	<?php }?>
 </fieldset>
 <?php } ?>
-<?php include '../common_templates/closure.php'; ?>
-
 
 <form method="POST">
 	<fieldset>
 		<legend><?= t('Login using email and password')?></legend>
 		<fieldset><legend><?= t('Email')?></legend>
-		<input type="text" autofocus="true" name="email" />
+		<input type="text" autofocus="autofocus" name="email" />
 		</fieldset>
 		<fieldset><legend><?= t('Password')?></legend>
 		<input type="password" name="pass" />
@@ -43,3 +42,4 @@ if (!empty($login_services)) { ?>
 	</fieldset>
 </form>
 
+<?php include '../common_templates/closure.php'; ?>
