@@ -60,7 +60,7 @@ if ($companies){ ?>
 			<td><a href="<?= $url ?>"><?= substr($item->id,strlen($prefix)+1) ?></a></td>
 			<td><a href="<?= $url ?>"><?= $item->code ?></a></td>
 			<td><a href="<?= $url ?>"><?= $item->name ?></a></td>
-			<td><a href="<?= getUrl('stock',$item->id.'/alter_location'.($company_id?'?company='.$company_id:'')) ?>"><?= $item->location()->full() ?></a></td>
+			<td><a href="<?= getUrl('stock',$item->id.'/alter_location') ?>"><?= $item->location()->full() ?></a></td>
 		</tr>
 		<?php } // foreach item?>
 	</table>

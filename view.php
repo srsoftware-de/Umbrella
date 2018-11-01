@@ -37,7 +37,7 @@ include '../common_templates/messages.php'; ?>
 		<td colspan="2">
 			<a class="button" href="<?= $index_url ?>"><?= t('Stock index')?></a>
 			<a class="button" href="<?= getUrl('files','?path='.str_replace(':', DS,$prefix).DS.'stock'.DS.'item:'.$num)?>"><?= t('Files')?></a>
-			<a class="button" href="<?= getUrl('stock',$item_id.'/add_property'.($company_id?'?company='.$company_id:''))?>"><?= t('Add property')?></a>
+			<a class="button" href="<?= getUrl('stock',$item_id.'/add_property')?>"><?= t('Add property')?></a>
 		</td>
 	</tr>
 	<tr>
@@ -63,7 +63,7 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<td colspan="2">
 			<?php if ($first) { ?>
-			<a href="<?= getUrl('stock',$item->id.'/alter_location'.($company_id?'?company='.$company_id:'')) ?>"><?= $item->location()->full() ?></a>
+			<a href="<?= getUrl('stock',$item->id.'/alter_location') ?>"><?= $item->location()->full() ?></a>
 			<?php } ?>
 		</td>
 		<td>
