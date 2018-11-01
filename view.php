@@ -132,6 +132,8 @@ if ($project){
 			<a href="<?= getUrl('files','?path=project/'.$project->id) ?>"><span class="symbol"></span> <?= t('files') ?></a>&nbsp;
 			<?php }  if (isset($services['model'])) { ?>
 			<a href="<?= getUrl('model','?project='.$project->id) ?>"><span class="symbol"></span> <?= t('models') ?></a>&nbsp;
+			<?php }  if (isset($services['time'])) { ?>
+			<a href="<?= getUrl('time','?project='.$project->id) ?>"><span class="symbol"></span> <?= t('timetracking') ?></a>&nbsp;
 			<?php } ?>
 		</td>
 	</tr>
