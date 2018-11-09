@@ -121,7 +121,7 @@ foreach ($tasks as &$task){
 
 unset($project);
 
-if ($position_data = post('position')){	
+if ($position_data = post('position')){
 	$positions = $document->positions();
 	foreach ($position_data as $pos => $data){
 		$data['single_price'] = str_replace(',','.',$data['single_price'])*100;// * $data['single_price'];
@@ -166,9 +166,12 @@ function show_time_estimates($tasks){ ?>
 	</ul>
 <?php }
 
+$sent = $document->state != Document::STATE_NEW;
+
 if ($document->customer_number == '') warn('No customer number set in document!');
 if ($document->delivery_date() == '') warn('No delivery date set in document!');
 if ($document->template_id == null) warn('No document template selected!');
+if ($sent) info('This document has already been sent and can no longer be edited.');
 
 include '../common_templates/head.php'; 
 include '../common_templates/main_menu.php';
@@ -178,6 +181,130 @@ include '../common_templates/messages.php'; ?>
 
 
 <form method="POST" class="document">
+	<?php if ($sent) { ?>
+	<fieldset>
+		<legend><?= t('Document')?></legend>
+		<fieldset class="customer">
+			<legend><?= t('Customer')?></legend>
+			<p><?= str_replace("\n","<br/>\n",$document->customer) ?><p>
+			<p><?= t('Customer number')?>: <?= $document->customer_number ?></p>
+			<p><?= t('Customer tax number')?>: <?= $document->customer_tax_number ?></p>
+			<p><?= t('Customer email')?>: <?= $document->customer_email ?></p>
+		</fieldset>
+		<fieldset class="sender">
+			<legend><?= t('Sender')?></legend>
+			<p><?= str_replace("\n","<br/>\n",$document->sender) ?></p>
+			<p><?= t('Tax number')?>: <?= $document->tax_number ?></p>
+		</fieldset>
+		<fieldset class="dates">
+			<legend><?= t('Dates')?></legend>
+			<p><?= t($document->type()->name.' date')?>: <?= $document->date() ?></p>
+			<p><?= t('Delivery Date')?>: <?= $document->delivery_date() ?></p>
+			<p><?= t($document->type()->name.' number')?>: <?= $document->number ?></p>
+			<label><?= t('State'); ?>
+				<select name="document[state]">
+				<?php foreach (Document::states() as $state => $text){ ?>
+					<option value="<?= $state ?>" <?= $document->state == $state ? 'selected="true"' :''?> ><?= t($text) ?></option>
+				<?php } ?>
+				</select>
+			</label>
+		</fieldset>
+		
+		<fieldset class="steps">
+			<legend><?= t('Create successor document') ?></legend>
+			<ul>
+				<?php foreach ($document->type()->successors() as $type){ ?>
+				<li><a href="step?type=<?= $type->id ?>"><?= t('Create ?',t($type->name))?></a></li>
+				<?php }?>
+			</ul>
+		</fieldset>
+
+		<fieldset class="header">
+			<legend>
+				<?= t('Greeter/Head text')?>
+			</legend>
+			<p><?= str_replace("\n","<br/>\n",$document->head) ?></p>
+		</fieldset>
+		<fieldset class="document_positions">
+			<legend><?= t('Positions')?></legend>
+			<table>
+				<tr>
+					<th><?= t('Pos')?></th>
+					<th><?= t('Code')?></th>
+					<th>
+						<span class="title"><?= t('Title')?></span>/
+						<span class="description"><?= t('Description')?></span>
+					</th>
+					<th><?= t('Amount')?></th>
+					<th><?= t('Unit')?></th>
+					<th><?= t('Price')?></th>
+					<th><?= t('Price')?></th>
+					<th><?= t('Tax')?></th>
+				</tr>
+
+				<?php $first = true;
+					foreach ($document->positions() as $pos => $position) { ?>
+				<tr>
+					<td><?= $pos ?></td>
+					<td>
+						<?= $position->item_code ?>
+						<?php if ($position->time_id !== null) {?><br/>
+						(<a href="<?= getUrl('time',$position->time_id.'/view') ?>"><?= t('Show time')?></a>)
+						<?php } ?>
+						<?= $position->optional ? '('.t('optional').')' : '' ?>
+					</td>
+					<td>
+						<h4><?= htmlspecialchars($position->title) ?></h4>
+						<p><?= str_replace("\n","<br/>\n",$position->description) ?></p>
+					</td>
+					<td><?= $position->amount ?></td>
+					<td><?= t($position->unit)?></td>
+					<td><?= $position->single_price/100?></td>
+					<td class="pos_price"><?= round($position->single_price*$position->amount/100,2) ?></td>
+					<td><?= $position->tax?>&nbsp;%</td>
+				</tr>
+				<?php $first = false; }?>
+			</table>
+		</fieldset>
+
+		<fieldset>
+			<legend>
+				<?= t('Footer text')?>
+			</legend>
+			<p><?= str_replace("\n","<br/>\n",$document->footer) ?></p>
+		</fieldset>
+		<fieldset class="bank_account">
+			<legend>
+				<?= t('Bank account')?>
+			</legend>
+			<p><?= str_replace("\n","<br/>\n",$document->bank_account) ?></p>
+		</fieldset>
+		<fieldset class="court">
+			<legend>
+				<?= t('Local court')?>
+			</legend>
+			<p><?= $document->court ?></p>
+		</fieldset>
+		<fieldset class="template">
+			<legend>
+				<?= t('Template')?>
+			</legend>
+			<p><?= $templates[$document->template_id]->name ?></p>
+		</fieldset>
+		<?php if (isset($services['bookmark'])){ ?>
+		<fieldset>
+			<legend><?= t('Tags')?></legend>
+			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
+		</fieldset>
+		<?php } ?>
+		<button type="submit"><?= t('Save')?></button>
+		<a class="button" title="<?= t('Download/Preview PDF') ?>" href="download"><?= t('Download/Preview PDF') ?></a>
+		<?php if (isset($services['files'])) { ?>
+		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>
+		<?php } ?>
+		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ?',$document->customer_email)?></a>
+	</fieldset>
+	<?php } else { ?>
 	<fieldset>
 		<legend><?= t('Edit document')?></legend>
 		<fieldset class="customer">
@@ -278,7 +405,7 @@ include '../common_templates/messages.php'; ?>
 						<textarea name="position[<?= $pos?>][description]"><?= $position->description ?></textarea>
 					</td>
 					<td><input class="amount" name="position[<?= $pos?>][amount]" value="<?= $position->amount ?>" /></td>
-					<td><?= t($position->unit)?></td>
+					<td><input class="unit" name="position[<?= $pos ?>][unit]" value="<?= t($position->unit)?>" /></td>
 					<td><input class="price" name="position[<?= $pos?>][single_price]" value="<?= $position->single_price/100?>" /></td>
 					<td class="pos_price"><?= round($position->single_price*$position->amount/100,2) ?></td>
 					<td><div class="tax"><input name="position[<?= $pos?>][tax]" value="<?= $position->tax?>" /> %</div></td>
@@ -403,6 +530,7 @@ include '../common_templates/messages.php'; ?>
 		<?php } ?>
 		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ?',$document->customer_email)?></a>
 	</fieldset>
+	<?php } ?>
 </form>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'document:'.$id],false,NO_CONVERSION);
 include '../common_templates/closure.php';?>
