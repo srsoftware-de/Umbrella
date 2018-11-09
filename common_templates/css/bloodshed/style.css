@@ -117,7 +117,7 @@ label.location::after {
 	white-space: pre;
 }
 
-.company > fieldset,
+.company div > fieldset,
 .company > table{
 	margin-right: 10px;
 	float: left;
@@ -428,24 +428,31 @@ div.search:hover input{
 }
 
 @media (max-width:1199px) {
+	table.documents tr>*:nth-child(6),
+	body.time tr>*:nth-child(3),
 	.tasks.list tr>*:nth-child(2){
 		display: none;
 	}
 }
 
 @media (max-width: 900px){
+	table.documents tr>*:nth-child(4),
+	body.time tr>*:nth-child(6),
 	.tasks tr>*:nth-child(5){
 		display: none;
 	}
 }
 
 @media (max-width: 800px){
+	body.time tr>*:nth-child(8),
 	.tasks tr>*:nth-child(4){
 		display: none;
 	}
 }
 
 @media (max-width: 700px){
+	body.time tr>*:nth-child(1),
+	.project-index tr>*:nth-child(4),
 	.tasks tr>*:nth-child(6){
 		display: none;
 	}
@@ -455,13 +462,24 @@ div.search:hover input{
 }
 
 @media (max-width: 600px){
+	table.stock tr>*:nth-child(4),
+	table.documents tr>*:nth-child(3),
+	body.time tr>*:nth-child(7),
+	table.vertical.tasks tr>*:nth-child(1),
 	.project-view tr>*:nth-child(1),
 	.tasks tr>*:nth-child(3){
 		display: none;
 	}
 }
 @media (max-width: 500px){
+	table.documents tr>*:nth-child(2),
+	body.time tr>*:nth-child(5),	
 	.project-index tr>*:nth-child(2){
+		display: none;
+	}
+}
+@media (max-width: 400px){
+	.project-index tr>*:nth-child(5){
 		display: none;
 	}
 }
