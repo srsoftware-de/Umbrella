@@ -134,6 +134,7 @@ class PDF extends FPDF{
 		
 		$this->SetY(-15);
 		$this->Cell(0,10,t('Page ?/?',[$this->PageNo(),'{nb}']),NO_FRAME,0,'R');
+		$this->Ln();
 	}
 	
 	function firstPage(){
@@ -146,17 +147,13 @@ class PDF extends FPDF{
 		
 		$this->setY(95,1);
 		$this->SetFont('Arial','',10);
-		$head = explode("\n", $this->document->head);
-		foreach ($head as $line){
-			$this->Cell(0,10,$line,NO_FRAME,DOWN,'L');
-		}
-		
+		$this->MultiCell(0, 5, $this->document->head);
 	}
 	
 	function foot(){
 		$this->SetFont('Arial','',10);
-		$this->Ln();		
-		$this->MultiCell(0, 6, $this->document->footer);
+		$this->Ln();
+		$this->MultiCell(0, 5, $this->document->footer);
 	}
 	
 	function generate(){
