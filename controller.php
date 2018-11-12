@@ -259,6 +259,13 @@
 			return $props;
 		}
 		
+		function delete(){
+			$db = get_or_create_db();
+			$args = [':item_id'=>$this->item_id,':prop_id'=>$this->property->id];
+			$query = $db->prepare('DELETE FROM item_props WHERE item_id = :item_id AND prop_id = :prop_id');
+			assert($query->execute($args),'Was not able delete property from database');
+		}
+		
 		function name(){
 			return $this->property()->name;
 		}

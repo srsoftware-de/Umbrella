@@ -52,14 +52,14 @@ if (!empty($selected_prop) && !empty($selected_value)){
 }
 
 $related = param('related');
-
 foreach ($related as $prop_id => $value){
-	if ($value == '') continue;
-	$property = $all_props[$prop_id];
-	
 	$item_prop = new ItemProperty();
-	$item_prop->patch(['property'=>$property,'value'=>$value,'item_id'=>$item_id]);
-	$item_prop->save();
+	$item_prop->patch(['property'=>$all_props[$prop_id],'value'=>$value,'item_id'=>$item_id]);
+	if ($value != ''){
+		$item_prop->save();
+	} else { // set property
+		if (array_key_exists($prop_id, $item->properties))	$item_prop->delete();  // remove property
+	}
 	$redirect = $base_url.$item_id.DS.'view';
 }
 
@@ -86,6 +86,11 @@ include '../common_templates/messages.php';?>
 				<th><?= t('Name')?></th>
 				<td><input type="text" name="name" value="<?= $item->name?>" /></td>
 			</tr>
+			<tr>
+				<th><?= t('Location')?></th>
+				<td><?= $item->location()->full() ?></td>
+			</tr>
+			
 		</table>
 	</fieldset>
 	<fieldset>
