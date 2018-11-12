@@ -24,7 +24,7 @@ if ($item_id = param('id')){
 $locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
 	
 if ($location_id = param('location_id')){
-	$item->patch(['location'=>$locations[$location_id]])->save();
+	$item->patch(['location_id'=>$location_id])->save();
 	redirect($base_url.$item_id.DS.'view');
 }
 
