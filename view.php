@@ -22,6 +22,7 @@ if ($item_id = param('id')){
 } else error('No item id supplied!');
 
 $index_url = $base_url.$prefix.DS.'index';
+$files_path = str_replace(':', DS,$prefix).DS.'stock'.DS.'item:'.$num;
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -36,7 +37,7 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Code')?></th>
 		<td colspan="2">
 			<a class="button" href="<?= $index_url ?>"><?= t('Stock index')?></a>
-			<a class="button" href="<?= getUrl('files','?path='.str_replace(':', DS,$prefix).DS.'stock'.DS.'item:'.$num)?>"><?= t('Files')?></a>
+			<a class="button" href="<?= getUrl('files','?path='.$files_path)?>"><?= t('Files')?></a>
 			<a class="button" href="<?= getUrl('stock',$item_id.'/edit_properties')?>"><?= t('Edit properties')?></a>
 		</td>
 	</tr>
@@ -77,6 +78,18 @@ include '../common_templates/messages.php'; ?>
 	
 </table>
 </fieldset>
+<?php if (isset($services['files'])){
+	$file_list = request('files','index',['format'=>'json','path'=>$files_path]);
+	$file_base_url = getUrl('files','download?file=');
+	if (!empty($file_list['files'])){ ?>
+	<fieldset>
+		<legend><?= t('Files')?></legend>
+		<?php foreach ($file_list['files'] as $name => $path){ ?>
+		<a href="<?= $file_base_url.$path ?>"><span class="symbol"></span> <?= $name ?></a>
+		<?php } // foreach files?>
+	</fieldset>
+	<?php } // not empty?>	
+<?php } // files service detected ?>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'stock:'.$item->id],false,NO_CONVERSION); 
 
 include '../common_templates/closure.php'; ?>
