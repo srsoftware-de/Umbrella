@@ -132,8 +132,8 @@ if ($position_data = post('position')){
 }
 
 if (isset($_POST['document'])){
-	$new_document_data = $_POST['document'];	
-	$new_document_data['date'] = strtotime($new_document_data['date']);
+	$new_document_data = $_POST['document'];
+	if (!empty($new_document_data['date'])) $new_document_data['date'] = strtotime($new_document_data['date']);
 	$document->patch($new_document_data);
 	$document->save();
 	info('Your document ? has been saved.',$document->number);
@@ -170,6 +170,7 @@ $sent = $document->state != Document::STATE_NEW;
 
 if ($document->customer_number == '') warn('No customer number set in document!');
 if ($document->delivery_date() == '') warn('No delivery date set in document!');
+if ($document->date < time()-63072000) warn('Document dates back more than two years!');
 if ($document->template_id == null) warn('No document template selected!');
 if ($sent) info('This document has already been sent and can no longer be edited.');
 

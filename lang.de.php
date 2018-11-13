@@ -41,6 +41,7 @@ $translations = array(
 		'Delivery Date'=>'Lieferdatum',
 		'delivery date: ?'=>'Lieferdatum: ?',
 		'Description'=>'Beschreibung',
+		'Document dates back more than two years!'=>'Datum des Dokuments liegt mehr als zwei Jahre in der Vergangenheit!',
 		'Document type'=>'Dokumenttentyp',
 		'Document types'=>'Dokumenttentypen',
 		'Document Number'=>'Dokumentennmmer',
