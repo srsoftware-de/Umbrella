@@ -33,6 +33,7 @@ $translations = array(
 		'Dates'=>'Daten',
 		'decimals'=>'Nachkommastellen',
 		'decimal_separator'=>'Dezimaltrennzeichen',
+		'declined'=>'abgelehnt',
 		'default_document_footer'=>'Standard-Fußzeile',
 		'default_document_footer_text'=>"Zahlbar innerhalb von 14 Tagen ohne Abzug.\n\nUnberechtigt abgezogene Skontobeträge werden nachgefordert.\nLieferung frei Haus.\nGeben Sie bei Rückfragen und bei Überweisung bitte ihre Kundennummer und Rechnungsnummern an!\n\n Wir danken für Ihren Auftrag.",
 		'default_document_header'=>'Standard-Rechnungskopf',

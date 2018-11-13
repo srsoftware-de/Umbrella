@@ -38,7 +38,7 @@ include '../common_templates/messages.php'; ?>
 			<td><a href="<?= $document->id ?>/view"><?= t($document->state()) ?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= $document->customer_short()?></a></td>
 			<td><a href="<?= $document->id ?>/view"><?= t($doc_types[$document->type_id]->name) ?></a></td>
-			<td><?php if ($document->state != Document::STATE_PAYED) { ?>
+			<td><?php if (in_array($document->state, [Document::STATE_NEW,Document::STATE_SENT,Document::STATE_DELAYED])) { ?>
 				<form method="POST" action="<?= $document->id ?>/step">
 					<select name="type">
 					<?php foreach ($doc_types[$document->type_id]->successors() as $succ) { ?>

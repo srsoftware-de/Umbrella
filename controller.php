@@ -352,6 +352,7 @@ class Document extends UmbrellaObjectWithId{
 	const STATE_SENT = 2;
 	const STATE_DELAYED = 3;
 	const STATE_PAYED = 4;
+	const STATE_DECLINED = 5; // for offers
 	const STATE_ERROR = 99;
 	
 	/*** static functions ********/
@@ -361,6 +362,7 @@ class Document extends UmbrellaObjectWithId{
 		static::STATE_SENT => 'sent',
 		static::STATE_DELAYED => 'delayed',
 		static::STATE_PAYED => 'payed',
+		static::STATE_DECLINED => 'declined',
 		static::STATE_ERROR => 'error',
 		];
 	}
