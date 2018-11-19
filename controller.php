@@ -452,4 +452,8 @@
 		global $user;
 		return in_array($task['users'][$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
 	}
+
+	function task_to_html($task){
+		return '<h1>'.$task['name']."</h1>\n".$task['description']."\n";
+	}
 ?>

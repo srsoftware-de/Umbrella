@@ -4,11 +4,38 @@ include '../bootstrap.php';
 include 'controller.php';
 require_login('task');
 
-$task_id = param('id');
-if (!$task_id) error('No task id passed!');
-set_task_state($task_id,TASK_STATUS_PENDING);
-if ($redirect=param('redirect')){
-	redirect($redirect);
+$redirect=param('redirect','view');
+if ($task_id = param('id')){
+	$task = load_tasks(['ids'=>$task_id]);
+	$problems = [];
+	if (!empty($task['start_date']) && time() > strtotime($task['start_date'])){
+		$problems[] = t('The start date (?) of this task has already passed.',$task['start_date']);
+		$problems[] = t('In order to set this task in "?" state, the <b>start date</b> has to be <b>removed</b>.',t('wait'));
+		$task['start_date'] = null;
+	}
+	if (empty($problems) || param('confirm','no')=='yes'){
+		update_task($task);
+		set_task_state($task_id,TASK_STATUS_PENDING);
+		redirect($redirect);
+	}
 } else {
-	redirect('view');
+	warn('No task id passed to task/wait!');
 }
+
+include '../common_templates/head.php';
+include '../common_templates/main_menu.php';
+include 'menu.php';
+include '../common_templates/messages.php'; ?>
+
+<fieldset>
+	<legend><?= t('Problems')?></legend>
+	<ul>
+	<?php foreach ($problems as $problem) { ?>
+		<li><?= $problem ?></li>
+	<?php } // foreach ?>
+	</ul>
+	<a class="button" href="?confirm=yes"><?= t('Confirm')?></a>
+	<a class="button" href="<?= $redirect ?>"><?= t('Abort')?></a>
+</fieldset>
+
+<?php include '../common_templates/closure.php';?>

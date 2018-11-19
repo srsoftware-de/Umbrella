@@ -39,7 +39,7 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Actions') ?></th>
 	</tr>
 
-<?php 
+<?php
 	$hide = [];
 	foreach ($tasks as $id => $task){ // filter out tasks, that are only group nodes
 		if (!$show_closed && in_array($task['status'],[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
