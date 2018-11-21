@@ -51,10 +51,10 @@ if ($show_complete){ ?>
 		<td><a href="<?= $id ?>/view"><?= $time->start_time?date('Y-m-d H:i',$time->start_time):''; ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= $time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= $time->end_time?round(($time->end_time-$time->start_time)/3600,2):'' ?></a></td>
-		<td><a href="<?= $id ?>/edit"><?= t($time->state()) ?></a></td>
+		<td><a href="<?= $id ?>/edit?return_to=<?= location() ?>"><?= t($time->state()) ?></a></td>
 		<td>
 			<?php if ($time->end_time) { ?>
-			<a class="symbol" title="<?= t('edit') ?>" href="<?= $id ?>/edit"></a>
+			<a class="symbol" title="<?= t('edit') ?>" href="<?= $id ?>/edit?return_to=<?= location() ?>"></a>
 			<?php } ?>
 			<a class="symbol" title="<?= t('drop') ?>" href="<?= $id ?>/drop"></a>
 			<a class="symbol" title="<?= t('complete') ?>" href="<?= $id ?>/complete"></a>

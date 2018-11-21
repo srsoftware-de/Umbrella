@@ -9,7 +9,7 @@ $time = Timetrack::load(['ids'=>$time_id]);
 
 if ($subject = post('subject')){
 	$time->update($subject,post('description'),post('start'),post('end'),post('state'))->save();
-	redirect('..');
+	redirect(param('return_to',getUrl('time')));
 }
 
 
