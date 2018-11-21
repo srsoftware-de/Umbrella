@@ -23,7 +23,7 @@ if (!empty($code)){
 	$item = new Item();
 	$item->patch(['id'=>$next_id,'code'=>$code,'name'=>param('name'),'location'=>$location]);
 	$item->save();
-	redirect(getUrl('stock',$item->id.'/add_property'.($company_id?'?company='.$company_id:'')));
+	redirect(getUrl('stock',$item->id.'/edit_properties'.($company_id?'?company='.$company_id:'')));
 }
 
 include '../common_templates/head.php';
@@ -71,7 +71,6 @@ include '../common_templates/messages.php'; ?>
 				</td>
 			</tr>
 		</table>
-		
 		<button class="right" type="submit"><?= t('Continue')?></button>
 	</form>
 </fieldset>
