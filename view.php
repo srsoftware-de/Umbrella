@@ -20,7 +20,7 @@ if ($task_id){
 		$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
 		$show_closed_children = param('closed') == 'show';
 
-		if (param('note_added')) send_note_notification($task);
+		if ($note_id = param('note_added')) send_note_notification($task,$note_id);
 
 		if (file_exists('../lib/parsedown/Parsedown.php')){
 			include '../lib/parsedown/Parsedown.php';
@@ -83,7 +83,7 @@ include '../common_templates/messages.php'; ?>
 			<h1><?= $task['name'] ?></h1>
 			<?php if ($write_access) { ?>
 			<span class="right">
-				
+
 				<a title="<?= t('edit')?>"		href="edit"		class="symbol"></a>
 				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"> </a>
 				<a title="<?= t('add user')?>" href="add_user" class="symbol"></a>
@@ -137,7 +137,7 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 		</td>
 	</tr>
-	<?php } ?>	
+	<?php } ?>
 	<?php if ($task['start_date']) { ?>
 	<tr>
 		<th><?= t('Start date')?></th>
@@ -176,7 +176,7 @@ include '../common_templates/messages.php'; ?>
 	<?php if (isset($task['users']) && !empty($task['users'])){ ?>
 	<tr>
 		<th>
-			<?= t('Users')?> 
+			<?= t('Users')?>
 			<?php if (isset($services['rtc'])) { ?>
 			<a class="symbol" target="_blank" title="<?= t('Start conversation with all users of this task') ?>" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task['users']))) ?>"></a>
 			<?php } ?>
@@ -189,8 +189,8 @@ include '../common_templates/messages.php'; ?>
 					(<?= t($TASK_PERMISSIONS[$u['permissions']]) ?>)
 					<?php if (isset($services['rtc']) && $uid != $user->id) { ?><a class="symbol" target="_blank" title="<?= t('Start conversation') ?>" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php } ?>
 					<?php if ( // deletion of user only possible if:
-						($task['users'][$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task 
-						&& $u['permissions'] != TASK_PERMISSION_OWNER){ // but only if user to be removed is not owner ?> 
+						($task['users'][$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task
+						&& $u['permissions'] != TASK_PERMISSION_OWNER){ // but only if user to be removed is not owner ?>
 					<a class="symbol" title="<?= t('De-assign user from task') ?>" href="drop_user?uid=<?= $uid ?>"></a>
 					<?php } ?>
 				</li>
@@ -212,5 +212,5 @@ include '../common_templates/messages.php'; ?>
 	<?php } ?>
 </table>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSION);
-} // if task 
+} // if task
 include '../common_templates/closure.php'; ?>

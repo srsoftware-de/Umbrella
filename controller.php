@@ -4,7 +4,7 @@
 	const TASK_PERMISSION_READ_WRITE = 2;
 	const TASK_PERMISSION_READ = 4;
 	const MODULE = 'Task';
-	
+
 	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owner',TASK_PERMISSION_READ_WRITE=>'read + write',TASK_PERMISSION_READ=>'read only');
 
 	function get_or_create_db(){
@@ -15,10 +15,10 @@
 		if (!file_exists('db/tasks.db')){
 			$db = new PDO('sqlite:db/tasks.db');
 			$db->query('CREATE TABLE tasks (id INTEGER PRIMARY KEY,
-							project_id INTEGER NOT NULL, 
-							parent_task_id INTEGER DEFAULT NULL, 
-							name VARCHAR(255) NOT NULL, 
-							description TEXT, 
+							project_id INTEGER NOT NULL,
+							parent_task_id INTEGER DEFAULT NULL,
+							name VARCHAR(255) NOT NULL,
+							description TEXT,
 							status INT DEFAULT '.TASK_STATUS_OPEN.',
 							est_time DOUBLE DEFAULT NULL,
 							start_date DATE,
@@ -57,7 +57,7 @@
 		$db->exec('UPDATE tasks SET status = '.TASK_STATUS_OPEN.' WHERE status = '.TASK_STATUS_PENDING.' AND due_date != "" AND due_date <= '.$date);
 		$db->exec('UPDATE tasks SET status = '.TASK_STATUS_PENDING.' WHERE status = '.TASK_STATUS_OPEN.' AND start_date != "" AND start_date > '.$date);
 	}
-	
+
 	function get_task_ids_of_user($ids = null){
 		global $user;
 		$sql = 'SELECT task_id FROM tasks_users WHERE ';
@@ -74,27 +74,27 @@
 		assert($query->execute($args),'Was not able to read list of user-assigned tasks.');
 		return array_keys($query->fetchAll(INDEX_FETCH));
 	}
-	
+
 	function load_tasks($options = array()){
 		global $user;
-		
+
 		$db = get_or_create_db();
 		update_task_states($db);
-		
+
 		$ids_only = isset($options['ids_only']) && $options['ids_only'];
-		
+
 		$sql = 'SELECT id';
 		$where = [];
 		$args = [];
-		
+
 		if (!$ids_only) { // if we request more than the task_ids: limit task list to user's tasks
 			$sql .= ',*';
 			$where[] = 'id IN (SELECT task_id FROM tasks_users WHERE user_id = ?)';
 			$args[] = $user->id;
 		}
-		
+
 		$sql .= ' FROM tasks';
-		
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -103,7 +103,7 @@
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-	
+
 		if (isset($options['project_ids'])){
 			$ids = $options['project_ids'];
 			if (!is_array($ids)) $ids = [$ids];
@@ -111,15 +111,15 @@
 			$where[] = 'project_id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['key'])){
 			$key = '%'.$options['key'].'%';
 			$where[] = '(name LIKE ? OR description LIKE ?)';
 			$args = array_merge($args, [$key,$key]);
 		}
-		
+
 		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
-		
+
 		if (!isset($options['order'])) $options['order'] = 'due_date';
 		$MAX_DATE = "'9999-99-99'";
 		switch ($options['order']){
@@ -142,7 +142,7 @@
 				$sql .= ' ORDER BY status, due_date COLLATE NOCASE';
 				break;
 		}
-	
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load tasks!');
 		$rows = $query->fetchAll(INDEX_FETCH);
@@ -158,7 +158,7 @@
 				if (trim($tag) != '') $tags[]=$tag;
 			}
 			$url = getUrl('task',$task_id.'/view');
-			request('bookmark','add',['url'=>$url,'comment'=>t('Task: ?',$name),'tags'=>$tags]);			
+			request('bookmark','add',['url'=>$url,'comment'=>t('Task: ?',$name),'tags'=>$tags]);
 			return sha1($url);
 		}
 		return false;
@@ -204,12 +204,12 @@
 			'description'=>$description,
 			'status'=>TASK_STATUS_OPEN,
 			'start_date'=>$start_date,
-			'due_date'=>$due_date,			
+			'due_date'=>$due_date,
 		];
-		
+
 		add_user_to_task($task,['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>TASK_PERMISSION_OWNER]);
 		$hash = isset($services['bookmark']) ? setTags($name,$task['id']) : false;
-		
+
 		foreach ($users as $id => $new_user) {
 			if ($id == $user->id) continue;
 			add_user_to_task($task,$new_user);
@@ -256,7 +256,7 @@
 		assert($query->execute($args),'Was not able to alter task entry in database');
 
 		$hash = isset($services['bookmark']) ? setTags($task['name'],$task['id']) : false;
-		
+
 		if (param('silent') != 'on'){ // notify task users
 			$sender = $user->email;
 			foreach ($task['users'] as $uid => $u){
@@ -265,7 +265,7 @@
 				$subject = t('? edited one of your tasks',$user->login);
 				$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$task['name'],$task['description']]).getUrl('task',$task['id'].'/view');
 				send_mail($sender, $u['email'], $subject, $text);
-	
+
 				if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
 			}
 		}
@@ -276,9 +276,9 @@
 		assert(is_numeric($task_id),'invalid task id passed!');
 		assert(is_numeric($state),'invalid state passed!');
 		$query = $db->prepare('UPDATE tasks SET status = :state WHERE id = :id;');
-		assert($query->execute(array(':state' => $state,':id'=>$task_id)),'Was not able to alter task state in database');		
+		assert($query->execute(array(':state' => $state,':id'=>$task_id)),'Was not able to alter task state in database');
 	}
-	
+
 	function load_requirements(&$task){
 		$id = $task['id'];
 		$db = get_or_create_db();
@@ -287,7 +287,7 @@
 		$required_tasks = $query->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_UNIQUE|PDO::FETCH_ASSOC);
 		if (!empty($required_tasks)) $task['requirements'] = $required_tasks;
 	}
-	
+
 	function load_children(&$task,$levels = 0){
 		global $TASK_STATES;
 		$id = $task['id'];
@@ -302,7 +302,7 @@
 			if ($levels) load_children($child_task,$levels -1);
 			$child_time_sum += $child_task['est_time'];
 			if (isset($child_task['est_time_children'])) $child_time_sum += $child_task['est_time_children'];
-		}		
+		}
 		if (!empty($child_tasks)){
 			$task['children'] = $child_tasks;
 			$task['est_time_children'] = $child_time_sum;
@@ -313,22 +313,22 @@
 		assert(is_array($task),'No task passed to delete_task!');
 		$db = get_or_create_db();
 		$args = [':id'=>$task['id']];
-		
+
 		$query = $db->prepare('DELETE FROM tasks WHERE id = :id');
 		assert($query->execute([':id'=>$task['id']]));
-		
+
 		$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :id');
 		assert($query->execute([':id'=>$task['id']]));
-		
+
 		$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :id');
 		assert($query->execute([':id'=>$task['id']]));
-		
-		$args[':ptid']= $task['parent_task_id'];		
-		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');		
+
+		$args[':ptid']= $task['parent_task_id'];
+		$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');
 		assert($query->execute($args));
 		info('Task has been deleted.');
 	}
-	
+
 	function load_users(&$task,$project_users = null){
 		$id = $task['id'];
 		assert(is_numeric($id),'Invalid task id passed to load_users!');
@@ -336,16 +336,16 @@
 		$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
 		assert($query->execute(array(':id'=>$id)));
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		
+
 		$users = array();
 		foreach ($results as $result){
 			$user_id = $result['user_id'];
 			$users[$user_id] = empty($project_users)?[]:$project_users[$user_id];
 			$users[$user_id]['permissions'] = $result['permissions'];
 		}
-		$task['users'] = $users;		
+		$task['users'] = $users;
 	}
-	
+
 	function add_user_to_task($task,$new_user = null){
 		global $user,$services;
 		// check
@@ -353,12 +353,12 @@
 		assert(array_key_exists('id', $new_user),'$new_user array does not contain "id"');
 		assert(array_key_exists('permission', $new_user),'$new_user array does not contain "permission"');
 		assert(is_numeric($new_user['permission']),'new_user[permission] must be numeric, is '.$new_user['permission']);
-		
+
 		$args = [':tid'=>$task['id'],':uid'=>$new_user['id']];
 
 		$db = get_or_create_db();
-		
-		
+
+
 		if ($new_user['permission'] == 0){ // deassign
 			$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != :perm;');
 			$args[':perm'] = TASK_PERMISSION_OWNER;
@@ -367,12 +367,12 @@
 			$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
 			assert($query->execute($args),'Was not able to request task assignment!');
 			$rows = $query->fetchAll();
-			
+
 			$args[':perm'] = $new_user['permission'];
 			if (empty($rows)){
 				$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm );');
 			} else {
-				$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid ;'); 
+				$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid ;');
 			}
 			assert($query->execute($args),'Was not able to write task assignment!');
 			// share tags
@@ -380,7 +380,7 @@
 				$url = getUrl('task',$task['id'].'/view');
 				request('bookmark','index',['share_user_id'=>$new_user['id'],'share_url_hash'=>sha1($url)]);
 			}
-			
+
 			// notify if newly assigned
 			if (empty($rows) && param('notify') == 'on'){
 				$sender = $user->email;
@@ -389,10 +389,10 @@
 				$text = t('You have been assigned to the task "?": ',$task['name']).getUrl('task',$task['id'].'/view');
 				if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
 				info('Notification email has been sent.');
-			}	
+			}
 		}
 	}
-	
+
 	function find_project($task_id){
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT project_id, parent_task_id FROM tasks WHERE id = :id;');
@@ -412,23 +412,23 @@
 	function withdraw_user($user_id,$project_id){
 		global $user;
 		$db = get_or_create_db();
-		
+
 		$args = [':pid'=>$project_id,':old'=>$user_id,':new'=>$user->id];
-		
-		
+
+
 		$select = 'SELECT id FROM tasks LEFT JOIN tasks_users ON tasks.id = tasks_users.task_id WHERE user_id = :old AND project_id = :pid';
-		
+
 		$query = $db->prepare('DELETE FROM tasks_users WHERE user_id = :new AND task_id IN ('.$select.')');
 		assert($query->execute($args),'Was not able to strip your current permissions from user`s tasks!');
-		
+
 		$query = $db->prepare('UPDATE tasks_users SET permissions='.TASK_PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
 		assert($query->execute($args),'Was not able to assign user`s tasks to you!');
 	}
-	
-	function send_note_notification($task){
+
+	function send_note_notification($task, $note_id = null){
 		global $user;
 		$subject = t('? added a note.',$user->login);
-		$text = t("Open the following site to see the note on \"?\":\n\n?",[$task['name'],getUrl('task',$task['id'].'/view')]);
+		$text = t("Open the following site to see the note on \"?\":\n\n?",[$task['name'],getUrl('task',$task['id'].'/view'.(empty($note_id)?'':'#bkmk'.$note_id))]);
 		$recipients = [];
 		foreach ($task['users'] as $u){
 			if ($u['email'] != $user->email) $recipients[] = $u['email'];
@@ -436,7 +436,7 @@
 		send_mail($user->email, $recipients, $subject, $text);
 		info('Sent email notification to users of this task.');
 	}
-	
+
 	function getRandomTaskId(){
 		global $user;
 		$db = get_or_create_db();
@@ -447,7 +447,7 @@
 		$query->closeCursor();
 		return reset(array_keys($rows));
 	}
-	
+
 	function write_access($task){
 		global $user;
 		return in_array($task['users'][$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
