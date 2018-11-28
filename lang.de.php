@@ -58,6 +58,7 @@ $translations = array(
 		'pending'=>'ausstehend',
 		'Permissions'=>'Berechtigungen',
 		'Prerequisites'=>'Voraus&shy;setzungen',
+		'Problems'=>'Probleme',
 		'Project'=>'Projekt',
 		'Projects'=>'Projekte',
 		'R'=>'L',
