@@ -5,7 +5,7 @@ require_login('notes');
 if (($uri = param('uri')) && ($note = param('note'))){
 	$note = new Note($uri, $note);
 	$note->save();
-	redirect($note->url().'?note_added=1');
+	redirect($note->url().'?note_added='.$note->id);
 }
 
 include '../common_templates/head.php';

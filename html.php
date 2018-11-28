@@ -14,7 +14,7 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 }
 
 foreach ($notes as $nid => $note){ ?>
-	<fieldset class="note">
+	<fieldset class="note" id="bkmk<?= $note->id ?>">
 		<legend><?= $users[$note->user_id]['login'] . ((isset($note->timestamp) && $note->timestamp>0) ? ' - '.date(t('Y-m-d H:i:s'),$note->timestamp) : '') ?></legend>
 		<?php if ($note->user_id == $user->id) {?>
 		<span class="right">
@@ -25,7 +25,7 @@ foreach ($notes as $nid => $note){ ?>
 		<?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?>
 	</fieldset>
 <?php } ?>
-	
+
 <?php if ($form) { ?>
 	<form action="<?= getUrl('notes','add') ?>" method="POST">
 		<input type="hidden" name="uri" value="<?= $uri ?>" />
@@ -33,7 +33,7 @@ foreach ($notes as $nid => $note){ ?>
 		<fieldset class="add note">
 			<legend><?= t('add note - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
 			<textarea name="note"></textarea>
-			<button type="submit"><?= t('add note') ?></button>		
+			<button type="submit"><?= t('add note') ?></button>
 		</fieldset>
 	</form>
 <?php } ?>
