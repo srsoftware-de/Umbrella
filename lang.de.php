@@ -43,6 +43,7 @@ $translations = array(
 	'Service name'=>'Service-Name',
 	'Save'=>'Speichern',
 	'Send invitation email to ?'=>'Einladungs-Email an ? senden',
+	'Stock'=>'Inventar',
 	'Tasks'=>'Aufgaben',
 	'theme'=>'Thema',
 	'Timetrack'=>'Zeiterfassung',
