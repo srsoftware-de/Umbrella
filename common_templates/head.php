@@ -1,6 +1,6 @@
-<?php 
+<?php
 	$hash = isset($_ENV['COMMIT_HASH']) ? '?hash='.$_ENV['COMMIT_HASH'] : '';
-	$base = getUrl('user'); 
+	$base = getUrl('user');
 ?>
 <html>
 	<head>

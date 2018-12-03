@@ -25,6 +25,3 @@ RewriteRule ^/?([/\w]+)/$ $1/index.php [L]
 
 # map somefile to somefile.php
 RewriteRule ^/?([/\w]+)$ $1.php [L]
-
-
-
