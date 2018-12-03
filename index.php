@@ -30,13 +30,13 @@ foreach ($projects as $project){
 <?php foreach ($project['models'] as $model) { ?>
 	<a class="button" href="<?= $model->id ?>/view"><?= $model->name ?></a>
 <?php }?>
-<?php if (isset($services['notes']) && $project_id) echo request('notes','html',['uri'=>'model:project:'.$project_id],false,NO_CONVERSION); ?>
+<?= (isset($services['notes']) && $project_id) ? request('notes','html',['uri'=>'model:project:'.$project_id],false,NO_CONVERSION) : '' ?>
 </fieldset>
 <?php }
 } ?>
 <fieldset>
 	<legend><?= t('Add model to project:')?></legend>
-<?php 
+<?php
 foreach ($projects as $project){
 	if (!isset($project['models'])){ ?>
 	<a class="button" href="add?project=<?= $project['id'] ?>"><?= $project['name']?></a>
