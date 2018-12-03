@@ -101,8 +101,13 @@ function getLocallyFromToken(){
 	foreach ($rows as $index => $row){
 		if ($row['expiration'] > $time){
 			$user = json_decode($row['user_data']); // read user data
-		} else 	$query->execute([':token'=>$row['token']]); // drop expired token
+			error_log('Loaded user locally by token');
+		} else {
+			$query->execute([':token'=>$row['token']]); // drop expired token
+			error_log('removed expired token');
+		}
 	}
+	
 	return $user;
 }
 
@@ -211,6 +216,7 @@ function query_insert($query,$args){
 }
 
 function redirect($url){
+	error_log('redirecting to '.$url);
 	header('Location: '.$url);
 	die();
 }
@@ -268,7 +274,7 @@ function request($service = null,$path,$data = array(), $debug = false,$decode =
 function require_login($service_name = null){
 	global $user,$theme;
 	if ($revoke = param('revoke')) die(revoke_token($revoke));
-	assert($service_name !== null,'require_login called without a service name!');
+	assert($service_name !== null,'require_login called without a service name!');	
 	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	$user = getLocallyFromToken();
 	if ($user === null) validateToken($service_name);
@@ -360,6 +366,10 @@ function t($text,$replacements=null){
 	$lang_file ='lang.'.$lang.'.php';
 	if (file_exists($lang_file)){
 		include $lang_file;
+		if (is_array($text)) {
+			$e = new Exception;
+			error_log(var_export($e->getTraceAsString(), true));
+		}
 		if (isset($translations[$text])) $text=$translations[$text];
 	}
 	return replace_text($text,$replacements);
@@ -379,7 +389,8 @@ function task_state($state){
 /* uses the user service to validate the session token and get user data */
 function validateToken($service_name = null){
 	global $user;
-	$user = request('user', 'validateToken',['token'=>$_SESSION['token'],'domain'=>getUrl($service_name)],false,OBJECT_CONVERSION);
+	$token = $_SESSION['token'];
+	$user = request('user', 'validateToken',['token'=>$token,'domain'=>getUrl($service_name)],false,OBJECT_CONVERSION);
 	if (is_object($user)){
 		$token = $user->token;
 		unset($user->token);
@@ -388,7 +399,10 @@ function validateToken($service_name = null){
 		$params = [':token'=>$token->token,':user_data'=>$user_data,':exp'=>$token->expiration];
 		$query = $db->prepare('INSERT OR IGNORE INTO tokens (token, user_data, expiration) VALUES (:token, :user_data, :exp);');
 		assert($query->execute($params),'Was not able to store token in database.');
-	} else $user = null;
+	} else {
+		$user = null;
+		revoke_token($token);
+	}
 }
 
 function warn($message,$args = null){
