@@ -51,6 +51,7 @@ $translations = array(
 		'shared files: ?'=>'freigegebene Dateien: ?',
 		'show folder'=>'Ordner anzeigen',
 		'Show "?" in Umbrella File Manager.'=>'"?" im Umbrella-Dateimanager anzeigen',
+		'Stock'=>'Inventar',
 		'Task'=>'Aufgabe',
 		'Tasks'=>'Aufgaben',
 		'The file "?" has been uploaded to ?.'=>'Die Datei "?" wurde unter ? gespeichert.',

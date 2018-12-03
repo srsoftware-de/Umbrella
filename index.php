@@ -52,7 +52,7 @@ include '../common_templates/messages.php'; ?>
 		<tr>
 			<td>
 				<a title="download" href="download?file=<?= $filename ?>">
-					<span class="symbol"></span> <?= $alias ?>
+					<span class="symbol"></span> <?= $alias ?>
 				</a>
 			</td>
 			<td>
