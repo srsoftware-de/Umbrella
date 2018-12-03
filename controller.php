@@ -57,19 +57,19 @@ class Channel extends UmbrellaObject{
 			'invite_time' => ['INT','NOT NULL','DEFAULT'=>'0'],
 		];
 	}
-	
+
 	static function load($options = []){
 		global $services,$user;
-		
+
 		$sql = 'SELECT * FROM channels';
 		$where = ['users LIKE ?'];
 		$args = ['% '.$user->id.' %'];
-		
+
 		if (isset($options['search'])){
 			$where[] = 'subject LIKE ?';
 			$args[] = '%'.$options['search'].'%';
 		}
-		
+
 		$single = false;
 		if (isset($options['users'])){
 			$users = $options['users'];
@@ -81,7 +81,7 @@ class Channel extends UmbrellaObject{
 			$args[] = ' '.implode(' ',$users).' ';
 			$single = true;
 		}
-		
+
 		if (isset($options['hashes'])){
 			$hashes = $options['hashes'];
 			if (!is_array($hashes)) {
@@ -92,19 +92,19 @@ class Channel extends UmbrellaObject{
 			$where[] ='hash IN ('.$qMarks.')';
 			$args = array_merge($args, $hashes);
 		}
-		
+
 		if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
-		
+
 		if (isset($options['order'])){
 			$order = is_array($options['order']) ? $options['order'] : [$options['order']];
 			$sql.= ' ORDER BY '.implode(', ',$order);
 		}
-		
+
 		if (isset($options['limit'])){
 			$sql.= ' LIMIT ?';
 			$args[] = $options['limit'];
 		}
-		
+
 		//debug(query_insert($sql,$args));
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
@@ -123,36 +123,39 @@ class Channel extends UmbrellaObject{
 		if ($single) return null;
 		return $channels;
 	}
-	
+
 	function addUsers($users = []){
 		$this->patch(['users'=>array_merge($this->users, $users)]);
 		return $this->invite($users,'https://meet.jit.si/'.$this->hash);
-		
+
 	}
-	
+
 	function invite($users,$url){
 		global $user;
-		
+
 		$users = request('user','json',['ids'=>$users]);
 		$recievers = [];
+		$names = [];
 		foreach ($users as $uid => $u){
 			if ($uid == $user->id) continue;
 			$recievers[] = $u['email'];
+			$names[] = $u['login'];
 		}
-		
+
 		$subject = t('? has invited you to a conversation',$user->login);
 		$message = t('Go to ? to join the conversation. Go to ? to see a list of your conversations.',[$url,getUrl('rtc')]);
 		send_mail($user->email,$recievers,$subject,$message);
+		info('Invitation email was sent to ?.',implode(', ',$names));
 		return $this->patch(['invite_time'=>time()])->save();
 	}
-	
+
 	function open(){
 		global $user;
-		$url = 'https://meet.jit.si/'.$this->hash;
+		$url = 'https://talky.io/'.$this->hash;
 		if (empty($this->invite_time) || $this->invite_time < (time()-1800)) $this->invite($this->users,$url);
 		redirect($url);
 	}
-	
+
 	function save(){
 		global $user;
 		if (!in_array($user->id,$this->users)) $this->users[]=$user->id;
@@ -174,11 +177,11 @@ class Channel extends UmbrellaObject{
 		$args = [':hash'=>$this->hash,':users'=>$users,':invite_time'=>$this->invite_time];
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to store channel in database');
-		
+
 		unset($this->dirty);
 		return $this;
 	}
-	
+
 	function users(){
 		global $users;
 		if (empty($this->users)){
