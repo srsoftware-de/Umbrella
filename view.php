@@ -22,7 +22,7 @@ if ($item_id = param('id')){
 } else error('No item id supplied!');
 
 $index_url = $base_url.$prefix.DS.'index';
-$files_path = str_replace(':', DS,$prefix).DS.'stock'.DS.'item:'.$num;
+$files_path = empty($services['files']) ? null : str_replace(':', DS,$prefix).DS.'stock'.DS.'item:'.$num;
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -37,7 +37,7 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Code')?></th>
 		<td colspan="2">
 			<a class="button" href="<?= $index_url ?>"><?= t('Stock index')?></a>
-			<a class="button" href="<?= getUrl('files','?path='.$files_path)?>"><?= t('Files')?></a>
+			<?php if (!empty($files_path)) { ?><a class="button" href="<?= getUrl('files','?path='.$files_path)?>"><?= t('Files')?></a><?php } ?>
 			<a class="button" href="<?= getUrl('stock',$item_id.'/edit_properties')?>"><?= t('Edit properties')?></a>
 		</td>
 	</tr>
@@ -45,8 +45,8 @@ include '../common_templates/messages.php'; ?>
 		<th colspan="2"><?= t('Location')?></th>
 		<th colspan="2"><?= t('Properties')?></th>
 	</tr>
-	
-	<?php  
+
+	<?php
 		$properties = $item->properties();
 		$prop = empty($properties) ? null : array_shift($properties); ?>
 	<tr class="first">
@@ -59,7 +59,7 @@ include '../common_templates/messages.php'; ?>
 			<?= empty($prop)?'':$prop->value ?>&nbsp;<?= empty($prop)?'':$prop->unit() ?>
 		</td>
 	</tr>
-	<?php $first = true; while (!empty($properties)) { 
+	<?php $first = true; while (!empty($properties)) {
 	$prop = array_shift($properties); ?>
 	<tr>
 		<td colspan="2">
@@ -75,10 +75,10 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php $first = false; } // while properties not empty ?>
-	
+
 </table>
 </fieldset>
-<?php if (isset($services['files'])){
+<?php if (!empty($files_path)){
 	$file_list = request('files','index',['format'=>'json','path'=>$files_path]);
 	$file_base_url = getUrl('files','download?file=');
 	if (!empty($file_list['files'])){ ?>
@@ -88,8 +88,8 @@ include '../common_templates/messages.php'; ?>
 		<a href="<?= $file_base_url.$path ?>"><span class="symbol"></span> <?= $name ?></a>
 		<?php } // foreach files?>
 	</fieldset>
-	<?php } // not empty?>	
+	<?php } // not empty?>
 <?php } // files service detected ?>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'stock:'.$item->id],false,NO_CONVERSION); 
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'stock:'.$item->id],false,NO_CONVERSION);
 
 include '../common_templates/closure.php'; ?>
