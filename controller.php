@@ -188,7 +188,7 @@
 
 		function save(){
 			$db = get_or_create_db();
-			$args = [':id'=>$this->id,':code'=>$this->code,':name'=>$this->name,':loc'=>$this->location->id];
+			$args = [':id'=>$this->id,':code'=>$this->code,':name'=>$this->name,':loc'=>$this->location()->id];
 
 			$query = $db->prepare('INSERT OR IGNORE INTO items (id, code, name, location_id) VALUES (:id, :code, :name, :loc );');
 			assert($query->execute($args),'Was not able to insert new entry into items table');
@@ -306,7 +306,7 @@
 
 		static function load($options){
 			global $user;
-		
+
 			$sql = 'SELECT * FROM locations';
 
 			$where = [];

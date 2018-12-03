@@ -32,11 +32,11 @@ if ($new_prop = param('new_prop')){
 	if (!empty($new_prop['name']) && $new_prop['type'] !== null && !empty($new_prop['value'])){
 		$property = new Property();
 		$property->patch($new_prop)->save();
-		
+
 		$item_prop = new ItemProperty();
 		$item_prop->patch(['property'=>$property,'value'=>$new_prop['value'],'item_id'=>$item_id]);
 		$item_prop->save();
-		
+
 		$redirect = $base_url.$item_id.DS.'view';
 	}
 }
@@ -44,7 +44,7 @@ $selected_prop = param('selected_prop');
 $selected_value = param('selected_value');
 if (!empty($selected_prop) && !empty($selected_value)){
 	$property = $all_props[$selected_prop];
-	
+
 	$item_prop = new ItemProperty();
 	$item_prop->patch(['property'=>$property,'value'=>$selected_value,'item_id'=>$item_id]);
 	$item_prop->save();
@@ -90,7 +90,7 @@ include '../common_templates/messages.php';?>
 				<th><?= t('Location')?></th>
 				<td><?= $item->location()->full() ?></td>
 			</tr>
-			
+
 		</table>
 	</fieldset>
 	<fieldset>
@@ -117,17 +117,17 @@ include '../common_templates/messages.php';?>
 				<td>
 					<?= $prop->unit; ?>
 				</td>
-			</tr>		
+			</tr>
 			<?php } // foreach related property?>
 			<?php } // related not empty ?>
-			
+
 			<?php if (!empty($all_props)) { ?>
 			<tr>
-				<th colspan="2"><?= t('Add existing property (from other items)')?></th>			
+				<th colspan="2"><?= t('Add existing property (from other items)')?></th>
 				<th><?= t('Value of new property') ?></th>
 				<th></th>
 			</tr>
-			
+
 			<tr>
 				<td colspan="2">
 					<select name="selected_prop">
@@ -139,16 +139,16 @@ include '../common_templates/messages.php';?>
 				<td><input type="text" name="selected_value" /></td>
 				<td><?= t('(automatically assigned)')?></td>
 			</tr>
-			
+
 			<?php } // all props not empty?>
-			
+
 			<tr>
 				<th><?= t('Create new property')?></th>
 				<th><?= t('Type of new property') ?></th>
 				<th><?= t('Value of new property') ?></th>
 				<th><?= t('Unit') ?></th>
 			</tr>
-			
+
 			<tr>
 				<td>
 					<input type="text" name="new_prop[name]" value="<?= $new_prop['name'] ?>" />
@@ -166,7 +166,7 @@ include '../common_templates/messages.php';?>
 			</tr>
 		</table>
 	</fieldset>
-	
+
 	<button type="submit"><?= t('Save')?></button>
 </form>
 
