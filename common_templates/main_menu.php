@@ -1,7 +1,7 @@
 <div id="main_menu">
-<?php foreach ($services as $service){ if ($service['name'] == 'Invoices') continue;?>	
+<?php foreach ($services as $service){ if (empty($service['name'])) continue;?>
 	<a class="button" href="<?= $service['path'] ?>"><?= t($service['name']) ?></a>
-<?php } 
+<?php }
 if (isset($user)) { ?>
 	<div class="search">
 	<form action="<?= getUrl('user','search')?>" method="GET">
