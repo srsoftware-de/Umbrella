@@ -1,20 +1,231 @@
 #!/bin/bash
-SOURCE="/raid/GIT/Umbrella.git"
-
-read -p 'Install bookmark service? ' -n 1 -r
-echo
-if [[ $REPLY = [Yy] ]]; then
-	git clone -b Bookmarks $SOURCE bookmark
+SOURCE="https://github.com/keawe-software/Umbrella"
+DOMAIN=http://your-domain.com
+if [ $# -gt 0 ]; then
+	DOMAIN=$1
 fi
 
-read -p 'Install project service? ' -n 1 -r
+clear
+echo Welcome to the Umbrella Module installation Wizard!
+echo ===================================================
 echo
-if [[ $REPLY = [Yy] ]]; then
-	git clone -b Projects $SOURCE project
+echo This Wizard will help you to install the desired modules.
+echo
+echo
+echo Willkommen beim Umbrella-Modul-Assistenten!
+echo ===========================================
+echo
+echo Dieser Assistent hilft ihnen, die gewünschten Module zu installieren
+echo
+echo
+read -p 'Continue / Weiter ' -n 1 -r
 
-	read -p 'Install task service? ' -n 1 -r
+cat << EOF > config.php
+<?php
+	\$services = [];
+EOF
+
+clear
+echo User module / Benutzer-Modul
+echo ============================
+echo
+echo Every installation of the umbrella suite requires to setup ONE user module.
+echo This mean most likely you wish to install this module.
+echo The only reason to not install it, is if you already have installed it at another location.
+echo
+echo Jede Installation der Umbrella-Suite benötigt EIN Benutzer-Modul.
+echo Das bedeutet, dass du dieses Modul höchstwahrscheinlich jetzt installieren solltest.
+echo Der einzige Grund, es nicht zu installieren, wäre, wenn du es schon an einem anderen Ort installiert hast.
+echo
+echo
+read -p 'Install user module? / Benutzer-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b user $SOURCE user
+	cat << EOF >> config.php
+	\$services['user'] = ['name'=>'User','path'=>'$DOMAIN/user/'];
+EOF
+fi
+
+clear
+echo Project module / Projekt-Modul
+echo ==============================
+echo
+echo This module allows to manage your projects.
+echo This module is required if you plan to use the task module.
+echo
+echo Dieses Modul stellt die Projektverwaltung dar.
+echo Es ist notwendig dieses Modul zu installieren, wenn Sie die Aufgabenverwaltung nutzen wollen.
+echo
+echo
+read -p 'Install project module? / Projekt-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b Projects $SOURCE project
+	cat << EOF >> config.php
+	\$services['project'] = ['name'=>'Projects','path'=>'$DOMAIN/project/'];
+EOF
+
+
+	clear
+	echo Task module / Aufgaben-Modul
+	echo ==============================
 	echo
-	if [[ $REPLY = [Yy] ]]; then
-        	git clone -b Tasks $SOURCE task
+	echo This module allows to manage tasks within your projects.
+	echo This module delivers core functionality to your software suite.
+	echo
+	echo Dieses Modul stellt die Aufgabenverwaltung dar.
+	echo Es stellt wichtige Kernfunktionalitäten dieser Software-Suite zur Verfügung.
+	echo
+	echo
+	read -p 'Install task module? / Aufgaben-Modul installieren? ' -n 1 -r
+	echo
+	if [[ $REPLY = [YyJj] ]]; then
+		git clone -b Tasks $SOURCE task
+		cat << EOF >> config.php
+		\$services['task'] = ['name'=>'Tasks','path'=>'$DOMAIN/task/'];
+EOF
 	fi
+fi
+
+clear
+echo Company module / Firmen-Modul
+echo =============================
+echo
+echo This module allows to group projects and users by company.
+echo It also provides forms to manage basic company data.
+echo This module is required if you plan to install the document manager.
+echo
+echo Dieses Modul erlaubt es, Projekte und Benutzer zu Firmen zuzuordnen.
+echo Es stellt außerdem Fomulare zum Erfassen der Basisdaten Ihres Unternehmens bereit.
+echo Dieses Modul wird benötigt, wenn Sie das Dokumenten-Modul installieren wollen.
+echo
+echo
+read -p 'Install company module? / Firmen-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b company $SOURCE company
+	cat << EOF >> config.php
+	\$services['company'] = ['name'=>'Company','path'=>'$DOMAIN/company/'];
+EOF
+
+
+	clear
+	echo Document module / Dokumenten-Modul
+	echo ==================================
+	echo
+	echo This module allows you to create offers, confirmations and invoices for your business.
+	echo
+	echo Dieses Modul erlaubt es Angebote, Bestätigungen und Rechnungen für Ihre Geschäfte zu erstellen.
+	echo
+	echo
+	read -p 'Install document module? / Dokumenten-Modul installieren? ' -n 1 -r
+	echo
+	if [[ $REPLY = [YyJj] ]]; then
+		git clone -b documents $SOURCE document
+		cat << EOF >> config.php
+		\$services['document'] = ['name'=>'Document','path'=>'$DOMAIN/document/'];
+EOF
+	fi
+	
+	clear
+	echo Contact module / Kontakt-Modul
+	echo ==============================
+	echo
+	echo This module allows you to store your business contacts.
+	echo
+	echo Dieses Modul erlaubt es Ihre Geschäftskontakte zu speichern.
+	echo
+	echo
+	read -p 'Install contact module? / Kontakt-Modul installieren? ' -n 1 -r
+	echo
+	if [[ $REPLY = [YyJj] ]]; then
+		git clone -b contact $SOURCE contact
+		cat << EOF >> config.php
+		\$services['contact'] = ['name'=>'Contacts','path'=>'$DOMAIN/contact/'];
+EOF
+	fi
+fi
+
+
+clear
+echo Timetracking module / Zeiterfassungs-Modul
+echo ==========================================
+echo
+echo With this module you will be able to track your working time.
+echo It can collect your hours and keep them assigned with the tasks you work on.
+echo
+echo Mit diesem Modul können Sie Ihre Arbeitszeiten erfassen.
+echo Es sammelt ihre Stunden und erlaubt es, diese den Aufgaben, an welchen Sie arbeiten, zuzuordnen.
+echo
+echo
+read -p 'Install timetrack module? / Zeiterfassungs-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b time $SOURCE time
+	cat << EOF >> config.php
+	\$services['time'] = ['name'=>'Timetrack','path'=>'$DOMAIN/time/'];
+EOF
+fi
+
+
+clear
+echo Bookmark module / Lesezeichen-Modul
+echo ==========================================
+echo
+echo This module provides a bookmark management.
+echo You can store interesting urls together with a description for the respective site.
+echo Furthermore, you can assign tags to your bookmarks and search by keywords.
+echo
+echo Dieses Modul stellt eine Lesezeichen-Verwaltung bereit.
+echo Damit können Sie Webadressen mit einer Beschreibung der Seite speichern.
+echo Darüber hinaus können die Websiten mit Stichworten versehen und nach Schlagworten sortiert werden.
+echo
+read -p 'Install bookmark module? / Lesezeichen-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b Bookmarks $SOURCE bookmark
+	cat << EOF >> config.php
+	\$services['bookmark'] = ['name'=>'Bookmarks','path'=>'$DOMAIN/bookmark/'];
+EOF
+fi
+
+
+clear
+echo Files module / Datei-Modul
+echo ==========================================
+echo
+echo This module provides a file manager.
+echo Using this module you can add files to your projects, tasks and other entities.
+echo Moreover, it provides a personal file storage and allows sharing of files.
+echo
+echo Dieses Modul stellt eine Dateiverwaltung bereit.
+echo Damit können Sie ihren Projekten, Aufgaben und anderen Dingen Dateien hinzufügen.
+echo Außerdem erhalten sie einen geschützten persönlichen Bereich, aus welchem Sie auch Dateien mit anderen Nutzern teilen können.
+echo
+read -p 'Install file module? / Datei-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b files $SOURCE files
+	cat << EOF >> config.php
+	\$services['files'] = ['name'=>'Files','path'=>'$DOMAIN/files/'];
+EOF
+fi
+
+
+clear
+echo Permissions / Berechtigungen
+echo ============================
+echo
+echo Typically, apache needs the files in this folders to belong to the www-data user.
+echo This program can use the command \"sudo chown -R www-data \*\" to fix the ownerships of all files in this directory.
+echo 
+echo Typischerweise erfordert apache, dass die Dateien in diesem Ordner dem Benutzer www-data gehören.
+echo Dieses Programm kann das Kommando \"sudo chown -R www-data \*\" aufrufen, um die Dateizugehörigkeiten in diesem Ordner einzustellen.
+echo
+echo
+read -p 'Fix file ownerships? / Dateizugehörigkeiten einstellen?' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	sudo chown -R www-data .* *
 fi
