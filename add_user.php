@@ -12,7 +12,7 @@ if ($hash = param('id')){
 
 $users = [];
 $users_raw = request('user','json');
-if (empty($users_raw)) warn('In order to communicate with other users, you will have to create more users first. Go to the user module.');
+
 foreach ($users_raw as $uid => $u) $users[$uid] = $u['login'];
 asort($users,SORT_REGULAR|SORT_FLAG_CASE);
 
