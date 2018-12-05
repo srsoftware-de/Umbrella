@@ -44,7 +44,7 @@ echo
 if [[ $REPLY = [YyJj] ]]; then
 	git clone -b user $SOURCE user
 	cat << EOF >> config.php
-	\$services['user'] = ['name'=>'User','path'=>'$DOMAIN/user/'];
+	\$services['user'] = ['name'=>'Users','path'=>'$DOMAIN/user/'];
 EOF
 fi
 
@@ -302,6 +302,28 @@ if [[ $REPLY = [YyJj] ]]; then
 EOF
 fi
 
+
+echo
+echo
+echo RTC module / RTC-Modul
+echo ==================================
+echo
+echo RTC stands for real time communication.
+echo The RTC module adds fully encrypted Voice-Over-IP functionality to your software suite.
+echo RTC services are provides by a third-party provider, but are fully private nonetheless. 
+echo 
+echo RTC steht für „real time communication“, also Echtzeit-Kommunikation.
+echo Das RTC-Modul fügt der Software-Suite die Möglichkeit hinzu vollverschlüsselt mittels Voice-Over-IP mit Ihren Mitarbeitern zu kommunizieren.
+echo Die Kommunikations-Services werden durch einen Drittanbieter bereitgestellt, sind aufgrund der Verschlüsselung aber dennoch privat.
+echo
+read -p 'Install RTC module? / RTC-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b rtc $SOURCE rtc
+	cat << EOF >> config.php
+	\$services['rtc'] = ['name'=>'Stock','Chat'=>'$DOMAIN/rtc/'];
+EOF
+fi
 
 echo
 echo
