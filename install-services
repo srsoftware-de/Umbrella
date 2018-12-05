@@ -48,48 +48,6 @@ if [[ $REPLY = [YyJj] ]]; then
 EOF
 fi
 
-echo
-echo
-echo Project module / Projekt-Modul
-echo ==============================
-echo
-echo This module allows to manage your projects.
-echo This module is required if you plan to use the task module.
-echo
-echo Dieses Modul stellt die Projektverwaltung dar.
-echo Es ist notwendig dieses Modul zu installieren, wenn Sie die Aufgabenverwaltung nutzen wollen.
-echo
-echo
-read -p 'Install project module? / Projekt-Modul installieren? ' -n 1 -r
-echo
-if [[ $REPLY = [YyJj] ]]; then
-	git clone -b Projects $SOURCE project
-	cat << EOF >> config.php
-	\$services['project'] = ['name'=>'Projects','path'=>'$DOMAIN/project/'];
-EOF
-
-
-	echo
-	echo
-	echo Task module / Aufgaben-Modul
-	echo ==============================
-	echo
-	echo This module allows to manage tasks within your projects.
-	echo This module delivers core functionality to your software suite.
-	echo
-	echo Dieses Modul stellt die Aufgabenverwaltung dar.
-	echo Es stellt wichtige Kernfunktionalitäten dieser Software-Suite zur Verfügung.
-	echo
-	echo
-	read -p 'Install task module? / Aufgaben-Modul installieren? ' -n 1 -r
-	echo
-	if [[ $REPLY = [YyJj] ]]; then
-		git clone -b Tasks $SOURCE task
-		cat << EOF >> config.php
-		\$services['task'] = ['name'=>'Tasks','path'=>'$DOMAIN/task/'];
-EOF
-	fi
-fi
 
 echo
 echo
@@ -112,45 +70,50 @@ if [[ $REPLY = [YyJj] ]]; then
 	cat << EOF >> config.php
 	\$services['company'] = ['name'=>'Company','path'=>'$DOMAIN/company/'];
 EOF
+fi
 
 
-	echo
-	echo
-	echo Document module / Dokumenten-Modul
-	echo ==================================
-	echo
-	echo This module allows you to create offers, confirmations and invoices for your business.
-	echo
-	echo Dieses Modul erlaubt es Angebote, Bestätigungen und Rechnungen für Ihre Geschäfte zu erstellen.
-	echo
-	echo
-	read -p 'Install document module? / Dokumenten-Modul installieren? ' -n 1 -r
-	echo
-	if [[ $REPLY = [YyJj] ]]; then
-		git clone -b documents $SOURCE document
-		cat << EOF >> config.php
-		\$services['document'] = ['name'=>'Document','path'=>'$DOMAIN/document/'];
+echo
+echo
+echo Project module / Projekt-Modul
+echo ==============================
+echo
+echo This module allows to manage your projects.
+echo This module is required if you plan to use the task module.
+echo
+echo Dieses Modul stellt die Projektverwaltung dar.
+echo Es ist notwendig dieses Modul zu installieren, wenn Sie die Aufgabenverwaltung nutzen wollen.
+echo
+echo
+read -p 'Install project module? / Projekt-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b Projects $SOURCE project
+	cat << EOF >> config.php
+	\$services['project'] = ['name'=>'Projects','path'=>'$DOMAIN/project/'];
 EOF
-	fi
-	
-	echo
-	echo
-	echo Contact module / Kontakt-Modul
-	echo ==============================
-	echo
-	echo This module allows you to store your business contacts.
-	echo
-	echo Dieses Modul erlaubt es Ihre Geschäftskontakte zu speichern.
-	echo
-	echo
-	read -p 'Install contact module? / Kontakt-Modul installieren? ' -n 1 -r
-	echo
-	if [[ $REPLY = [YyJj] ]]; then
-		git clone -b contact $SOURCE contact
-		cat << EOF >> config.php
-		\$services['contact'] = ['name'=>'Contacts','path'=>'$DOMAIN/contact/'];
+fi
+
+
+echo
+echo
+echo Task module / Aufgaben-Modul
+echo ==============================
+echo
+echo This module allows to manage tasks within your projects.
+echo This module delivers core functionality to your software suite.
+echo
+echo Dieses Modul stellt die Aufgabenverwaltung dar.
+echo Es stellt wichtige Kernfunktionalitäten dieser Software-Suite zur Verfügung.
+echo
+echo
+read -p 'Install task module? / Aufgaben-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b Tasks $SOURCE task
+	cat << EOF >> config.php
+	\$services['task'] = ['name'=>'Tasks','path'=>'$DOMAIN/task/'];
 EOF
-	fi
 fi
 
 
@@ -172,6 +135,65 @@ if [[ $REPLY = [YyJj] ]]; then
 	git clone -b time $SOURCE time
 	cat << EOF >> config.php
 	\$services['time'] = ['name'=>'Timetrack','path'=>'$DOMAIN/time/'];
+EOF
+fi
+
+
+echo
+echo
+echo Document module / Dokumenten-Modul
+echo ==================================
+echo
+echo This module allows you to create offers, confirmations and invoices for your business.
+echo
+echo Dieses Modul erlaubt es Angebote, Bestätigungen und Rechnungen für Ihre Geschäfte zu erstellen.
+echo
+echo
+read -p 'Install document module? / Dokumenten-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b documents $SOURCE document
+	cat << EOF >> config.php
+	\$services['document'] = ['name'=>'Document','path'=>'$DOMAIN/document/'];
+EOF
+fi
+
+
+echo
+echo
+echo Items module / Artikel-Modul
+echo ==================================
+echo
+echo This module allows you to define items that you can use in your business offers and invoices. 
+echo 
+echo Dieses Modul erlaubt es Artikel anzulegen, die in Ihren Angeboten und Rechnungen verwendet werden können.
+echo
+read -p 'Install items module? / Artikel-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b items $SOURCE items
+	cat << EOF >> config.php
+	\$services['items'] = ['name'=>'Items','path'=>'$DOMAIN/items/'];
+EOF
+fi
+	
+	
+echo
+echo
+echo Contact module / Kontakt-Modul
+echo ==============================
+echo
+echo This module allows you to store your business contacts.
+echo
+echo Dieses Modul erlaubt es Ihre Geschäftskontakte zu speichern.
+echo
+echo
+read -p 'Install contact module? / Kontakt-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b contact $SOURCE contact
+	cat << EOF >> config.php
+	\$services['contact'] = ['name'=>'Contacts','path'=>'$DOMAIN/contact/'];
 EOF
 fi
 
@@ -218,6 +240,87 @@ if [[ $REPLY = [YyJj] ]]; then
 	git clone -b files $SOURCE files
 	cat << EOF >> config.php
 	\$services['files'] = ['name'=>'Files','path'=>'$DOMAIN/files/'];
+EOF
+fi
+
+
+echo
+echo
+echo Notes module / Notizen-Modul
+echo ==========================================
+echo
+echo This module extends most other modules by adding a notes/comment form to various entities.
+echo
+echo Dieses Modul erweitert die meisten anderen Module, in dem es eine Notizfunktion zu vielen Objekten hinzufügt.
+echo
+read -p 'Install notes module? / Notiz-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b notes $SOURCE notes
+	cat << EOF >> config.php
+	\$services['notes'] = ['name'=>'Notes','path'=>'$DOMAIN/notes/'];
+EOF
+fi
+
+
+echo
+echo
+echo Model module / Modellierungs-Modul
+echo ==================================
+echo
+echo Using this module you can visually model processes and databases.
+echo Created models can be exported as single-page HTML documents and thus printed as PDFs.
+echo 
+echo Mit diesem Modul können Sie Prozesse und Datenbanken modellieren.
+echo Erzeugt Modelle können dann als HTML-Dokument exportiert und als PDF gedruckt werden.
+echo
+read -p 'Install model module? / Modellierungs-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b model $SOURCE model
+	cat << EOF >> config.php
+	\$services['model'] = ['name'=>'Models','path'=>'$DOMAIN/model/'];
+EOF
+fi
+
+
+echo
+echo
+echo Stock module / Inventar-Modul
+echo ==================================
+echo
+echo This module helps you to keep track of your inventory. 
+echo 
+echo Dieses Modul dient dazu, Ihren privaten und/oder Firmeninventar zu verwalten.
+echo
+read -p 'Install stock module? / Inventar-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b stock $SOURCE stock
+	cat << EOF >> config.php
+	\$services['stock'] = ['name'=>'Stock','path'=>'$DOMAIN/stock/'];
+EOF
+fi
+
+
+echo
+echo
+echo Language / Sprache
+echo ==================
+echo
+echo
+echo Umbrella is prepared to be translated in arbitrary languages.
+echo Currently, only a german translation is available. You now have the option to activate this translation.
+echo
+echo Umbrella ist dafür vorbereitet, in beliebige Sprachen übersetzt zu werden.
+echo Im Moment ist nur eine deutsche Übersetzung verfügbar, die an dieser Stelle aktiviert werden kann.
+echo
+echo
+read -p 'Activate german translation? / Deutsche Übersetzung aktivieren?' -n -1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	cat << EOF >> config.php
+	\$lang = 'de';
 EOF
 fi
 
