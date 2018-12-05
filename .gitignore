@@ -1,5 +1,7 @@
 *.db
 bookmark
+.buildpath
+.codelite
 company
 config.php
 contact
@@ -9,8 +11,15 @@ importer
 item
 model
 notes
+*.phprj
+.project
 project
+rtc
+stock
 task
 time
 user
+.settings
+.well-known
+*.workspace
 .*.swp
