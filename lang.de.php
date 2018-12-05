@@ -27,6 +27,7 @@ $translations = array(
 		'First Name'=>'Vorname',
 		'FN'=>'formatierter Name',
 		'given'=>'Vorname',
+		'If you create a new contact, the email field is required!'=>'Beim Anlegen eines neuen Kontaktes ist das Email-Feld zwingend auszufüllen!',
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Last Name'=>'Nachname',

@@ -6,7 +6,7 @@ if (post('EMAIL')){
 	$vcard = new VCard($_POST);
 	$vcard->save();
 	redirect('index');
-}
+} else warn('If you create a new contact, the email field is required!');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
