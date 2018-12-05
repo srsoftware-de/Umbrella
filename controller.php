@@ -1,7 +1,7 @@
 <?php include '../bootstrap.php';
 	const MODULE = 'Bookmark';
 	$title = 'Umbrella Bookmark Management';
-	
+
 	function get_or_create_db(){
 		$table_filename = 'tags.db';
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create '.strtolower(MODULE).'/db directory!');
@@ -43,7 +43,7 @@
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 				$query = $db->prepare($sql);
-				assert($db->exec($query),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
