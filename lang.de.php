@@ -130,6 +130,7 @@ $translations = array(
 		'Unit'=>'Einheit',
 		'Users'=>'Benutzer',
 		'Y-m-d'=>'d.m.Y',
+		'You can not select a customer because your contact list is empty. Create a contact in the contacts module first.'=>'Sie können keinen Kunden auswählen, da Ihre Kontaktliste leer ist. Erzeugen Sie zunächst einen Kontakt im „Kontakte“-Modul.',
 		'Your document ? has been saved.'=>'Dokument ? wurde gespeichert',
 		'Your document settings'=>'Ihre Dokumenten-Einstellungen',
 		'Your email to ? has been sent.'=>'Ihre Nachricht an ? wurde versendet.',
