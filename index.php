@@ -3,16 +3,16 @@
 require_login('items');
 
 $companies = request('company','json');
-
+if (empty($companies)) warn('In order to add items to for you business, you have to create a company first. Go to the company section.');
 $company = null;
 if ($company_id = param('company')){
 	$company = $companies[$company_id];
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; ?> 
+include '../common_templates/messages.php'; ?>
 
 <fieldset class="companies">
 <?php if (!$company){ ?>
@@ -24,7 +24,7 @@ include '../common_templates/messages.php'; ?>
 <?php } else {
 	$order = param('order','code');
 	$items = Item::load(['company_id'=>$company_id,'order'=>$order]);
-	$bookmark_service = isset($services['bookmark']) ? getUrl('bookmark') : null; 
+	$bookmark_service = isset($services['bookmark']) ? getUrl('bookmark') : null;
 	$item_base_url = $bookmark_service ? getUrl('items') : null;
 	?>
 	<legend><?= t('Items of ?',$company['name']) ?></legend>
