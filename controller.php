@@ -2,7 +2,7 @@
 
 	$db_handle = null;
 	const MODULE = 'User';
-	
+
 	function perform_login($login = null, $pass = null){
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
@@ -49,7 +49,7 @@
 						break;
 					}
 				}
-				
+
 			}
 			if (!$redirect)	$redirect = $user['id'].'/view';
 			redirect($redirect);
@@ -104,6 +104,7 @@
 		$query = $db->prepare('SELECT * FROM users WHERE id = :id');
 		assert($query->execute(array(':id'=>$id)));
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		if (empty($results)) return null;
 		return objectFrom($results[0]);
 	}
 
@@ -150,9 +151,8 @@
 		$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
 		assert($query->execute(array(':login'=>$login)),'Was not able to assure non-existance of user!');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		if (empty($results)) return false;
 		return $results[0]['count'] > 0;
-		
-		
 	}
 
 	function add_user($login,$pass){
@@ -207,7 +207,7 @@
 		assert ($query->execute(array(':pass'=>$hash,':id'=>$user->id)),'Was not able to update user '.$user->login);
 		info('Your password has been changed.');
 	}
-	function update_user($user){	
+	function update_user($user){
 		if (empty($user->dirty)) return false;
 		$db = get_or_create_db();
 		$sql = 'UPDATE users SET ';
@@ -248,10 +248,10 @@
 		$user = ($user_id === null) ? null : load_user($user_id);
 	        if (isset($user->theme)) $theme = $user->theme;
 	}
-	
+
 	function get_login_services($name = null){
 		$db = get_or_create_db();
-		
+
 		$sql = 'SELECT * FROM login_services';
 		$args = [];
 		if ($name) {
@@ -264,23 +264,23 @@
 		if ($name) return $rows[$name];
 		return $rows;
 	}
-	
+
 	function assign_user_service($foreign_id){
 		global $user;
 		$db = get_or_create_db();
-		
+
 		$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user);');
 		assert($query->execute([':service'=>$foreign_id,':user'=>$user->id]),t('Was not able to assign service id (?) with your user account!',$foreign_id));
 		redirect('index');
 	}
-	
+
 	function deassign_service($foreign_id){
-		$db = get_or_create_db();		
+		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM service_ids_users WHERE service_id = :service;');
 		assert($query->execute([':service'=>$foreign_id]),t('Was not able to de-assign service id (?) from your user account!',$foreign_id));
 		redirect('index');
 	}
-	
+
 	function get_assigned_logins($foreign_id = null){
 		global $user;
 		$db = get_or_create_db();
