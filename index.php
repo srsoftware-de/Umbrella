@@ -9,9 +9,9 @@ $documents = Document::load($options);
 $doc_types = DocumentType::load();
 $companies = request('company','json');
 
+if (empty($companies)) warn('In order to create documents for you business, you have to create a company first. Click on the "companies" button!');
 
-
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -47,11 +47,11 @@ include '../common_templates/messages.php'; ?>
 					</select>
 					<button type="submit"><?= t('create')?></button>
 				</form>
-				<?php } ?>				
+				<?php } ?>
 			</td>
 		</tr>
 		<?php } ?>
-		
+
 	</table>
 </fieldset>
 <?php }

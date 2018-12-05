@@ -58,6 +58,7 @@ $translations = array(
 		'Go back'=>'Zurück',
 		'Gross sum'=>'Rechnungsbetrag (Brutto, Eur)',
 		'Greeter/Head text'=>'Begrüßung/Kopftext',
+		'In order to create documents for you business, you have to create a company first. Click on the "companies" button!'=>'Um Dokumente für Ihr Geschäft anzulegen, müssen Sie zunächst eine Firma anlegen. Klicken Sie dazu aif den „Firma“-Knopf!',
 		'invoice' => 'Rechnung',
 		'Invoices'=>'Rechnungen',
 		'invoice date'=>'Rechnungsdatum',
