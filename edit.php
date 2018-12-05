@@ -115,7 +115,7 @@ include '../common_templates/messages.php';?>
 					<input type="text" name="related[<?= $prop->id ?>]" value="<?= isset($item_props[$prop->id]) ? $item_props[$prop->id]->value : ''?>" />
 				</td>
 				<td>
-					<?= $prop->unit; ?>
+					<?= $prop->unit; ?> <span class="prop_action symbol"><a href="<?= $base_url ?>edit_property/<?= $prop->id ?>?redirect=<?= location('*') ?>"></a></span>
 				</td>
 			</tr>
 			<?php } // foreach related property?>

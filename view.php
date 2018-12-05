@@ -38,7 +38,7 @@ include '../common_templates/messages.php'; ?>
 		<td colspan="2">
 			<a class="button" href="<?= $index_url ?>"><?= t('Stock index')?></a>
 			<?php if (!empty($files_path)) { ?><a class="button" href="<?= getUrl('files','?path='.$files_path)?>"><?= t('Files')?></a><?php } ?>
-			<a class="button" href="<?= getUrl('stock',$item_id.'/edit_properties')?>"><?= t('Edit properties')?></a>
+			<a class="button" href="<?= getUrl('stock',$item_id.'/edit')?>"><?= t('Edit')?></a>
 		</td>
 	</tr>
 	<tr>
