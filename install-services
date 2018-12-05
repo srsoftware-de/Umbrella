@@ -321,7 +321,7 @@ echo
 if [[ $REPLY = [YyJj] ]]; then
 	git clone -b rtc $SOURCE rtc
 	cat << EOF >> config.php
-	\$services['rtc'] = ['name'=>'Stock','Chat'=>'$DOMAIN/rtc/'];
+	\$services['rtc'] = ['name'=>'Chat','path'=>'$DOMAIN/rtc/'];
 EOF
 fi
 
