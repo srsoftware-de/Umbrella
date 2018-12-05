@@ -316,7 +316,7 @@ echo Umbrella ist dafür vorbereitet, in beliebige Sprachen übersetzt zu werden
 echo Im Moment ist nur eine deutsche Übersetzung verfügbar, die an dieser Stelle aktiviert werden kann.
 echo
 echo
-read -p 'Activate german translation? / Deutsche Übersetzung aktivieren?' -n -1 -r
+read -p 'Activate german translation? / Deutsche Übersetzung aktivieren?' -n 1 -r
 echo
 if [[ $REPLY = [YyJj] ]]; then
 	cat << EOF >> config.php
