@@ -3,6 +3,7 @@
 require_login('model');
 
 $projects = request('project','json');
+if (empty($projects)) warn('Models must be assigned to projects. You have not created any projects, yet.');
 $options = [];
 if ($project_id = param('project')) $options['project_id'] = $project_id;
 $models = Model::load($options);
