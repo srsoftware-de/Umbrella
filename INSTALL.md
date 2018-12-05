@@ -11,7 +11,12 @@ Entwickelt und getestet wird die Software auf einem Debian-Server mit PHP 5.6 un
 
 Außerdem muss noch die Sqlite-Unterstützung installiert werden, z.B. mit `apt-get install php5-sqlite sqlite3`.
 
-Außerdem braucht man zum Holen der Software **git**. 
+Außerdem braucht man zum Holen der Software **git**.
+
+### PHP7
+
+In php7 wurde die Behandlung von sogenannten *Assertions* (Zusicherungen) grundlegend verändert. Damit die Software korrekt funktioniert, ist es notwendig in der php.ini-Datei (/etc/php/7.0/apache2/php.ini) den Wert von zend.assertions von -1 auf 0 oder 1 zu setzen.
+In Zukünftigen Versionen wird dieses Verhalten angepasst werden.
 
 ## Installation mehrerer Services
 
@@ -27,9 +32,13 @@ git clone https://github.com/keawe-software/Umbrella
 
 Diese Befehle werden die Basisdateien von Umbrella in den Ordner `/var/www/Umbrella` ablegen.
 
-Weiter geht es mit der Installation der Module:
+Weiter geht es mit der Installation der Module. 
+Dies geht mit einem Script, welches Sie bei jedem Modul fragt, ob Sie es installieren wollen.
+Im Beispielcode unten ist eine URL (http://example.com) angehängt – diese sollten Sie durch die Url Ihrer Installation ersetzen.
+Falls Sie noch nicht wissen, unter welcher Url die Services später mal erreichbar sein werden, können Sie die Url auch weglassen, müssen dann aber später händisch die Datei config.php anpassen.
 
 ```
 cd /var/www/Umbrella
+./install-services http://example.com
 
 ```

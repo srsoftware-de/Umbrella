@@ -38,6 +38,7 @@ function address_from_vcard($vcard){
 }
 
 function assert_failure($script, $line, $code, $message){
+	error_log('Assertion failed in '.$script.', line '.$line.': '.$message);
 	error('Assertion failed in '.$script.', line '.$line.': '.$message);
 	include 'common_templates/messages.php';
 	include 'common_templates/closure.php';
@@ -107,7 +108,7 @@ function getLocallyFromToken(){
 			error_log('removed expired token');
 		}
 	}
-	
+
 	return $user;
 }
 
@@ -274,7 +275,7 @@ function request($service = null,$path,$data = array(), $debug = false,$decode =
 function require_login($service_name = null){
 	global $user,$theme;
 	if ($revoke = param('revoke')) die(revoke_token($revoke));
-	assert($service_name !== null,'require_login called without a service name!');	
+	assert($service_name !== null,'require_login called without a service name!');
 	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	$user = getLocallyFromToken();
 	if ($user === null) validateToken($service_name);
@@ -381,7 +382,7 @@ function task_state($state){
 		case TASK_STATUS_PENDING: return 'pending';
 		case TASK_STATUS_STARTED: return 'started';
 		case TASK_STATUS_CANCELED: return 'canceled';
-		case TASK_STATUS_COMPLETE : return 'completed';		
+		case TASK_STATUS_COMPLETE : return 'completed';
 	}
 	return 'unknown';
 }
