@@ -25,9 +25,7 @@ input[type=text]{
 td.connectors form input{
 	width: 200px;
 }
-tr:hover td{
-	background-color: #160202;
-}
+
 img#logo{
 	position: fixed;
 	top: 10px;

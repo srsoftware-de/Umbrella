@@ -25,9 +25,7 @@ input[type=text]{
 td.connectors form input{
 	width: 200px;
 }
-tr:hover td{
-	background-color: #edf9f9;
-}
+
 img#logo{
 	position: fixed;
 	top: 10px;
@@ -439,6 +437,7 @@ div.search:hover input{
 }
 
 @media (max-width: 900px){
+	table.items tr>*:nth-child(2),
 	table.documents tr>*:nth-child(4),
 	body.time tr>*:nth-child(6),
 	.tasks tr>*:nth-child(5){
@@ -447,6 +446,7 @@ div.search:hover input{
 }
 
 @media (max-width: 800px){
+	table.items tr>*:nth-child(7),
 	body.time tr>*:nth-child(8),
 	.tasks tr>*:nth-child(4){
 		display: none;
@@ -454,6 +454,7 @@ div.search:hover input{
 }
 
 @media (max-width: 700px){
+	table.items tr>*:nth-child(1),
 	body.time tr>*:nth-child(1),
 	.project-index tr>*:nth-child(4),
 	.tasks tr>*:nth-child(6){
@@ -465,6 +466,7 @@ div.search:hover input{
 }
 
 @media (max-width: 600px){
+	table.items tr>*:nth-child(8),
 	table.stock tr>*:nth-child(4),
 	table.documents tr>*:nth-child(3),
 	body.time tr>*:nth-child(7),
@@ -475,6 +477,8 @@ div.search:hover input{
 	}
 }
 @media (max-width: 500px){
+	table.items tr>*:nth-child(6),
+	
 	table.documents tr>*:nth-child(2),
 	body.time tr>*:nth-child(5),	
 	.project-index tr>*:nth-child(2){
