@@ -45,4 +45,5 @@ $translations = array(
 		'Timetrack'=>'Zeiterfassung',
 		'Users'=>'Benutzer',
 		'Yes'=>'Ja',
+		'You may not remove the last user of a company!'=>'Sie können nicht den letzen Benutzer von der Firma abziehen!'
 );
