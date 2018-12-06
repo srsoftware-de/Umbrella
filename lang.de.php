@@ -31,6 +31,7 @@ $translations = array(
 		'edit'=>'bearbeiten',
 		'Edit "?"'=>'"?" bearbeiten',
 		'Estimated time'=>'Erwartete Zeit',
+		'export task'=>'Aufgabe exportieren',
 		'Files'=>'Dateien',
 		'Hide/Show'=>'Ein-/Ausblenden',
 		'? hours'=>'? Stunden',

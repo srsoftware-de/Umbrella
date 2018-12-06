@@ -22,12 +22,7 @@ if ($task_id){
 
 		if ($note_id = param('note_added')) send_note_notification($task,$note_id);
 
-		if (file_exists('../lib/parsedown/Parsedown.php')){
-			include '../lib/parsedown/Parsedown.php';
-			$task['description'] = Parsedown::instance()->parse($task['description']);
-		} else {
-			$task['description'] = str_replace("\n", "<br/>", $task['description']);
-		}
+		parseDownFormat($task);
 
 		if (isset($services['bookmark'])){
 			$hash = sha1(location('*'));
@@ -93,6 +88,7 @@ include '../common_templates/messages.php'; ?>
 				<a title="<?= t('open')?>"     href="open"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('wait')?>"     href="wait"     class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('delete')?>"   href="delete"   class="symbol"></a>
+				<a title="<?= t('export task') ?>" href="export" class="symbol" ></a>
 				<a title="<?= t('convert to project'); ?>" href="convert" class="symbol"></a>
 				<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>

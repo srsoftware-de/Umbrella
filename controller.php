@@ -31,6 +31,32 @@
 		return $db;
 	}
 
+	function get_task_ids_of_user($ids = null){
+		global $user;
+		$sql = 'SELECT task_id FROM tasks_users WHERE ';
+		$args = [];
+		if (is_array($ids)){
+			$qmarks = implode(',', array_fill(0, count($ids), '?'));
+			$sql .= 'task_id IN ('.$qmarks.') AND ';
+			$args = $ids;
+		}
+		$sql .= 'user_id = ?';
+		$args[] = $user->id;
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to read list of user-assigned tasks.');
+		return array_keys($query->fetchAll(INDEX_FETCH));
+	}
+
+	function parseDownFormat(&$task){
+		if (file_exists('../lib/parsedown/Parsedown.php')){
+			include_once '../lib/parsedown/Parsedown.php';
+			$task['description'] = Parsedown::instance()->parse($task['description']);
+		} else {
+			$task['description'] = str_replace("\n", "<br/>", $task['description']);
+		}
+	}
+
 	function update_task_requirements($id,$required_task_ids){
 		$db = get_or_create_db();
 
@@ -58,22 +84,7 @@
 		$db->exec('UPDATE tasks SET status = '.TASK_STATUS_PENDING.' WHERE status = '.TASK_STATUS_OPEN.' AND start_date != "" AND start_date > '.$date);
 	}
 
-	function get_task_ids_of_user($ids = null){
-		global $user;
-		$sql = 'SELECT task_id FROM tasks_users WHERE ';
-		$args = [];
-		if (is_array($ids)){
-			$qmarks = implode(',', array_fill(0, count($ids), '?'));
-			$sql .= 'task_id IN ('.$qmarks.') AND ';
-			$args = $ids;
-		}
-		$sql .= 'user_id = ?';
-		$args[] = $user->id;
-		$db = get_or_create_db();
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read list of user-assigned tasks.');
-		return array_keys($query->fetchAll(INDEX_FETCH));
-	}
+
 
 	function load_tasks($options = array()){
 		global $user;
