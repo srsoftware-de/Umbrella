@@ -25,7 +25,9 @@ input[type=text]{
 td.connectors form input{
 	width: 200px;
 }
-
+tr:hover td{
+	background-color: #160202;
+}
 img#logo{
 	position: fixed;
 	top: 10px;
@@ -171,6 +173,7 @@ button {
 label.silent_box,
 .change_state,
 td.connectors button[type="submit"],
+.prop_action,
 input[type="submit"] {
 	clear: both;
 	float: right;
