@@ -1,6 +1,7 @@
 <?php
 
 $translations = array(
+		'Actions'=>'Aktionen',
 		'Add entry to items of ?'=>'Eintrag zu den Artikeln von ? hinzufügen',
 		'Bookmarks' => 'Lesezeichen',
 		'Company'=>'Firma',

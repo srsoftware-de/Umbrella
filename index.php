@@ -28,25 +28,16 @@ include '../common_templates/messages.php'; ?>
 	$item_base_url = $bookmark_service ? getUrl('items') : null;
 	?>
 	<legend><?= t('Items of ?',$company['name']) ?></legend>
-	<table>
+	<table class="items">
 		<tr>
-			<th>
-				<a href="<?= location('*').'?company='.$company_id.'&order=code'?>"><?= t('Code') ?></a><br/>
-			</th>
-			<th>
-				<a href="<?= location('*').'?company='.$company_id.'&order=name'?>"><?= t('Name') ?></a><br/>
-				<a href="<?= location('*').'?company='.$company_id.'&order=unit_price'?>"><?= t('Price per unit')?></a>
-			</th>
-			<th>
-				<a href="<?= location('*').'?company='.$company_id.'&order=tax'?>"><?= t('Tax') ?></a><br/>
-				<a href="<?= location('*').'?company='.$company_id.'&order=unit'?>"><?= t('Unit')?></a>
-			</th>
-			<th>
-			<?php if ($bookmark_service) { ?>
-				<?= t('Tags')?>
-			<?php }?><br/>
-			<a href="<?= location('*').'?company='.$company_id.'&order=description'?>"><?= t('Description') ?></a>
-			</th>
+			<th><a href="<?= location('*').'?company='.$company_id.'&order=code'?>"><?= t('Code') ?></a></th>
+			<th><a href="<?= location('*').'?company='.$company_id.'&order=name'?>"><?= t('Name') ?></a></th>
+			<th><a href="<?= location('*').'?company='.$company_id.'&order=description'?>"><?= t('Description') ?></a></th>
+			<th><a href="<?= location('*').'?company='.$company_id.'&order=unit_price'?>"><?= t('Price per unit')?></a></th>
+			<th><a href="<?= location('*').'?company='.$company_id.'&order=unit'?>"><?= t('Unit')?></a></th>
+			<th><a href="<?= location('*').'?company='.$company_id.'&order=tax'?>"><?= t('Tax') ?></a></th>
+			<th><?= $bookmark_service ? t('Tags') : '' ?></th>
+			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($items as $item) {
 			$bookmark = $bookmark_service ? request('bookmark','json_get',['url'=>$item_base_url.$item->id.'/view']) : null;
@@ -54,6 +45,9 @@ include '../common_templates/messages.php'; ?>
 		<tr>
 			<td><?= $item->code ?></td>
 			<td><?= $item->name ?></td>
+			<td><?= str_replace("\n",'<br/>',$item->description) ?></td>
+			<td><?= ($item->unit_price/100).' '.$company['currency']?> /</td>
+			<td><?= $item->unit ?></td>
 			<td><?= $item->tax ?> %</td>
 			<td>
 			<?php if ($bookmark) foreach ($bookmark['tags'] as $tag) {
@@ -62,17 +56,7 @@ include '../common_templates/messages.php'; ?>
 				<a class="button" href="<?= $bookmark_service.$tag.'/view' ?>"><?= $tag ?></a>
 			<?php }?>
 			</td>
-		</tr>
-		<tr>
-			<td></td>
-			<td><?= ($item->unit_price/100).' '.$company['currency']?> /</td>
-			<td><?= $item->unit ?></td>
-			<td>
-				<span class="right">
-					<a class="symbol" href="<?= $item->id?>/edit"></a>
-				</span>
-				<?= str_replace("\n",'<br/>',$item->description) ?>
-			</td>
+			<td><a class="symbol" href="<?= $item->id?>/edit"></a></td>
 		</tr>
 		<?php }?>
 	</table>
