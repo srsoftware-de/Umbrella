@@ -7,8 +7,10 @@ require_login('task');
 
 if ($key = param('key')){
 	$tasks = load_tasks(['key'=>$key]);
-	if (!empty($tasks)){ ?>
-
+	if (!empty($tasks)){
+		$project_ids = [];
+		foreach ($tasks as $task) $project_ids[$task['project_id']] = true;
+		$projects = request('project','json',['ids'=>array_keys($project_ids)]); ?>
 	<table class="tasks list">
 	<tr>
 		<th><?= t('Name')?></th>
@@ -19,13 +21,13 @@ if ($key = param('key')){
 		<th><?= t('Due')?></th>
 		<th><?= t('Actions') ?></th>
 	</tr>
-	
-	<?php 
+
+	<?php
 	$hide = [];
 	$url = getUrl('task');
 	foreach ($tasks as $id => $task):
 	$project = $projects[$task['project_id']];
-	$parent_id = $task['parent_task_id'];	
+	$parent_id = $task['parent_task_id'];
 	?>
 	<tr class="project<?= $task['project_id']?>">
 		<td class="<?= task_state($task['status'])?>"><a href="<?= $url.$id ?>/view"><?= $task['name'] ?></a></td>
@@ -36,7 +38,7 @@ if ($key = param('key')){
 		</td>
 		<td>
 			<span class="hover_h">
-			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a>&nbsp;<a href="#" class="symbol" onclick="return toggle('.project<?= $task['project_id'] ?>');"></a>&nbsp;<a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $task['project_id'] ?>)')"></a>
+			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a>
 			</span>
 		</td>
 		<td><?= t(task_state($task['status'])) ?></td>
@@ -50,8 +52,8 @@ if ($key = param('key')){
 			<a title="<?= t('wait')?>"     href="<?= $url.$id ?>/wait?redirect=../index"	  	class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('start')?>  "  href="<?= $url.$id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 		</td>
-	</tr>	
+	</tr>
 <?php endforeach; ?>
 </table>
-	<?php }
-}
+	<?php } // tasks found
+} // key given
