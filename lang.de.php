@@ -10,6 +10,7 @@ $translations = array(
 		'Bookmarks' => 'Lesezeichen',
 		'cancel'=>'abbrechen',
 		'canceled'=>'abgebrochen',
+		'Click here to show only projects having ? as member.'=>'Klicke hier, um nur Projekte anzuzeigen, an denen ? beteiligt ist.',
 		'complete'=>'abschließen',
 		'Company'=>'Firma',
 		'complete'=>'abschließen',
@@ -70,6 +71,6 @@ $translations = array(
 		'You are not allowed to edit the user list of this project!'=>'Sie sind nicht berechtigt, die Nutzerliste dieses Projekts zu ändern',
 		'You have been added to the project "?": ?'=>'Sie wurden dem Projekt "?" hinzugefügt: ?',
 		'? added a note.'=>'? hat eine Notiz hinzugefügt',
-		'? added you to a project'=>'? fügte Sie einem Projekt hinzu',		
+		'? added you to a project'=>'? fügte Sie einem Projekt hinzu',
 		'? hours'=>'? Stunden',
 );

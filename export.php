@@ -35,7 +35,7 @@ if ($project_id = param('id')){
 		} else {
 			$project->description = str_replace("\n", "<br/>", $project->description);
 		}
-	header('Content-Disposition: attachment; filename="'.$project->name.'.html"');
+		header('Content-Disposition: attachment; filename="'.$project->name.'.html"');
 	} else error('You are not member of this project!');
 } else error('No project id passed to view!');
 
@@ -63,7 +63,7 @@ function display_tasks($task_list,$parent_task_id){
 			</fieldset>
 			<?php
 			if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task['id'],'form'=>false],false,NO_CONVERSION);
-			}
+			} // if parsedown
 			display_tasks($task_list,$tid)?>
 		</li>
 		<?php
@@ -78,17 +78,7 @@ foreach ($tasks as $task) $est_time += $task['est_time'];
 
 include '../common_templates/head.php';
 
-if ($project){
-	if ($show_confirm_question){ ?>
-<fieldset>
-
-	<legend><?= t('Confirm removal of "?" from project?',$project->users[$remove_user_id]['data']['login'])?></legend>
-	<?= t('User will no longer have access to this projects. Task assigned to "?" will be assigned to you. Are you sure?',$project->users[$remove_user_id]['data']['login'])?><br/>
-	<a class="button" href="?remove_user=<?= $remove_user_id?>&confirm=yes"><?= t('Yes')?></a>
-	<a class="button" href="view"><?= t('No')?></a>
-</fieldset>
-<?php }
-?>
+if ($project){ ?>
 <table class="vertical project-view">
 	<tr>
 		<th><?= t('Project')?></th>

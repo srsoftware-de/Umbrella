@@ -5,6 +5,7 @@ require_login('project');
 $projects = Project::load(['order'=>param('order'),'users'=>true]);
 $show_closed = param('closed') == 'show' || param('order') == 'status';
 $companies = isset($services['company']) ? request('company','json') : null;
+$user_filter = param('user');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -26,6 +27,7 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 <?php foreach ($projects as $id => $project){
 	if (!$show_closed && $project->status>50) continue;
+	if (!empty($user_filter) && !in_array($user_filter, array_keys($project->users))) continue;
 	?>
 	<tr>
 		<td><a href="<?= $id ?>/view"><?= $project->name ?></a></td>
@@ -38,9 +40,12 @@ include '../common_templates/messages.php'; ?>
 		<?php }?>
 		<td><?= t(project_state($project->status)) ?></td>
 		<td>
-		<?php foreach ($project->users as $uid => $user) {?>
-		<?= $user['data']['login'] ?><br/>
-		<?php } ?>
+		<?php foreach ($project->users as $uid => $usr) {
+			if ($uid == $user->id) { ?>
+			<?= $usr['data']['login'] ?><br/>
+			<?php } else { ?>
+			<a href="?user=<?= $uid ?>" title="<?= t('Click here to show only projects having ? as member.',$usr['data']['login'])?>"><?= $usr['data']['login'] ?></a><br/>
+		<?php }} ?>
 		</td>
 		<td>
 			<a title="<?= t('edit')?>"      href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
