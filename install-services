@@ -11,12 +11,22 @@ echo ===================================================
 echo
 echo This Wizard will help you to install the desired modules.
 echo
+if [ "$DOMAIN" = "http://your-domain.com" ]; then
+echo No domain has been specified on the commandline. If you continue now, the wizard will use $DOMAIN in the config file\; you will have to manually replace it afterwards.
+echo You can cancel this process by pressing Ctrl+C now and restart the wizard as follows:
+echo $0 $DOMAIN
+fi
 echo
 echo Willkommen beim Umbrella-Modul-Assistenten!
 echo ===========================================
 echo
-echo Dieser Assistent hilft ihnen, die gewünschten Module zu installieren
+echo Dieser Assistent hilft ihnen, die gewünschten Module zu installieren.
 echo
+if [ "$DOMAIN" = "http://your-domain.com" ]; then
+echo Es wurde keine Domain angegeben. Wenn Sie fortfahren, wird der Assistent $DOMAIN in der Config-Datei verwenden, Sie müssen diesen Wert anschließend händisch ändern.
+echo Sie können an dieser Stelle mit Strg+C abbrechen und den Assistenten wie folgt aufrufen:
+echo $0 $DOMAIN
+fi
 echo
 read -p 'Continue / Weiter ' -n 1 -r
 
