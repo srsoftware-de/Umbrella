@@ -1,5 +1,9 @@
 <?php include '../bootstrap.php';
 	const MODULE = 'Bookmark';
+	const NO_SHARE=0;
+	const SHARE_AND_NOTIFY=1;
+	const SHARE_DONT_NOTIFY=2;
+
 	$title = 'Umbrella Bookmark Management';
 
 	function get_or_create_db(){
@@ -93,6 +97,7 @@
 
 			$tags = is_array($tags_string) ? $tags_string : explode(' ',str_replace(',', ' ', $tags_string));
 			foreach ($tags as $tag) (new Tag())->patch(['tag'=>$tag,'url_hashes'=>[$bookmark->url_hash],'user_id'=>$user->id])->save();
+			return $bookmark;
 		}
 
 		static function load($options){
