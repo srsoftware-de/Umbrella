@@ -23,12 +23,12 @@ if ($name){
 			$u['permission'] = $perm;
 			$users[$uid] = $u;
 		}
-		$task = add_task($name,$description,$project_id,$parent_task_id, post('start_date'), post('due_date'),$users);
+		$task = add_task($name,$description,$project_id,null, post('start_date'), post('due_date'),$users);
 		redirect(getUrl('task',$task['id'].'/view'));
 	} else error('Selection of at least one user is required!');
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
@@ -62,7 +62,7 @@ include '../common_templates/messages.php'; ?>
 					<th title="<?= t('read only')?>" class="symbol"></th>
 					<th title="<?= t('no access')?>" class="symbol"></th>
 				</tr>
-			<?php foreach ($project_users as $id => $u) { 
+			<?php foreach ($project_users as $id => $u) {
 				$owner = $id == $user->id;
 				?>
 				<tr>
