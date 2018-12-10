@@ -13,7 +13,7 @@
 		<li>Rechnungs-Legung</li>
 		<li>Lesezeichen- und Tag-Verwaltung</li>
 		<li>Dateiverwaltung</li>
-	</ul>	
+	</ul>
 </fieldset>
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
@@ -26,7 +26,7 @@
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
 	<legend>Ich möchte Umbrella testen</legend>
 	<p>Unter <a class="button" href="https://umbrella-demo.keawe.de/project/3/view">https://umbrella-demo.keawe.de</a> gibt es eine Demo-Installation, an welcher man sich ohne vorherige Registrierung anmelden kann.</p>
-	<p>Diese wird täglich zurückgesetzt und umfasst eine Auswahl an Beispielbenutzern mit verschiedenen Projekten, Aufgaben, Notizen und Berechtigungen umfassen</p>	
+	<p>Diese wird täglich zurückgesetzt und umfasst eine Auswahl an Beispielbenutzern mit verschiedenen Projekten, Aufgaben, Notizen und Berechtigungen umfassen</p>
 </fieldset>
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
@@ -47,16 +47,23 @@
 		<li>auf dem Server muss das SQLite-DBs laufen</li>
 	</ul>
 	<p>Und das ist schon alles!</p>
-	<p>Zum installieren kannst du dir einfach den Quelltext von <a class="button" href="https://github.com/keawe-software/Umbrella">GitHub</a> holen:</p>
-	<code>
-	git clone https://github.com/keawe-software/Umbrella.git /var/www<br/>
-	git clone --branch user https://github.com/keawe-software/Umbrella.git /var/www/user<br/>
-	git clone --branch task https://github.com/keawe-software/Umbrella.git /var/www/task<br/>
-	git clone --branch project https://github.com/keawe-software/Umbrella.git /var/www/project<br/>	
-	</code>...	
-	<p>wobei die Zeilen <code>git clone --branch <b>XYZ</b> ... /var/www/<b>XYZ</b></code> dann jeweils das Modul XYZ installieren.
-	Eine Übersicht der Module findest du <a class="button" href="https://github.com/keawe-software/Umbrella/branches/active">hier</a>.
-	Anschließend musst du nur noch die von dir gewählten Branches in der Datei config.php aktivieren, eine Vorlage dafür findest du in config.template.php.</p>
+	<p>Zum installieren kannst du dir einfach den Quelltext von <a class="button" href="https://github.com/keawe-software/Umbrella">GitHub</a> holen.</p>
+	<p>Für die weniger IT-versierten können wir auch eine betreute Installation vornehmen, <a class="button" href="https://keawe.de/contact">Kontaktieren Sie uns</a> einfach, wir erstellen gern ein individuelles Angebot! Dabei können Sie entscheiden, ob die Software bei Ihnen gehostet werden soll oder wir für Sie ein Hosting bereitstellen.</p>
+</fieldset>
+
+<fieldset style="max-width: 382px; display: inline-block; text-align: justify">
+	<legend>Stärken und Schwächen</legend>
+	<p>Eine große Stärke von Umbrella ist, dass die PHP-Module <b>nicht</b> auf irgendwelchen großen Frameworks aufbauen und (fast) kein JavaScript verweden.</p>
+	<p>Dadurch ergeben sich folgende Vorteile:
+		<ul>
+			<li>Wenige Abhängigkeiten von fremden Programmbibliotheken</li>
+			<li>schlankerer, schneller Quellcode</li>
+			<li>kleinere Angriffsfläche für Code-Injections in Fremdpaketen</li>
+			<li>Umbrella funktioniert auch bei deaktiviertem Javascript</li>
+		</ul>
+	</p>
+	<p>Es gibt auch einige wenige Nachteile: Seiteninhalte werden nicht per Ajax nachgeladen, obwohl das gerade Mode ist.
+	</p>
 </fieldset>
 <p>
 	<a class="button" href="project">Login</a>
