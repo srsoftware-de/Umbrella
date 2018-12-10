@@ -106,6 +106,7 @@ if ($project){
 				<a class="symbol" title="<?= t('edit') ?>" href="edit"></a>
 				<a class="symbol" title="<?= t('add task')?>" href="../../task/add_to_project/<?= $project->id ?>"> </a>
 				<a class="symbol" title="<?= t('export project') ?>" href="export"></a>
+				<a class="symbol" title="<?= t('export as JSON') ?>" href="json_export"></a>
 				<a class="symbol" title="<?= t('add user')?>" href="add_user"></a>
 			</span>
 			<h1><?= $project->name ?></h1>

@@ -6,12 +6,14 @@ if ($name = post('name')){
 	$project = new Project();
 	$project->patch($_POST)->save()->addUser(['id'=>$user->id,'email'=>$user->email],PROJECT_PERMISSION_OWNER);
 	if (param('from') == 'task') die(json_encode($project)); // used for task-to-project conversion
-	redirect(getUrl('project',$project->id.'/view'));
+	if ($status = param('status')){ // for import
+		die('NEW_PROJECT_ID='.$project->id);
+	} else redirect(getUrl('project',$project->id.'/view'));
 }
 
 $companies = isset($services['company']) ? request('company','json') : null;
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
