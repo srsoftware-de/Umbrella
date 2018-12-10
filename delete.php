@@ -19,12 +19,12 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 ?>
 
 <?php if ($note) { ?>
-<h2><?= t('This will following note:')?></h2>
+<h2><?= t('This will remove the following note:')?></h2>
 <fieldset class="del_note">
 	<legend><?= $user->login ?></legend>
 	<?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?>
