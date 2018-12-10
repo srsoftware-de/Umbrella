@@ -162,7 +162,7 @@
 
 		static function table(){
 			return [
-				'id'=> [ 'INTEGER', 'KEY'=>'PRIMARY', 'AUTOINCREMENT' ],
+				'id'=> [ 'INTEGER', 'KEY'=>'PRIMARY' ],
 				'company_id' => 'INT',
 				'name' => [ 'VARCHAR'=>255, 'NOT NULL' ],
 				'description' => 'TEXT',
