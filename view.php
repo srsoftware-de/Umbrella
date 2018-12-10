@@ -16,7 +16,7 @@ $tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get a
 if ($services['time']){
 	if (isset($document->company_id) && $document->company_id !== null){
 		$times = request('time','json',['task_ids'=>array_keys($tasks)]); // get all times for tasks of the project
-		
+
 		$user_ids = [];
 		foreach ($times as $time_id => $time){
 			$user_ids[$time['user_id']] = true; // add user id of time to user_ids list
@@ -34,7 +34,7 @@ if ($services['time']){
 		if ($selected_times = post('times')){
 			$item_code = t('timetrack');
 			$customer_price = CustomerPrice::load($document->company_id,$document->customer_number,$item_code);
-			
+
 			$timetrack_tax = 19.0; // TODO: make adjustable
 			foreach ($selected_times as $time_id => $dummy){
 
@@ -113,7 +113,7 @@ foreach ($tasks as &$task){
 			$parent = &$tasks[$task['parent_task_id']];
 			$parent['children'][$task['id']] = $task;
 			$task = $parent;
-		}		
+		}
 		$project = &$projects[$task['project_id']];
 		$project['timed_tasks'][$task['id']] = $task;
 	}
@@ -174,7 +174,7 @@ if ($document->date < time()-63072000) warn('Document dates back more than two y
 if ($document->template_id == null) warn('No document template selected!');
 if ($sent) info('This document has already been sent and can no longer be edited.');
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -184,7 +184,7 @@ include '../common_templates/messages.php'; ?>
 <form method="POST" class="document">
 	<?php if ($sent) { ?>
 	<fieldset>
-		<legend><?= t('Document')?></legend>
+		<legend><?= t($document->type()->name) .' '. $document->number ?></legend>
 		<fieldset class="customer">
 			<legend><?= t('Customer')?></legend>
 			<p><?= str_replace("\n","<br/>\n",$document->customer) ?><p>
@@ -210,7 +210,7 @@ include '../common_templates/messages.php'; ?>
 				</select>
 			</label>
 		</fieldset>
-		
+
 		<fieldset class="steps">
 			<legend><?= t('Create successor document') ?></legend>
 			<ul>
@@ -353,7 +353,7 @@ include '../common_templates/messages.php'; ?>
 				</select>
 			</label>
 		</fieldset>
-		
+
 		<fieldset class="steps">
 			<legend><?= t('Create successor document') ?></legend>
 			<ul>
