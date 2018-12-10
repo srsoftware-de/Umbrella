@@ -8,20 +8,7 @@ if ($project_id = param('id')){
 	$project = Project::load(['ids'=>$project_id,'users'=>true]);
 	if ($project){
 		$current_user_is_owner = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
-
-		if ($remove_user_id = param('remove_user')){
-			if ($current_user_is_owner){
-				if (param('confirm')==='yes'){
-					$project->remove_user($remove_user_id);
-				} else {
-					$show_confirm_question = true;
-				}
-			} else error('You are not allowed to remove users from this project');
-		}
-
 		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
-
-		if (param('note_added')) $project->send_note_notification();
 
 		if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
 
