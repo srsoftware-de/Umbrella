@@ -23,12 +23,12 @@ function getHeadings(elem){
 	$('select[name=alt_comment]').remove();
 	$('textarea[name=comment]').val('');
 	var url=window.location.href.replace('/add','/headings')+'?page='+encodeURIComponent(elem.value);
-	console.log(url);
 	$.ajax({
 		url: url,
 		dataType: "json",
 		success: function(data){
-			for (var index in data) addDescriptionOption(data[index]);
+			for (var index in data.headings) addDescriptionOption(data.headings[index]);
+			$('input[name=tags]').attr('value',data.keywords.join(' '));
 		}		
 	});
 }
