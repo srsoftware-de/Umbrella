@@ -4,21 +4,21 @@
 	const PROJECT_PERMISSION_PARTICIPANT = 2;
 	const MODULE = 'Project';
 	$title = t('Umbrella Project Management');
-	
+
 	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');
-	
+
 	function get_or_create_db(){
 		$table_filename = 'projects.db';
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create project/db directory!');
 		assert(is_writable('db'),'Directory project/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
-	
+
 			$tables = [
 				'projects'=>Project::table(),
 				'projects_users'=>Project::users_table(),
 			];
-	
+
 			foreach ($tables as $table => $fields){
 				$sql = 'CREATE TABLE '.$table.' ( ';
 				foreach ($fields as $field => $props){
@@ -45,22 +45,21 @@
 					} else $sql .= $props.", ";
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-				debug($sql);
 				$query = $db->prepare($sql);
-				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
 		}
 		return $db;
 	}
-	
+
 	class Project extends UmbrellaObjectWithId{
 		static function connected_users($options = []){
 			global $user;
 			$sql = 'SELECT user_id,* FROM projects_users WHERE project_id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
 			$args = [$user->id];
-		
+
 			if (isset($options['ids'])){
 				$ids = $options['ids'];
 				if (!is_array($ids)) $ids = [$ids];
@@ -68,49 +67,49 @@
 				$sql .= ' AND project_id IN ('.$qmarks.')';
 				$args = array_merge($args,$ids);
 			}
-		
+
 			$sql .= ' GROUP BY user_id';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			assert($query->execute($args),'Was not able to read connected users.');
 			return $query->fetchAll(INDEX_FETCH);
 		}
-		
+
 		static function load($options = []){
 			global $user;
 			$sql = 'SELECT id,* FROM projects';
-			
+
 			$where = ['id IN (SELECT project_id FROM projects_users WHERE user_id = ?)'];
 			$args = [$user->id];
-				
+
 			$single = false;
 			if (isset($options['ids'])){
-				$ids = $options['ids'];			
+				$ids = $options['ids'];
 				if (!is_array($ids)) {
 					$ids = [$ids];
 					$single = true;
 				}
 				$qMarks = str_repeat('?,', count($ids)-1).'?';
 				$where[] ='id IN ('.$qMarks.')';
-				$args = array_merge($args, $ids); 
+				$args = array_merge($args, $ids);
 			}
-	
+
 			if (isset($options['company_ids'])){
 				$ids = $options['company_ids'];
 				if (!is_array($ids)) $ids = [$ids];
 				$qMarks = str_repeat('?,', count($ids)-1).'?';
 				$where[] = 'company_id IN ('.$qMarks.')';
-				$args = array_merge($args, $ids);			
+				$args = array_merge($args, $ids);
 			}
-	
+
 			if (isset($options['key'])){
 				$key = '%'.$options['key'].'%';
 				$where[] = '(name LIKE ? OR description LIKE ?)';
 				$args = array_merge($args, [$key,$key]);
 			}
-	
+
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
-			
+
 			if (isset($options['order'])){
 				switch ($options['order']){
 					case 'status':
@@ -121,7 +120,7 @@
 						break;
 				}
 			} else $sql .= ' ORDER BY name COLLATE NOCASE';
-	
+
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			assert($query->execute($args),'Was not able to load projects!');
@@ -139,7 +138,7 @@
 				$query = $db->prepare($sql);
 				assert($query->execute(array_keys($projects)),'Was not able to load project users!');
 				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-				
+
 				$uids = [];
 				foreach ($rows as $row){
 					$pid = $row['project_id'];
@@ -147,20 +146,20 @@
 					$projects[$pid]->users[$uid] = $row['permissions'];
 					$uids[$uid] = true;
 				}
-			
+
 				$users = request('user','json',['ids'=>array_keys($uids)]);
 				foreach ($projects as &$project){
 					foreach ($project->users as $id => $permission) $project->users[$id] = ['permission'=>$permission,'data'=>$users[$id]];
 				}
 			}
-			
+
 			if ($single) {
 				if (empty($projects)) return null;
 				return reset($projects);
 			}
 			return $projects;
 		}
-		
+
 		static function table(){
 			return [
 				'id'=> [ 'INT', 'KEY'=>'PRIMARY' ],
@@ -170,7 +169,7 @@
 				'status' => [ 'INT', 'DEFAULT'=>PROJECT_STATUS_OPEN ],
 			];
 		}
-		
+
 		static function users_table(){
 			return [
 				'project_id' => [ 'INT', 'NOT NULL' ],
@@ -179,7 +178,7 @@
 				'PRIMARY KEY' => [ 'project_id', 'user_id' ],
 			];
 		}
-		
+
 		function addUser($new_user,$permission = PROJECT_PERMISSION_PARTICIPANT){
 			global $user;
 			assert(is_numeric($this->id),'project id must be numeric, is '.$project->id);
@@ -198,36 +197,36 @@
 				if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
 			}
 		}
-		
+
 		function remove_user($user_id){
 			global $user;
 			$db = get_or_create_db();
-		
+
 			request('task','withdraw_user',['project_id'=>$this->id,'user_id'=>$user_id]);
-		
+
 			$query = $db->prepare('DELETE FROM projects_users WHERE project_id = :pid AND user_id = :uid');
 			assert($query->execute([':pid'=>$this->id,':uid'=>$user_id]),'Was not able to remove user from project!');
-		
+
 			info('User has been removed from project.');
 			unset($this->users[$user_id]);
 		}
-		
+
 		public function save(){
 			global $services,$user;
 			$db = get_or_create_db();
 			$known_fields = array_keys(Project::table());
 			if (isset($this->id)){
-				
+
 				$sql = 'UPDATE projects SET';
 				$args = [];
-				
+
 				foreach ($this->dirty as $field){
 					if (in_array($field, $known_fields)){
 						$sql .= ' '.$field.'=:'.$field.',';
 						$args[':'.$field] = $this->{$field};
 					}
 				}
-				
+
 				if (!empty($args)){
 					$sql = rtrim($sql,',').' WHERE id = :id';
 					$args[':id'] = $this->id;
@@ -245,33 +244,33 @@
 				}
 				$query = $db->prepare('INSERT INTO projects ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 				assert($query->execute($args),'Was not able to insert new project');
-		
+
 				$this->id = $db->lastInsertId();
 			}
-			
+
 			if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
 				$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
 				$tags = [];
 				foreach ($raw_tags as $tag){
 					if (trim($tag) != '') $tags[]=$tag;
 				}
-			
+
 				$url = getUrl('project',$this->id.'/view');
 				$hash = sha1($url);
-			
+
 				request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$this->name),'tags'=>$tags]);
-			
+
 				$users = Project::connected_users(['ids'=>$this->id]);
-			
+
 				foreach ($users as $uid => $u){
 					if ($uid == $user->id) continue;
 					request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
 				}
 			}
-			
+
 			return $this;
 		}
-		
+
 		function send_note_notification(){
 			global $user;
 			$subject = t('? added a note.',$user->login);
