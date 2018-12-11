@@ -38,7 +38,7 @@ if ($conn_names = param('connector_names')){
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
@@ -56,8 +56,8 @@ if ($action == 'delete'){?>
 			<h1><?= $process->base->id ?></h1>
 			<span class="symbol">
 				<a href="../edit_process/<?= $process_id ?>" title="<?= t('edit')?>"></a>
-				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add inflow connector')?>"></a>
-				<a href="../add_connector_to_process/<?= $process_id ?>?direction=<?= Connector::DIR_OUT ?>" title="<?= t('add outflow connector')?>"></a>
+				<a href="../add_connector_to_process/<?= $process_id ?>" title="<?= t('add inflow connector')?>"></a>
+				<a href="../add_connector_to_process/<?= $process_id ?>?direction=<?= Connector::DIR_OUT ?>" title="<?= t('add outflow connector')?>"></a>
 				<a href="../add_child_for_process/<?= $process_id ?>" title="<?= t('add new child process')?>"></a>
 				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>
@@ -111,7 +111,7 @@ if ($action == 'delete'){?>
 					</li>
 				<?php } ?>
 				</ul>
-				
+
 			</form>
 		</td>
 	</tr>
@@ -129,8 +129,8 @@ if ($action == 'delete'){?>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 
 				<?php
-				$null = null; 
-				$referenced_terminal_instances = $process->svg($model,$null,['arrows'=>false,'factor'=>1.1]); 
+				$null = null;
+				$referenced_terminal_instances = $process->svg($model,$null,['arrows'=>false,'factor'=>1.1]);
 				foreach ($process->connectors() as $conn) {
 					$x1 = $process->x + sin($conn->angle*RAD)*$process->base->r ;
 					$y1 = $process->y - cos($conn->angle*RAD)*$process->base->r ;
@@ -163,6 +163,6 @@ if ($action == 'delete'){?>
 			?>
 			</svg>
 		</td>
-	</tr>	
+	</tr>
 </table>
 <?php include '../common_templates/closure.php';
