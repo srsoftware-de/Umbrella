@@ -127,7 +127,7 @@
 				$where[] = 'end_time IS NULL';
 			}
 
-			if (!empty($options['task_ids'])){
+			if (!empty($options['task_ids'])){ // select times belonging to given tasks
 				$ids = $options['task_ids'];
 				if (!is_array($ids)) $ids = [$ids];
 				$qMarks = str_repeat('?,', count($ids)-1).'?';
@@ -169,38 +169,39 @@
 			}
 			$task_ids = array_unique($task_ids);
 
-			/* Fetch tasks referenced by times */
-			$referenced_tasks = request('task','json',['ids'=>$task_ids]);
+			$filter_by_project = !empty($options['project_id']);
 
+			/* Fetch tasks referenced by times */
+			$task_filter = ['ids'=>$task_ids];
+			if ($filter_by_project) $task_filter['project_ids'] = $options['project_id'];
+			$tasks_referenced_by_times = request('task','json',$task_filter);
 
 			/* Fetch all projects and filter by referencing takss */
-			$projects = isset($options['project_id']) ? request('project','json',['ids'=>$options['project_id']]) : request('project','json');
+			$projects = $filter_by_project ? request('project','json',['ids'=>$options['project_id']]) : request('project','json');
 
-			/* assign projects to tasks, thereby filter tasks:
-			 * only task which belong to a loaded projects will be kept */
-			$filtered_tasks = [];
-			foreach ($referenced_tasks as $tid => &$task) {
-				$pid = $task['project_id'];
-				if (isset($projects[$pid])){
-					$task['project'] = $projects[$pid];
-					$filtered_tasks[$tid] = $task;
-				}
-			}
-
-			/* assign tasks to times, thereby filter times:
-			 * only times, which have at least one task in the list of filtered tasks are kept.
-			 * This ensures, in turn, that only tasks of the selected project(s) are shown.
-			 */
 			$filtered_times = [];
-			foreach ($all_times as &$time){
-				foreach ($time->tasks as $task_id => $dummy) {
-					if (isset($filtered_tasks[$task_id])){
-						$time->tasks[$task_id] = $filtered_tasks[$task_id];
-						$filtered_times[$time->id] = $time;
+			foreach ($all_times as $tid => $time){
+				foreach ($time->tasks as $task_id => $dummy){
+					if (!empty($tasks_referenced_by_times[$task_id])){
+						$task = $tasks_referenced_by_times[$task_id];
+
+						/* add project information to task */
+						$task['project'] = $projects[$task['project_id']];
+
+						/* add task to time */
+						$time->tasks[$task_id] = $task;
+
+						if ($single) return $time;
+						/* add time to filtered list */
+						$filtered_times[$tid] = $time;
 					}
 				}
-				if ($single) return $time;
+				if (!$filter_by_project) {
+					if ($single) return $time;
+					$filtered_times[$tid] = $time;
+				}
 			}
+
 			if ($single) return null;
 			return $filtered_times;
 		}
