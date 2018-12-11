@@ -48,7 +48,7 @@ include '../common_templates/messages.php'; ?>
 			<td>
 				<a class="symbol" title="<?= t('download') ?>" href="<?= $id?>/download"></a>
 				<a class="symbol" title="<?= t('edit') ?>" href="<?= $id?>/edit"></a>
-				<a class="symbol" title="<?= t('assign with me') ?>" href="<?= $id?>/assign_with_me"></a>
+				<a class="symbol" title="<?= t('assign with me') ?>" href="<?= $id?>/assign_with_me"></a>
 			</td>
 		</tr>
 		<?php } ?>
