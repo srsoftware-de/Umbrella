@@ -1,4 +1,4 @@
-<?php include 'controller.php';
+<?php include_once 'controller.php';
 
 require_login('project');
 

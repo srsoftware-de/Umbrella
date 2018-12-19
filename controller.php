@@ -1,4 +1,4 @@
-<?php include '../bootstrap.php';
+<?php include_once '../bootstrap.php';
 
 	const PROJECT_PERMISSION_OWNER = 1;
 	const PROJECT_PERMISSION_PARTICIPANT = 2;
