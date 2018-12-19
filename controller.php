@@ -7,7 +7,7 @@
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM users WHERE login = :login OR email = :login;');
-		assert($query->execute(array(':login'=>$login)),'Was not able to request users from database!');
+		assert($query->execute([':login'=>$login]),'Was not able to request users from database!');
 		$results = $query->fetchAll(PDO::FETCH_ASSOC);
 		$hash = sha1($pass);
 		foreach ($results as $user){
@@ -173,9 +173,7 @@
 	function get_or_create_db(){
 		global $db_handle;
 		if ($db_handle !== null) return $db_handle;
-		if (!file_exists('db')){
-			assert(mkdir('db'),'Failed to create user/db directory!');
-		}
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create user/db directory!');
 		assert(is_writable('db'),'Directory user/db not writable!');
 		if (!file_exists('db/users.db')){
 			$db_handle = new PDO('sqlite:db/users.db');
@@ -190,8 +188,6 @@
 		}
 		return $db_handle;
 	}
-
-
 
 	function login_services(){
 		$db = get_or_create_db();
