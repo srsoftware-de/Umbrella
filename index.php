@@ -1,4 +1,4 @@
-<?php include 'bootstrap.php'; include 'common_templates/head.php'; ?>
+<?php include_once 'bootstrap.php'; include 'common_templates/head.php'; ?>
 
 <h2>Willkommen bei Umbrella!</h2>
 
