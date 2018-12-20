@@ -12,7 +12,7 @@
 		$hash = sha1($pass);
 		foreach ($results as $user){
 			if ($hash == $user['pass']){
-				$token = getOrCreateToken($user);
+				getOrCreateToken($user);
 				$redirect = param('returnTo');
 				if (!$redirect && $user['id'] == 1) $redirect='index';
 				if (!$redirect)	$redirect = getUrl('task');
