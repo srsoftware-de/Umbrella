@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cd $(dirname $0) # cd to directory in which script resides
+SCRIPT_DIR=$(pwd)
+DIRS=". user"
+BASE=$(dirname $SCRIPT_DIR)
+
+for DIR in $DIRS; do
+        echo looking for test_scripts in $BASE/$DIR/tests
+	cd $BASE/$DIR/tests
+	for SCRIPT in *test.py; do
+		echo launching $SCRIPT
+		python $SCRIPT || exit -1
+	done
+done
+echo all tests passed.
+exit 0
+
