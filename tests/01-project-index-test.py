@@ -1,0 +1,41 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+import sys
+sys.path.append("/var/www/tests")
+from test_routines import *
+
+import urlparse
+
+# check redirect to index
+r = requests.get("http://localhost/project",allow_redirects=False)
+expectRedirect(r,'http://localhost/project/')
+
+# check redirect to login for users that are not logged in
+r = requests.get('http://localhost/project/',allow_redirects=False)
+expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fproject%2F')
+
+session = requests.session();
+# login
+r = session.post('http://localhost/user/login', data={'email':'admin', 'pass': 'admin'},allow_redirects=False)
+
+# get token
+r = session.post('http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fproject%2F',allow_redirects=False)
+expect('location' in r.headers)
+redirect = r.headers.get('location');
+
+expect('http://localhost/project/?token=' in redirect)
+param = urlparse.parse_qs(urlparse.urlparse(redirect).query)
+token=param['token'][0]
+
+# create new session to test token function
+session = requests.session()
+
+# redirect should contain a token in the GET parameters, thus the page should redirect to the same url without token parameter
+r = session.get(redirect,allow_redirects=False)
+expectRedirect(r,'http://localhost/project/');
+r = session.get('http://localhost/project/',allow_redirects=False)
+expect('<body class="project">' in r.text)
+expect('<table class="project-index">' in r.text)
+expect('<td' not in r.text)
+
+print ('done')

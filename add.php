@@ -36,12 +36,12 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="description"></textarea>
+			<textarea name="description"><?= param('description')?></textarea>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){?>
 		<fieldset>
 			<legend><?= t('Tags')?></legend>
-			<input name="tags" type="text" value="" />
+			<input name="tags" type="text" value="<?= param('tags')?>" />
 		</fieldset>
 		<?php }?>
 		<button type="submit"><?= t('Create new project')?></button>
