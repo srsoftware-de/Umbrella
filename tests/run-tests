@@ -5,6 +5,11 @@ SCRIPT_DIR=$(pwd)
 DIRS=". user"
 BASE=$(dirname $SCRIPT_DIR)
 
+if [ -d ../user/db ]; then
+	echo this should not be run in a live environment!
+	exit -1
+fi
+service apache2 restart
 for DIR in $DIRS; do
         echo looking for test_scripts in $BASE/$DIR/tests
 	cd $BASE/$DIR/tests
