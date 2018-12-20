@@ -1,21 +1,27 @@
 #!/bin/bash
 
 cd $(dirname $0) # cd to directory in which script resides
-SCRIPT_DIR=$(pwd)
-DIRS=". user"
+SCRIPT_DIR=$(pwd) 
+DIRS=". user project" # directories in which to look for tests
 BASE=$(dirname $SCRIPT_DIR)
 
 if [ -d ../user/db ]; then
 	echo this should not be run in a live environment!
 	exit -1
 fi
-service apache2 restart
+
+service apache2 restart 2>/dev/null # start webserver
+
 for DIR in $DIRS; do
-        echo looking for test_scripts in $BASE/$DIR/tests
+	echo looking for test_scripts in $BASE/$DIR/tests
 	cd $BASE/$DIR/tests
+	
 	for SCRIPT in *test.py; do
-		echo launching $SCRIPT
-		python $SCRIPT || exit -1
+		# if FILTER is set, only start scripts whose name contains the respective text
+		if [[ $SCRIPT == *$FILTER* ]]; then
+			echo launching $DIR/tests/$SCRIPT
+			python $SCRIPT || exit -1
+		fi
 	done
 done
 echo all tests passed.
