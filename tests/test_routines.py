@@ -1,6 +1,7 @@
 #!/usr/bin/python
-import requests
 import os
+import requests
+import sqlite3
 
 # next three lines allow unicode handling
 import sys
