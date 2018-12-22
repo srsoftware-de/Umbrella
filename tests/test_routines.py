@@ -2,6 +2,7 @@
 import os
 import requests
 import sqlite3
+import urlparse
 
 # next three lines allow unicode handling
 import sys
@@ -25,3 +26,6 @@ def expectRedirect(response,url):
     else:
         print('Expected redirect to '+url+', but found '+response.headers.get('location'))
         exit(-1)
+
+def params(url):
+    return urlparse.parse_qs(urlparse.urlparse(url).query)
