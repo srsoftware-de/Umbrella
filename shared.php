@@ -10,7 +10,7 @@ if ($path){
 	while ($part = array_shift($parts)) $shared_files = $shared_files[$part];
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -34,13 +34,13 @@ include '../common_templates/messages.php'; ?>
 		<?php if ($content == $path.$entry) {?>
 		<td>
 			<a title="<?= t('dowlnload file')?>" href="download?file=<?= $path.$entry ?>">
-				<span class="symbol"></span> <?= $entry ?>
+				<span class="symbol"></span> <?= $entry ?>
 			</a>
 		</td>
 		<?php } else { ?>
 		<td>
 			<a title="<?= t('show folder')?>" href="?path=<?= $path.$entry ?>">
-				<span class="symbol"></span> <?= $entry ?>
+				<span class="symbol"></span> <?= $entry ?>
 			</a>
 		</td>
 		<?php }?>

@@ -31,7 +31,7 @@ if (access_granted($dir) && !in_array($dir,['company','project'])){
 
 $realm = array_shift(explode(DS,$dir));
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -39,7 +39,7 @@ include '../common_templates/messages.php'; ?>
 	<fieldset class="file">
 		<legend><?= t('Upload new file'); ?></legend>
 		<input type="file" name="file" />
-		<?php if ($realm != 'user') { ?>		
+		<?php if ($realm != 'user') { ?>
 		<label>
 			<input type="checkbox" checked="true" name="notify" />
 			<?= t("Notifiy $realm users after upload")?>

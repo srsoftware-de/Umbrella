@@ -52,7 +52,7 @@ include '../common_templates/messages.php'; ?>
 		<tr>
 			<td>
 				<a title="download" href="download?file=<?= $filename ?>">
-					<span class="symbol"></span> <?= $alias ?>
+					<span class="symbol"></span> <?= $alias ?>
 				</a>
 			</td>
 			<td>
@@ -68,7 +68,7 @@ include '../common_templates/messages.php'; ?>
 		<tr>
 			<td>
 				<a href="shared">
-					<span class="symbol"></span> <?= t('shared files')?>
+					<span class="symbol"></span> <?= t('shared files')?>
 				</a>
 			</td>
 			<td></td>
