@@ -303,7 +303,7 @@
 		global $TASK_STATES;
 		$id = $task['id'];
 		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM tasks WHERE parent_task_id = :id');
+		$query = $db->prepare('SELECT * FROM tasks WHERE parent_task_id = :id ORDER BY name ASC');
 		assert($query->execute(array(':id'=>$id)),'Was not able to query children of '.$task['name']);
 		$child_tasks = $query->fetchAll(INDEX_FETCH);
 		$child_time_sum = 0;
