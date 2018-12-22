@@ -26,7 +26,7 @@ include '../common_templates/messages.php'; ?>
 		<fieldset><legend><?= t('Password') ?></legend>
 		<input type="password" name="pass" />
 		</fieldset>
-		<input type="submit" />
+		<button type="submit"><?= t('Add user') ?></button>
 	</fieldset>
 </form>
 

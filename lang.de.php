@@ -2,6 +2,7 @@
 $translations = array(
 	'Actions'=>'Aktionen',
 	'add user'=>'Nutzer hinzufügen',
+	'Add user'=>'Nutzer hinzufügen',
 	'assigned logins'=>'verknüpfte Konten',
 	'Bookmarks'=>'Lese&shy;zeichen',
 	'cell'=>'mobil',
