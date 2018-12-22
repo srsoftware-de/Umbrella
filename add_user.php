@@ -8,12 +8,12 @@ if ($project_id = param('id')){
 
 	// only project owner has allowance to add new users
 	$allowed = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
-	
+
 	if (!$allowed){
 		error('You are not allowed to edit the user list of this project!');
 		redirect(getUrl('project',$project_id.'/view'));
 	}
-	
+
 	$users = request('user','json');
 	if ($new_uid = post('new_user_id')){
 		$project->addUser($users[$new_uid]);
@@ -28,7 +28,7 @@ if ($project_id = param('id')){
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 if ($allowed){ ?>
 <form method="POST">
@@ -43,9 +43,9 @@ if ($allowed){ ?>
 			<label>
 			<input type="checkbox" name="notify" value="on" checked="true" />
 			<?= t('notify user')?>
-			</label>	
+			</label>
 		</fieldset>
-		<input type="submit" />
+		<button type="submit"><?= t('Add user') ?></button>
 	</fieldset>
 </form>
 <?php }
