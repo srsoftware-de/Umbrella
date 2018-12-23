@@ -4,16 +4,16 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_user_login();
-$user_id = param('id');
+if ($user_id = param('id')){
+	if ($user->id != 1 && $user_id != $user->id){
+		error('Currently, only admin can view other users!');
+		redirect('../index');
+	}
 
-if ($user->id != 1 && $user_id != $user->id){
-	error('Currently, only admin can view other users!');
-	redirect('../index');
-}
+	$u = load_user($user_id);
+	if (empty($u)) error('No such user');
+} else error('No user id passed to view!');
 
-
-$u = load_user($user_id);
-$title = $u->login.' - Umbrella';
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

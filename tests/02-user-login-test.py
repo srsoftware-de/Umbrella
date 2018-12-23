@@ -13,17 +13,17 @@ expect('<input type="text" autofocus="autofocus" name="email" />' in r.text)
 expect('<input type="password" name="pass" />' in r.text)
 expect('admin/admin' in r.text)
 
-#r = requests.post("http://localhost/user/login", data={'email': 'admin'})
-#dot('No password given!' in r.text)
+r = requests.post("http://localhost/user/login", data={'email': 'admin'})
+expect('Kein Passwort angegeben!' in r.text)
 
-#r = requests.post("http://localhost/user/login", data={'pass': 'admin'})
-#dot('No email given' in r.text)
+r = requests.post("http://localhost/user/login", data={'pass': 'admin'})
+expect('Keine Email angegeben' in r.text)
 
-#r = requests.post("http://localhost/user/login", data={'email':'wrong', 'pass': 'admin'})
-#dot('angegebene Nutzer/Passwort-Kombination ist nicht gültig' in r.text)
+r = requests.post("http://localhost/user/login", data={'email':'wrong', 'pass': 'admin'})
+expect('angegebene Nutzer/Passwort-Kombination ist nicht gültig' in r.text)
 
-#r = requests.post("http://localhost/user/login", data={'email':'admin', 'pass': 'wrong'})
-#dot('angegebene Nutzer/Passwort-Kombination ist nicht gültig' in r.text)
+r = requests.post("http://localhost/user/login", data={'email':'admin', 'pass': 'wrong'})
+expect('angegebene Nutzer/Passwort-Kombination ist nicht gültig' in r.text)
 
 r = requests.post("http://localhost/user/login", data={'email':'admin', 'pass': 'admin'})
 expect('Liste der Benutzer' in r.text)

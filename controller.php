@@ -167,6 +167,7 @@
 
 		$query = $db->prepare('INSERT INTO users (login, pass) VALUES (:login, :pass);');
 		assert ($query->execute(array(':login'=>$login,':pass'=>$hash)),'Was not able to add user '.$login);
+		info('User ? has been added',$login);
 		return true;
 	}
 
