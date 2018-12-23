@@ -33,18 +33,16 @@ expectRedirect(r,'http://localhost/project/view');
 
 # without a project id, an error should be displayed
 r = admin_session.get('http://localhost/project/view',allow_redirects=False)
-expect('<div class=errors>' in r.text)
-expect('Keine Projekt-ID angegeben!' in r.text)
+expectError(r,'Keine Projekt-ID angegeben!')
 
 # non-existing project id, should throw error
 r = admin_session.get('http://localhost/project/9999/view',allow_redirects=False)
-expect('<div class=errors>' in r.text)
-expect('Sie sind nicht an diesem Projekt beteiligt!' in r.text)
+expectError(r,'Sie sind nicht an diesem Projekt beteiligt!')
 
 r = admin_session.get('http://localhost/project/1/view',allow_redirects=False)
 expect('<h1>testproject</h1>' in r.text)
 expect('<p>this is the description</p>' in r.text)
-expect('admin (Eigentümer)' in r.htext)
+expect('admin (Eigentümer)' in r.text)
 
 
 
