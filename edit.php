@@ -4,35 +4,35 @@ include '../bootstrap.php';
 include 'controller.php';
 
 require_user_login();
-$user_id = param('id');
+if ($user_id = param('id')){
+	$allowed = ($user->id == 1 || $user->id == $user_id);
+	if ($allowed) {
+		$u = load_user($user_id);
+		$u->dirty = [];
+		if (!empty($_POST)){
+			foreach ($_POST as $key => $value){
 
-$allowed = ($user->id == 1 || $user->id == $user_id);
-if ($allowed) {
-	$u = load_user($user_id);
-	$u->dirty = [];
-	if (!empty($_POST)){
-		foreach ($_POST as $key => $value){
-			
-			if ($key == 'new_pass') continue;
-			if ($value != $u->{$key}){
-				if ($key == 'login' && user_exists($value)){
-					error('User with this login name already existing!');
-				} else {
-					$u->dirty[] = $key;
-					$u->{$key} = $value;
+				if ($key == 'new_pass') continue;
+				if ($value != $u->{$key}){
+					if ($key == 'login' && user_exists($value)){
+						error('User with this login name already existing!');
+					} else {
+						$u->dirty[] = $key;
+						$u->{$key} = $value;
+					}
 				}
 			}
+			update_user($u);
+			if ($new_pass = post('new_pass')){
+				alter_password($u,$new_pass);
+				$u = load_user($user_id);
+			}
 		}
-		update_user($u);
-		if ($new_pass = post('new_pass')){
-			alter_password($u,$new_pass);
-			$u = load_user($user_id);
-		}
+	} else {
+		error('Currently, only admin can edit other users!');
+		redirect('../index');
 	}
-} else {
-	error('Currently, only admin can edit other users!');
-	redirect('../index');
-}
+} else error('No user ID passed to user/edit!');
 $themes = get_themes();
 
 include '../common_templates/head.php';
@@ -50,9 +50,9 @@ if ($allowed){
 		<legend><?= t($field) ?></legend>
 		<input type="text" name="<?= $field ?>" value="<?= htmlspecialchars($value) ?>" />
 	</fieldset>
-	
+
 	<?php }?>
-	
+
 	<fieldset>
 		<legend><?= t('new password (leave empty to not change you password)')?></legend>
 		<input type="password" name="new_pass" autocomplete="new-password" />

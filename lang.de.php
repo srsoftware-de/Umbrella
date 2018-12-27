@@ -36,6 +36,7 @@ $translations = array(
 	'No email given'=>'Keine Email angegeben',
 	'No password given!'=>'Kein Passwort angegeben!',
 	'No such user'=>'Diesen Nutzer gibt es nicht',
+	'No user ID passed to user/edit!'=>'Keine User-ID an user/edit übergeben!',
 	'No user id passed to view!'=>'Keine User-ID für Ansicht angegeben!',
 	'Note: this link can only be used once!'=>'Hinweis: dieser Link kann nur einmal verwendet werden!',
 	'Notes'=>'Notizen',
