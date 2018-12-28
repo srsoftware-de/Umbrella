@@ -110,10 +110,10 @@
 
 	function get_userlist($ids = null,$include_passwords = false){
 		$db = get_or_create_db();
-		$columns = array('id','id', 'login', 'email');
+		$columns = ['id','id', 'login', 'email'];
 		if ($include_passwords) $columns[]='pass';
 		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
-		$args = array();
+		$args = [];
 
 		$single = false;
 		if ($ids !== null){
@@ -127,6 +127,7 @@
 		}
 
 		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args));
 		assert($query->execute($args),'Was not able to request user list!');
 		$results = $query->fetchAll(INDEX_FETCH);
 		if ($single) return reset($results);

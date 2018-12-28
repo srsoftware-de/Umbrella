@@ -68,6 +68,7 @@ $translations = array(
 	'User with this login name already existing!'=>'Es existiert bereits ein Nutzer mit diesem Login!',
 	'? invited you to Umbrella'=>'? hat dich zu Umbrella eingeladen',
 	'Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!'=>'Ihr Login-Servie hat Sie erfolgreich identifiziert, aber ihr Account dort ist mit keinem Account hier verknüpft!',
+	'You need to specify a user id!'=>'Sie müssen eine Nutzer-ID angeben!',
 	'Your password has been changed.'=>'Ihr passwort wurde geändert.',
 	'Your search provided the following results:'=>'Ihre Suche lieferte die folgenden Ergebnisse:',
 );
