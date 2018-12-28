@@ -15,6 +15,7 @@ $translations = array(
 	'Contacts'=>'Kontakte',
 	'Create new user'=>'Neuen Benutzer anlegen',
 	'Currently, only admin can edit other users!'=>'Im Moment kann nur der Administrator andere Benutzer ändern!',
+	'Currently, only admin can view other users!'=>'Im Moment kann nur der Administrator andere Benutzer einsehen!',
 	'Delete assignment'=>'Kontoverbindung löschen',
 	'Documents'=>'Dokumente',
 	'edit your account'=>'dein Konto bearbeiten',

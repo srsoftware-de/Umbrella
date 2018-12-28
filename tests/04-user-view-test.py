@@ -49,4 +49,27 @@ expect('<td>d033e22ae348aeb5660fc2140aec35850c4da997</td>' in r.text)
 r = admin_session.get('http://localhost/user/2/view',allow_redirects=False)
 expect('<td>user2</td>' in r.text)
 expect('<td>52313e3ecdfe725b74657040bbcb1ab325d4fc55</td>' in r.text)
+
+# login as user2
+user_session = requests.session();
+r = user_session.post('http://localhost/user/login', data={'email':'user2', 'pass': 'test-passwd'},allow_redirects=False)
+
+# get token
+r = user_session.get('http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fuser%2Fedit',allow_redirects=False)
+expect('location' in r.headers)
+redirect = r.headers.get('location');
+
+expect('http://localhost/user/edit?token=' in redirect)
+
+# redirect should contain a token in the GET parameters, thus the page should redirect to the same url without token parameter
+r = user_session.get(redirect,allow_redirects=False)
+expectRedirect(r,'http://localhost/user/edit');
+
+# user2 should not be able to see data of user 1, should be redirected
+r = user_session.get('http://localhost/user/1/view',allow_redirects=False)
+expectRedirect(r,'../index');
+
+r = user_session.get('http://localhost/user/1/view')
+expectError(r,'Im Moment kann nur der Administrator andere Benutzer einsehen!')
+
 print ('done')
