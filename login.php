@@ -15,7 +15,7 @@ if ($admin->pass == sha1('admin') && $admin->login == 'admin') info(t('The defau
 $login_services = get_login_services();
 
 $redirect = param('returnTo');
-if (!empty($redirect) && isset($_SESSION['token'])) redirect($redirect.'?token='.$_SESSION['token']);
+if (!empty($redirect) && isset($_SESSION['token']) && testValidityOf($_SESSION['token'])) redirect($redirect.'?token='.$_SESSION['token']);
 
 include '../common_templates/head.php';
 include '../common_templates/messages.php';

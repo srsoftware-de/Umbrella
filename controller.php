@@ -231,7 +231,7 @@
 		$db = get_or_create_db();
 
 		$query = $db->prepare('SELECT * FROM tokens WHERE token = :token;');
-		$params = array(':token' => $_SESSION['token']);
+		$params = [':token' => $_SESSION['token']];
 		assert($query->execute($params),'Was not able to request token table.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$time = time();
@@ -241,10 +241,14 @@
 		foreach ($rows as $index => $row){
 			if ($row['expiration'] > $time){
 				$user_id = $row['user_id']; // read user data
-			} else 	$query->execute([':token'=>$row['token']]); // drop expired token
+			} else {
+				unset($_SESSION['token']);
+				$query->execute([':token'=>$row['token']]); // drop expired token
+			}
 		}
-		$user = ($user_id === null) ? null : load_user($user_id);
-	        if (isset($user->theme)) $theme = $user->theme;
+		if ($user_id === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
+		$user = load_user($user_id);
+		if (isset($user->theme)) $theme = $user->theme;
 	}
 
 	function get_login_services($name = null){
@@ -343,5 +347,21 @@
 
 		send_mail($user->email, $u->email, $subject, $text);
 		info('Email has been sent to ?',$u->email);
+	}
+
+	function testValidityOf($token){
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT * FROM tokens WHERE token = :token AND expiration > :time');
+		assert($query->execute(array(':token'=>$token,':time'=>time())),'Was not able to check token');
+		$results = $query->fetchAll(PDO::FETCH_ASSOC);
+		if (empty($results)) return null;
+		$token = $results[0];
+
+		// stretch expiration time
+		$token['expiration'] = time()+300; // this value will be delivered to cliet apps
+		$query = $db->prepare('UPDATE tokens SET expiration = :exp WHERE user_id = :uid');
+		$query->execute(array(':exp'=>($token['expiration']+3000),':uid'=>$token['user_id'])); // the expiration period in the user app is way longer, so clients can revalidate from time to time
+
+		return $token;
 	}
 ?>
