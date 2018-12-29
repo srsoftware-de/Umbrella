@@ -38,3 +38,24 @@ def expectInfo(response,message):
 
 def params(url):
     return urlparse.parse_qs(urlparse.urlparse(url).query)
+
+def getSession(login, password, module):
+    session = requests.session();
+    r = session.post('http://localhost/user/login', data={'email':login, 'pass': password},allow_redirects=False)
+
+    # get token
+    r = session.get('http://localhost/user/login?returnTo=http://localhost/'+module+'/',allow_redirects=False)
+    expect('location' in r.headers)
+    redirect = r.headers.get('location');
+
+    expect('http://localhost/'+module+'/?token=' in redirect)
+    prefix,token=redirect.split('=')
+
+    # create new session to test token function
+    session = requests.session()
+
+    # redirect should contain a token in the GET parameters, thus the page should redirect to the same url without token parameter
+    r = session.get(redirect,allow_redirects=False)
+    expectRedirect(r,'http://localhost/'+module+'/');
+    
+    return session,token
