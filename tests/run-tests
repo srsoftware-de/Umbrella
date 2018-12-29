@@ -21,7 +21,7 @@ for DIR in $DIRS; do
 		# if FILTER is set, only start scripts whose name contains the respective text
 		if [[ $SCRIPT == *$FILTER* ]]; then
 			echo -n launching $DIR/tests/$SCRIPT
-			python $SCRIPT || exit -1
+			python "$SCRIPT" || exit -1
 		fi
 	done
 done
