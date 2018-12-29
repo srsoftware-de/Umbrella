@@ -53,7 +53,7 @@ expect('<input type="text" name="login" value="user-two" />' in r.text)
 expect('<input type="text" name="email" value="user2@example.com" /' in r.text)
 
 # admin should be able to edit properties, test this
-r = admin_session.post('http://localhost/user/1/edit',allow_redirects=False,data={'login':'user-two','email':'user2@example.com'})
+r = admin_session.post('http://localhost/user/1/edit',allow_redirects=False,data={'login':'user-two','email':'user1@example.com'})
 expectError(r,'Es existiert bereits ein Nutzer mit diesem Login!')
 
 # change back to former credentials for further tests
