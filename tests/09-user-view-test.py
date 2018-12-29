@@ -12,25 +12,7 @@ from test_routines import *
 r = requests.get('http://localhost/user/view',allow_redirects=False)
 expectRedirect(r,'http://localhost/user/login?returnTo=http://localhost/user/view')
 
-admin_session = requests.session();
-# login
-r = admin_session.post('http://localhost/user/login', data={'email':'admin', 'pass': 'admin'},allow_redirects=False)
-
-# get token
-r = admin_session.post('http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fuser%2Fview',allow_redirects=False)
-expect('location' in r.headers)
-redirect = r.headers.get('location');
-
-expect('http://localhost/user/view?token=' in redirect)
-param = params(redirect)
-token=param['token'][0]
-
-# create new session to test token function
-admin_session = requests.session()
-
-# redirect should contain a token in the GET parameters, thus the page should redirect to the same url without token parameter
-r = admin_session.get(redirect,allow_redirects=False)
-expectRedirect(r,'http://localhost/user/view');
+admin_session,token = getSession('admin','admin','user')
 
 # view without user should display error
 r = admin_session.get('http://localhost/user/view',allow_redirects=False)
@@ -51,19 +33,7 @@ expect('<th>Benutzername</th><td>user2</td>' in r.text)
 expect('<th>Password (hashed)</th><td>52313e3ecdfe725b74657040bbcb1ab325d4fc55</td>' in r.text)
 
 # login as user2
-user_session = requests.session();
-r = user_session.post('http://localhost/user/login', data={'email':'user2', 'pass': 'test-passwd'},allow_redirects=False)
-
-# get token
-r = user_session.get('http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fuser%2F2%2Fview',allow_redirects=False)
-expect('location' in r.headers)
-redirect = r.headers.get('location');
-
-expect('http://localhost/user/2/view?token=' in redirect)
-
-# redirect should contain a token in the GET parameters, thus the page should redirect to the same url without token parameter
-r = user_session.get(redirect,allow_redirects=False)
-expectRedirect(r,'http://localhost/user/2/view?id=2');
+user_session,token = getSession('user2','test-passwd','user')
 
 # display data of user2. requires execution of user-add-test before
 r = user_session.get('http://localhost/user/2/view',allow_redirects=False)
