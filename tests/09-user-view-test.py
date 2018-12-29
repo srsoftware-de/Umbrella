@@ -32,7 +32,7 @@ admin_session = requests.session()
 r = admin_session.get(redirect,allow_redirects=False)
 expectRedirect(r,'http://localhost/user/view');
 
-# without a user id, the view shoud display an error
+# view without user should display error
 r = admin_session.get('http://localhost/user/view',allow_redirects=False)
 expectError(r,'Keine User-ID für Ansicht angegeben!')
 
@@ -42,28 +42,34 @@ expectError(r,'Diesen Nutzer gibt es nicht')
 
 # view should display data of admin user
 r = admin_session.get('http://localhost/user/1/view',allow_redirects=False)
-expect('<td>admin</td>' in r.text)
-expect('<td>d033e22ae348aeb5660fc2140aec35850c4da997</td>' in r.text)
+expect('<th>Benutzername</th><td>admin</td>' in r.text)
+expect('<th>Password (hashed)</th><td>d033e22ae348aeb5660fc2140aec35850c4da997</td>' in r.text)
 
 # display data of user2. requires execution of user-add-test before
 r = admin_session.get('http://localhost/user/2/view',allow_redirects=False)
-expect('<td>user2</td>' in r.text)
-expect('<td>52313e3ecdfe725b74657040bbcb1ab325d4fc55</td>' in r.text)
+expect('<th>Benutzername</th><td>user2</td>' in r.text)
+expect('<th>Password (hashed)</th><td>52313e3ecdfe725b74657040bbcb1ab325d4fc55</td>' in r.text)
 
 # login as user2
 user_session = requests.session();
 r = user_session.post('http://localhost/user/login', data={'email':'user2', 'pass': 'test-passwd'},allow_redirects=False)
 
 # get token
-r = user_session.get('http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fuser%2Fedit',allow_redirects=False)
+r = user_session.get('http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fuser%2F2%2Fview',allow_redirects=False)
 expect('location' in r.headers)
 redirect = r.headers.get('location');
 
-expect('http://localhost/user/edit?token=' in redirect)
+expect('http://localhost/user/2/view?token=' in redirect)
 
 # redirect should contain a token in the GET parameters, thus the page should redirect to the same url without token parameter
 r = user_session.get(redirect,allow_redirects=False)
-expectRedirect(r,'http://localhost/user/edit');
+expectRedirect(r,'http://localhost/user/2/view?id=2');
+
+# display data of user2. requires execution of user-add-test before
+r = user_session.get('http://localhost/user/2/view',allow_redirects=False)
+expect('<th>Benutzername</th><td>user2</td>' in r.text)
+expect('<th>Password (hashed)</th><td>52313e3ecdfe725b74657040bbcb1ab325d4fc55</td>' in r.text)
+
 
 # user2 should not be able to see data of user 1, should be redirected
 r = user_session.get('http://localhost/user/1/view',allow_redirects=False)

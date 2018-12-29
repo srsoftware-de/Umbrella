@@ -40,16 +40,16 @@ r = admin_session.get('http://localhost/user/1/json',allow_redirects=False)
 expect(r.text=='{"id":"1","login":"admin","email":"user2@example.com"}')
 
 r = admin_session.get('http://localhost/user/2/json',allow_redirects=False)
-expect(r.text=='{"id":"2","login":"user-two","email":"user2@example.com"}')
+expect(r.text=='{"id":"2","login":"user2","email":"user2@example.com"}')
 
 r = admin_session.get('http://localhost/user/json?ids=1',allow_redirects=False)
 expect(r.text=='{"id":"1","login":"admin","email":"user2@example.com"}')
 
 r = admin_session.get('http://localhost/user/json?ids=2',allow_redirects=False)
-expect(r.text=='{"id":"2","login":"user-two","email":"user2@example.com"}')
+expect(r.text=='{"id":"2","login":"user2","email":"user2@example.com"}')
 
 r = admin_session.post('http://localhost/user/json',allow_redirects=False,data={'ids[0]':2,'ids[1]':1})
-expect(r.text=='{"1":{"id":"1","login":"admin","email":"user2@example.com"},"2":{"id":"2","login":"user-two","email":"user2@example.com"}}')
+expect(r.text=='{"1":{"id":"1","login":"admin","email":"user2@example.com"},"2":{"id":"2","login":"user2","email":"user2@example.com"}}')
 
 r = admin_session.get('http://localhost/user/3/json',allow_redirects=False)
 assert(r.status_code == 400)

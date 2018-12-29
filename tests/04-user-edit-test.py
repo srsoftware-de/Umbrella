@@ -85,4 +85,7 @@ expect('<input type="text" name="email" value="user2@example.com" /' in r.text)
 r = admin_session.post('http://localhost/user/1/edit',allow_redirects=False,data={'login':'user-two','email':'user2@example.com'})
 expectError(r,'Es existiert bereits ein Nutzer mit diesem Login!')
 
+# change back to former credentials for further tests
+r = admin_session.post('http://localhost/user/2/edit',allow_redirects=False,data={'login':'user2','new_pass':'test-passwd'})
+
 print ('done')
