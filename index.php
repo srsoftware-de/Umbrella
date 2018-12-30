@@ -47,7 +47,7 @@
 	<p>Kein großes Problem!</p>
 	<p>Umbrella ist so modular gestaltet, dass man binnen kurzer Zeit weitere Module für beliebige Aufgaben ergänzen kann. Dies kann entweder in PHP geschehen, oder aber in einer beliebigen anderen Programmiersprache, die über eine HTTP-Verbindung mit dem Framework kommunizieren kann.</p>
 	<p>Durch die Quelloffenheit kann jeder neue Module beisteuern oder bestehende anpassen</p>
-	<p>Natürlich können Sie auch gern ein Modul für Ihre Zwecke <a class="button" href="https://keawe.de/contact">in Auftrag geben</a>  oder Funktionalitäten anfragen!</p>
+	<p>Natürlich können Sie auch gern neue <a class="button" href="https://github.com/keawe-software/Umbrella/issues/new">Funktionalitäten anfragen</a> oder ein Modul für Ihre Zwecke <a class="button" href="https://keawe.de/contact">in Auftrag geben</a>.</p>
 </fieldset>
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
