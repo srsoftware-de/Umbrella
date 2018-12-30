@@ -4,6 +4,7 @@ $translations = array(
 		'Actions'=>'Aktionen',
 		'Add existing property (from other items)'=>'Existierende Eigenschaft (von anderen Objekten) hinzufügen',
 		'add item'=>'Objekt hinzufügen',
+		'Add item'=>'Objekt hinzufügen',
 		'Add new item to stock'=>'Neues Objekt zum Inventar hinzufügen',
 		'Add stock location'=>'Lagerort hinzufügen',
 		'Alter location of ?'=>'Ort von ? ändern',

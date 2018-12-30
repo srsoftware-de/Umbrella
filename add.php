@@ -71,7 +71,7 @@ include '../common_templates/messages.php'; ?>
 				</td>
 			</tr>
 		</table>
-		<button class="right" type="submit"><?= t('Continue')?></button>
+		<button type="submit"><?= t('Add item')?></button>
 	</form>
 </fieldset>
 
