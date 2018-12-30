@@ -36,7 +36,7 @@ if ($allowed){ ?>
 		<fieldset>
 			<select name="new_user_id">
 				<option value="" selected="true"><?= t('== Select a user ==')?></option>
-				<?php foreach ($users as $id => $u){ ?>
+				<?php foreach ($users as $id => $u){ if ($id == $user->id) continue; ?>
 				<option value="<?= $id ?>"><?= $u['login']?></option>
 				<?php }?>
 			</select>
