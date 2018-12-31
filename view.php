@@ -51,22 +51,22 @@ function display_tasks($task_list,$parent_task_id){
 			<?php if (isset($task['est_time']) && $task['est_time']>0) { ?>
 			(<?= $task['est_time']?>&nbsp;h)
 			<?php } ?>
-			<span class="hover_h">
-			<a class="symbol" title="<?= t('edit') ?>" href="../../task/<?= $tid ?>/edit?redirect=../../project/<?= $project_id ?>/view"></a>
-			<a class="symbol" title="<?= t('add subtask') ?>" 	href="../../task/<?= $tid ?>/add_subtask"> </a>
+			<span class="hover_h symbol">
+			<a title="<?= t('edit') ?>" href="../../task/<?= $tid ?>/edit?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('add subtask') ?>" 	href="../../task/<?= $tid ?>/add_subtask"> </a>
 			<?php if ($task['status'] != TASK_STATUS_STARTED) { ?>
-			<a class="symbol" title="<?= t('started') ?>"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('started') ?>"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } if ($task['status'] != TASK_STATUS_COMPLETE) { ?>
-			<a class="symbol" title="<?= t('complete') ?>" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('complete') ?>" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } if ($task['status'] != TASK_STATUS_CANCELED) { ?>
-			<a class="symbol" title="<?= t('cancel') ?>"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('cancel') ?>"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } if ($task['status'] != TASK_STATUS_OPEN) { ?>
-			<a class="symbol" title="<?= t('open') ?>"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('open') ?>"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } if ($task['status'] != TASK_STATUS_PENDING) { ?>
-			<a class="symbol" title="<?= t('wait') ?>"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('wait') ?>"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
 			<?php } ?>
-			<a class="symbol" title="<?= t('add user') ?>" href="../../task/<?= $tid ?>/add_user"> </a>
-			<a class="symbol" title="<?= t('delete') ?>"   href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('add user') ?>" href="../../task/<?= $tid ?>/add_user"> </a>
+			<a title="<?= t('delete') ?>"   href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
 			</span>
 			<?php display_tasks($task_list,$tid)?>
 		</li>
@@ -100,14 +100,16 @@ if ($project){
 	<tr>
 		<th><?= t('Project')?></th>
 		<td>
-			<span class="right">
-				<a class="symbol" title="<?= t('complete')?>" href="complete?redirect=../index"></a>
-				<a class="symbol" title="<?= t('cancel')?>" href="cancel?redirect=../index"></a>
-				<a class="symbol" title="<?= t('edit') ?>" href="edit"></a>
-				<a class="symbol" title="<?= t('add task')?>" href="../../task/add_to_project/<?= $project->id ?>"> </a>
-				<a class="symbol" title="<?= t('export project') ?>" href="export"></a>
-				<a class="symbol" title="<?= t('export as JSON') ?>" href="json_export"></a>
-				<a class="symbol" title="<?= t('add user')?>" href="add_user"></a>
+			<span class="right symbol">
+				<a title="<?= t('complete')?>" href="complete?redirect=../index"></a>
+				<a title="<?= t('cancel')?>" href="cancel?redirect=../index"></a>
+				<a title="<?= t('edit') ?>" href="edit"></a>
+				<a title="<?= t('add task')?>" href="../../task/add_to_project/<?= $project->id ?>"> </a>
+				<a title="<?= t('export project') ?>" href="export"></a>
+				<a title="<?= t('export as JSON') ?>" href="json_export"></a>
+				<a title="<?= t('add user')?>" href="add_user"></a>
+				<a title="<?= t('Transform to task')?>" href="<?= getUrl('task','from_project?id='.$project_id)?>"></a>
+
 			</span>
 			<h1><?= $project->name ?></h1>
 		</td>
