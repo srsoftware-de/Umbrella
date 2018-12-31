@@ -28,6 +28,7 @@ if ($task){
 		$child_task['parent_task_id'] = null;
 		child_update_project($child_task,$new_project['id']);
 	}
+	if (isset($services['notes'])) request('notes','task:'.$task_id.'/update_uri?new=project:'.$new_project['id']);
 	delete_task($task);
 	redirect(getUrl('project',$new_project['id'].'/view'));
 }
