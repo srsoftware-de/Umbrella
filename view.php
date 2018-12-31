@@ -243,8 +243,11 @@ include '../common_templates/messages.php'; ?>
 					<th><?= t('Tax')?></th>
 				</tr>
 
-				<?php $first = true;
-					foreach ($document->positions() as $pos => $position) { ?>
+				<?php $first = true; $sum_without_tax = 0; $sum_including_tax = 0;
+					foreach ($document->positions() as $pos => $position) {
+						$sum_without_tax+= $position->single_price * $position->amount;
+						$sum_including_tax+= $position->single_price * $position->amount * (1+$position->tax/100);
+					?>
 				<tr>
 					<td><?= $pos ?></td>
 					<td>
@@ -265,6 +268,15 @@ include '../common_templates/messages.php'; ?>
 					<td><?= $position->tax?>&nbsp;%</td>
 				</tr>
 				<?php $first = false; }?>
+				<tr style="text-align: right">
+					<td></td>
+					<td></td>
+					<th><?= ('Sum (net):')?></th>
+					<th><?= round($sum_without_tax/100,2)?></th>
+					<th colspan="2"><?= ('Sum (gross):')?></th>
+					<th><?= round($sum_including_tax/100,2)?></th>
+					<td></td>
+				</tr>
 			</table>
 		</fieldset>
 
