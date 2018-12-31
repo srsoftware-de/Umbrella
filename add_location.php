@@ -12,7 +12,7 @@ if ($new_id && $name){
 	$location->patch($_POST)->patch(['new_id'=>$prefix.':'.$new_id]);
 	if ($loc_id = param('location_id')) $location->patch(['location_id'=>$prefix.':'.$loc_id]);
 	$location->save();
-	
+
 	redirect(param('return_to',$base_url.$prefix.DS.'index'));
 }
 $locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
@@ -52,8 +52,8 @@ include '../common_templates/messages.php'; ?>
 				<td><input type="text" name="description"/></td>
 			</tr>
 		</table>
-		
-		<button type="submit"><?= t('Continue')?></button>
+
+		<button type="submit"><?= t('Add stock location')?></button>
 	</form>
 </fieldset>
 
