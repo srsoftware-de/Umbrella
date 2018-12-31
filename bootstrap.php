@@ -230,7 +230,7 @@ function replace_text($text,$replacements = null){
 	return $text;
 }
 
-function request($service = null,$path,$data = array(), $debug = false,$decode = ARRAY_CONVERSION){
+function request($service = null,$path,$data = [], $debug = false,$decode = ARRAY_CONVERSION){
 	if ($service){
 		$url = getUrl($service,$path);
 	} else {
