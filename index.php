@@ -38,7 +38,8 @@ include '../common_templates/messages.php'; ?>
 	$hide = [];
 	foreach ($tasks as $id => $task){ // filter out tasks, that are only group nodes
 		if (!$show_closed && in_array($task->status,[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
-		if (!empty($task->parent_task_id)) $hide[] = $task->parent_task_id;
+		if ($task->no_index == 1) $hide[] = $task->id;
+		if (!empty($task->parent_task_id)) $hide[] = $task->parent_task_id; // if task is child of a parent task: hide that parent
 	}
 	foreach ($tasks as $id => $task):
 	if (!$show_closed && in_array($task->status,[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;

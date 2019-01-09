@@ -72,6 +72,7 @@
 				'start_date'=>'DATE',
 				'due_date'=>'DATE',
 				'show_closed'=>['BOOLEAN','DEFAULT'=>0],
+				'no_index'=>['BOOLEAN','DEFAULT'=>0],
 			];
 		}
 		static function users_table(){
@@ -297,7 +298,7 @@
 
 			// save
 			$db = get_or_create_db();
-			$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, est_time = :est, start_date = :start, due_date = :due, show_closed = :closed WHERE id = :id;');
+			$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, est_time = :est, start_date = :start, due_date = :due, show_closed = :closed, no_index = :nidx WHERE id = :id;');
 			$args = [
 					':id'=>$this->id,
 					':name'=>$this->name,
@@ -307,7 +308,8 @@
 					':est'=>$this->est_time,
 					':start'=>$this->start_date,
 					':due'=>$this->due_date,
-					':closed'=>$this->show_closed
+					':closed'=>$this->show_closed,
+					':nidx'=>$this->no_index,
 			];
 			assert($query->execute($args),'Was not able to alter task entry in database');
 			unset($this->dirty);
@@ -348,7 +350,7 @@
 					info('Start date adjusted to match due date!');
 				}
 			}
-			$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, est_time, start_date, due_date, show_closed) VALUES (:name, :pid, :parent, :desc, :state, :est, :start, :due, :closed);');
+			$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, est_time, start_date, due_date, show_closed, no_index) VALUES (:name, :pid, :parent, :desc, :state, :est, :start, :due, :closed, :nidx);');
 			$args = [
 					':name'=>$this->name,
 					':pid'=>$this->project_id,
@@ -359,6 +361,7 @@
 					':start'=>$this->start_date,
 					':due'=>$this->due_date,
 					':closed'=>$this->show_closed,
+					':nidx'=>$this->no_index,
 			];
 			assert($query->execute($args),'Was not able to create new task entry in database');
 			$this->id = $db->lastInsertId();

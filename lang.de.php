@@ -28,6 +28,7 @@ $translations = array(
 		'Description'=>'Be&shy;schrei&shy;bung',
 		'Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="?">Markdown wird unterstützt ↗Spickzettel</a>',
 		'Documents'=>'Dokumente',
+		'Do not show on index page'=>'Nicht auf der Index-Seite anzeigen',
 		"Don't notify users"=>'Nutzer nicht benachrichtigen',
 		'Due'=>'Fällig',
 		'Due date'=>'Fällig&shy;keits&shy;datum',

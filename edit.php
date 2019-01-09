@@ -28,6 +28,7 @@ if ($task_id = param('id')){
 			if ($new_project_id != $task->project_id) $task->patch(['project_id' => $new_project_id,'parent_task_id' => null]);
 		}
 		$task->patch(['show_closed'=>(post('show_closed','off')=='on')?1:0]);
+		$task->patch(['no_index'=>(post('no_index','off')=='on')?1:0]);
 		$task->save()->update_requirements(post('required_tasks'));
 
 		redirect(param('redirect','view'));
@@ -168,7 +169,9 @@ include '../common_templates/messages.php'; ?>
 			<label>
 				<input type="checkbox" name="show_closed" <?= $task->show_closed == 1 ? 'checked="checked"':''?>/> <?= t("Always show closed sub-tasks") ?>
 			</label>
-
+			<label>
+				<input type="checkbox" name="no_index" <?= $task->no_index == 1 ? 'checked="checked"':''?>/> <?= t("Do not show on index page") ?>
+			</label>
 			<label class="silent_box">
 				<input type="checkbox" name="silent" /> <?= t("Don't notify users") ?>
 			</label>
