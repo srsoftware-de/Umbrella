@@ -7,13 +7,9 @@ $bookmark = false;
 if ($task_id){
 	if ($task = Task::load(['ids'=>$task_id])){
 		$task->load_children(99)->load_requirements()->load_users();
-
 		$title = $task->name.' - Umbrella';
-
 		$show_closed_children = param('closed') == 'show';
-
 		if ($note_id = param('note_added')) $task->send_note_notification($note_id);
-
 		if (isset($services['bookmark'])){
 			$hash = sha1(location('*'));
 			$bookmark = request('bookmark','json_get?id='.$hash);
@@ -167,7 +163,7 @@ include '../common_templates/messages.php'; ?>
 			<?php foreach ($task->users as $uid => $u) { ?>
 				<li>
 					<?= $u['login'] ?>
-					(<?= t($TASK_PERMISSIONS[$u['permissions']]) ?>)
+					(<?= Task::perm_name($u['permissions']) ?>)
 					<?php if (isset($services['rtc']) && $uid != $user->id) { ?><a class="symbol" target="_blank" title="<?= t('Start conversation') ?>" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php } ?>
 					<?php if ( // deletion of user only possible if:
 						($task->users[$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task

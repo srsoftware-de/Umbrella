@@ -494,7 +494,10 @@
 	}
 
 	class Task extends UmbrellaObjectWithId{
-		const PERMISSION_OWNER=1;
+		const PERMISSION_OWNER = 1;
+		const PERMISSION_READ_WRITE = 2;
+		const PERMISSION_READ = 4;
+
 		static function table(){
 			return [
 				'id'=> [ 'INTEGER', 'KEY'=>'PRIMARY'],
@@ -662,19 +665,17 @@
 			$db = get_or_create_db();
 
 			$project = $this->project();
-
 			$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
 			assert($query->execute([':id'=>$this->id]));
 			$rows = $query->fetchAll(INDEX_FETCH);
-
 			$users = [];
 			foreach ($rows as $row){
 				$uid = $row['user_id'];
-				$project_user = isset($project['users'][$uid])?$project['users'][$uid]:[];
-				unset($project_user['permission']);
+				$project_user = isset($project['users'][$uid])?$project['users'][$uid]['data']:[];
 				$project_user['permissions'] = $row['permissions'];
 				$users[$uid] = $project_user;
 			}
+
 			$this->users = $users;
 			return $this;
 		}
@@ -702,6 +703,15 @@
 				return Parsedown::instance()->parse($this->description);
 			}
 			return str_replace("\n", "<br/>", $this->description);
+		}
+
+		public static function perm_name($permission){
+			switch ($permission){
+				case Task::PERMISSION_OWNER:      return t('owner');
+				case Task::PERMISSION_READ:       return t('read only');
+				case Task::PERMISSION_READ_WRITE: return t('read + write');
+			}
+			return null;
 		}
 	}
 ?>
