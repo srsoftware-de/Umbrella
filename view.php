@@ -37,11 +37,11 @@ if ($project_id = param('id')){
 	} else error('You are not member of this project!');
 } else error('No project id passed to view!');
 
-function display_tasks($task_list,$parent_task_id){
+function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 	global $show_closed_tasks,$project_id;
 	$first = true;
 	foreach ($task_list as $tid => $task){
-		if (!$show_closed_tasks && ($task['status']>=60)) continue;
+		if (!$show_closed_tasks && ($task['status']>=60) && !$parent_show_closed) continue;
 		if ($task['parent_task_id'] != $parent_task_id) continue;
 		if ($first){
 			$first = false; ?><ul><?php
@@ -68,7 +68,7 @@ function display_tasks($task_list,$parent_task_id){
 			<a title="<?= t('add user') ?>" href="../../task/<?= $tid ?>/add_user"> </a>
 			<a title="<?= t('delete') ?>"   href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
 			</span>
-			<?php display_tasks($task_list,$tid)?>
+			<?php display_tasks($task_list,$tid,$task['show_closed']==1)?>
 		</li>
 		<?php
 	}
