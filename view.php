@@ -12,7 +12,7 @@ if ($task_id){
 
 		$show_closed_children = param('closed') == 'show';
 
-		if ($note_id = param('note_added')) send_note_notification($task,$note_id);
+		if ($note_id = param('note_added')) $task->send_note_notification($note_id);
 
 		if (isset($services['bookmark'])){
 			$hash = sha1(location('*'));
