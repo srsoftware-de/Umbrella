@@ -36,7 +36,7 @@ if ($task_id = param('id')){
 $projects = request('project','json',['users'=>'true']);
 
 // load other tasks of the project for the dropdown menu
-$project_tasks = load_tasks(['order'=>'name','project_ids'=>$task->project_id]);
+$project_tasks = Task::load(['order'=>'name','project_ids'=>$task->project_id]);
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('task',$task_id.'/view'));
@@ -50,12 +50,12 @@ function show_project_task_checkbox($list, $id){
 	<li>
 		<label>
 			<input type="checkbox" name="required_tasks[<?= $id?>]" <?= !empty($task->requirements($id))?'checked="true"':'' ?>/>
-			<?= $project_task['name'] ?> <?= $id ?>
+			<?= $project_task->name ?>
 		</label>
 		<ul>
 		<?php foreach ($list as $sub_id => $sub_task) {
-			if (in_array($sub_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
-			if ($sub_task['parent_task_id'] == $id) show_project_task_checkbox($list,$sub_id);
+			if (in_array($sub_task->status,[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+			if ($sub_task->parent_task_id == $id) show_project_task_checkbox($list,$sub_id);
 		}
 		?>
 		</ul>
@@ -67,10 +67,10 @@ function show_project_task_option($list, $id, $exclude_id, $space=''){
 	global $task;
 	if ($id == $exclude_id) return;
 	$project_task = $list[$id];?>
-	<option value="<?= $id ?>" <?= ($id == $task->parent_task_id)?'selected="selected"':''?>><?= $space.$project_task['name']?></option>
+	<option value="<?= $id ?>" <?= ($id == $task->parent_task_id)?'selected="selected"':''?>><?= $space.$project_task->name ?></option>
 	<?php foreach ($list as $sub_id => $sub_task) {
-		if (in_array($sub_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
-		if ($sub_task['parent_task_id'] == $id) show_project_task_option($list,$sub_id,$exclude_id,$space.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+		if (in_array($sub_task->status,[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+		if ($sub_task->parent_task_id == $id) show_project_task_option($list,$sub_id,$exclude_id,$space.'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
 	}
 }
 
@@ -93,14 +93,14 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Task')?></legend>
 			<input type="text" name="name" value="<?= htmlspecialchars($task->name) ?>" autofocus="autofocus"/>
 		</fieldset>
-		<?php if ($project_tasks){?>
+		<?php if (!empty($project_tasks)){?>
 		<fieldset>
 			<legend><?= t('Parent task')?></legend>
 			<select name="parent_task_id">
 			<option value=""><?= t('= select parent task =') ?></option>
 			<?php foreach ($project_tasks as $id => $project_task) {
-				if (in_array($project_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
-				if ($project_task['parent_task_id'] == null) show_project_task_option($project_tasks,$id,$task->id);
+				if (in_array($project_task->status,[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+				if ($project_task->parent_task_id == null) show_project_task_option($project_tasks,$id,$task->id);
 			} ?>
 			</select>
 		</fieldset>
@@ -156,8 +156,8 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Requires completion of')?></legend>
 			<ul>
 			<?php foreach ($project_tasks as $id => $project_task){
-				if (in_array($project_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
-				if ($project_task['parent_task_id'] == null) show_project_task_checkbox($project_tasks,$id);
+				if (in_array($project_task->status,[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
+				if ($project_task->parent_task_id == null) show_project_task_checkbox($project_tasks,$id);
 			}?>
 			</ul>
 		</fieldset>

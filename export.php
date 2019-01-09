@@ -7,9 +7,6 @@ if ($task_id = param('id')){
 	if ($task = Task::load(['ids'=>$task_id])){
 		$title = $task->name.' - Umbrella';
 		$show_closed_children = param('closed') == 'show';
-
-		if ($note_id = param('note_added')) send_note_notification($task,$note_id);
-
 		if (isset($services['bookmark'])){
 			$hash = sha1(location('*'));
 			$bookmark = request('bookmark','json_get?id='.$hash);
