@@ -1,7 +1,4 @@
-<?php $title = 'Umbrella Task Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 require_login('task');
 
 function child_update_project(&$task,$new_project_id){

@@ -1,12 +1,7 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
-
-$title = t('Umbrella: Task Management');
+<?php include 'controller.php';
 require_login('task');
 
-$tasks = load_tasks(['order'=>param('order','due_date')]);
+$tasks = Task::load(['order'=>param('order','due_date')]);
 $projects = request('project','list');
 $show_closed = param('closed') == 'show';
 
@@ -42,35 +37,34 @@ include '../common_templates/messages.php'; ?>
 <?php
 	$hide = [];
 	foreach ($tasks as $id => $task){ // filter out tasks, that are only group nodes
-		if (!$show_closed && in_array($task['status'],[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
-		if (isset($task['parent_task_id'])) $hide[] = $task['parent_task_id'];
+		if (!$show_closed && in_array($task->status,[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
+		if (!empty($task->parent_task_id)) $hide[] = $task->parent_task_id;
 	}
 	foreach ($tasks as $id => $task):
-	if (!$show_closed && in_array($task['status'],[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
+	if (!$show_closed && in_array($task->status,[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
 	if (in_array($id, $hide)) continue;
-	$project = $projects[$task['project_id']];
-	$parent_id = $task['parent_task_id'];
+	$project = $projects[$task->project_id];
 	?>
-	<tr class="project<?= $task['project_id']?>">
-		<td class="<?= task_state($task['status'])?>"><a href="<?= $id ?>/view"><?= $task['name'] ?></a></td>
+	<tr class="project<?= $task->project_id ?>">
+		<td class="<?= task_state($task->status)?>"><a href="<?= $id ?>/view"><?= $task->name ?></a></td>
 		<td>
 			<span class="hover_h">
-			<a href="../project/<?= $task['project_id']?>/view"><?= $project['name'] ?></a><a href="#" class="symbol" onclick="return toggle('.project<?= $task['project_id'] ?>');">&nbsp;</a><a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $task['project_id'] ?>)')">&nbsp;</a>
+			<a href="../project/<?= $task->project_id ?>/view"><?= $project['name'] ?></a><a href="#" class="symbol" onclick="return toggle('.project<?= $task->project_id ?>');">&nbsp;</a><a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $task->project_id ?>)')">&nbsp;</a>
 			</span>
-			<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
-			: <a href="../task/<?= $parent_id ?>/view"><?= $tasks[$parent_id]['name'] ?></a>
+			<?php if ($task->parent_task_id !== null && isset($tasks[$task->parent_task_id])) { ?>
+			: <a href="../task/<?= $task->parent_task_id ?>/view"><?= $tasks[$task->parent_task_id]->name ?></a>
 			<?php } ?>
 		</td>
-		<td><?= t(task_state($task['status'])) ?></td>
-		<td><?= $task['start_date'] ?></td>
-		<td><?= $task['due_date'] ?></td>
+		<td><?= t(task_state($task->status)) ?></td>
+		<td><?= $task->start_date ?></td>
+		<td><?= $task->due_date ?></td>
 		<td>
 			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
-			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('cancel')?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('do open')?>"  href="<?= $id ?>/open?redirect=../index"     class="<?= in_array($task['status'],[TASK_STATUS_OPEN,TASK_STATUS_STARTED])? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('wait')?>"     href="<?= $id ?>/wait?redirect=../index"	  	class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('start')?>  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $task->status == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('cancel')?>"   href="<?= $id ?>/cancel?redirect=../index"   class="<?= $task->status == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('do open')?>"  href="<?= $id ?>/open?redirect=../index"     class="<?= in_array($task->status,[TASK_STATUS_OPEN,TASK_STATUS_STARTED])? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('wait')?>"     href="<?= $id ?>/wait?redirect=../index"	  	class="<?= $task->status == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('start')?>  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task->status == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 		</td>
 	</tr>
 <?php endforeach; ?>

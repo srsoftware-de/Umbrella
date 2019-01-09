@@ -1,8 +1,4 @@
-<?php 
-
-include '../bootstrap.php';
-include 'controller.php';
-
+<?php include 'controller.php';
 require_login('task');
 
 $options      = ['order' => param('order','due_date')];

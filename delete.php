@@ -1,7 +1,4 @@
-<?php $title = 'Umbrella Task Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 require_login('task');
 
 $task_id = param('id');
@@ -23,12 +20,12 @@ if ($task){
 		redirect('../../project/'.$task['project_id'].'/view');
 	}
 } else {
-	error('Task does not exist or you are not allowed to access it.');	
+	error('Task does not exist or you are not allowed to access it.');
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 if ($task){ ?>
 <fieldset>

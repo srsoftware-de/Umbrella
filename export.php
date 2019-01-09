@@ -1,9 +1,6 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
-
+<?php include 'controller.php';
 require_login('task');
+
 $task_id = param('id');
 $bookmark = false;
 if ($task_id){

@@ -1,61 +1,48 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
-
+<?php include 'controller.php';
 require_login('task');
+
 $task_id = param('id');
 $bookmark = false;
+
 if ($task_id){
-	if ($task = load_tasks(['ids'=>$task_id])){
-		if ($task['parent_task_id']) $task['parent'] = load_tasks(['ids'=>$task['parent_task_id']]);
-		load_children($task,99); // up to 99 levels deep
-		load_requirements($task);
+	if ($task = Task::load(['ids'=>$task_id])){
+		$task->load_children(99)->load_requirements()->load_users();
 
-		$project_users_permissions = request('project','json',['ids'=>$task['project_id'],'users'=>'only']); // needed to load project users
-		$project_users = request('user','json',['ids'=>array_keys($project_users_permissions)]); // needed to load task users
-		load_users($task,$project_users);
+		$title = $task->name.' - Umbrella';
 
-		$title = $task['name'].' - Umbrella';
-		$task['project'] = request('project','json',['ids'=>$task['project_id'],'single'=>true]);
 		$show_closed_children = param('closed') == 'show';
 
 		if ($note_id = param('note_added')) send_note_notification($task,$note_id);
-
-		parseDownFormat($task);
 
 		if (isset($services['bookmark'])){
 			$hash = sha1(location('*'));
 			$bookmark = request('bookmark','json_get?id='.$hash);
 		}
 	} else { // task not loaded
-		$title = 'Umbrella Task Management';
 		error('Task does not exist or you are not allowed to access it.');
 	}
 } else /*no task id*/ error('No task id passed to view!');
 
-$write_access = write_access($task);
-
 function display_children($task){
 	global $show_closed_children,$task_id,$services;
-	if (!isset($task['children'])) return; ?>
+	if (empty($task->children)) return; ?>
 	<ul>
-	<?php foreach ($task['children'] as $id => $child_task) {
-			if (!$show_closed_children && $child_task['status'] >= 60) continue;
+	<?php foreach ($task->children as $id => $child_task) {
+			if (!$show_closed_children && $child_task->status >= 60) continue;
 		?>
-		<li class="<?= task_state($child_task['status']) ?>">
-			<a title="<?= t('view')?>"		href="../<?= $id ?>/view"><?= $child_task['name']?></a>
+		<li class="<?= task_state($child_task->status) ?>">
+			<a title="<?= t('view')?>"		href="../<?= $id ?>/view"><?= $child_task->name?></a>
 			<span class="hover_h">
 			<a title="<?= t('edit')?>"			href="../<?= $id ?>/edit?redirect=../<?= $task_id ?>/view"     class="symbol"></a>
 			<a title="<?= t('add subtask')?>"	href="../<?= $id ?>/add_subtask" class="symbol"></a>
-			<a title="<?= t('complete')?>"		href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $child_task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('cancel')?>"		href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('start')?>"			href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('open')?>"			href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
-			<a title="<?= t('wait')?>"			href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $child_task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('complete')?>"		href="../<?= $id ?>/complete?redirect=../<?= $task_id ?>/view" class="<?= $child_task->status == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('cancel')?>"		href="../<?= $id ?>/cancel?redirect=../<?= $task_id ?>/view"   class="<?= $child_task->status == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('start')?>"			href="../<?= $id ?>/start?redirect=../<?= $task_id ?>/view"    class="<?= $child_task->status == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('open')?>"			href="../<?= $id ?>/open?redirect=../<?= $task_id ?>/view"     class="<?= $child_task->status == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+			<a title="<?= t('wait')?>"			href="../<?= $id ?>/wait?redirect=../<?= $task_id ?>/view"	   class="<?= $child_task->status == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 
 			<?php if (isset($services['time'])) { ?>
-				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
+				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$id); ?>"></a>
 				<?php } ?>
 			</span>
 			<?php display_children($child_task);?>
@@ -75,20 +62,20 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><?= t('Task')?></th>
 		<td>
-			<h1><?= $task['name'] ?></h1>
-			<?php if ($write_access) { ?>
+			<h1><?= $task->name ?></h1>
+			<?php if ($task->is_writable()) { ?>
 			<span class="right">
 
-				<a title="<?= t('edit')?>"		href="edit"		class="symbol"></a>
-				<a title="<?= t('add subtask')?>" href="add_subtask" class="symbol"> </a>
-				<a title="<?= t('add user')?>" href="add_user" class="symbol"></a>
-				<a title="<?= t('start')?>"    href="start"    class="<?= $task['status'] == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
-				<a title="<?= t('complete')?>" href="complete" class="<?= $task['status'] == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
-				<a title="<?= t('cancel')?>"   href="cancel"   class="<?= $task['status'] == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
-				<a title="<?= t('open')?>"     href="open"     class="<?= $task['status'] == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
-				<a title="<?= t('wait')?>"     href="wait"     class="<?= $task['status'] == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
-				<a title="<?= t('delete')?>"   href="delete"   class="symbol"></a>
-				<a title="<?= t('export task') ?>" href="export" class="symbol" ></a>
+				<a title="<?= t('edit')?>"         href="edit"		  class="symbol"></a>
+				<a title="<?= t('add subtask')?>"  href="add_subtask" class="symbol"> </a>
+				<a title="<?= t('add user')?>"     href="add_user"    class="symbol"></a>
+				<a title="<?= t('start')?>"        href="start"       class="<?= $task->status == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
+				<a title="<?= t('complete')?>"     href="complete"    class="<?= $task->status == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
+				<a title="<?= t('cancel')?>"       href="cancel"      class="<?= $task->status == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
+				<a title="<?= t('open')?>"         href="open"        class="<?= $task->status == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
+				<a title="<?= t('wait')?>"         href="wait"        class="<?= $task->status == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
+				<a title="<?= t('delete')?>"       href="delete"      class="symbol"></a>
+				<a title="<?= t('export task') ?>" href="export"      class="symbol" ></a>
 				<a title="<?= t('convert to project'); ?>" href="convert" class="symbol"></a>
 				<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
@@ -100,65 +87,63 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><?= t('Project')?></th>
 		<td class="project">
-			<a href="<?= getUrl('project',$task['project_id'].'/view'); ?>"><?= $task['project']['name']?></a>
+			<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$task['project_id'] ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
+			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
 			</td>
 	</tr>
-	<?php if ($task['parent_task_id']) { ?>
+	<?php if ($parent = $task->parent()) { ?>
 	<tr>
 		<th><?= t('Parent')?></th>
-		<td><a href="../<?= $task['parent_task_id'] ?>/view"><?= $task['parent']['name'];?></a></td>
+		<td><a href="../<?= $parent->id ?>/view"><?= $parent->name; ?></a></td>
 	</tr>
 	<?php }?>
-	<?php if ($task['description']){ ?>
+	<?php if ($task->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $task['description']; ?></td>
+		<td class="description"><?= $task->description; ?></td>
 	</tr>
 	<?php } ?>
 	<?php if (
-		(isset($task['est_time']) && $task['est_time'] > 0) ||
-		(isset($task['est_time_children']) && $task['est_time_children'] > 0)
-		){ ?>
+		(!empty($task->est_time)) || (!empty($task['est_time_children']))){ ?>
 	<tr>
 		<th><?= t('Estimated time')?></th>
 		<td>
-			<?php if ($task['est_time'] > 0){ ?>
-			<?= t('? hours',$task['est_time'])?>
+			<?php if (!empty($task->est_time)){ ?>
+			<?= t('? hours',$task->est_time)?>
 			<br/>
 			<?php } ?>
-			<?php if (isset($task['est_time_children']) && $task['est_time_children'] > 0){ ?>
-			<?= t('Sub-tasks: ? hours',$task['est_time_children'])?>
+			<?php if (!empty($task->est_time_children)){ ?>
+			<?= t('Sub-tasks: ? hours',$task->est_time_children)?>
 			<?php } ?>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if ($task['start_date']) { ?>
+	<?php if (!empty($task->start_date)) { ?>
 	<tr>
 		<th><?= t('Start date')?></th>
-		<td><?= $task['start_date'] ?></td>
+		<td><?= $task->start_date ?></td>
 	</tr>
 	<?php } ?>
-	<?php if ($task['due_date']) { ?>
+	<?php if (!empty($task->due_date)) { ?>
 	<tr>
 		<th><?= t('Due date')?></th>
-		<td><?= $task['due_date'] ?></td>
+		<td><?= $task->due_date ?></td>
 	</tr>
 	<?php } ?>
-	<?php if (isset($task['requirements'])) { ?>
+	<?php if (!empty($task->requirements)) { ?>
 	<tr>
 		<th><?= t('Prerequisites')?></th>
 		<td class="requirements">
 			<ul>
-			<?php foreach ($task['requirements'] as $id => $required_task) {?>
-				<li <?= in_array($required_task['status'],array(TASK_STATUS_CANCELED,TASK_STATUS_COMPLETE))?'class="inactive"':''?>><a href="../<?= $id ?>/view"><?= $required_task['name']?></a></li>
+			<?php foreach ($task->requirements as $id => $required_task) {?>
+				<li <?= in_array($required_task->status,[TASK_STATUS_CANCELED,TASK_STATUS_COMPLETE])?'class="inactive"':''?>><a href="../<?= $id ?>/view"><?= $required_task->name ?></a></li>
 			<?php } ?>
 			</ul>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if (isset($task['children'])){?>
+	<?php if (!empty($task->children)){?>
 	<tr>
 		<th><?= t('Child tasks')?></th>
 		<td class="children">
@@ -169,23 +154,23 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if (isset($task['users']) && !empty($task['users'])){ ?>
+	<?php if (!empty($task->users)){ ?>
 	<tr>
 		<th>
 			<?= t('Users')?>
 			<?php if (isset($services['rtc'])) { ?>
-			<a class="symbol" target="_blank" title="<?= t('Start conversation with all users of this task') ?>" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task['users']))) ?>"></a>
+			<a class="symbol" target="_blank" title="<?= t('Start conversation with all users of this task') ?>" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task->users))) ?>"></a>
 			<?php } ?>
 		</th>
 		<td>
 			<ul>
-			<?php foreach ($task['users'] as $uid => $u) { ?>
+			<?php foreach ($task->users as $uid => $u) { ?>
 				<li>
 					<?= $u['login'] ?>
 					(<?= t($TASK_PERMISSIONS[$u['permissions']]) ?>)
 					<?php if (isset($services['rtc']) && $uid != $user->id) { ?><a class="symbol" target="_blank" title="<?= t('Start conversation') ?>" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php } ?>
 					<?php if ( // deletion of user only possible if:
-						($task['users'][$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task
+						($task->users[$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task
 						&& $u['permissions'] != TASK_PERMISSION_OWNER){ // but only if user to be removed is not owner ?>
 					<a class="symbol" title="<?= t('De-assign user from task') ?>" href="drop_user?uid=<?= $uid ?>"></a>
 					<?php } ?>

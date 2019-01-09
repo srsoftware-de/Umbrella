@@ -1,7 +1,4 @@
-<?php $title = 'Umbrella Task Management';
-
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 require_login('task');
 
 $parent_task_id = param('id');
@@ -39,7 +36,7 @@ if ($name){
 	} else error('Selection of at least one user is required!');
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
@@ -73,7 +70,7 @@ include '../common_templates/messages.php'; ?>
 					<th title="<?= t('read only')?>" class="symbol"></th>
 					<th title="<?= t('no access')?>" class="symbol"></th>
 				</tr>
-			<?php foreach ($project_users as $id => $u) { 
+			<?php foreach ($project_users as $id => $u) {
 				$owner = $id == $user->id;
 				?>
 				<tr>

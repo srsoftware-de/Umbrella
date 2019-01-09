@@ -1,8 +1,4 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
-
+<?php include 'controller.php';
 require_login('task');
 
 $task_id = param('id');
@@ -63,8 +59,8 @@ if ($allowed){ ?>
 				<th title="<?= t('read only')?>"><?= t('R')?></th>
 				<th title="<?= t('no access')?>">–</th>
 			</tr>
-			<?php foreach ($project_users as $id => $u) { 
-				$perm = isset($task['users'][$id]) ? $task['users'][$id]['permissions'] : 0; 
+			<?php foreach ($project_users as $id => $u) {
+				$perm = isset($task['users'][$id]) ? $task['users'][$id]['permissions'] : 0;
 			?>
 			<tr>
 				<td><?= $u['login']?></td>

@@ -1,14 +1,10 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
-
-$title = t('Umbrella: Task Management');
+<?php include 'controller.php';
 require_login('task');
 
 $task_id = param('id');
 if (!$task_id) error('No task id passed!');
-$task = load_tasks(['ids'=>$task_id]);
+$task = Task::load(['ids'=>$task_id]);
+debug($task,1);
 
 // get a map from user ids to permissions
 $project_id = $task['project_id'];
@@ -23,23 +19,23 @@ if (!write_access($task)) {
 
 load_requirements($task);
 
-if ($name = post('name')){	
+if ($name = post('name')){
 	$task['name'] = $name;
-	
+
 	if ($start_date = post('start_date')){
 		$modifier = post('start_extension');
 		$task['start_date'] = $modifier ? date('Y-m-d',strtotime($start_date.' '.$modifier)) : $start_date;
 	} else {
 		$task['start_date'] = null;
 	}
-	
+
 	if ($due_date = post('due_date')){
 		$modifier = post('due_extension');
 		$task['due_date'] = $modifier ? date('Y-m-d',strtotime($due_date.' '.$modifier)) : $due_date;
 	} else {
 		$task['due_date'] = null;
 	}
-	
+
 	if ($description = post('description')) $task['description'] = $description;
 	$parent = post('parent_task_id');
 	if ($parent !== null) $task['parent_task_id'] = ($parent == 0) ? null : $parent;
@@ -49,10 +45,10 @@ if ($name = post('name')){
 			$task['parent_task_id'] = null;
 		}
 	}
-	
+
 	update_task($task);
 	update_task_requirements($task['id'],post('required_tasks'));
-	
+
 	if ($target = param('redirect')){
 		redirect($target);
 	} else {
@@ -87,7 +83,7 @@ function show_project_task_checkbox($list, $id){
 		?>
 		</ul>
 	</li>
-	<?php	
+	<?php
 }
 
 function show_project_task_option($list, $id, $exclude_id, $space=''){
@@ -101,7 +97,7 @@ function show_project_task_option($list, $id, $exclude_id, $space=''){
 	}
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
@@ -131,7 +127,7 @@ include '../common_templates/messages.php'; ?>
 			} ?>
 			</select>
 		</fieldset>
-		
+
 		<?php }?>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
@@ -140,7 +136,7 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend><?= t('Estimated time')?></legend>
 			<label>
-				<?= t('? hours','<input type="number" name="est_time" value="'.htmlspecialchars($task['est_time']).'" />')?>				 
+				<?= t('? hours','<input type="number" name="est_time" value="'.htmlspecialchars($task['est_time']).'" />')?>
 			</label>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
@@ -160,8 +156,8 @@ include '../common_templates/messages.php'; ?>
 				<option value="+3 months"><?= t('+three months')?></option>
 				<option value="+6 months"><?= t('+six months')?></option>
 				<option value="+1 year"><?= t('+one year')?></option>
-				
-			</select>			
+
+			</select>
 			<?php } ?>
 			</fieldset>
 		<fieldset>
@@ -175,7 +171,7 @@ include '../common_templates/messages.php'; ?>
 				<option value="+3 months"><?= t('+three months')?></option>
 				<option value="+6 months"><?= t('+six months')?></option>
 				<option value="+1 year"><?= t('+one year')?></option>
-			</select>			
+			</select>
 			<?php } ?>
 		</fieldset>
 		<?php if (!empty($project_tasks)) {?>
@@ -184,7 +180,7 @@ include '../common_templates/messages.php'; ?>
 			<ul>
 			<?php foreach ($project_tasks as $id => $project_task){
 				if (in_array($project_task['status'],[TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED]))continue;
-				if ($project_task['parent_task_id'] == null) show_project_task_checkbox($project_tasks,$id); 
+				if ($project_task['parent_task_id'] == null) show_project_task_checkbox($project_tasks,$id);
 			}?>
 			</ul>
 		</fieldset>

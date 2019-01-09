@@ -1,8 +1,4 @@
-<?php
-
-include '../bootstrap.php';
-include 'controller.php';
-
+<?php include 'controller.php';
 require_login('task');
 
 $project_id = post('project_id');

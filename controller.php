@@ -1,32 +1,58 @@
 <?php
+	include '../bootstrap.php';
 
 	const TASK_PERMISSION_OWNER = 1;
 	const TASK_PERMISSION_READ_WRITE = 2;
 	const TASK_PERMISSION_READ = 4;
 	const MODULE = 'Task';
+	$title = t('Umbrella Task Management');
 
 	$TASK_PERMISSIONS = array(TASK_PERMISSION_OWNER=>'owner',TASK_PERMISSION_READ_WRITE=>'read + write',TASK_PERMISSION_READ=>'read only');
 
 	function get_or_create_db(){
-		if (!file_exists('db')){
-			assert(mkdir('db'),'Failed to create task/db directory!');
-		}
+		$table_filename = 'tasks.db';
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create task/db directory!');
 		assert(is_writable('db'),'Directory task/db not writable!');
-		if (!file_exists('db/tasks.db')){
-			$db = new PDO('sqlite:db/tasks.db');
-			$db->query('CREATE TABLE tasks (id INTEGER PRIMARY KEY,
-							project_id INTEGER NOT NULL,
-							parent_task_id INTEGER DEFAULT NULL,
-							name VARCHAR(255) NOT NULL,
-							description TEXT,
-							status INT DEFAULT '.TASK_STATUS_OPEN.',
-							est_time DOUBLE DEFAULT NULL,
-							start_date DATE,
-							due_date DATE);');
-			$db->query('CREATE TABLE tasks_users (task_id INT NOT NULL, user_id INT NOT NULL, permissions INT DEFAULT '.TASK_PERMISSION_OWNER.', PRIMARY KEY(task_id, user_id));');
-			$db->query('CREATE TABLE task_dependencies (task_id INT NOT NULL, required_task_id INT NOT NULL, PRIMARY KEY(task_id, required_task_id));');
+		if (!file_exists('db/'.$table_filename)){
+			$db = new PDO('sqlite:db/'.$table_filename);
+
+			$tables = [
+					'tasks'=>Task::table(),
+					'tasks_users'=>Task::users_table(),
+					'task_dependencies'=>Task::dependencies_table()
+			];
+
+			foreach ($tables as $table => $fields){
+				$sql = 'CREATE TABLE '.$table.' ( ';
+				foreach ($fields as $field => $props){
+					if ($field == 'UNIQUE'||$field == 'PRIMARY KEY') {
+						$field .='('.implode(',',$props).')';
+						$props = null;
+					}
+					$sql .= $field . ' ';
+					if (is_array($props)){
+						foreach ($props as $prop_k => $prop_v){
+							switch (true){
+								case $prop_k==='VARCHAR':
+									$sql.= 'VARCHAR('.$prop_v.') '; break;
+								case $prop_k==='DEFAULT':
+									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
+								case $prop_k==='KEY':
+									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in task/controller.php!');
+									$sql.= 'PRIMARY KEY '; break;
+								default:
+									$sql .= $prop_v.' ';
+							}
+						}
+						$sql .= ", ";
+					} else $sql .= $props.", ";
+				}
+				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+				$query = $db->prepare($sql);
+				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
+			}
 		} else {
-			$db = new PDO('sqlite:db/tasks.db');
+			$db = new PDO('sqlite:db/'.$table_filename);
 		}
 		return $db;
 	}
@@ -300,7 +326,6 @@
 	}
 
 	function load_children(&$task,$levels = 0){
-		global $TASK_STATES;
 		$id = $task['id'];
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT * FROM tasks WHERE parent_task_id = :id ORDER BY name ASC');
@@ -309,7 +334,7 @@
 		$child_time_sum = 0;
 		foreach ($child_tasks as $id => &$child_task){
 			$child_task['id'] = $id;
-			$child_task['status_string'] = $TASK_STATES[$child_task['status']];
+			$child_task['status_string'] = task_state([$child_task['status']]);
 			if ($levels) load_children($child_task,$levels -1);
 			$child_time_sum += $child_task['est_time'];
 			if (isset($child_task['est_time_children'])) $child_time_sum += $child_task['est_time_children'];
@@ -466,5 +491,197 @@
 
 	function task_to_html($task){
 		return '<h1>'.$task['name']."</h1>\n".$task['description']."\n";
+	}
+
+	class Task extends UmbrellaObjectWithId{
+		const PERMISSION_OWNER=1;
+		static function table(){
+			return [
+				'id'=> [ 'INTEGER', 'KEY'=>'PRIMARY'],
+				'project_id'=>['INT','NOT NULL'],
+				'parent_task_id'=>['INT','DEFAULT'=>'NULL'],
+				'name'=>['VARCHAR'=>255,'NOT NULL'],
+				'description'=>'TEXT',
+				'status'=>['INT','DEFAULT'=>TASK_STATUS_OPEN],
+				'est_time'=>['DOUBLE','DEFAULT'=>'NULL'],
+				'start_date'=>'DATE',
+				'due_date'=>'DATE'
+			];
+		}
+		static function users_table(){
+			return [
+				'task_id'=>['INT','NOT NULL'],
+				'user_id'=>['INT','NOT NULL'],
+				'permissions'=>['INT','DEFAULT'=>Task::PERMISSION_OWNER],
+				'PRIMARY KEY'=>['task_id','project_id']
+			];
+		}
+		static function dependencies_table(){
+			return [
+					'task_id'=>['INT','NOT NULL'],
+					'required_task_id'=>['INT','NOT NULL'],
+					'PRIMARY KEY'=>['task_id','required_task_id']
+			];
+		}
+
+		static function load($options = []){
+			global $user;
+
+			$db = get_or_create_db();
+			update_task_states($db);
+
+			$ids_only = isset($options['ids_only']) && $options['ids_only'];
+
+			$sql = 'SELECT id';
+			$where = [];
+			$args = [];
+
+			if (!$ids_only) { // if we request more than the task_ids: limit task list to user's tasks
+				$sql .= ',*';
+				$where[] = 'id IN (SELECT task_id FROM tasks_users WHERE user_id = ?)';
+				$args[] = $user->id;
+			}
+
+			$sql .= ' FROM tasks';
+
+			$single = false;
+			if (isset($options['ids'])){
+				$ids = $options['ids'];
+				if (!is_array($ids) && $ids = [$ids]) $single = true;
+				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				$where[] = 'id IN ('.$qMarks.')';
+				$args = array_merge($args, $ids);
+			}
+
+			if (isset($options['project_ids'])){
+				$ids = $options['project_ids'];
+				if (!is_array($ids)) $ids = [$ids];
+				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				$where[] = 'project_id IN ('.$qMarks.')';
+				$args = array_merge($args, $ids);
+			}
+
+			if (isset($options['key'])){
+				$key = '%'.$options['key'].'%';
+				$where[] = '(name LIKE ? OR description LIKE ?)';
+				$args = array_merge($args, [$key,$key]);
+			}
+
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+
+			if (!isset($options['order'])) $options['order'] = 'due_date';
+			$MAX_DATE = "'9999-99-99'";
+			switch ($options['order']){
+				case 'due_date':
+					$sql .= ' ORDER BY (CASE due_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(due_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
+					break;
+				case 'name':
+					$sql .= ' ORDER BY name COLLATE NOCASE';
+					break;
+				case 'project_id':
+					$sql .= ' ORDER BY project_id, status, due_date COLLATE NOCASE';
+					break;
+				case 'parent_task_id':
+					$sql .= ' ORDER BY project_id, parent_task_id, status, due_date COLLATE NOCASE';
+					break;
+				case 'start_date':
+					$sql .= ' ORDER BY (CASE start_date WHEN "" THEN '.$MAX_DATE.' ELSE IFNULL(start_date,'.$MAX_DATE.') END), status COLLATE NOCASE';
+					break;
+				case 'status':
+					$sql .= ' ORDER BY status, due_date COLLATE NOCASE';
+					break;
+			}
+
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to load tasks!');
+			$rows = $query->fetchAll(INDEX_FETCH);
+
+			$tasks = [];
+			foreach ($rows as $row){
+				$task = new Task();
+				$task->patch($row);
+				unset($task->dirty);
+				if ($single) return $task;
+				$tasks[$task->id] = $task;
+			}
+			if ($single) return null;
+			return $tasks;
+		}
+
+		public function parent(){
+			if (empty($this->parent_task_id)) return null;
+			if (empty($this->parent)) $this->parent = Task::load(['ids'=>$this->parent_task_id]);
+			return $this->parent;
+		}
+
+		function load_children($levels = 0){
+			$db = get_or_create_db();
+			$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name ASC');
+			assert($query->execute([':id'=>$this->id]),'Was not able to query children of '.$this->name);
+			$rows = $query->fetchAll(INDEX_FETCH);
+			$child_time_sum = 0;
+			$children = [];
+			foreach ($rows as $id => $row){
+				$task = new Task();
+				$task->patch($row);
+				unset($task->dirty);
+				if ($levels>0) $task->load_children($levels-1);
+				$children[$task->id] = $task;
+				$child_time_sum += $task->est_time;
+				if (!empty($task->est_time_children)) $child_time_sum += $task->est_time_children;
+
+			}
+			$this->children = $children;
+			$this->est_time_children = $child_time_sum;
+			return $this;
+		}
+
+		function load_requirements(){
+			$db = get_or_create_db();
+			$query = $db->prepare('SELECT id,* FROM tasks WHERE id IN (SELECT required_task_id FROM task_dependencies WHERE task_id = :id) ORDER BY status,name');
+			assert($query->execute(array(':id'=>$this->id)),'Was not able to query requirements of '.$task['name']);
+
+			$rows = $query->fetchAll(INDEX_FETCH);
+			$required_tasks = [];
+			foreach ($rows as $id => $row){
+				$task = new Task();
+				$task->patch($row);
+				unset($task->dirty);
+				$required_tasks[$task->id] = $task;
+			}
+			$this->requirements = $required_tasks;
+			return $this;
+		}
+
+		function project(){
+			if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true]);
+			return $this->project;
+		}
+
+		function load_users($project_users = null){
+			$db = get_or_create_db();
+
+			$project = $this->project();
+
+			$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
+			assert($query->execute([':id'=>$this->id]));
+			$rows = $query->fetchAll(INDEX_FETCH);
+
+			$users = [];
+			foreach ($rows as $row){
+				$uid = $row['user_id'];
+				$project_user = isset($project['users'][$uid])?$project['users'][$uid]:[];
+				unset($project_user['permission']);
+				$project_user['permissions'] = $row['permissions'];
+				$users[$uid] = $project_user;
+			}
+			$this->users = $users;
+			return $this;
+		}
+
+		function is_writable(){
+			global $user;
+			return in_array($this->users[$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
+		}
 	}
 ?>
