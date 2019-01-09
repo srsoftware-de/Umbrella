@@ -1,29 +1,31 @@
 <?php include 'controller.php';
 require_login('task');
 
-$project_id = param('id');
-if (!$project_id) error('No project id passed!');
+if ($project_id = param('id')){
 
-$name = post('name');
-$description = post('description');
-$user_permissions = param('users');
+	$name = post('name');
+	$description = post('description');
+	$user_permissions = param('users');
 
-$project = request('project','json',['ids'=>$project_id,'users'=>'true']);
-$project_users = request('user','json',['ids'=>array_keys($project['users'])]);
+	$project = request('project','json',['ids'=>$project_id,'users'=>'true']);
 
-if ($name){
-	if (is_array($user_permissions) && !empty($user_permissions)){
-		$users = [];
-		foreach ($project_users as $uid => $u){
-			$perm = $uid == $user->id ? TASK_PERMISSION_OWNER : $user_permissions[$uid];
-			if ($perm == 0) continue;
-			$u['permission'] = $perm;
-			$users[$uid] = $u;
-		}
-		$task = add_task($name,$description,$project_id,null, post('start_date'), post('due_date'),$users);
-		redirect(getUrl('task',$task['id'].'/view'));
-	} else error('Selection of at least one user is required!');
-}
+	if ($name){
+		if (is_array($user_permissions) && !empty($user_permissions)){
+			$users = [];
+			foreach ($project['users'] as $uid => $entry){
+				$u = $entry['data'];
+				$perm = $uid == $user->id ? TASK_PERMISSION_OWNER : $user_permissions[$uid];
+				if ($perm == 0) continue;
+				$u['permission'] = $perm;
+				$users[$uid] = $u;
+			}
+			$task = new Task();
+			$task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save();
+			redirect(getUrl('task',$task->id.'/view'));
+		} else error('Selection of at least one user is required!');
+	}
+
+} else error('No project id passed!');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -59,11 +61,11 @@ include '../common_templates/messages.php'; ?>
 					<th title="<?= t('read only')?>" class="symbol"></th>
 					<th title="<?= t('no access')?>" class="symbol"></th>
 				</tr>
-			<?php foreach ($project_users as $id => $u) {
+			<?php foreach ($project['users'] as $id => $u) {
 				$owner = $id == $user->id;
 				?>
 				<tr>
-					<td><?= $u['login']?></td>
+					<td><?= $u['data']['login']?></td>
 					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= TASK_PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked"':'' ?>/></td>
 					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>"    value="<?= TASK_PERMISSION_READ ?>" /></td>
 					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>"    value="0" <?= $owner?'':'checked="checked"' ?>/></td>
