@@ -6,7 +6,6 @@ $bookmark = false;
 
 if ($task_id){
 	if ($task = Task::load(['ids'=>$task_id])){
-		$task->load_children(99);
 		$title = $task->name.' - Umbrella';
 		$show_closed_children = param('closed') == 'show';
 		if ($note_id = param('note_added')) $task->send_note_notification($note_id);
@@ -21,9 +20,9 @@ if ($task_id){
 
 function display_children($task){
 	global $show_closed_children,$task_id,$services;
-	if (empty($task->children)) return; ?>
+	if (empty($task->children())) return; ?>
 	<ul>
-	<?php foreach ($task->children as $id => $child_task) {
+	<?php foreach ($task->children() as $id => $child_task) {
 			if (!$show_closed_children && $child_task->status >= 60) continue;
 		?>
 		<li class="<?= task_state($child_task->status) ?>">
@@ -83,7 +82,7 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><?= t('Project')?></th>
 		<td class="project">
-			<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project()['name']?></a>
+			<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project('name')?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
 			</td>
@@ -101,7 +100,7 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 	<?php if (
-		(!empty($task->est_time)) || (!empty($task->est_time_children))){ ?>
+			(!empty($task->est_time)) || (!empty($task->child_time()))){ ?>
 	<tr>
 		<th><?= t('Estimated time')?></th>
 		<td>
@@ -109,8 +108,8 @@ include '../common_templates/messages.php'; ?>
 			<?= t('? hours',$task->est_time)?>
 			<br/>
 			<?php } ?>
-			<?php if (!empty($task->est_time_children)){ ?>
-			<?= t('Sub-tasks: ? hours',$task->est_time_children)?>
+			<?php if (!empty($task->child_time())){ ?>
+			<?= t('Sub-tasks: ? hours',$task->child_time())?>
 			<?php } ?>
 		</td>
 	</tr>
@@ -139,7 +138,7 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if (!empty($task->children)){?>
+	<?php if (!empty($task->children())){?>
 	<tr>
 		<th><?= t('Child tasks')?></th>
 		<td class="children">

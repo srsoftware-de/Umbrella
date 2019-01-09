@@ -1,5 +1,4 @@
 <?php include 'controller.php';
 require_login('task');
 
-$task_id = getRandomTaskId();
-redirect($task_id.'/view');
+redirect(Task::random_id().'/view');

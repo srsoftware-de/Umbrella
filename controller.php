@@ -57,32 +57,6 @@
 		return $db;
 	}
 
-	function get_task_ids_of_user($ids = null){
-		global $user;
-		$sql = 'SELECT task_id FROM tasks_users WHERE ';
-		$args = [];
-		if (is_array($ids)){
-			$qmarks = implode(',', array_fill(0, count($ids), '?'));
-			$sql .= 'task_id IN ('.$qmarks.') AND ';
-			$args = $ids;
-		}
-		$sql .= 'user_id = ?';
-		$args[] = $user->id;
-		$db = get_or_create_db();
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read list of user-assigned tasks.');
-		return array_keys($query->fetchAll(INDEX_FETCH));
-	}
-
-	function parseDownFormat(&$task){
-		if (file_exists('../lib/parsedown/Parsedown.php')){
-			include_once '../lib/parsedown/Parsedown.php';
-			$task['description'] = Parsedown::instance()->parse($task['description']);
-		} else {
-			$task['description'] = str_replace("\n", "<br/>", $task['description']);
-		}
-	}
-
 	function update_task_requirements($id,$required_task_ids){
 		$db = get_or_create_db();
 
@@ -445,21 +419,6 @@
 		assert($query->execute([':tid'=>$task_id,':uid'=>$user_id]),'Was not able to remove user from task.');
 	}
 
-	function withdraw_user($user_id,$project_id){
-		global $user;
-		$db = get_or_create_db();
-
-		$args = [':pid'=>$project_id,':old'=>$user_id,':new'=>$user->id];
-
-
-		$select = 'SELECT id FROM tasks LEFT JOIN tasks_users ON tasks.id = tasks_users.task_id WHERE user_id = :old AND project_id = :pid';
-
-		$query = $db->prepare('DELETE FROM tasks_users WHERE user_id = :new AND task_id IN ('.$select.')');
-		assert($query->execute($args),'Was not able to strip your current permissions from user`s tasks!');
-
-		$query = $db->prepare('UPDATE tasks_users SET permissions='.TASK_PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
-		assert($query->execute($args),'Was not able to assign user`s tasks to you!');
-	}
 
 	function send_note_notification($task, $note_id = null){
 		global $user;
@@ -473,16 +432,7 @@
 		info('Sent email notification to users of this task.');
 	}
 
-	function getRandomTaskId(){
-		global $user;
-		$db = get_or_create_db();
-		$sql = 'SELECT id,status FROM tasks_users LEFT JOIN tasks ON id=task_id WHERE user_id = :uid AND status < '.TASK_STATUS_COMPLETE.' ORDER BY RANDOM() LIMIT 1';
-		$query = $db->prepare($sql);
-		assert($query->execute([':uid'=>$user->id]),'Was not able to read tasks table.');
-		$rows = $query->fetchAll(INDEX_FETCH);
-		$query->closeCursor();
-		return reset(array_keys($rows));
-	}
+
 
 	function write_access($task){
 		global $user;
@@ -611,35 +561,17 @@
 			return $tasks;
 		}
 
-		public function parent(){
+		public function parent($field = null){
 			if (empty($this->parent_task_id)) return null;
 			if (empty($this->parent)) $this->parent = Task::load(['ids'=>$this->parent_task_id]);
+			if ($field){
+				if (empty($this->parent)) return null;
+				return $this->parent->{$field};
+			}
 			return $this->parent;
 		}
 
-		public function load_children($levels = 0){
-			$db = get_or_create_db();
-			$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name ASC');
-			assert($query->execute([':id'=>$this->id]),'Was not able to query children of '.$this->name);
-			$rows = $query->fetchAll(INDEX_FETCH);
-			$child_time_sum = 0;
-			$children = [];
-			foreach ($rows as $id => $row){
-				$task = new Task();
-				$task->patch($row);
-				unset($task->dirty);
-				if ($levels>0) $task->load_children($levels-1);
-				$children[$task->id] = $task;
-				$child_time_sum += $task->est_time;
-				if (!empty($task->est_time_children)) $child_time_sum += $task->est_time_children;
-
-			}
-			$this->children = $children;
-			$this->est_time_children = $child_time_sum;
-			return $this;
-		}
-
-		public function requirements(){
+		public function requirements($req_id = null){
 			if (empty($this->requirements)){
 				$db = get_or_create_db();
 				$query = $db->prepare('SELECT id,* FROM tasks WHERE id IN (SELECT required_task_id FROM task_dependencies WHERE task_id = :id) ORDER BY status,name');
@@ -647,6 +579,7 @@
 
 				$rows = $query->fetchAll(INDEX_FETCH);
 				$required_tasks = [];
+
 				foreach ($rows as $id => $row){
 					$task = new Task();
 					$task->patch($row);
@@ -655,15 +588,24 @@
 				}
 				$this->requirements = $required_tasks;
 			}
+			if ($req_id){
+				if (empty($this->requirements)) return null;
+				if (array_key_exists($req_id,$this->requirements)) return $this->requirements[$req_id];
+				return null;
+			}
 			return $this->requirements;
 		}
 
-		public function project(){
+		public function project($field = null){
 			if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true]);
+			if ($field){
+				if (empty($this->project)) return null;
+				return $this->project[$field];
+			}
 			return $this->project;
 		}
 
-		public function users(){
+		public function users($id = null){
 			if (empty($this->users)){
 				$db = get_or_create_db();
 
@@ -678,15 +620,15 @@
 					$project_user['permissions'] = $row['permissions'];
 					$users[$uid] = $project_user;
 				}
-
 				$this->users = $users;
 			}
+			if (!empty($id)) return $this->users[$id];
 			return $this->users;
 		}
 
 		public function is_writable(){
 			global $user;
-			return in_array($this->users()[$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
+			return in_array($this->users($user->id)['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
 		}
 
 		public function send_note_notification($note_id = null){
@@ -892,5 +834,88 @@
 			$query = $db->prepare('UPDATE tasks SET status = :state WHERE id = :id;');
 			assert($query->execute(array(':state' => $state,':id'=>$this->id)),'Was not able to alter task state in database');
 		}
+
+		public function delete(){
+			assert(!empty($this->id),'invalid task id passed!');
+			$db = get_or_create_db();
+			$args = [':id'=>$this->id];
+
+			$query = $db->prepare('DELETE FROM tasks WHERE id = :id');
+			assert($query->execute([':id'=>$this->id]));
+
+			$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :id');
+			assert($query->execute([':id'=>$this->id]));
+
+			$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :id');
+			assert($query->execute([':id'=>$this->id]));
+
+			$args[':ptid']= $this->parent_task_id;
+			$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');
+			assert($query->execute($args));
+			info('Task has been deleted.');
+		}
+
+		public function drop_user($user_id){
+			assert(!empty($this->id),'invalid task id passed!');
+			$db = get_or_create_db();
+			$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid;');
+			assert($query->execute([':tid'=>$this->id,':uid'=>$user_id]),'Was not able to remove user from task.');
+		}
+
+		public function children(){
+			if (empty($this->children))	{
+				$db = get_or_create_db();
+				$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name ASC');
+				assert($query->execute([':id'=>$this->id]),'Was not able to query children of '.$this->name);
+				$rows = $query->fetchAll(INDEX_FETCH);
+				$children = [];
+				foreach ($rows as $id => $row){
+					$task = new Task();
+					$task->patch($row);
+					unset($task->dirty);
+					$children[$task->id] = $task;
+				}
+				$this->children = $children;
+			}
+			return $this->children;
+		}
+
+		public function child_time(){
+			$sum = 0;
+			foreach ($this->children() as $child) $sum += $child->est_time + $child->child_time();
+			return $sum;
+		}
+
+		public function update_project($new_pid){
+			foreach ($this->children() as $tid => $child) $child->update_project($new_pid);
+			$this->patch(['project_id'=>$new_pid])->save();
+		}
+
+		public static function random_id(){
+			global $user;
+			$db = get_or_create_db();
+			$sql = 'SELECT id,status FROM tasks_users LEFT JOIN tasks ON id=task_id WHERE user_id = :uid AND status < '.TASK_STATUS_COMPLETE.' ORDER BY RANDOM() LIMIT 1';
+			$query = $db->prepare($sql);
+			assert($query->execute([':uid'=>$user->id]),'Was not able to read tasks table.');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			$query->closeCursor();
+			return reset(array_keys($rows));
+		}
+
+		public static function withdraw_user_from_project($user_id,$project_id){
+			global $user;
+			$db = get_or_create_db();
+
+			$args = [':pid'=>$project_id,':old'=>$user_id,':new'=>$user->id];
+
+			$select = 'SELECT id FROM tasks LEFT JOIN tasks_users ON tasks.id = tasks_users.task_id WHERE user_id = :old AND project_id = :pid';
+
+			$query = $db->prepare('DELETE FROM tasks_users WHERE user_id = :new AND task_id IN ('.$select.')');
+			assert($query->execute($args),'Was not able to strip your current permissions from user`s tasks!');
+
+			$query = $db->prepare('UPDATE tasks_users SET permissions='.TASK_PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
+			assert($query->execute($args),'Was not able to assign user`s tasks to you!');
+		}
+
 	}
 ?>

@@ -7,16 +7,18 @@ if ($project_id = param('id')){
 		$source = request('project','json',['ids'=>$project_id,'users'=>true]);
 		$users = [];
 		foreach ($source['users'] as $uid => $dummy) $users[$uid] = ['id'=>$uid, 'permission'=>TASK_PERMISSION_READ_WRITE];
-		$task = add_task($source['name'],$source['description'],$target_pid,null,null,null,$users);
-		$tasks_of_source = load_tasks(['project_ids'=>$project_id]);
-		foreach ($tasks_of_source as $source_task){
-			$source_task['project_id'] = $target_pid;
-			if (empty($source_task['parent_task_id'])) $source_task['parent_task_id'] = $task['id'];
-			update_task($source_task);
+		$task = new Task();
+		$task->patch(['name'=>$source['name'],'description'=>$source['description'],'project_id'=>$target_pid,'users'=>$users])->save();
+
+		$tasks_of_source = Task::load(['project_ids'=>$project_id]);
+		foreach ($tasks_of_source as $depending_task){
+			$depending_task->patch(['project_id'=>$target_pid]);
+			if (empty($depending_task->parent_task_id)) $depending_task->patch(['parent_task_id' => $task->id]);
+			$depending_task->save();
 		}
-		if (isset($services['notes'])) request('notes','project:'.$project_id.'/update_uri?new=task:'.$task['id']);
+		if (isset($services['notes'])) request('notes','project:'.$project_id.'/update_uri?new=task:'.$task->id);
 		request('project','cancel',['id'=>$project_id]);
-		redirect(getUrl('task',$task['id'].'/view'));
+		redirect(getUrl('task',$task->id.'/view'));
 	}
 } else {
 	error('No project id passed!');

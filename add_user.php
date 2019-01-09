@@ -11,7 +11,7 @@ if ($task_id = param('id')){
 		redirect('view');
 	}
 
-	$project_users = $task->project()['users'];
+	$project_users = $task->project('users');
 	foreach ($task->users() as $uid => $u) unset($project_users[$uid]);
 
 	if (empty($project_users)) {

@@ -7,4 +7,4 @@ $user_id = post('user_id');
 assert($project_id !== null,'Project id must be set!');
 assert($user_id !== null,'User id must be set!');
 
-withdraw_user($user_id,$project_id);
+Task::withdraw_user_from_project($user_id,$project_id);

@@ -49,8 +49,8 @@ function show_project_task_checkbox($list, $id){
 ?>
 	<li>
 		<label>
-			<input type="checkbox" name="required_tasks[<?= $id?>]" <?= isset($task->requirements()[$id])?'checked="true"':'' ?>/>
-			<?= $project_task['name']?>
+			<input type="checkbox" name="required_tasks[<?= $id?>]" <?= !empty($task->requirements($id))?'checked="true"':'' ?>/>
+			<?= $project_task['name'] ?> <?= $id ?>
 		</label>
 		<ul>
 		<?php foreach ($list as $sub_id => $sub_task) {

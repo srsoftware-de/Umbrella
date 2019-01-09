@@ -8,7 +8,7 @@ if ($task_id = param('id')){
 		$user_permissions = post('users');
 		if (is_array($user_permissions) && !empty($user_permissions)){
 			$users = [];
-			foreach ($task->project()['users'] as $uid => $entry){
+			foreach ($task->project('users') as $uid => $entry){
 				$u = $entry['data'];
 				$perm = ($uid == $user->id) ? TASK_PERMISSION_OWNER : $user_permissions[$uid];
 				if ($perm == 0) continue;
@@ -34,7 +34,7 @@ include '../common_templates/messages.php'; ?>
 	<fieldset>
 		<fieldset>
 			<legend><?= t('Project')?></legend>
-			<a href="<?= getUrl('project',$task->project_id.'/view')?>" ><?= $task->project()['name']?></a>
+			<a href="<?= getUrl('project',$task->project_id.'/view')?>" ><?= $task->project('name')?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
@@ -61,7 +61,7 @@ include '../common_templates/messages.php'; ?>
 					<th title="<?= t('read only')?>" class="symbol"></th>
 					<th title="<?= t('no access')?>" class="symbol"></th>
 				</tr>
-			<?php foreach ($task->project()['users'] as $id => $u) { $owner = $id == $user->id; ?>
+			<?php foreach ($task->project('users') as $id => $u) { $owner = $id == $user->id; ?>
 				<tr>
 					<td><?= $u['data']['login']?></td>
 					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= TASK_PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked"':'' ?>/></td>
