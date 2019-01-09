@@ -639,21 +639,23 @@
 			return $this;
 		}
 
-		public function load_requirements(){
-			$db = get_or_create_db();
-			$query = $db->prepare('SELECT id,* FROM tasks WHERE id IN (SELECT required_task_id FROM task_dependencies WHERE task_id = :id) ORDER BY status,name');
-			assert($query->execute(array(':id'=>$this->id)),'Was not able to query requirements of '.$task['name']);
+		public function requirements(){
+			if (empty($this->requirements)){
+				$db = get_or_create_db();
+				$query = $db->prepare('SELECT id,* FROM tasks WHERE id IN (SELECT required_task_id FROM task_dependencies WHERE task_id = :id) ORDER BY status,name');
+				assert($query->execute([':id'=>$this->id]),'Was not able to query requirements of '.$this->name);
 
-			$rows = $query->fetchAll(INDEX_FETCH);
-			$required_tasks = [];
-			foreach ($rows as $id => $row){
-				$task = new Task();
-				$task->patch($row);
-				unset($task->dirty);
-				$required_tasks[$task->id] = $task;
+				$rows = $query->fetchAll(INDEX_FETCH);
+				$required_tasks = [];
+				foreach ($rows as $id => $row){
+					$task = new Task();
+					$task->patch($row);
+					unset($task->dirty);
+					$required_tasks[$task->id] = $task;
+				}
+				$this->requirements = $required_tasks;
 			}
-			$this->requirements = $required_tasks;
-			return $this;
+			return $this->requirements;
 		}
 
 		public function project(){
@@ -661,28 +663,30 @@
 			return $this->project;
 		}
 
-		public function load_users(){
-			$db = get_or_create_db();
+		public function users(){
+			if (empty($this->users)){
+				$db = get_or_create_db();
 
-			$project = $this->project();
-			$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
-			assert($query->execute([':id'=>$this->id]));
-			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-			$users = [];
-			foreach ($rows as $row){
-				$uid = $row['user_id'];
-				$project_user = isset($project['users'][$uid])?$project['users'][$uid]['data']:[];
-				$project_user['permissions'] = $row['permissions'];
-				$users[$uid] = $project_user;
+				$project = $this->project();
+				$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
+				assert($query->execute([':id'=>$this->id]));
+				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+				$users = [];
+				foreach ($rows as $row){
+					$uid = $row['user_id'];
+					$project_user = isset($project['users'][$uid])?$project['users'][$uid]['data']:[];
+					$project_user['permissions'] = $row['permissions'];
+					$users[$uid] = $project_user;
+				}
+
+				$this->users = $users;
 			}
-
-			$this->users = $users;
-			return $this;
+			return $this->users;
 		}
 
 		public function is_writable(){
 			global $user;
-			return in_array($this->users[$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
+			return in_array($this->users()[$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
 		}
 
 		public function send_note_notification($note_id = null){
@@ -712,6 +716,85 @@
 				case Task::PERMISSION_READ_WRITE: return t('read + write');
 			}
 			return null;
+		}
+
+		public function update(){
+			global $services,$user;
+
+			// check
+			assert(!empty($this->id),'$task does not contain "id"');
+			assert(!empty($this->name),'Task name must be set!');
+			assert(!empty($this->project_id),'Task must reference project!');
+
+			// calculate
+			if (!empty($this->start_date)){
+				$start_stamp = strtotime($this->start_date);
+				assert($start_stamp !== false,'Start date is not a valid date!');
+			}
+			if (!empty($this->due_date)){
+				$due_stamp = strtotime($this->due_date);
+				assert($due_stamp !== false,'Due date is not a valid date!');
+				if ($start_stamp && $start_stamp > $due_stamp){
+					$this->start_date = $this->due_date;
+					warn('Start date adjusted to match due date!');
+				}
+			}
+
+			// save
+			$db = get_or_create_db();
+			$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, est_time = :est, start_date = :start, due_date = :due WHERE id = :id;');
+			$args = [
+					':id'=>$this->id,
+					':name'=>$this->name,
+					':pid'=>$this->project_id,
+					':parent'=>$this->parent_task_id,
+					':desc'=>$this->description,
+					':est'=>$this->est_time,
+					':start'=>$this->start_date,
+					':due'=>$this->due_date
+			];
+			assert($query->execute($args),'Was not able to alter task entry in database');
+			unset($this->dirty);
+			$hash = isset($services['bookmark']) ? setTags($this->name,$this->id) : false;
+
+			if (param('silent') != 'on'){ // notify task users
+				$sender = $user->email;
+				foreach ($this->users() as $uid => $u){
+					if ($uid == $user->id) continue;
+					$subject = t('? edited one of your tasks',$user->login);
+					$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$this->name,$this->description]).getUrl('task',$this->id.'/view');
+					send_mail($sender, $u['email'], $subject, $text);
+
+					if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
+				}
+			}
+			return $this;
+		}
+
+		public function save(){
+			if (isset($this->id)) return $this->update();
+			warn('Task.save not implemented!');
+		}
+
+		public function update_requirements($required_task_ids){
+			$db = get_or_create_db();
+
+			if (empty($required_task_ids)) {
+				$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :tid');
+				$query->execute([':tid'=>$this->id]);
+				return $this;
+			}
+			$required_task_ids = array_keys($required_task_ids);
+
+			$qmarks = implode(',', array_fill(0, count($required_task_ids), '?'));
+			$args = $required_task_ids;
+			$args[] = $this->id;
+
+			$query = $db->prepare('DELETE FROM task_dependencies WHERE required_task_id NOT IN ('.$qmarks.') AND task_id = ?');
+			$query->execute($args);
+			$query = $db->prepare('INSERT INTO task_dependencies (task_id, required_task_id) VALUES (:id, :req);');
+			foreach ($required_task_ids as $rid) $query->execute([':id'=>$this->id,':req'=>$rid]);
+			return $this;
 		}
 	}
 ?>

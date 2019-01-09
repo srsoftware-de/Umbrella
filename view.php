@@ -6,7 +6,7 @@ $bookmark = false;
 
 if ($task_id){
 	if ($task = Task::load(['ids'=>$task_id])){
-		$task->load_requirements()->load_users()->load_children(99);
+		$task->load_children(99);
 		$title = $task->name.' - Umbrella';
 		$show_closed_children = param('closed') == 'show';
 		if ($note_id = param('note_added')) $task->send_note_notification($note_id);
@@ -83,7 +83,7 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><?= t('Project')?></th>
 		<td class="project">
-			<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project['name']?></a>
+			<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project()['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
 			</td>
@@ -127,12 +127,12 @@ include '../common_templates/messages.php'; ?>
 		<td><?= $task->due_date ?></td>
 	</tr>
 	<?php } ?>
-	<?php if (!empty($task->requirements)) { ?>
+	<?php if (!empty($task->requirements())) { ?>
 	<tr>
 		<th><?= t('Prerequisites')?></th>
 		<td class="requirements">
 			<ul>
-			<?php foreach ($task->requirements as $id => $required_task) {?>
+			<?php foreach ($task->requirements() as $id => $required_task) {?>
 				<li <?= in_array($required_task->status,[TASK_STATUS_CANCELED,TASK_STATUS_COMPLETE])?'class="inactive"':''?>><a href="../<?= $id ?>/view"><?= $required_task->name ?></a></li>
 			<?php } ?>
 			</ul>
@@ -150,17 +150,17 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if (!empty($task->users)){ ?>
+	<?php if (!empty($task->users())){ ?>
 	<tr>
 		<th>
 			<?= t('Users')?>
 			<?php if (isset($services['rtc'])) { ?>
-			<a class="symbol" target="_blank" title="<?= t('Start conversation with all users of this task') ?>" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task->users))) ?>"></a>
+			<a class="symbol" target="_blank" title="<?= t('Start conversation with all users of this task') ?>" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($task->users()))) ?>"></a>
 			<?php } ?>
 		</th>
 		<td>
 			<ul>
-			<?php foreach ($task->users as $uid => $u) { ?>
+			<?php foreach ($task->users() as $uid => $u) { ?>
 				<li>
 					<?= $u['login'] ?>
 					(<?= Task::perm_name($u['permissions']) ?>)
