@@ -6,7 +6,7 @@ $bookmark = false;
 
 if ($task_id){
 	if ($task = Task::load(['ids'=>$task_id])){
-		$task->load_children(99)->load_requirements()->load_users();
+		$task->load_requirements()->load_users()->load_children(99);
 		$title = $task->name.' - Umbrella';
 		$show_closed_children = param('closed') == 'show';
 		if ($note_id = param('note_added')) $task->send_note_notification($note_id);

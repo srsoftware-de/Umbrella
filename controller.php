@@ -661,13 +661,13 @@
 			return $this->project;
 		}
 
-		public function load_users($project_users = null){
+		public function load_users(){
 			$db = get_or_create_db();
 
 			$project = $this->project();
 			$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
 			assert($query->execute([':id'=>$this->id]));
-			$rows = $query->fetchAll(INDEX_FETCH);
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$users = [];
 			foreach ($rows as $row){
 				$uid = $row['user_id'];
