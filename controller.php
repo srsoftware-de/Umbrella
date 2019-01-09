@@ -884,5 +884,13 @@
 				}
 			}
 		}
+
+		public function set_state($state){
+			$db = get_or_create_db();
+			assert(!empty($this->id),'invalid task id passed!');
+			assert(is_numeric($state),'invalid state passed!');
+			$query = $db->prepare('UPDATE tasks SET status = :state WHERE id = :id;');
+			assert($query->execute(array(':state' => $state,':id'=>$this->id)),'Was not able to alter task state in database');
+		}
 	}
 ?>

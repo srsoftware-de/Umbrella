@@ -3,16 +3,16 @@ require_login('task');
 
 $redirect=param('redirect','view');
 if ($task_id = param('id')){
-	$task = load_tasks(['ids'=>$task_id]);
+	$task = Task::load(['ids'=>$task_id]);
 	$problems = [];
-	if (!empty($task['start_date']) && time() > strtotime($task['start_date'])){
-		$problems[] = t('The start date (?) of this task has already passed.',$task['start_date']);
+	if (!empty($task->start_date) && time() > strtotime($task->start_date)){
+		$problems[] = t('The start date (?) of this task has already passed.',$task->start_date);
 		$problems[] = t('In order to set this task in "?" state, the <b>start date</b> has to be <b>removed</b>.',t('wait'));
-		$task['start_date'] = null;
+		$task->patch(['start_date'=>null]);
 	}
 	if (empty($problems) || param('confirm','no')=='yes'){
-		update_task($task);
-		set_task_state($task_id,TASK_STATUS_PENDING);
+		if (in_array('start_date',$task->dirty)) $task->save(); // update start date
+		$task->set_state(TASK_STATUS_PENDING);
 		redirect($redirect);
 	}
 } else {
