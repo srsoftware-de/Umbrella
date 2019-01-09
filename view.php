@@ -101,11 +101,11 @@ include '../common_templates/messages.php'; ?>
 	<?php if ($task->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $task->description; ?></td>
+		<td class="description"><?= $task->description(); ?></td>
 	</tr>
 	<?php } ?>
 	<?php if (
-		(!empty($task->est_time)) || (!empty($task['est_time_children']))){ ?>
+		(!empty($task->est_time)) || (!empty($task->est_time_children))){ ?>
 	<tr>
 		<th><?= t('Estimated time')?></th>
 		<td>

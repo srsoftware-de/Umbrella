@@ -614,7 +614,7 @@
 			return $this->parent;
 		}
 
-		function load_children($levels = 0){
+		public function load_children($levels = 0){
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name ASC');
 			assert($query->execute([':id'=>$this->id]),'Was not able to query children of '.$this->name);
@@ -636,7 +636,7 @@
 			return $this;
 		}
 
-		function load_requirements(){
+		public function load_requirements(){
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT id,* FROM tasks WHERE id IN (SELECT required_task_id FROM task_dependencies WHERE task_id = :id) ORDER BY status,name');
 			assert($query->execute(array(':id'=>$this->id)),'Was not able to query requirements of '.$task['name']);
@@ -653,12 +653,12 @@
 			return $this;
 		}
 
-		function project(){
+		public function project(){
 			if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true]);
 			return $this->project;
 		}
 
-		function load_users($project_users = null){
+		public function load_users($project_users = null){
 			$db = get_or_create_db();
 
 			$project = $this->project();
@@ -679,12 +679,12 @@
 			return $this;
 		}
 
-		function is_writable(){
+		public function is_writable(){
 			global $user;
 			return in_array($this->users[$user->id]['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
 		}
 
-		function send_note_notification($note_id = null){
+		public function send_note_notification($note_id = null){
 			global $user;
 			if (empty($note_id)) return;
 			$subject = t('? added a note.',$user->login);
@@ -696,6 +696,12 @@
 			send_mail($user->email, $recipients, $subject, $text);
 			info('Sent email notification to users of this task.');
 		}
-
+		public function description(){
+			if (file_exists('../lib/parsedown/Parsedown.php')){
+				include_once '../lib/parsedown/Parsedown.php';
+				return Parsedown::instance()->parse($this->description);
+			}
+			return str_replace("\n", "<br/>", $this->description);
+		}
 	}
 ?>
