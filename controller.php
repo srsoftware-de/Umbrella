@@ -772,8 +772,50 @@
 		}
 
 		public function save(){
+			global $user,$services;
 			if (isset($this->id)) return $this->update();
-			warn('Task.save not implemented!');
+			$db = get_or_create_db();
+			assert(!empty($this->name),'Task name must not be empty or null!');
+			assert(is_numeric($this->project_id),'Task must reference project!');
+			$start_stamp = null;
+			$this->status = TASK_STATUS_OPEN;
+			if (!empty($this->start_date)){
+				$start_stamp = strtotime($this->start_date);
+				assert($start_stamp !== false,'Start date is not a valid date!');
+				if ($start_stamp > time()) $this->status = TASK_STATUS_PENDING;
+			}
+			if (!empty($this->due_date)){
+				$due_stamp = strtotime($this->due_date);
+				assert($due_stamp !== false,'Due date is not a valid date!');
+				if ($start_stamp && $start_stamp > $due_stamp){
+					$this->start_date = $this->due_date;
+					info('Start date adjusted to match due date!');
+				}
+			}
+			$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, est_time, start_date, due_date) VALUES (:name, :pid, :parent, :desc, :state, :est, :start, :due);');
+			$args = [
+					':name'=>$this->name,
+					':pid'=>$this->project_id,
+					':parent'=>$this->parent_task_id,
+					':desc'=>$this->description,
+					':state'=>$this->status,
+					':est'=>$this->est_time,
+					':start'=>$this->start_date,
+					':due'=>$this->due_date
+			];
+			assert($query->execute($args),'Was not able to create new task entry in database');
+			$this->id = $db->lastInsertId();
+			unset($this->dirty);
+
+			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>TASK_PERMISSION_OWNER]);
+			$hash = isset($services['bookmark']) ? setTags($this->name,$this->id) : false;
+
+			foreach ($this->users as $id => $new_user) {
+				if ($id == $user->id) continue;
+				$this->add_user($new_user);
+				if ($hash) request('bookmark','index',['share_user_id'=>$id,'share_url_hash'=>$hash,'notify'=>false]);
+			}
+			return $this;
 		}
 
 		public function update_requirements($required_task_ids){
@@ -795,6 +837,52 @@
 			$query = $db->prepare('INSERT INTO task_dependencies (task_id, required_task_id) VALUES (:id, :req);');
 			foreach ($required_task_ids as $rid) $query->execute([':id'=>$this->id,':req'=>$rid]);
 			return $this;
+		}
+
+		public function add_user($new_user = null){
+			global $user,$services;
+			// check
+			assert(!empty($this->id),'Task does not contain "id"');
+			assert(array_key_exists('id', $new_user),'$new_user array does not contain "id"');
+			assert(array_key_exists('permission', $new_user),'$new_user array does not contain "permission"');
+			assert(is_numeric($new_user['permission']),'new_user[permission] must be numeric, is '.$new_user['permission']);
+
+			$args = [':tid'=>$this->id,':uid'=>$new_user['id']];
+
+			$db = get_or_create_db();
+
+			if ($new_user['permission'] == 0){ // deassign
+				$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != :perm;');
+				$args[':perm'] = TASK_PERMISSION_OWNER;
+				assert($query->execute($args),'Was not able to remove user from task!');
+			} else { // assign
+				$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
+				assert($query->execute($args),'Was not able to request task assignment!');
+				$rows = $query->fetchAll();
+
+				$args[':perm'] = $new_user['permission'];
+				if (empty($rows)){
+					$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm );');
+				} else {
+					$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid ;');
+				}
+				assert($query->execute($args),'Was not able to write task assignment!');
+				// share tags
+				if (isset($services['bookmark'])){
+					$url = getUrl('task',$this->id.'/view');
+					request('bookmark','index',['share_user_id'=>$new_user['id'],'share_url_hash'=>sha1($url)]);
+				}
+
+				// notify if newly assigned
+				if (empty($rows) && param('notify') == 'on'){
+					$sender = $user->email;
+					$reciever = $new_user['email'];
+					$subject = t('? assigned you to a task',$user->login);
+					$text = t('You have been assigned to the task "?": ',$this->name).getUrl('task',$this->id.'/view');
+					if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
+					info('Notification email has been sent.');
+				}
+			}
 		}
 	}
 ?>
