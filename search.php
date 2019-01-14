@@ -1,14 +1,11 @@
-<?php
-include '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
 
-require_user_login();
+User::require_login();
 
-if ($key = param('key')){
-	$title = 'Umbrella User Management';
-} else {
+$key = param('key');
+if (!$key){
 	error('You need to specify a search key!');
-	redirect('index');
+	redirect(getUrl('user'));
 }
 
 include '../common_templates/head.php';

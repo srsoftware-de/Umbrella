@@ -1,16 +1,14 @@
-<?php
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
+$user = User::require_login();
 
-require_user_login();
 if ($user_id = param('id')){
 	if ($user->id != 1 && $user_id != $user->id){
 		error('Currently, only admin can view other users!');
 		redirect('../index');
 	}
 
-	$u = load_user($user_id);
+	$u = User::load(['ids'=>$user_id,'passwords'=>'load']);
 	if (empty($u)) error('No such user');
 } else error('No user id passed to view!');
 

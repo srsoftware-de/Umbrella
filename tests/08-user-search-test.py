@@ -16,7 +16,7 @@ admin_session,token = getSession('admin','admin','user')
 
 # search without key should be aborted, followed by redirect
 r = admin_session.get('http://localhost/user/search',allow_redirects=False)
-expectRedirect(r,'index');
+expectRedirect(r,'http://localhost/user/');
 
 # after redirect, an error message should appear
 r = admin_session.get('http://localhost/user/index',allow_redirects=False)

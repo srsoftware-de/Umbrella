@@ -1,14 +1,13 @@
-<?php
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
+$user = User::require_login();
 
-require_user_login();
-$user_id = param('id');
+if ($user_id = param('id')){
+	if ($user_id == $user->id || $user->id == 1) {
+		User::load(['ids'=>$user_id])->lock();
+	} else {
+		warn('Currently, only admin can lock other users!');
+	}
+} else error('No user id given!');
 
-if ($user_id == $user->id || $user->id == 1) {
-	$u = lock_user($user_id);
-} else {
-	warn('Currently, only admin can lock other users!');
-}
 redirect('../index');

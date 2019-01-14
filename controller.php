@@ -165,18 +165,6 @@
 		return $results;
 	}
 
-	function lock_user($id = null){
-		assert($id !== null,'No user id passed to lock_user!');
-		assert(is_numeric($id),'Invalid user id passed to lock_user!');
-		$db = get_or_create_db();
-		$query = $db->prepare('UPDATE users SET pass="" WHERE id = :id');
-		debug($query);
-		assert($query->execute(array(':id'=>$id)));
-		$query = $db->prepare('DELETE FROM service_ids_users WHERE user_id = :id');
-		debug($query);
-		assert($query->execute(array(':id'=>$id)));
-	}
-
 	function user_exists($login){
 		$db = get_or_create_db();
 
@@ -536,6 +524,16 @@
 			if ($single) return null;
 			return $users;
 		}
+
+		function lock(){
+			$db = get_or_create_db();
+			$query = $db->prepare('UPDATE users SET pass="" WHERE id = :id');
+			assert($query->execute([':id'=>$this->id]));
+			$query = $db->prepare('DELETE FROM service_ids_users WHERE user_id = :id');
+			assert($query->execute([':id'=>$this->id]));
+		}
+
+
 
 		function login(){
 			Token::getOrCreate($this);
