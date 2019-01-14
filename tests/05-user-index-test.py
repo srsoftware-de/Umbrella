@@ -16,8 +16,9 @@ admin_session,token = getSession('admin','admin','user')
 
 r = admin_session.get('http://localhost/user/',allow_redirects=False)
 assert('<td>admin</td>' in r.text)
-assert('<td>user2@example.com</td>' in r.text)
+assert('<td>user1@example.com</td>' in r.text)
 assert('<td>user2</td>' in r.text)
+assert('<td>user2@example.com</td>' in r.text)
 assert('<td>3</td>' not in r.text)
 
 print 'done'

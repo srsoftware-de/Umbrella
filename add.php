@@ -4,11 +4,10 @@ User::require_login();
 
 if ($login = post('login')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
-		$user = new User();
-		$user->patch(['login'=>$login,'pass'=>$pass])->save();
-		redirect(getUrl('user'));
+		$u = new User();
+		if ($u->patch(['login'=>$login,'pass'=>$pass])->save()) redirect(getUrl('user'));
 	} else error('No password given!');
-} else if ($pass = post('pass')) error('No email given');
+} else if ($pass = post('pass')) error('No username given');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

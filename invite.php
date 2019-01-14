@@ -1,19 +1,11 @@
-<?php
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
+$user = User::require_login();
 
-require_user_login();
-
-$user_id = param('id');
-
-if ($user->id != 1 && $user_id != $user->id){
-	error('Currently, only admin can invite other users!');
-} elseif ($user_id === null){
-	error('No user id given!');
-} else {
-	$u = load_user($user_id);
-	invite_user($u);	
-}
+if ($user_id = param('id')){
+	if ($user->id != 1 && $user_id != $user->id){
+		error('Currently, only admin can invite other users!');
+	} else User::load(['ids'=>$user_id])->invite();
+} else error('No user id given!');
 
 redirect('../index');

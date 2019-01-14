@@ -1,8 +1,7 @@
 <?php include 'controller.php';
 
-User::require_login();
+$user = User::require_login();
 
-$assigned_logins = get_assigned_logins();
 $login_services = LoginService::load();
 
 if ($user_id = param('login')){
@@ -58,7 +57,7 @@ if (isset($services['contact'])){
 <?php }
 } ?>
 
-<?php if (!empty($assigned_logins)) { ?>
+<?php if (!empty($user->assigned_logins())) { ?>
 <fieldset>
 	<legend><?= t('assigned logins')?></legend>
 	<table>
@@ -67,7 +66,7 @@ if (isset($services['contact'])){
 			<th><?= t('User id')?></th>
 			<th><?= t('Actions')?></th>
 		</tr>
-	<?php foreach ($assigned_logins as $login => $dummy) {
+	<?php foreach ($user->assigned_logins() as $login) {
 		$parts = explode(':', $login);
 		$name = $parts[0];
 		$id = $parts[1];

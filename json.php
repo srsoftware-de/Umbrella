@@ -1,12 +1,8 @@
-<?php
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
+User::require_login();
 
-require_user_login();
-
-$ids = param('ids',param('id'));
-$data = get_userlist($ids);
+$data = User::load(['ids'=>param('ids',param('id'))]);
 if (empty($data)) {
 	http_response_code(400);
 	die(t('No such user'));

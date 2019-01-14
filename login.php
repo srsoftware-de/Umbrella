@@ -1,18 +1,28 @@
 <?php include 'controller.php';
 $title = 'Umbrella login';
 
-if ($email = post('email')){ // defined in bootstrap.php
+$redirect = param('returnTo');
+if ($username = post('username')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
-		perform_login($email,$pass); // defined in controller.php
+		$users = User::load(['login'=>$username,'passwords'=>'load']);
+		foreach ($users as $u){
+			if ($u->correct($pass)) {
+				$u->login();
+				if (!$redirect && $u->id == 1) $redirect='index';
+				if (!$redirect)	$redirect = getUrl('task');
+				if (!$redirect)	$redirect = $u->id.'/view';
+				redirect($redirect);
+			}
+		}
+		sleep(10);
+		error('The provided username/password combination is not valid!');
 	} else error('No password given!');
-} else if ($pass = post('pass')) error('No email given');
+} else if ($pass = post('pass')) error('No username given');
 
-$admin = load_user(1);
+$admin = User::load(['ids'=>1,'passwords'=>'load']);
 if ($admin->pass == sha1('admin') && $admin->login == 'admin') info(t('The default username/password is admin/admin.'));
 
 $login_services = LoginService::load();
-
-$redirect = param('returnTo');
 if (!empty($redirect) && isset($_SESSION['token']) && testValidityOf($_SESSION['token'])) redirect($redirect.'?token='.$_SESSION['token']);
 
 include '../common_templates/head.php';
@@ -29,9 +39,9 @@ if (!empty($login_services)) { ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Login using email and password')?></legend>
-		<fieldset><legend><?= t('Email')?></legend>
-		<input type="text" autofocus="autofocus" name="email" />
+		<legend><?= t('Login using username and password')?></legend>
+		<fieldset><legend><?= t('Username')?></legend>
+		<input type="text" autofocus="autofocus" name="username" />
 		</fieldset>
 		<fieldset><legend><?= t('Password')?></legend>
 		<input type="password" name="pass" />

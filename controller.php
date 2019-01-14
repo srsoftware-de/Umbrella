@@ -55,27 +55,6 @@
 		return $db;
 	}
 
-	function perform_login($login = null, $pass = null){
-		assert($login !== null && $pass !== null,'Missing username or password!');
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM users WHERE login = :login OR email = :login;');
-		assert($query->execute([':login'=>$login]),'Was not able to request users from database!');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		$hash = sha1($pass);
-		foreach ($results as $user){
-			if ($hash == $user['pass']){
-				getOrCreateToken($user);
-				$redirect = param('returnTo');
-				if (!$redirect && $user['id'] == 1) $redirect='index';
-				if (!$redirect)	$redirect = getUrl('task');
-				if (!$redirect)	$redirect = $user['id'].'/view';
-				redirect($redirect);
-			}
-		}
-		sleep(10);
-		error('The provided username/password combination is not valid!');
-	}
-
 	function perform_id_login($id){
 		global $services;
 		$db = get_or_create_db();
@@ -311,23 +290,7 @@
 	}
 
 	function invite_user($u){
-		global $user;
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM tokens WHERE user_id = :uid');
-		$query->execute([':uid'=>$u->id]);
-		$query = $db->prepare('INSERT INTO tokens (user_id, token, expiration) VALUES (:uid, :tok, :exp)');
-		$token = generateRandomString();
-		$args = [':uid'=>$u->id,':tok'=>$token,':exp'=>(time()+60*60*240)];
-		debug(query_insert($query, $args));
-		assert($query->execute($args),'Was not able to set token for user.'); // token valid for 10 days
-		$subject = t('? invited you to Umbrella',$user->login);
-		$url = getUrl('user',$u->id.'/edit?token='.$token);
-		$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
-			    t("Click the following link and set a password to join:\n?",$url)."\n".
-			    t('Note: this link can only be used once!');
 
-		send_mail($user->email, $u->email, $subject, $text);
-		info('Email has been sent to ?',$u->email);
 	}
 
 	function testValidityOf($token){
@@ -413,6 +376,22 @@
 			return $db;
 		}
 
+		function getOrCreate($user = null){
+			assert(!empty($user->id),'Parameter "user" null or empty!');
+			$db = get_or_create_db();
+			$query = $db->prepare('SELECT * FROM tokens WHERE user_id = :userid');
+			assert($query->execute([':userid'=>$user->id]),'Was not able to execute SELECT statement.');
+			$results = $query->fetchAll(PDO::FETCH_ASSOC);
+			$token = null;
+			foreach ($results as $row) $token = $row['token'];
+			if ($token === null) $token = generateRandomString();
+			$expiration = time()+3600; // now + one hour
+			$query = $db->prepare('INSERT OR REPLACE INTO tokens (user_id, token, expiration) VALUES (:uid, :token, :expiration);');
+			assert($query->execute([':uid'=>$user->id,':token'=>$token,':expiration'=>$expiration]),'Was not able to update token expiration date!');
+			$_SESSION['token'] = $token;
+			return $token;
+		}
+
 		static function load($key = null){
 			$db = Token::drop_expired();
 
@@ -462,6 +441,26 @@
 	}
 
 	class User extends UmbrellaObjectWithId{
+		function assigned_logins(){
+			if (empty($this->assigned_logins)){
+				global $user;
+				$db = get_or_create_db();
+
+				$sql = 'SELECT * FROM service_ids_users WHERE user_id = :id';
+				$args = [':id'=>$user->id];
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was not able to read list of assigned logins.');
+				$rows = $query->fetchAll(INDEX_FETCH);
+				$this->assigned_logins = array_keys($rows);
+			}
+			return $this->assigned_logins;
+		}
+
+		function correct($pass = null){
+			if ($pass == null) return false;
+			return ($this->pass == sha1($pass));
+		}
+
 		static function createAdmin(){
 			$user = new User();
 			$user->patch(['login'=>'admin','pass'=>'admin'])->save();
@@ -476,10 +475,30 @@
 			return $results[0]['count'] > 0;
 		}
 
+		function invite(){
+			global $user;
+			$db = get_or_create_db();
+			$query = $db->prepare('DELETE FROM tokens WHERE user_id = :uid');
+			$query->execute([':uid'=>$this->id]);
+			$query = $db->prepare('INSERT INTO tokens (user_id, token, expiration) VALUES (:uid, :tok, :exp)');
+			$token = generateRandomString();
+			$args = [':uid'=>$this->id,':tok'=>$token,':exp'=>(time()+60*60*240)];
+			assert($query->execute($args),'Was not able to set token for user.'); // token valid for 10 days
+			$subject = t('? invited you to Umbrella',$user->login);
+			$url = getUrl('user',$this->id.'/edit?token='.$token);
+			$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
+					t("Click the following link and set a password to join:\n?",$url)."\n".
+					t('Note: this link can only be used once!');
+			send_mail($user->email, $this->email, $subject, $text);
+			info('Email has been sent to ?',$this->email);
+		}
+
 		static function load($options){
 			$db = get_or_create_db();
 
-			$sql = 'SELECT * FROM users';
+			$fields = User::table();
+			if (empty($options['passwords']) || $options['passwords']!='load') unset($fields['pass']);
+			$sql = 'SELECT '.implode(', ', array_keys($fields)).' FROM users';
 			$where = [];
 			$args = [];
 
@@ -492,9 +511,16 @@
 				$args = array_merge($args, $ids);
 			}
 
+			if (!empty($options['login'])){
+				$where[] = '(login = ? OR email = ?)';
+				$args[] = $options['login'];
+				$args[] = $options['login'];
+			}
+
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 
 			$query = $db->prepare($sql);
+
 			assert($query->execute($args),'Was not able to load tasks!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 
@@ -511,8 +537,11 @@
 			return $users;
 		}
 
+		function login(){
+			Token::getOrCreate($this);
+		}
+
 		static function require_login(){
-			global $user;
 			$url = getUrl('user','login?returnTo='.urlencode(location()));
 			if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect($url);
 
@@ -520,32 +549,31 @@
 			if ($token->user_id == null) redirect($url);
 			if ($token != null) $user = User::load(['ids'=>$token->user_id]);
 			if ($user == null) redirect($url);
+			return $user;
 		}
 
 		function save(){
-			if (!empty($this->id)){
-				update();
-			} else {
-				$db = get_or_create_db();
+			if (!empty($this->id)) return $this->update();
 
-				if ($this->exists()) {
-					error('User with this login name already existing!');
-					return false;
-				}
+			$db = get_or_create_db();
 
-				$hash = sha1($this->pass); // TODO: better hashing
-				$args = [];
-				foreach (User::table() as $key => $definition){
-					if (!isset($this->{$key})) continue;
-					$args[$key] = ($key == 'pass') ? $hash : $this->{$key};
-				}
-
-				$sql = 'INSERT INTO users ('.implode(', ', array_keys($args)).') VALUES (:'.implode(', :',array_keys($args)).' )';
-				$query = $db->prepare($sql);
-				assert ($query->execute($args),'Was not able to add user '.$this->login);
-				info('User ? has been added',$this->login);
-				return true;
+			if ($this->exists()) {
+				error('User with this login name already existing!');
+				return false;
 			}
+
+			$this->pass = sha1($this->pass); // TODO: better hashing
+			$args = [];
+			foreach (User::table() as $key => $definition){
+				if (!isset($this->{$key})) continue;
+				$args[$key] = $this->{$key};
+			}
+
+			$sql = 'INSERT INTO users ('.implode(', ', array_keys($args)).') VALUES (:'.implode(', :',array_keys($args)).' )';
+			$query = $db->prepare($sql);
+			assert ($query->execute($args),'Was not able to add user '.$this->login);
+			info('User ? has been added',$this->login);
+			return true;
 		}
 
 		static function table(){
@@ -556,6 +584,35 @@
 					'email' => ['VARCHAR'=>255],
 					'theme'=> ['VARCHAR'=>50]
 			];
+		}
+
+		function update(){
+			if (!empty($this->new_pass)) $this->patch(['pass'=>sha1($this->new_pass)]);
+			if (in_array('login', $this->dirty) && User::exists($this->login)){
+				error('User with this login name already existing!');
+				return $this;
+			}
+
+			$db = get_or_create_db();
+			$sql = 'UPDATE users SET ';
+			$args = [];
+			foreach (array_keys(User::table()) as $key){
+				if ($key == 'id' || !in_array($key, $this->dirty)) continue;
+				$args[':'.$key] = $this->{$key};
+				$sql .= $key.' = :'.$key.', ';
+			}
+			if (empty($args)) {
+				info('Nothing changed in your account!');
+				return $this;
+			}
+
+			$sql=rtrim($sql,', ').' WHERE id = :id';
+			$args[':id'] = $this->id;
+			$query = $db->prepare($sql);
+			assert ($query->execute($args),'Was not able to update user '.$this->login);
+			info('User data has been updated.');
+			warn('If you changed your theme, you will have to log off an in again.');
+			return $this;
 		}
 	}
 ?>

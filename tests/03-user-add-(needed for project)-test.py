@@ -27,7 +27,7 @@ expectError(r,'Kein Passwort angegeben!')
 
 # adding a new user without a login name should not work
 r = admin_session.post('http://localhost/user/add',data={'pass':'insecure_password'},allow_redirects=False)
-expectError(r,'Keine Email angegeben')
+expectError(r,'Kein Benutzername angegeben')
 
 # adding a user whose login name matches an existing user should not work
 r = admin_session.post('http://localhost/user/add',data={'login':'admin','pass':'new-pass'},allow_redirects=False)
@@ -35,7 +35,7 @@ expectError(r,'Es existiert bereits ein Nutzer mit diesem Login!')
 
 # this should actually add a new user
 r = admin_session.post('http://localhost/user/add',data={'login':'user2','pass':'test-passwd'},allow_redirects=False)
-expectRedirect(r,'index')
+expectRedirect(r,'http://localhost/user/')
 
 # the new user should appear afterwards
 r = admin_session.get('http://localhost/user/',allow_redirects=False)
