@@ -57,54 +57,32 @@
 
 	function perform_id_login($id){
 		global $services;
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM users WHERE id = :id;');
-		assert($query->execute(array(':id'=>$id)),'Was not able to request users from database!');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		foreach ($results as $user){
-			$token = getOrCreateToken($user);
-			$redirect = param('returnTo');
-			if ($redirect) {
-				if (strpos($redirect, '?') === false){
-					$redirect.='?token='.$token;
-				} else {
-					$redirect.='&token='.$token;
+
+		$user = User::load(['ids'=>$id]);
+		if (empty($user)){
+			error('No user found for id',$id);
+			return;
+		}
+		$token = Token::getOrCreate($user);
+		$redirect = param('returnTo');
+		if ($redirect) {
+			if (strpos($redirect, '?') === false){
+				$redirect.='?token='.$token;
+			} else $redirect.='&token='.$token;
+		}
+		if (!$redirect && $user['id'] == 1) $redirect='index';
+		if (!$redirect)	{
+			$tests = ['task','project','bookmarks','files'];
+			foreach ($tests as $test){
+				if (isset($services[$test])) {
+					$redirect = getUrl($test);
+					break;
 				}
 			}
-			if (!$redirect && $user['id'] == 1) $redirect='index';
-			if (!$redirect)	{
-				$tests = ['task','project','bookmarks','files'];
-				foreach ($tests as $test){
-					if (isset($services[$test])) {
-						$redirect = getUrl($test);
-						break;
-					}
-				}
 
-			}
-			if (!$redirect)	$redirect = $user['id'].'/view';
-			redirect($redirect);
-			break;
 		}
-		error('No user found for id',$id);
-	}
-
-	function getOrCreateToken($user = null){
-		assert(is_array($user) && !empty($user),'Parameter "user" null or empty!');
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM tokens WHERE user_id = :userid');
-		assert($query->execute(array(':userid'=>$user['id'])),'Was not able to execute SELECT statement.');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		$token = null;
-		foreach ($results as $row){
-			$token = $row['token'];
-		}
-		if ($token === null) $token = generateRandomString();
-		$expiration = time()+3600; // now + one hour
-		$query = $db->prepare('INSERT OR REPLACE INTO tokens (user_id, token, expiration) VALUES (:uid, :token, :expiration);');
-		assert($query->execute(array(':uid'=>$user['id'],':token'=>$token,':expiration'=>$expiration)),'Was not able to update token expiration date!');
-		$_SESSION['token'] = $token;
-		return $token;
+		if (!$redirect)	$redirect = $user['id'].'/view';
+		redirect($redirect);
 	}
 
 	function user_revoke_token(){
@@ -127,109 +105,6 @@
 	function generateRandomString(){
 		return bin2hex(openssl_random_pseudo_bytes(40));
 	}
-
-	function load_user($id = null){
-		assert($id !== null,'No user id passed to load_user!');
-		assert(is_numeric($id),'Invalid user id passed to load_user!');
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM users WHERE id = :id');
-		assert($query->execute(array(':id'=>$id)));
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		if (empty($results)) return null;
-		return objectFrom($results[0]);
-	}
-
-	function get_userlist($ids = null,$include_passwords = false){
-		$db = get_or_create_db();
-		$columns = ['id','id', 'login', 'email'];
-		if ($include_passwords) $columns[]='pass';
-		$sql = 'SELECT '.implode(', ', $columns).' FROM users';
-		$args = [];
-
-		$single = false;
-		if ($ids !== null){
-			if (!is_array($ids)){
-				$single = true;
-				$ids = [$ids];
-			}
-			$qMarks = str_repeat('?,', count($ids) - 1) . '?';
-			$sql .= ' WHERE id IN ('.$qMarks.') ORDER BY login';
-			$args = $ids;
-		}
-
-		$query = $db->prepare($sql);
-		//debug(query_insert($query, $args));
-		assert($query->execute($args),'Was not able to request user list!');
-		$results = $query->fetchAll(INDEX_FETCH);
-		if ($single) return reset($results);
-		return $results;
-	}
-
-	function user_exists($login){
-		$db = get_or_create_db();
-
-		$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
-		assert($query->execute(array(':login'=>$login)),'Was not able to assure non-existance of user!');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		if (empty($results)) return false;
-		return $results[0]['count'] > 0;
-	}
-
-	function add_user($login,$pass){
-		$db = get_or_create_db();
-
-		if (user_exists($login)) {
-			error('User with this login name already existing!');
-			return false;
-		}
-
-		$hash = sha1($pass); // TODO: better hashing
-
-		$query = $db->prepare('INSERT INTO users (login, pass) VALUES (:login, :pass);');
-		assert ($query->execute(array(':login'=>$login,':pass'=>$hash)),'Was not able to add user '.$login);
-		info('User ? has been added',$login);
-		return true;
-	}
-
-	function login_services(){
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM login_services');
-		assert($query->execute(),'Was not able to load login service list.');
-		return $query->fetchAll(INDEX_FETCH);
-	}
-
-	function alter_password($user,$new_pass){
-		$db = get_or_create_db();
-		$hash = sha1($new_pass); // TODO: better hashing
-		$query = $db->prepare('UPDATE users SET pass = :pass WHERE id = :id;');
-		assert ($query->execute(array(':pass'=>$hash,':id'=>$user->id)),'Was not able to update user '.$user->login);
-		info('Your password has been changed.');
-	}
-	function update_user($user){
-		if (empty($user->dirty)) return false;
-		$db = get_or_create_db();
-		$sql = 'UPDATE users SET ';
-		$args = [];
-		foreach ($user->dirty as $field){
-			if (in_array($field,['id','pass'])) continue;
-			$args[':'.$field] = $user->{$field};
-			$sql .= $field.' = :'.$field.', ';
-		}
-		$sql=rtrim($sql,', ').' WHERE id = :id';
-		$args[':id'] = $user->id;
-		$query = $db->prepare($sql);
-		assert ($query->execute($args),'Was not able to update user '.$user->login);
-		info('User data has been updated.');
-		warn('If you changed your theme, you will have to log off an in again.');
-		return true;
-	}
-
-
-
-
-
-
-
 
 	function get_assigned_logins($foreign_id = null){
 		global $user;
@@ -275,26 +150,6 @@
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM login_services WHERE name = :name');
 		assert($query->execute([':name'=>$name]),'Was not able to delete login_service "'.$name.'"!');
-	}
-
-	function invite_user($u){
-
-	}
-
-	function testValidityOf($token){
-		$db = get_or_create_db();
-		$query = $db->prepare('SELECT * FROM tokens WHERE token = :token AND expiration > :time');
-		assert($query->execute(array(':token'=>$token,':time'=>time())),'Was not able to check token');
-		$results = $query->fetchAll(PDO::FETCH_ASSOC);
-		if (empty($results)) return null;
-		$token = $results[0];
-
-		// stretch expiration time
-		$token['expiration'] = time()+300; // this value will be delivered to cliet apps
-		$query = $db->prepare('UPDATE tokens SET expiration = :exp WHERE user_id = :uid');
-		$query->execute(array(':exp'=>($token['expiration']+3000),':uid'=>$token['user_id'])); // the expiration period in the user app is way longer, so clients can revalidate from time to time
-
-		return $token;
 	}
 
 	class LoginService extends UmbrellaObjectWithId{
@@ -364,7 +219,7 @@
 			return $db;
 		}
 
-		function getOrCreate($user = null){
+		static function getOrCreate($user = null){
 			assert(!empty($user->id),'Parameter "user" null or empty!');
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT * FROM tokens WHERE user_id = :userid');
@@ -401,7 +256,7 @@
 			foreach ($rows as $id => $row){
 				$token = new Token();
 				$token->patch($row);
-				$token->id = $id;
+				$token->token = $id;
 				unset($token->dirty);
 				if (!empty($key)) return $token;
 				$tokens[$id] = $token;
@@ -417,6 +272,27 @@
 					'user_id'=>['INTEGER','NOT NULL'],
 					'expiration'=>['INT','NOT NULL']
 			];
+		}
+
+		function useWith($domain){
+			$db = get_or_create_db();
+
+			// stretch expiration time
+			$this->expiration = time()+300; // this value will be delivered to cliet apps
+			$query = $db->prepare('UPDATE tokens SET expiration = :exp WHERE token = :token');
+			$query->execute([':exp'=>($this->expiration+3000),':token'=>$this->token]); // the expiration period in the user app is way longer, so clients can revalidate from time to time
+
+			if ($domain){
+				$query = $db->prepare('INSERT OR IGNORE INTO token_uses (token, domain) VALUES (:token, :domain)');
+				$query->execute([':token'=>$this->token,':domain'=>$domain]);
+			}
+			return $this;
+		}
+
+		function user(){
+			$u = User::load(['ids'=>$this->user_id]);
+			$u->token=$this;
+			return $u;
 		}
 
 		static function uses(){
@@ -481,7 +357,7 @@
 			info('Email has been sent to ?',$this->email);
 		}
 
-		static function load($options){
+		static function load($options = []){
 			$db = get_or_create_db();
 
 			$fields = User::table();

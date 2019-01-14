@@ -93,16 +93,16 @@ if (isset($services['contact'])){
 			<th><?= t('Email')?></th>
 			<th><?= t('Actions')?></th>
 		</tr>
-	<?php foreach (get_userlist() as $id => $u): ?>
+	<?php foreach (User::load() as $id => $u): ?>
 		<tr>
 			<td><?= $id ?></td>
-			<td><?= $u['login'] ?></td>
-			<td><?= $u['email'] ?></td>
+			<td><?= $u->login ?></td>
+			<td><?= $u->email ?></td>
 			<td class="symbol">
 				<a title="<?= t('Edit user')?>" href="<?= $id?>/edit"></a>
 				<a title="<?= t('Lock user account')?>" href="<?= $id?>/lock"> </a>
-				<a title="<?= t('Login as ?',$u['login'])?>" href="?login=<?= $id?>"> </a>
-				<?php if ($u['email']!='') { ?><a title="<?= t('Send invitation email to ?',$u['email'])?>" href="<?= $id?>/invite"> </a><?php } ?>
+				<a title="<?= t('Login as ?',$u->login)?>" href="?login=<?= $id ?>"> </a>
+				<?php if ($u->email!='') { ?><a title="<?= t('Send invitation email to ?',$u->email)?>" href="<?= $id ?>/invite"> </a><?php } ?>
 			</td>
 		</tr>
 	<?php endforeach; ?>
@@ -122,13 +122,13 @@ if (isset($services['contact'])){
 			<td><?= t('User id field in response')?></td>
 			<td><?= t('Actions') ?></td>
 		</tr>
-		<?php foreach (login_services() as $name => $service) { ?>
+		<?php foreach (LoginService::load() as $name => $service) { ?>
 		<tr>
 			<td><?= $name ?></td>
-			<td><a href="<?= $service['url']?>" target="_blank"><?= $service['url'] ?></td>
-			<td><?= $service['client_id'] ?></td>
-			<td><?= $service['client_secret'] ?></td>
-			<td><?= $service['user_info_field'] ?></td>
+			<td><a href="<?= $service->url ?>" target="_blank"><?= $service->url ?></td>
+			<td><?= $service->client_id ?></td>
+			<td><?= $service->client_secret ?></td>
+			<td><?= $service->user_info_field ?></td>
 			<td><a class="symbol" href="?delete_login_service=<?= urlencode($name )?>"></a></td>
 		</tr>
 		<?php } ?>
