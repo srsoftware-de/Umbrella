@@ -6,13 +6,8 @@ if ($username = post('username')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
 		$users = User::load(['login'=>$username,'passwords'=>'load']);
 		foreach ($users as $u){
-			if ($u->correct($pass)) {
-				$u->login();
-				if (!$redirect && $u->id == 1) $redirect='index';
-				if (!$redirect)	$redirect = getUrl('task');
-				if (!$redirect)	$redirect = $u->id.'/view';
-				redirect($redirect);
-			}
+			if ($u->correct($pass)) $u->login();
+			break;
 		}
 		sleep(10);
 		error('The provided username/password combination is not valid!');

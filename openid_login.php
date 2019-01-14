@@ -27,9 +27,8 @@ if ($login_service){
 		$info = $oidc->requestUserInfo();
 		$id = $_SESSION['login_service_name'].':'.$info->{$login_service->user_info_field};
 		unset($_SESSION['login_service_name']);
-		$user_id = reset(get_assigned_logins($id));
-		if ($user_id) {
-			perform_id_login($user_id);
+		if ($user_id = reset(get_assigned_logins($id))) {
+			User::load(['ids'=>$user_id])->login();
 		} else {
 			error('Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!');
 			redirect('login');

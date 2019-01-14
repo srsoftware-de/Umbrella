@@ -55,36 +55,6 @@
 		return $db;
 	}
 
-	function perform_id_login($id){
-		global $services;
-
-		$user = User::load(['ids'=>$id]);
-		if (empty($user)){
-			error('No user found for id',$id);
-			return;
-		}
-		$token = Token::getOrCreate($user);
-		$redirect = param('returnTo');
-		if ($redirect) {
-			if (strpos($redirect, '?') === false){
-				$redirect.='?token='.$token;
-			} else $redirect.='&token='.$token;
-		}
-		if (!$redirect && $user['id'] == 1) $redirect='index';
-		if (!$redirect)	{
-			$tests = ['task','project','bookmarks','files'];
-			foreach ($tests as $test){
-				if (isset($services[$test])) {
-					$redirect = getUrl($test);
-					break;
-				}
-			}
-
-		}
-		if (!$redirect)	$redirect = $user['id'].'/view';
-		redirect($redirect);
-	}
-
 	function user_revoke_token(){
 		global $user;
 		$token = $_SESSION['token'];
@@ -100,10 +70,6 @@
 		}
 		$query = $db->prepare('DELETE FROM token_uses WHERE token = :token');
 		assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
-	}
-
-	function generateRandomString(){
-		return bin2hex(openssl_random_pseudo_bytes(40));
 	}
 
 	function get_assigned_logins($foreign_id = null){
@@ -413,6 +379,11 @@
 
 		function login(){
 			Token::getOrCreate($this);
+			$redirect = param('returnTo');
+			if (!$redirect && $this->id == 1) $redirect='index';
+			if (!$redirect)	$redirect = getUrl('task');
+			if (!$redirect)	$redirect = $this->id.'/view';
+			redirect($redirect);
 		}
 
 		static function require_login(){

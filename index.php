@@ -6,7 +6,7 @@ $login_services = LoginService::load();
 
 if ($user_id = param('login')){
 	if ($user->id == 1){
-		perform_id_login($user_id);
+		User::load(['ids'=>$user_id])->login();
 	} else error('Only admin can switch users directly!');
 }
 if ($new_login_service  = param('login_service')){
