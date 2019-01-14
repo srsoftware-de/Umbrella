@@ -1,12 +1,9 @@
-<?php $title = 'Umbrella Users';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
-
-require_user_login();
+User::require_login();
 
 $assigned_logins = get_assigned_logins();
-$login_services = get_login_services();
+$login_services = LoginService::load();
 
 if ($user_id = param('login')){
 	if ($user->id == 1){
@@ -47,7 +44,7 @@ if (isset($services['contact'])){
 			<?php foreach ($contact['TEL'] as $number) { ?>
 			<tr>
 				<th>
-				<?php if (is_array($number['param']['TYPE'])) { 
+				<?php if (is_array($number['param']['TYPE'])) {
 					foreach ($number['param']['TYPE'] as $type) echo t($type).' ';
 				} else echo t($number['param']['TYPE']) ?>
 				</th>
@@ -74,11 +71,11 @@ if (isset($services['contact'])){
 		$parts = explode(':', $login);
 		$name = $parts[0];
 		$id = $parts[1];
-		if (!isset($login_services[$name])) continue;
+		if (empty($login_services[$name])) continue;
 		$login_service = $login_services[$name];
 		?>
 		<tr>
-			<td><a href="<?= $login_service['url']?>"><?= $name ?></a></td>
+			<td><a href="<?= $login_service->url ?>"><?= $name ?></a></td>
 			<td><?= $id ?></td>
 			<td><a class="symbol" title="<?= t('Delete assignment')?>" href="<?= urlencode($login) ?>/deassign"> </a></td>
 		</tr>
@@ -135,7 +132,7 @@ if (isset($services['contact'])){
 			<td><?= $service['user_info_field'] ?></td>
 			<td><a class="symbol" href="?delete_login_service=<?= urlencode($name )?>"></a></td>
 		</tr>
-		<?php } ?>		
+		<?php } ?>
 		<tr>
 			<td><input type="text" name="login_service[name]" /></td>
 			<td><input type="text" name="login_service[url]" /></td>

@@ -1,7 +1,5 @@
-<?php $title = 'Umbrella login';
-
-include_once '../bootstrap.php';
-include 'controller.php';
+<?php include 'controller.php';
+$title = 'Umbrella login';
 
 if ($email = post('email')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
@@ -12,7 +10,7 @@ if ($email = post('email')){ // defined in bootstrap.php
 $admin = load_user(1);
 if ($admin->pass == sha1('admin') && $admin->login == 'admin') info(t('The default username/password is admin/admin.'));
 
-$login_services = get_login_services();
+$login_services = LoginService::load();
 
 $redirect = param('returnTo');
 if (!empty($redirect) && isset($_SESSION['token']) && testValidityOf($_SESSION['token'])) redirect($redirect.'?token='.$_SESSION['token']);

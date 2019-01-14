@@ -1,6 +1,6 @@
-<?php
+<?php include '../bootstrap.php';
 
-	$db_handle = null;
+	$title = 'Umbrella User Management';
 	const MODULE = 'User';
 
 	function get_or_create_db(){
@@ -257,48 +257,12 @@
 		return true;
 	}
 
-	function require_user_login(){
-		global $user;
-		$url = getUrl('user','login?returnTo='.urlencode(location()));
-		if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect($url);
 
-		$token = Token::load($_SESSION['token']);
-		if ($token->user_id == null) redirect($url);
-		if ($token != null) $user = User::load(['ids'=>$token->user_id]);
-		if ($user == null) redirect($url);
-	}
 
-	function get_login_services($name = null){
-		$db = get_or_create_db();
 
-		$sql = 'SELECT * FROM login_services';
-		$args = [];
-		if ($name) {
-			$sql .= ' WHERE name = :name';
-			$args[':name'] = $name;
-		}
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read login services list.');
-		$rows = $query->fetchAll(INDEX_FETCH);
-		if ($name) return $rows[$name];
-		return $rows;
-	}
 
-	function assign_user_service($foreign_id){
-		global $user;
-		$db = get_or_create_db();
 
-		$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user);');
-		assert($query->execute([':service'=>$foreign_id,':user'=>$user->id]),t('Was not able to assign service id (?) with your user account!',$foreign_id));
-		redirect('index');
-	}
 
-	function deassign_service($foreign_id){
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM service_ids_users WHERE service_id = :service;');
-		assert($query->execute([':service'=>$foreign_id]),t('Was not able to de-assign service id (?) from your user account!',$foreign_id));
-		redirect('index');
-	}
 
 	function get_assigned_logins($foreign_id = null){
 		global $user;
@@ -382,7 +346,48 @@
 		return $token;
 	}
 
-	class LoginService{
+	class LoginService extends UmbrellaObjectWithId{
+		function assign($foreign_id){
+			global $user;
+			$db = get_or_create_db();
+
+			$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user);');
+			assert($query->execute([':service'=>$this->id.':'.$foreign_id,':user'=>$user->id]),t('Was not able to assign service id (?) with your user account!',$foreign_id));
+			info('Your account has been assigned with ? / id ?',[$this->id,$foreign_id]);
+		}
+
+		function deassign($foreign_id){
+			$db = get_or_create_db();
+			$query = $db->prepare('DELETE FROM service_ids_users WHERE service_id = :service;');
+			assert($query->execute([':service'=>$foreign_id]),t('Was not able to de-assign service id (?) from your user account!',$foreign_id));
+			info('? has been de-assigned.',$foreign_id);
+		}
+
+		static function load($name = null){
+			$db = get_or_create_db();
+
+			$sql = 'SELECT * FROM login_services';
+			$args = [];
+			if ($name) {
+				$sql .= ' WHERE name = :name';
+				$args[':name'] = $name;
+			}
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to read login services list.');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			$services = [];
+			foreach ($rows as $id => $row){
+				$service = new LoginService();
+				$service->patch($row);
+				$service->id = $id;
+				unset($service->dirty);
+				if ($name) return $service;
+				$services[$id] = $service;
+			}
+			if ($name) return null;
+			return $services;
+		}
+
 		static function table(){
 			return [
 					'name'=>['VARCHAR'=>255,'KEY'=>'PRIMARY'],
@@ -402,22 +407,6 @@
 	}
 
 	class Token extends UmbrellaObjectWithId{
-		static function table(){
-			return [
-					'token'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'],
-					'user_id'=>['INTEGER','NOT NULL'],
-					'expiration'=>['INT','NOT NULL']
-			];
-		}
-
-		static function uses(){
-			return [
-					'token'=>['VARCHAR'=>255],
-					'domain'=>'TEXT',
-					'PRIMARY KEY'=>['token','domain']
-			];
-		}
-
 		static function  drop_expired(){
 			$db = get_or_create_db();
 			$db->exec('DELETE FROM tokens WHERE expiration < '.time());
@@ -453,6 +442,22 @@
 			}
 			if (!empty($key)) return null;
 			return $tokens;
+		}
+
+		static function table(){
+			return [
+					'token'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'],
+					'user_id'=>['INTEGER','NOT NULL'],
+					'expiration'=>['INT','NOT NULL']
+			];
+		}
+
+		static function uses(){
+			return [
+					'token'=>['VARCHAR'=>255],
+					'domain'=>'TEXT',
+					'PRIMARY KEY'=>['token','domain']
+			];
 		}
 	}
 
@@ -504,6 +509,17 @@
 			}
 			if ($single) return null;
 			return $users;
+		}
+
+		static function require_login(){
+			global $user;
+			$url = getUrl('user','login?returnTo='.urlencode(location()));
+			if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect($url);
+
+			$token = Token::load($_SESSION['token']);
+			if ($token->user_id == null) redirect($url);
+			if ($token != null) $user = User::load(['ids'=>$token->user_id]);
+			if ($user == null) redirect($url);
 		}
 
 		function save(){

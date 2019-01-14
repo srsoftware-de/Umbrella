@@ -1,27 +1,24 @@
-<?php $title = 'Umbrella Users';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
+User::require_login();
 
-require_user_login();
+$login_services = LoginService::load();
 
-$service_name = param('service');
-if ($service_name) $_SESSION['login_service_name'] = $service_name;
-$login_services = get_login_services();
-$login_service = isset($_SESSION['login_service_name']) ? $login_services[$_SESSION['login_service_name']] : null;
-
-include 'lib/OpenIDConnectClient.php';
+if ($service_name = param('service')) $_SESSION['login_service_name'] = $service_name;
+if (!empty($_SESSION['login_service_name'])) $login_service = $login_services[$_SESSION['login_service_name']];
 
 if ($login_service){
-	$oidc = new OpenIDConnectClient($login_service['url'],$login_service['client_id'],$login_service['client_secret']);
+	include 'lib/OpenIDConnectClient.php';
+
+	$oidc = new OpenIDConnectClient($login_service->url,$login_service->client_id,$login_service->client_secret);
 	try  {
-		if ($test = $oidc->authenticate()){
+		if ($oidc->authenticate()){
 			$oidc->setRedirectURL(getUrl('user','add_openid_login'));
 			$info = $oidc->requestUserInfo();
-			$id = $_SESSION['login_service_name'].':'.$info->{$login_service['user_info_field']};
 			unset($_SESSION['login_service_name']);
-			assign_user_service($id);
-		} 
+			$login_service->assign($info->{$login_service->user_info_field});
+			redirect('index');
+		}
 	} catch (OpenIDConnectClientException $e){
 		error($e->getMessage());
 	}
@@ -36,8 +33,8 @@ include '../common_templates/messages.php';
 if (!empty($login_services)) { ?>
 	<fieldset>
 		<legend><?= t('Login using OAuth 2 / OpenID Connect')?></legend>
-		<?php foreach ($login_services as $name => $data) {?>
-		<a class="button" href="add_openid_login?service=<?= $name ?>"><?= t('Connect with ? account',$name) ?></a><br/>
+		<?php foreach ($login_services as $id => $data) {?>
+		<a class="button" href="add_openid_login?service=<?= $id ?>"><?= t('Connect with ? account',$id) ?></a><br/>
 		<?php }?>
 	</fieldset>
 <?php }

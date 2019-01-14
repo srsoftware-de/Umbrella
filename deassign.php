@@ -1,11 +1,10 @@
-<?php $title = 'Umbrella Users';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
+User::require_login();
 
-require_user_login();
-
-$id = param('id');
-
-if ($id === null) redirect('index');
-deassign_service($id);
+if ($service_id = param('id')){
+	LoginService::deassign($service_id);
+} else {
+	error('No id passed to de-assign function!');
+}
+redirect(getUrl('user'));

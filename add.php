@@ -1,16 +1,12 @@
-<?php $title = 'Umbrella User Management';
+<?php include 'controller.php';
 
-include '../bootstrap.php';
-include 'controller.php';
-
-require_user_login();
+User::require_login();
 
 if ($login = post('login')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
-		if (add_user($login,$pass)){ // defined in controller.php
-			header('Location: index');
-			die();
-		}
+		$user = new User();
+		$user->patch(['login'=>$login,'pass'=>$pass])->save();
+		redirect(getUrl('user'));
 	} else error('No password given!');
 } else if ($pass = post('pass')) error('No email given');
 

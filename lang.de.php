@@ -1,5 +1,5 @@
 <?php
-$translations = array(
+$translations = [
 	'Actions'=>'Aktionen',
 	'add user'=>'Nutzer hinzufügen',
 	'Add user'=>'Nutzer hinzufügen',
@@ -21,6 +21,7 @@ $translations = array(
 	'edit your account'=>'dein Konto bearbeiten',
 	'Email has been sent to ?'=>'Email an ? wurde gesendet.',
 	'Files'=>'Dateien',
+	'? has been de-assigned.'=>'Verbindung mit ? wurde aufgehoben.',
 	'Invoices'=>'Rechnungen',
 	'List of login services' => 'Liste der Login-Services',
 	'List of users'=>'Liste der Benutzer',
@@ -67,9 +68,10 @@ $translations = array(
 	'User did not authorize openid scope.'=>'Benutzer Verwendung der openid nicht autorisiert ("User did not authorize openid scope.")',
 	'User with this login name already existing!'=>'Es existiert bereits ein Nutzer mit diesem Login!',
 	'? invited you to Umbrella'=>'? hat dich zu Umbrella eingeladen',
+	'Your account has been assigned with ? / id ?'=>'Ihr Konto wurde mit ? / id ? verbunden.',
 	'Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!'=>'Ihr Login-Servie hat Sie erfolgreich identifiziert, aber ihr Account dort ist mit keinem Account hier verknüpft!',
 	'You need to specify a user id!'=>'Sie müssen eine Nutzer-ID angeben!',
 	'You need to specify a search key!'=>'Sie müssen angeben, wonach gesucht werden soll!',
 	'Your password has been changed.'=>'Ihr passwort wurde geändert.',
 	'Your search provided the following results:'=>'Ihre Suche lieferte die folgenden Ergebnisse:',
-);
+];
