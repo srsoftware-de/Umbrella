@@ -3,6 +3,58 @@
 	$db_handle = null;
 	const MODULE = 'User';
 
+	function get_or_create_db(){
+		$table_filename = 'users.db';
+		if (!file_exists('db')) assert(mkdir('db'),'Failed to create user/db directory!');
+		assert(is_writable('db'),'Directory user/db not writable!');
+		if (!file_exists('db/'.$table_filename)){
+			$db = new PDO('sqlite:db/'.$table_filename);
+
+			$tables = [
+					'users'=>User::table(),
+					'tokens'=>Token::table(),
+					'token_uses'=>Token::uses(),
+					'login_services'=>LoginService::table(),
+					'service_ids_users'=>LoginService::users(),
+			];
+
+			foreach ($tables as $table => $fields){
+				$sql = 'CREATE TABLE '.$table.' ( ';
+				foreach ($fields as $field => $props){
+					if ($field == 'UNIQUE'||$field == 'PRIMARY KEY') {
+						$field .='('.implode(',',$props).')';
+						$props = null;
+					}
+					$sql .= $field . ' ';
+					if (is_array($props)){
+						foreach ($props as $prop_k => $prop_v){
+							switch (true){
+								case $prop_k==='VARCHAR':
+									$sql.= 'VARCHAR('.$prop_v.') '; break;
+								case $prop_k==='DEFAULT':
+									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
+								case $prop_k==='KEY':
+									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in user/controller.php!');
+									$sql.= 'PRIMARY KEY '; break;
+								default:
+									$sql .= $prop_v.' ';
+							}
+						}
+						$sql .= ", ";
+					} else $sql .= $props.", ";
+				}
+				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+				$query = $db->prepare($sql);
+				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
+			}
+
+			User::createAdmin();
+		} else {
+			$db = new PDO('sqlite:db/'.$table_filename);
+		}
+		return $db;
+	}
+
 	function perform_login($login = null, $pass = null){
 		assert($login !== null && $pass !== null,'Missing username or password!');
 		$db = get_or_create_db();
@@ -170,25 +222,6 @@
 		assert ($query->execute(array(':login'=>$login,':pass'=>$hash)),'Was not able to add user '.$login);
 		info('User ? has been added',$login);
 		return true;
-	}
-
-	function get_or_create_db(){
-		global $db_handle;
-		if ($db_handle !== null) return $db_handle;
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create user/db directory!');
-		assert(is_writable('db'),'Directory user/db not writable!');
-		if (!file_exists('db/users.db')){
-			$db_handle = new PDO('sqlite:db/users.db');
-			$db_handle->query('CREATE TABLE users (id INTEGER PRIMARY KEY, login VARCHAR(255) NOT NULL, pass VARCHAR(255) NOT NULL, email VARCHAR(255), theme VARCHAR(50));');
-			$db_handle->query('CREATE TABLE tokens (user_id INT NOT NULL PRIMARY KEY, token VARCHAR(255), expiration INTEGER NOT NULL)');
-			$db_handle->query('CREATE TABLE token_uses (token VARCHAR(255), domain TEXT);');
-			$db_handle->query('CREATE TABLE login_services (name VARCHAR(255), url TEXT, client_id VARCHAR(255), client_secret VARCHAR(255), user_info_field VARCHAR(255), PRIMARY KEY (name));');
-			$db_handle->query('CREATE TABLE service_ids_users (service_id VARCHAR(255) NOT NULL PRIMARY KEY, user_id INT NOT NULL);');
-			add_user('admin','admin');
-		} else {
-			$db_handle = new PDO('sqlite:db/users.db');
-		}
-		return $db_handle;
 	}
 
 	function login_services(){
@@ -363,5 +396,94 @@
 		$query->execute(array(':exp'=>($token['expiration']+3000),':uid'=>$token['user_id'])); // the expiration period in the user app is way longer, so clients can revalidate from time to time
 
 		return $token;
+	}
+
+	class LoginService{
+		static function table(){
+			return [
+					'name'=>['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+					'url'=>'TEXT',
+					'client_id'=>['VARCHAR'=>255],
+					'client_secret'=>['VARCHAR'=>255],
+					'user_info_field'=>['VARCHAR'=>255],
+			];
+		}
+
+		static function users(){
+			return [
+					'service_id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'],
+					'user_id'=>['INT','NOT NULL']
+			];
+		}
+	}
+
+	class Token{
+		static function table(){
+			return [
+					'token'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'],
+					'user_id'=>['INTEGER','NOT NULL'],
+					'expiration'=>['INT','NOT NULL']
+			];
+		}
+
+		static function uses(){
+			return [
+					'token'=>['VARCHAR'=>255],
+					'domain'=>'TEXT',
+					'PRIMARY KEY'=>['token','domain']
+			];
+		}
+	}
+
+	class User extends UmbrellaObjectWithId{
+		static function table(){
+			return [
+				'id' => ['INTEGER','KEY'=>'PRIMARY'],
+				'login' => ['VARCHAR'=>255,'NOT NULL'],
+				'pass' => ['VARCHAR'=>255, 'NOT NULL'],
+				'email' => ['VARCHAR'=>255],
+				'theme'=> ['VARCHAR'=>50]
+			];
+		}
+
+		static function createAdmin(){
+			$user = new User();
+			$user->patch(['login'=>'admin','pass'=>'admin'])->save();
+		}
+
+		function exists(){
+			$db = get_or_create_db();
+			$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
+			assert($query->execute([':login'=>$this->login]),'Was not able to check existance of user!');
+			$results = $query->fetchAll(PDO::FETCH_ASSOC);
+			if (empty($results)) return false;
+			return $results[0]['count'] > 0;
+		}
+
+		function save(){
+			if (!empty($this->id)){
+				update();
+			} else {
+				$db = get_or_create_db();
+
+				if ($this->exists()) {
+					error('User with this login name already existing!');
+					return false;
+				}
+
+				$hash = sha1($this->pass); // TODO: better hashing
+				$args = [];
+				foreach (User::table() as $key => $definition){
+					if (!isset($this->{$key})) continue;
+					$args[$key] = ($key == 'pass') ? $hash : $this->{$key};
+				}
+
+				$sql = 'INSERT INTO users ('.implode(', ', array_keys($args)).') VALUES (:'.implode(', :',array_keys($args)).' )';
+				$query = $db->prepare($sql);
+				assert ($query->execute($args),'Was not able to add user '.$this->login);
+				info('User ? has been added',$this->login);
+				return true;
+			}
+		}
 	}
 ?>
