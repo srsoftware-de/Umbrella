@@ -258,30 +258,14 @@
 	}
 
 	function require_user_login(){
-		global $services,$user,$theme;
-		if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.location()));
+		global $user;
+		$url = getUrl('user','login?returnTo='.urlencode(location()));
+		if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect($url);
 
-		$db = get_or_create_db();
-
-		$query = $db->prepare('SELECT * FROM tokens WHERE token = :token;');
-		$params = [':token' => $_SESSION['token']];
-		assert($query->execute($params),'Was not able to request token table.');
-		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		$time = time();
-		$user_id = null;
-
-		$query = $db->prepare('DELETE FROM tokens WHERE token = :token;');
-		foreach ($rows as $index => $row){
-			if ($row['expiration'] > $time){
-				$user_id = $row['user_id']; // read user data
-			} else {
-				unset($_SESSION['token']);
-				$query->execute([':token'=>$row['token']]); // drop expired token
-			}
-		}
-		if ($user_id === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
-		$user = load_user($user_id);
-		if (isset($user->theme)) $theme = $user->theme;
+		$token = Token::load($_SESSION['token']);
+		if ($token->user_id == null) redirect($url);
+		if ($token != null) $user = User::load(['ids'=>$token->user_id]);
+		if ($user == null) redirect($url);
 	}
 
 	function get_login_services($name = null){
@@ -417,7 +401,7 @@
 		}
 	}
 
-	class Token{
+	class Token extends UmbrellaObjectWithId{
 		static function table(){
 			return [
 					'token'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'],
@@ -433,19 +417,46 @@
 					'PRIMARY KEY'=>['token','domain']
 			];
 		}
+
+		static function  drop_expired(){
+			$db = get_or_create_db();
+			$db->exec('DELETE FROM tokens WHERE expiration < '.time());
+			return $db;
+		}
+
+		static function load($key = null){
+			$db = Token::drop_expired();
+
+			$sql = 'SELECT '.implode(', ', array_keys(Token::table())).' FROM tokens';
+			$where = [];
+			$args = [];
+
+			if ($key != null){
+				$where[] = 'token = :token';
+				$args[':token'] = $key;
+			}
+
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where).' ';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to request token table.');
+			$rows = $query->fetchAll(INDEX_FETCH);
+
+			$tokens = [];
+			foreach ($rows as $id => $row){
+				$token = new Token();
+				$token->patch($row);
+				$token->id = $id;
+				unset($token->dirty);
+				if (!empty($key)) return $token;
+				$tokens[$id] = $token;
+
+			}
+			if (!empty($key)) return null;
+			return $tokens;
+		}
 	}
 
 	class User extends UmbrellaObjectWithId{
-		static function table(){
-			return [
-				'id' => ['INTEGER','KEY'=>'PRIMARY'],
-				'login' => ['VARCHAR'=>255,'NOT NULL'],
-				'pass' => ['VARCHAR'=>255, 'NOT NULL'],
-				'email' => ['VARCHAR'=>255],
-				'theme'=> ['VARCHAR'=>50]
-			];
-		}
-
 		static function createAdmin(){
 			$user = new User();
 			$user->patch(['login'=>'admin','pass'=>'admin'])->save();
@@ -458,6 +469,41 @@
 			$results = $query->fetchAll(PDO::FETCH_ASSOC);
 			if (empty($results)) return false;
 			return $results[0]['count'] > 0;
+		}
+
+		static function load($options){
+			$db = get_or_create_db();
+
+			$sql = 'SELECT * FROM users';
+			$where = [];
+			$args = [];
+
+			$single = false;
+			if (isset($options['ids'])){
+				$ids = $options['ids'];
+				if (!is_array($ids) && $ids = [$ids]) $single = true;
+				$qMarks = str_repeat('?,', count($ids)-1).'?';
+				$where[] = 'id IN ('.$qMarks.')';
+				$args = array_merge($args, $ids);
+			}
+
+			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
+
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to load tasks!');
+			$rows = $query->fetchAll(INDEX_FETCH);
+
+			$users = [];
+			foreach ($rows as $id => $row){
+				$user = new User();
+				$user->patch($row);
+				$user->id = $id;
+				unset($user->dirty);
+				if ($single) return $user;
+				$users[$user->id] = $user;
+			}
+			if ($single) return null;
+			return $users;
 		}
 
 		function save(){
@@ -484,6 +530,16 @@
 				info('User ? has been added',$this->login);
 				return true;
 			}
+		}
+
+		static function table(){
+			return [
+					'id' => ['INTEGER','KEY'=>'PRIMARY'],
+					'login' => ['VARCHAR'=>255,'NOT NULL'],
+					'pass' => ['VARCHAR'=>255, 'NOT NULL'],
+					'email' => ['VARCHAR'=>255],
+					'theme'=> ['VARCHAR'=>50]
+			];
 		}
 	}
 ?>

@@ -10,7 +10,7 @@ from test_routines import *
 
 # check redirect to login for users that are not logged in
 r = requests.get('http://localhost/user/add',allow_redirects=False)
-expectRedirect(r,'http://localhost/user/login?returnTo=http://localhost/user/add')
+expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fuser%2Fadd')
 
 admin_session,token = getSession('admin','admin','user')
 
