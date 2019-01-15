@@ -114,7 +114,7 @@ if ($project){
 			<h1><?= $project->name ?></h1>
 		</td>
 	</tr>
-	<?php if (isset($project->company)) { ?>
+	<?php if (!empty($project->company)) { ?>
 	<tr>
 		<th><?= t('Company') ?></th>
 		<td><a href="<?=getUrl('company')?>"><?= $project->company['name'] ?></a></td>
