@@ -42,8 +42,9 @@ expectJson(r,'{"id":"2","company_id":null,"name":"user2-project","description":"
 r = admin_session.get('http://localhost/project/json?ids=2',allow_redirects=False)
 expectJson(r,'null')
 
+# if this fails, try to run user/tests/04-user-edit-test before!
 r = admin_session.get('http://localhost/project/json?users=true',allow_redirects=False)
-expectJson(r,'{"1":{"id":"1","company_id":null,"name":"admin-project","description":"owned by admin","status":"10","users":{"1":{"permission":"1","data":{"login":"admin","email":null,"theme":null,"id":1}}}},"3":{"id":"3","company_id":null,"name":"common-project","description":"created by user2","status":"10","users":{"1":{"permission":"2","data":{"login":"admin","email":null,"theme":null,"id":1}},"2":{"permission":"1","data":{"login":"user2","email":null,"theme":null,"id":2}}}}}')
+expectJson(r,'{"1":{"id":"1","company_id":null,"name":"admin-project","description":"owned by admin","status":"10","users":{"1":{"permission":"1","data":{"login":"admin","email":"user1@example.com","theme":null,"id":1}}}},"3":{"id":"3","company_id":null,"name":"common-project","description":"created by user2","status":"10","users":{"1":{"permission":"2","data":{"login":"admin","email":"user1@example.com","theme":null,"id":1}},"2":{"permission":"1","data":{"login":"user2","email":"user2@example.com","theme":null,"id":2}}}}}')
 
 #TODO: add tests for company_ids
 

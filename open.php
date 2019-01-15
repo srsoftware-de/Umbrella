@@ -2,16 +2,12 @@
 
 require_login('project');
 
-;
 if ($project_id = param('id')) {
 	$project = Project::load(['ids'=>$project_id]);
-	$project->patch(['status'=>PROJECT_STATUS_OPEN])->save();
-	if ($redirect=param('redirect')){
-		redirect($redirect);
-	} else {
-		redirect('view');
-	}
-} else {
-	error('No project id passed!');
-	redirect(getUrl('project'));
-}
+	if (!empty($project)){
+		$project->patch(['status'=>PROJECT_STATUS_OPEN])->save();
+		redirect(param('redirect',getUrl('project',$project_id.'/view')));
+	} else error('You are not member of this project!');
+} else error('No project id passed!');
+
+redirect(getUrl('project'));
