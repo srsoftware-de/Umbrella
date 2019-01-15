@@ -16,15 +16,17 @@ admin_session,token = getSession('admin','admin','project')
 user_session,token = getSession('user2','test-passwd','project')
 
 r = admin_session.get('http://localhost/project/',allow_redirects=False)
+print r.text
 expect('<body class="project">' in r.text)
 expect('<table class="project-index">' in r.text)
-expect('<td><a href="1/view">admin-project</a></td>' in r.text)
+expect('<td><a href="1/view">project of admin</a></td>' in r.text)
 expect('<td>offen</td>' in r.text)
 
 r = user_session.get('http://localhost/project/',allow_redirects=False)
+print r.text
 expect('<body class="project">' in r.text)
 expect('<table class="project-index">' in r.text)
-expect('<td><a href="2/view">user2-project</a></td>' in r.text)
+expect('<td><a href="2/view">project of user2</a></td>' in r.text)
 expect('<td><a href="3/view">common-project</a></td>' in r.text)
 expect('<td>offen</td>' in r.text)
 expect('admin-project' not in r.text)
