@@ -4,38 +4,45 @@ require_login('project');
 
 $show_confirm_question = false;
 
-if ($project_id = param('id')){
-	$project = Project::load(['ids'=>$project_id,'users'=>true]);
-	if ($project){
-		$current_user_is_owner = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
+$project_id = param('id');
+if (empty($project_id)){
+	error('No project id passed!');
+	redirect(getUrl('project'));
+}
 
-		if ($remove_user_id = param('remove_user')){
-			if ($current_user_is_owner){
-				if (param('confirm')==='yes'){
-					$project->remove_user($remove_user_id);
-				} else {
-					$show_confirm_question = true;
-				}
-			} else error('You are not allowed to remove users from this project');
-		}
+$project = Project::load(['ids'=>$project_id,'users'=>true]);
+if (empty($project)){
+	error('You are not member of this project!');
+	redirect(getUrl('project'));
+}
 
-		$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
+$current_user_is_owner = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
 
-		if (param('note_added')) $project->send_note_notification();
-
-		if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
-
-		$title = t('Umprella: Project ?',$project->name);
-		$show_closed_tasks = param('closed') == 'show';
-
-		if (file_exists('../lib/parsedown/Parsedown.php')){
-			include '../lib/parsedown/Parsedown.php';
-			$project->description = Parsedown::instance()->parse($project->description);
+if ($remove_user_id = param('remove_user')){
+	if ($current_user_is_owner){
+		if (param('confirm')==='yes'){
+			$project->remove_user($remove_user_id);
 		} else {
-			$project->description = str_replace("\n", "<br/>", $project->description);
+			$show_confirm_question = true;
 		}
-	} else error('You are not member of this project!');
-} else error('No project id passed to view!');
+	} else error('You are not allowed to remove users from this project');
+}
+
+$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
+
+if (param('note_added')) $project->send_note_notification();
+
+if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
+
+$title = t('Umprella: Project ?',$project->name);
+$show_closed_tasks = param('closed') == 'show';
+
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$project->description = Parsedown::instance()->parse($project->description);
+} else $project->description = str_replace("\n", "<br/>", $project->description);
+
+
 
 function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 	global $show_closed_tasks,$project_id;

@@ -11,13 +11,11 @@ CANCELED = 100
 db = sqlite3.connect('../db/projects.db')
 cursor = db.cursor()
 
-# if this test fails, you may have forgotten to execute 04-project-complete-test
-cursor.execute('SELECT * FROM projects')
-expect(cursor.fetchall() == [
-    (1, None, 'admin-project', 'owned by admin', COMPLETED),
-    (2, None, 'user2-project', 'owned by user2', COMPLETED),
-    (3, None, 'common-project', 'created by user2', OPEN)
-])
+# reset edits of previous tests
+cursor.execute('UPDATE projects SET name="admin-project", description="owned by admin", status='+str(OPEN)+' WHERE id=1')
+cursor.execute('UPDATE projects SET name="user2-project", description="owned by user2", status='+str(OPEN)+' WHERE id=2')
+cursor.execute('UPDATE projects SET name="common-project", description="created by user2", status='+str(OPEN)+' WHERE id=3')
+db.commit();
 
 # check redirect to login for users that are not logged in
 r = requests.get("http://localhost/project/edit",allow_redirects=False)
@@ -61,7 +59,7 @@ expect('<input type="text" name="tags" value="prj1 project" />' in r.text)
 
 # check nothing has been altered
 cursor.execute('SELECT * FROM projects WHERE id = 1')
-expect(cursor.fetchone() == (1, None, 'admin-project', 'owned by admin', COMPLETED))
+expect(cursor.fetchone() == (1, None, 'admin-project', 'owned by admin', OPEN))
 
 # no update, if no name passed. form should be displayed
 r = admin_session.post('http://localhost/project/1/edit',allow_redirects=False,data={'description':'new-description','name':'project of admin'})
@@ -69,7 +67,7 @@ expectRedirect(r,'http://localhost/project/1/view')
 
 # check project has been altered
 cursor.execute('SELECT * FROM projects WHERE id = 1')
-expect(cursor.fetchone() == (1, None, 'project of admin', 'new-description', COMPLETED))
+expect(cursor.fetchone() == (1, None, 'project of admin', 'new-description', OPEN))
 
 # login
 user_session,token = getSession('user2','test-passwd','project')
@@ -92,7 +90,7 @@ expect('<input type="text" name="tags" value="prj2 project" />' in r.text)
 
 # check nothing has been altered
 cursor.execute('SELECT * FROM projects WHERE id = 2')
-expect(cursor.fetchone() == (2, None, 'user2-project', 'owned by user2', COMPLETED))
+expect(cursor.fetchone() == (2, None, 'user2-project', 'owned by user2', OPEN))
 
 # no update, if no name passed. form should be displayed
 r = user_session.post('http://localhost/project/2/edit',allow_redirects=False,data={'description':'hello world!','name':'project of user2'})
@@ -100,6 +98,6 @@ expectRedirect(r,'http://localhost/project/2/view')
 
 # check project has been altered
 cursor.execute('SELECT * FROM projects WHERE id = 2')
-expect(cursor.fetchone() == (2, None, 'project of user2', 'hello world!', COMPLETED))
+expect(cursor.fetchone() == (2, None, 'project of user2', 'hello world!', OPEN))
 
 print ('done')

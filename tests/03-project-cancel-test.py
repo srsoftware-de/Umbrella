@@ -10,13 +10,11 @@ CANCELED = 100
 db = sqlite3.connect('../db/projects.db')
 cursor = db.cursor()
 
-# if this test fails, you may have forgotten to execute 01-project-add-test
-cursor.execute('SELECT * FROM projects')
-expect(cursor.fetchall() == [
-    (1, None, 'admin-project', 'owned by admin', OPEN),
-    (2, None, 'user2-project', 'owned by user2', OPEN),
-    (3, None, 'common-project', 'created by user2', OPEN)
-])
+# reset edits of previous tests
+cursor.execute('UPDATE projects SET name="admin-project", description="owned by admin", status='+str(OPEN)+' WHERE id=1')
+cursor.execute('UPDATE projects SET name="user2-project", description="owned by user2", status='+str(OPEN)+' WHERE id=2')
+cursor.execute('UPDATE projects SET name="common-project", description="created by user2", status='+str(OPEN)+' WHERE id=3')
+db.commit();
 
 # if this test fails, you may have forgotten to execute 01-project-add-test
 cursor.execute('SELECT project_id, user_id, permissions FROM projects_users')
@@ -26,6 +24,7 @@ expect(cursor.fetchall() == [
     (3, 2, 1),
     (3, 1, 2)
 ])
+
 
 # check redirect to login for users that are not logged in
 r = requests.get('http://localhost/project/9999/cancel',allow_redirects=False)
@@ -72,4 +71,5 @@ expectRedirect(r,'http://localhost/project/2/view')
 
 cursor.execute('SELECT * FROM projects WHERE id = 2')
 expect(cursor.fetchone() == (2, None, 'user2-project', 'owned by user2', CANCELED))
+
 print ('done')

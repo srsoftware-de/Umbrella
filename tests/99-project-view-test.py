@@ -14,12 +14,20 @@ expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2F
 # login
 admin_session,token = getSession('admin','admin','project')
 
-# without a project id, an error should be displayed
+# without a project id, an redirect should occur
 r = admin_session.get('http://localhost/project/view',allow_redirects=False)
+expectRedirect(r,'http://localhost/project/');
+
+# should display the error belonging to the previous request
+r = admin_session.get('http://localhost/project/',allow_redirects=False)
 expectError(r,'Keine Projekt-ID angegeben!')
 
-# non-existing project id, should throw error
+# non-existing project id, redirect
 r = admin_session.get('http://localhost/project/9999/view',allow_redirects=False)
+expectRedirect(r,'http://localhost/project/');
+
+# should display the error belonging to the previous request
+r = admin_session.get('http://localhost/project/',allow_redirects=False)
 expectError(r,'Sie sind nicht an diesem Projekt beteiligt!')
 
 r = admin_session.get('http://localhost/project/1/view',allow_redirects=False)

@@ -11,13 +11,11 @@ CANCELED = 100
 db = sqlite3.connect('../db/projects.db')
 cursor = db.cursor()
 
-# if this test fails, you may have forgotten to execute 03-project-cancel-test
-cursor.execute('SELECT * FROM projects')
-expect(cursor.fetchall() == [
-    (1, None, 'admin-project', 'owned by admin', CANCELED),
-    (2, None, 'user2-project', 'owned by user2', CANCELED),
-    (3, None, 'common-project', 'created by user2', OPEN)
-])
+# reset edits of previous tests
+cursor.execute('UPDATE projects SET name="admin-project", description="owned by admin", status='+str(OPEN)+' WHERE id=1')
+cursor.execute('UPDATE projects SET name="user2-project", description="owned by user2", status='+str(OPEN)+' WHERE id=2')
+cursor.execute('UPDATE projects SET name="common-project", description="created by user2", status='+str(OPEN)+' WHERE id=3')
+db.commit();
 
 # if this test fails, you may have forgotten to execute 03-project-cancel-test
 cursor.execute('SELECT project_id, user_id, permissions FROM projects_users')
