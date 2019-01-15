@@ -6,6 +6,8 @@ from test_routines import *
 
 import urlparse
 
+OPEN = 10
+
 # check redirect to login for users that are not logged in
 r = requests.get("http://localhost/project/add",allow_redirects=False)
 expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fproject%2Fadd')
@@ -54,9 +56,9 @@ expectRedirect(r,'http://localhost/project/3/view')
 
 cursor.execute('SELECT * FROM projects')
 expect(cursor.fetchall() == [
-    (1, None, 'admin-project', 'owned by admin', 10),
-    (2, None, 'user2-project', 'owned by user2', 10),
-    (3, None, 'common-project', 'created by user2', 10)
+    (1, None, 'admin-project', 'owned by admin', OPEN),
+    (2, None, 'user2-project', 'owned by user2', OPEN),
+    (3, None, 'common-project', 'created by user2', OPEN)
 ])
 
 print ('done')

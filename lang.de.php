@@ -45,7 +45,7 @@ $translations = array(
 		'No'=>'Nein',
 		'no company'=>'keine Firma',
 		'== no company assigned =='=>'== keine Firma assoziiert ==',
-		'No project id passed to view!'=>'Keine Projekt-ID angegeben!',
+		'No project id passed!'=>'Keine Projekt-ID angegeben!',
 		'Notes'=>'Notizen',
 		'Notification email has been sent to ?'=>'Email-Benachrichtigung wurde an ? gesendet',
 		'notify user'=>'Nutzer benachrichtigen',

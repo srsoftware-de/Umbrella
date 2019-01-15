@@ -20,7 +20,7 @@ if ($project_id = param('id')){
 		redirect('view');
 	}
 } else {
-	error('No project id passed to view!');
+	error('No project id passed!');
 	redirect(getUrl('project'));
 }
 
