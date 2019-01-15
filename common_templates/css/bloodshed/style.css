@@ -64,8 +64,8 @@ blockquote{
 }
 .add_positions:hover,
 .requirements:hover{
-	max-height: 9999px;
-	max-width: 9999px;
+	max-height: 999999px;
+	max-width: 999999px;
 }
 
 .add_positions > ul > li{
@@ -74,7 +74,7 @@ blockquote{
 }
 
 .add_positions > ul > li:hover{
-	max-height: 9999px;
+	max-height: 999999px;
 }
 
 fieldset.add.document:hover {
@@ -86,6 +86,7 @@ fieldset.add.document {
 	overflow: hidden;
 }
 
+fieldset.options label,
 .add_positions label span,
 .requirements label{
 	display: block;
@@ -168,7 +169,6 @@ button {
 	display: inline-block;
 }
 
-label.silent_box,
 .change_state,
 td.connectors button[type="submit"],
 .prop_action,
@@ -434,14 +434,27 @@ div.search:hover input{
 	.tasks.list tr>*:nth-child(2){
 		display: none;
 	}
+	table.document input{
+		max-width: 100px;
+	}
 }
 
 @media (max-width: 900px){
 	table.items tr>*:nth-child(2),
 	table.documents tr>*:nth-child(4),
+	table.document tr>*:nth-child(1),
+		
 	body.time tr>*:nth-child(6),
 	.tasks tr>*:nth-child(5){
 		display: none;
+	}
+	
+	table.document input{
+		max-width: 60px;
+	}
+	table.document .tax input,
+	table.document input.amount{
+		max-width: 25px;
 	}
 }
 
@@ -457,6 +470,7 @@ div.search:hover input{
 	table.items tr>*:nth-child(1),
 	body.time tr>*:nth-child(1),
 	.project-index tr>*:nth-child(4),
+	table.document tr>*:nth-child(2),
 	.tasks tr>*:nth-child(6){
 		display: none;
 	}

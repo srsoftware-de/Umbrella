@@ -87,6 +87,10 @@ function error($message,$args = null){
 	$_SESSION['errors'][crc32($message)] = t($message,$args);
 }
 
+function generateRandomString(){
+	return bin2hex(openssl_random_pseudo_bytes(40));
+}
+
 function getLocallyFromToken(){
 	$db = get_or_create_db();
 	$db->query('CREATE TABLE IF NOT EXISTS tokens (token VARCHAR(255) NOT NULL PRIMARY KEY, expiration INT NOT NULL, user_data TEXT NOT NULL);');
@@ -102,10 +106,10 @@ function getLocallyFromToken(){
 	foreach ($rows as $index => $row){
 		if ($row['expiration'] > $time){
 			$user = json_decode($row['user_data']); // read user data
-			error_log('Loaded user locally by token');
+			//error_log('Loaded user locally by token');
 		} else {
 			$query->execute([':token'=>$row['token']]); // drop expired token
-			error_log('removed expired token');
+			//error_log('removed expired token');
 		}
 	}
 
@@ -217,7 +221,7 @@ function query_insert($query,$args){
 }
 
 function redirect($url){
-	error_log('redirecting to '.$url);
+	//error_log('redirecting to '.$url);
 	header('Location: '.$url);
 	die();
 }
@@ -278,6 +282,7 @@ function require_login($service_name = null){
 	assert($service_name !== null,'require_login called without a service name!');
 	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	$user = getLocallyFromToken();
+
 	if ($user === null) validateToken($service_name);
 	if ($user === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	if (isset($user->theme)) $theme = $user->theme;
@@ -390,8 +395,10 @@ function task_state($state){
 /* uses the user service to validate the session token and get user data */
 function validateToken($service_name = null){
 	global $user;
+
 	$token = $_SESSION['token'];
 	$user = request('user', 'validateToken',['token'=>$token,'domain'=>getUrl($service_name)],false,OBJECT_CONVERSION);
+
 	if (is_object($user)){
 		$token = $user->token;
 		unset($user->token);

@@ -3,6 +3,7 @@ import os
 import requests
 import sqlite3
 import urlparse
+import json
 
 # next three lines allow unicode handling
 import sys
@@ -35,13 +36,23 @@ def expectInfo(response,message):
     expect('<div class="infos">' in response.text)
     expect(message in response.text)
 
+def expectJson(response,json_string):
+    j1 = json.loads(json_string)
+    j2 = json.loads(response.text)
+    if j1 == j2:
+        sys.stdout.write('.')
+    else:
+        print ''
+        print 'expected json: '+json.dumps(j1)
+        print '     got json: '+json.dumps(j2)
+        exit(-1)
 
 def params(url):
     return urlparse.parse_qs(urlparse.urlparse(url).query)
 
 def getSession(login, password, module):
     session = requests.session();
-    r = session.post('http://localhost/user/login', data={'email':login, 'pass': password},allow_redirects=False)
+    r = session.post('http://localhost/user/login', data={'username':login, 'pass': password},allow_redirects=False)
 
     # get token
     r = session.get('http://localhost/user/login?returnTo=http://localhost/'+module+'/',allow_redirects=False)
