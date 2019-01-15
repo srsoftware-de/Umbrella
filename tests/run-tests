@@ -2,7 +2,7 @@
 
 cd $(dirname $0) # cd to directory in which script resides
 SCRIPT_DIR=$(pwd) 
-DIRS=". user project" # directories in which to look for tests
+DIRS=". user project task" # directories in which to look for tests
 BASE=$(dirname $SCRIPT_DIR)
 
 if [ -d ../user/db ]; then

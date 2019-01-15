@@ -15,6 +15,10 @@ def expect(condition):
     sys.stdout.write('.')
     sys.stdout.flush()
     
+def expectError(response,message):
+    expect('<div class="errors">' in response.text)
+    expect(message in response.text)
+    
 def expectRedirect(response,url):
     if ('location' in response.headers.keys()):
         sys.stdout.write('.')
@@ -27,11 +31,7 @@ def expectRedirect(response,url):
     else:
         print('Expected redirect to '+url+', but found '+response.headers.get('location'))
         exit(-1)
-        
-def expectError(response,message):
-    expect('<div class="errors">' in response.text)
-    expect(message in response.text)
-    
+
 def expectInfo(response,message):
     expect('<div class="infos">' in response.text)
     expect(message in response.text)
