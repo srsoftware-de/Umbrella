@@ -1,7 +1,7 @@
 <?php include 'controller.php';
 
-user_revoke_token();
+Token::load($_SESSION['token'])->revoke()->destroy();
 session_destroy();
-redirect(param('returnTo','login'));
+redirect(param('returnTo',getUrl('user','login')));
 
 ?>

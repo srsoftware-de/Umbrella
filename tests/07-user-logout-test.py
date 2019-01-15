@@ -18,7 +18,7 @@ r = admin_session.get('http://localhost/user/',allow_redirects=False)
 expect('<legend>Liste der Login-Services</legend>' in r.text)
 
 r = admin_session.get('http://localhost/user/logout',allow_redirects=False)
-expectRedirect(r,'login')
+expectRedirect(r,'http://localhost/user/login')
 
 r = admin_session.get('http://localhost/user/',allow_redirects=False)
 expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fuser%2F')

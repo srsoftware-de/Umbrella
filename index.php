@@ -9,12 +9,11 @@ if ($user_id = param('login')){
 		User::load(['ids'=>$user_id])->login();
 	} else error('Only admin can switch users directly!');
 }
-if ($new_login_service  = param('login_service')){
-	add_login_service($new_login_service);
+if ($service_data  = param('login_service')){
+	$service = new LoginService();
+	$service->patch($service_data)->save();
 }
-if ($login_service_name = param('delete_login_service')){
-	drop_login_service($login_service_name);
-}
+if ($login_service_name = param('delete_login_service')) LoginService::load($login_service_name)->delete();
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';

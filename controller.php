@@ -55,42 +55,6 @@
 		return $db;
 	}
 
-	function user_revoke_token(){
-		global $user;
-		$token = $_SESSION['token'];
-		unset($_SESSION['token']);
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
-		assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
-
-		$query = $db->prepare('SELECT domain FROM token_uses WHERE token = :token;');
-		if ($query->execute([':token'=>$token])){
-			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-			foreach ($rows as $row) file_get_contents($row['domain'].'?revoke='.$token);
-		}
-		$query = $db->prepare('DELETE FROM token_uses WHERE token = :token');
-		assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
-	}
-
-	function get_assigned_logins($foreign_id = null){
-		global $user;
-		$db = get_or_create_db();
-
-		$sql = 'SELECT * FROM service_ids_users ';
-		if ($foreign_id !== null) {
-			$sql .= 'WHERE service_id = :id';
-			$args = [':id'=>$foreign_id];
-		} else {
-			$sql .= 'WHERE user_id = :id';
-			$args = [':id'=>$user->id];
-		}
-		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read list of assigned logins.');
-		$rows = $query->fetchAll(INDEX_FETCH);
-		if ($foreign_id !== null) return $rows[$foreign_id];
-		return $rows;
-	}
-
 	function get_themes(){
 		$entries = scandir('common_templates/css');
 		$results = [];
@@ -99,23 +63,6 @@
 			if (is_dir('common_templates/css/'.$entry)) $results[] = $entry;
 		}
 		return $results;
-	}
-
-	function add_login_service($login_service){
-		assert(is_array($login_service),'Argument passed to user/controller::add_login_service is not an array!');
-		$db = get_or_create_db();
-		$args = [];
-		foreach ($login_service as $k => $v){
-			$args[':'.$k] = $v;
-		}
-		$query = $db->prepare('INSERT INTO login_services ('.implode(',',array_keys($login_service)).') VALUES ('.implode(',',array_keys($args)).')');
-		assert($query->execute($args),'Was not able to add login service!');
-	}
-
-	function drop_login_service($name){
-		$db = get_or_create_db();
-		$query = $db->prepare('DELETE FROM login_services WHERE name = :name');
-		assert($query->execute([':name'=>$name]),'Was not able to delete login_service "'.$name.'"!');
 	}
 
 	class LoginService extends UmbrellaObjectWithId{
@@ -135,6 +82,13 @@
 			info('? has been de-assigned.',$foreign_id);
 		}
 
+		function delete(){
+			$db = get_or_create_db();
+			$sql = 'DELETE FROM login_services WHERE name = :name';
+			$query = $db->prepare($sql);
+			if (!$query->execute([':name'=>$this->name])) throw new Exception('Was not able to remove login service "'.$this->id.'"');
+		}
+
 		static function load($name = null){
 			$db = get_or_create_db();
 
@@ -151,13 +105,44 @@
 			foreach ($rows as $id => $row){
 				$service = new LoginService();
 				$service->patch($row);
-				$service->id = $id;
+				$service->name = $id;
 				unset($service->dirty);
 				if ($name) return $service;
 				$services[$id] = $service;
 			}
 			if ($name) return null;
 			return $services;
+		}
+
+		function get_user($foreign_id = null){
+			if (empty($foreign_id)) throw new Exception('LoginService.login called without an id!');
+
+			$sql = 'SELECT * FROM service_ids_users WHERE service_id = :id';
+			$args = [':id'=>$foreign_id];
+
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to read list of assigned logins.');
+			$row = $query->fetch(INDEX_FETCH);
+			if (empty($row)) throw new Exception('Id unknown to service_ids_users!');
+			return User::load(['ids'=>$row['user_id']]);
+		}
+
+		function save(){
+			$sql = 'INSERT INTO login_services ';
+			$keys = [];
+			$args = [];
+			foreach (LoginService::table() as $key =>$dummy){
+				if (in_array($key, $this->dirty)){
+					$keys[] = $key;
+					$args[':'.$key] = $this->{$key};
+				}
+			}
+
+			$sql .= '('.implode(', ',$keys).') VALUES (:'.implode(', :',$keys).')';
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to create new login service');
 		}
 
 		static function table(){
@@ -179,10 +164,34 @@
 	}
 
 	class Token extends UmbrellaObjectWithId{
-		static function  drop_expired(){
+		function destroy(){
 			$db = get_or_create_db();
-			$db->exec('DELETE FROM tokens WHERE expiration < '.time());
-			return $db;
+			$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
+			assert($query->execute([':token'=>$this->token]),'Was not able to execute DELETE statement.');
+		}
+
+		static function expired(){
+			$db = get_or_create_db();
+			$sql = 'SELECT '.implode(', ', array_keys(Token::table())).' FROM tokens WHERE expiration < :time';
+			$query = $db->prepare($sql);
+			if (!$query->execute([':time'=>time()])) throw new Exception('Was not able to request expired tokens.');
+			$rows = $query->fetchAll(INDEX_FETCH);
+
+			$tokens = [];
+			foreach ($rows as $id => $row){
+				$token = new Token();
+				$token->patch($row);
+				$token->token = $id;
+				unset($token->dirty);
+				$tokens[$id] = $token;
+
+			}
+			return $tokens;
+		}
+
+		static function  drop_expired(){
+			$expired_tokens = Token::expired();
+			foreach ($expired_tokens as $token) $token->revoke()->destroy();
 		}
 
 		static function getOrCreate($user = null){
@@ -202,7 +211,7 @@
 		}
 
 		static function load($key = null){
-			$db = Token::drop_expired();
+			Token::drop_expired();
 
 			$sql = 'SELECT '.implode(', ', array_keys(Token::table())).' FROM tokens';
 			$where = [];
@@ -214,6 +223,7 @@
 			}
 
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where).' ';
+			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			assert($query->execute($args),'Was not able to request token table.');
 			$rows = $query->fetchAll(INDEX_FETCH);
@@ -230,6 +240,18 @@
 			}
 			if (!empty($key)) return null;
 			return $tokens;
+		}
+
+		function revoke(){
+			$db = get_or_create_db();
+			$query = $db->prepare('SELECT domain FROM token_uses WHERE token = :token;');
+			if ($query->execute([':token'=>$this->token])){
+				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+				foreach ($rows as $row) file_get_contents($row['domain'].'?revoke='.$this->token);
+			}
+			$query = $db->prepare('DELETE FROM token_uses WHERE token = :token');
+			if (!$query->execute([':token'=>$this->token])) throw new Exception('Was not able to execute DELETE statement.');
+			return $this;
 		}
 
 		static function table(){

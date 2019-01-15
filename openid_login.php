@@ -21,14 +21,14 @@ include 'lib/OpenIDConnectClient.php';
 if ($login_service){
 	$oidc = new OpenIDConnectClient($login_service->url,$login_service->client_id,$login_service->client_secret);
 
-	if ($redirect = param('returnTo'))$_SESSION['redirect'] = $redirect;
+	if ($redirect = param('returnTo')) $_SESSION['redirect'] = $redirect;
 
 	if ($oidc->authenticate()){
 		$info = $oidc->requestUserInfo();
 		$id = $_SESSION['login_service_name'].':'.$info->{$login_service->user_info_field};
 		unset($_SESSION['login_service_name']);
-		if ($user_id = reset(get_assigned_logins($id))) {
-			User::load(['ids'=>$user_id])->login();
+		if ($user = $login_service->get_user($id)){
+			$user->login();
 		} else {
 			error('Your login provider successfully authenticated you, but the account there is not linked to any umbrella account!');
 			redirect('login');
