@@ -2,16 +2,20 @@
 
 require_login('project');
 
-if ($project_id = param('id')){
-	$project = Project::load(['ids'=>$project_id]);
-	if ($name = post('name')){
-		$project->patch($_POST)->save();
-		if ($redirect=param('redirect')){
-			redirect($redirect);
-		} else {
-			redirect('view');
-		}
-	}
+$project_id = param('id');
+if (empty($project_id)){
+	error('No project id passed!');
+	redirect(getUrl('project'));
+}
+$project = Project::load(['ids'=>$project_id]);
+if (empty($project)){
+	error('You are not member of this project!');
+	redirect(getUrl('project'));
+}
+
+if (post('name')){
+	$project->patch($_POST)->save();
+	redirect(param('redirect',getUrl('project',$project_id.'/view')));
 }
 
 $companies = isset($services['company']) ? request('company','json') : null;
@@ -22,7 +26,7 @@ if (isset($services['bookmark'])){
 }
 
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
