@@ -18,7 +18,20 @@ $admin = User::load(['ids'=>1,'passwords'=>'load']);
 if ($admin->pass == sha1('admin') && $admin->login == 'admin') info(t('The default username/password is admin/admin.'));
 
 $login_services = LoginService::load();
-if (!empty($redirect) && isset($_SESSION['token']) && Token::load($_SESSION['token'])) redirect($redirect.'?token='.$_SESSION['token']);
+if (!empty($redirect)){
+	$allowed = false;
+	foreach ($services as $service){
+		debug($service['path']);
+		if (strpos($redirect, $service['path'])===0) {
+			$allowed = true;
+			break;
+		}
+	}
+	if (isset($_SESSION['token']) && Token::load($_SESSION['token'])) {
+		if ($allowed) redirect($redirect.'?token='.$_SESSION['token']);
+		redirect($redirect);
+	}
+}
 
 include '../common_templates/head.php';
 include '../common_templates/messages.php';
