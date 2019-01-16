@@ -80,7 +80,7 @@
 				'task_id'=>['INT','NOT NULL'],
 				'user_id'=>['INT','NOT NULL'],
 				'permissions'=>['INT','DEFAULT'=>Task::PERMISSION_OWNER],
-				'PRIMARY KEY'=>['task_id','project_id']
+				'PRIMARY KEY'=>['task_id','user_id']
 			];
 		}
 		static function dependencies_table(){
@@ -337,6 +337,7 @@
 			assert(is_numeric($this->project_id),'Task must reference project!');
 			$start_stamp = null;
 			$this->status = TASK_STATUS_OPEN;
+
 			if (!empty($this->start_date)){
 				$start_stamp = strtotime($this->start_date);
 				assert($start_stamp !== false,'Start date is not a valid date!');
@@ -366,7 +367,6 @@
 			assert($query->execute($args),'Was not able to create new task entry in database');
 			$this->id = $db->lastInsertId();
 			unset($this->dirty);
-
 			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>TASK_PERMISSION_OWNER]);
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
@@ -416,16 +416,21 @@
 				$args[':perm'] = TASK_PERMISSION_OWNER;
 				assert($query->execute($args),'Was not able to remove user from task!');
 			} else { // assign
+debug($this);
+debug($new_user);
+debug($args);
 				$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
+debug("query: ".query_insert($query, $args));
 				assert($query->execute($args),'Was not able to request task assignment!');
 				$rows = $query->fetchAll();
-
+debug($rows);
 				$args[':perm'] = $new_user['permission'];
 				if (empty($rows)){
 					$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm );');
 				} else {
 					$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid ;');
 				}
+
 				assert($query->execute($args),'Was not able to write task assignment!');
 				// share tags
 				if (isset($services['bookmark'])){

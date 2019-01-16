@@ -2,7 +2,7 @@
 require_login('task');
 
 $tasks = Task::load(['order'=>param('order','due_date')]);
-$projects = request('project','list');
+$projects = request('project','json');
 $show_closed = param('closed') == 'show';
 
 include '../common_templates/head.php';
