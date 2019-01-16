@@ -5,13 +5,26 @@ import sqlite3
 import urlparse
 import json
 
+CRED = '\033[91m'
+CYEL = '\033[33m'
+CEND = '\033[0m'
+
 # next three lines allow unicode handling
 import sys
+from multiprocessing import Condition
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-def expect(condition):
-    assert condition
+def expect(r,text=None):
+    if text is None:
+        # use first parameter as boolean
+        assert r 
+    else:
+        if text not in r.text:
+            print r.text
+            print CYEL+'expected text not found: '+CRED+text+CEND
+            exit(-1)
+        
     sys.stdout.write('.')
     sys.stdout.flush()
     
@@ -27,13 +40,16 @@ def expectRedirect(response,url):
     if ('location' in response.headers.keys()):
         sys.stdout.write('.')
     else:
-        print('No location header set, but '+url+' expected')
+        print ''
+        print CYEL+'response:'+CEND
+        print response.text
+        print CYEL+'No location header set, but '+CRED+url+CYEL+' expected'+CEND
         exit(-1)
     if response.headers.get('location') == url:
         sys.stdout.write('.')
         sys.stdout.flush()
     else:
-        print('Expected redirect to '+url+', but found '+response.headers.get('location'))
+        print CYEL+'Expected redirect to '+CRED+url+CYEL+', but found '+CRED+response.headers.get('location')+CEND
         exit(-1)
 
 
