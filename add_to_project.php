@@ -1,31 +1,36 @@
 <?php include 'controller.php';
 require_login('task');
 
-if ($project_id = param('id')){
+$project_id = param('id');
+if (empty($project_id)){
+	error('No project id passed!');
+	redirect(getUrl('project'));
+}
 
-	$name = post('name');
-	$description = post('description');
-	$user_permissions = param('users');
+$project = request('project','json',['ids'=>$project_id,'users'=>'true']);
+if (empty($project)){
+	error('You don`t have access to that project!');
+	redirect(getUrl('project'));
+}
 
-	$project = request('project','json',['ids'=>$project_id,'users'=>'true']);
+$name = post('name');
+$user_permissions = param('users');
 
-	if ($name){
-		if (is_array($user_permissions) && !empty($user_permissions)){
-			$users = [];
-			foreach ($project['users'] as $uid => $entry){
-				$u = $entry['data'];
-				$perm = $uid == $user->id ? TASK_PERMISSION_OWNER : $user_permissions[$uid];
-				if ($perm == 0) continue;
-				$u['permission'] = $perm;
-				$users[$uid] = $u;
-			}
-			$task = new Task();
-			$task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save();
-			redirect(getUrl('task',$task->id.'/view'));
-		} else error('Selection of at least one user is required!');
-	}
-
-} else error('No project id passed!');
+if ($name){
+	if (!empty($user_permissions) && is_array($user_permissions)){
+		$users = [];
+		foreach ($project['users'] as $uid => $entry){
+			$u = $entry['data'];
+			$perm = $uid == $user->id ? TASK_PERMISSION_OWNER : $user_permissions[$uid];
+			if ($perm == 0) continue;
+			$u['permission'] = $perm;
+			$users[$uid] = $u;
+		}
+		$task = new Task();
+		$task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save();
+		redirect(getUrl('task',$task->id.'/view'));
+	} else error('Selection of at least one user is required!');
+}
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -35,7 +40,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Create new task')?></legend>
 		<fieldset>
 			<legend><?= t('Project')?></legend>
-			<a href="<?= getUrl('project',$project_id.'/view')?>" ><?= $project['name']?></a>
+			<a href="<?= getUrl('project',$project_id.'/view')?>"><?= $project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
@@ -44,12 +49,12 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="description"><?= $description; ?></textarea>
+			<textarea name="description"><?= param('description'); ?></textarea>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Estimated time')?></legend>
 			<label>
-				<?= t('? hours','<input type="number" name="est_time" />')?>
+				<?= t('? hours','<input type="number" name="est_time" value="'.param('est_time').'" />')?>
 			</label>
 		</fieldset>
 		<fieldset>
@@ -67,8 +72,8 @@ include '../common_templates/messages.php'; ?>
 				<tr>
 					<td><?= $u['data']['login']?></td>
 					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= TASK_PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked"':'' ?>/></td>
-					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>"    value="<?= TASK_PERMISSION_READ ?>" /></td>
-					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>"    value="0" <?= $owner?'':'checked="checked"' ?>/></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>" value="<?= TASK_PERMISSION_READ ?>" /></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>" value="0" <?= $owner?'':'checked="checked"' ?>/></td>
 				</tr>
 			<?php } ?>
 			</table>
@@ -87,11 +92,11 @@ include '../common_templates/messages.php'; ?>
 		<?php }?>
 		<fieldset>
 			<legend><?= t('Start date')?></legend>
-			<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" value="<?= date('Y-m-d');?>"/>
+			<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" value="<?= param('start_date',date('Y-m-d')); ?>" />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Due date')?></legend>
-			<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" />
+			<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" value="<?= param('due_date') ?>" />
 		</fieldset>
 		<button type="submit"><?= t('Save task') ?></button>
 	</fieldset>
