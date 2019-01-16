@@ -21,7 +21,6 @@ $login_services = LoginService::load();
 if (!empty($redirect)){
 	$allowed = false;
 	foreach ($services as $service){
-		debug($service['path']);
 		if (strpos($redirect, $service['path'])===0) {
 			$allowed = true;
 			break;
