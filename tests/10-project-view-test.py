@@ -4,8 +4,6 @@ import sys
 sys.path.append("/var/www/tests")
 from test_routines import *
 
-import urlparse
-
 # check redirect to login for users that are not logged in
 r = requests.get("http://localhost/project/view",allow_redirects=False)
 expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Fproject%2Fview')
