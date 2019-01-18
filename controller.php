@@ -340,17 +340,18 @@
 
 			if (!empty($this->start_date)){
 				$start_stamp = strtotime($this->start_date);
-				assert($start_stamp !== false,'Start date is not a valid date!');
+				if ($start_stamp === false) return error('Start date (?) is not a valid date!',$this->start_date);
 				if ($start_stamp > time()) $this->status = TASK_STATUS_PENDING;
 			}
 			if (!empty($this->due_date)){
 				$due_stamp = strtotime($this->due_date);
-				assert($due_stamp !== false,'Due date is not a valid date!');
+				if ($due_stamp === false) return error('Due date (?) is not a valid date!', $this->due_date);
 				if ($start_stamp && $start_stamp > $due_stamp){
 					$this->start_date = $this->due_date;
 					info('Start date adjusted to match due date!');
 				}
 			}
+			if (!empty($this->est_time) && !is_numeric($this->est_time)) return error('"?" is not a valid duration!',$this->est_time);
 			$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, est_time, start_date, due_date, show_closed, no_index) VALUES (:name, :pid, :parent, :desc, :state, :est, :start, :due, :closed, :nidx);');
 			$args = [
 					':name'=>$this->name,
@@ -364,6 +365,7 @@
 					':closed'=>$this->show_closed,
 					':nidx'=>$this->no_index,
 			];
+			//if ($this->name=="task five")debug(['task'=>$this,'args'=>$args,'query'=>query_insert($query, $args)],1);
 			assert($query->execute($args),'Was not able to create new task entry in database');
 			$this->id = $db->lastInsertId();
 			unset($this->dirty);
@@ -416,14 +418,9 @@
 				$args[':perm'] = TASK_PERMISSION_OWNER;
 				assert($query->execute($args),'Was not able to remove user from task!');
 			} else { // assign
-debug($this);
-debug($new_user);
-debug($args);
 				$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
-debug("query: ".query_insert($query, $args));
 				assert($query->execute($args),'Was not able to request task assignment!');
 				$rows = $query->fetchAll();
-debug($rows);
 				$args[':perm'] = $new_user['permission'];
 				if (empty($rows)){
 					$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm );');

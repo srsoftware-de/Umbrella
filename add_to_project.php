@@ -27,8 +27,7 @@ if ($name){
 			$users[$uid] = $u;
 		}
 		$task = new Task();
-		$task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save();
-		redirect(getUrl('task',$task->id.'/view'));
+		if ($task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save()) redirect(getUrl('task',$task->id.'/view'));
 	} else error('Selection of at least one user is required!');
 }
 

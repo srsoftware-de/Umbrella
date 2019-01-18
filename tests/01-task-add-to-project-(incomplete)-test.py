@@ -5,6 +5,7 @@ sys.path.append("/var/www/tests")
 from test_routines import *
 
 # Projects
+ADMIN_PROJECT=1
 COMMON_PROJECT=3
 
 # Users
@@ -13,6 +14,7 @@ USER2=2
 
 # Permissions
 OWNER=1
+WRITE=2
 READ=4
 
 # states:
@@ -95,7 +97,6 @@ expect(r,'<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}
 r = admin_session.post('http://localhost/task/add_to_project/3',allow_redirects=False,data={'name':'task one','description':'task without name','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectRedirect(r,'http://localhost/task/1/view')
 
-
 # check task has been created in database
 rows = cursor.execute('SELECT * FROM tasks').fetchall()
 expect((1, COMMON_PROJECT, None, 'task one', 'task without name', OPEN, 2.5, '2019-01-14', '2019-02-01', None, None,) in rows)
@@ -106,29 +107,82 @@ expect((1,USER2,READ) in rows)
 
 # end of name cheks
 
+#description: absent | empty | valid
+
 # description absent: shoud produce redirect to task
-r = admin_session.post('http://localhost/task/add_to_project/3',allow_redirects=False,data={'name':'task two','est_time':3.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = admin_session.post('http://localhost/task/add_to_project/3',allow_redirects=False,data={'name':'task two','est_time':3.5,'users[1]':READ,'users[2]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectRedirect(r,'http://localhost/task/2/view')
 
 # check task has been created in database
 rows = cursor.execute('SELECT * FROM tasks').fetchall()
 expect((2, COMMON_PROJECT, None, 'task two', None, OPEN, 3.5, '2019-01-14', '2019-02-01', None, None,) in rows)
 
+rows = cursor.execute('SELECT * FROM tasks_users WHERE task_id = 2').fetchall()
+expect((2,ADMIN,OWNER) in rows)
+expect((2,USER2,WRITE) in rows)
+
 # description empty: shoud produce redirect to task
-r = admin_session.post('http://localhost/task/add_to_project/3',allow_redirects=False,data={'name':'task three','description':'','est_time':4.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = admin_session.post('http://localhost/task/add_to_project/3',allow_redirects=False,data={'name':'task three','description':'','est_time':4.5,'users[1]':WRITE,'users[2]':OWNER,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectRedirect(r,'http://localhost/task/3/view')
 
 # check task has been created in database
 rows = cursor.execute('SELECT * FROM tasks').fetchall()
 expect((3, COMMON_PROJECT, None, 'task three', '', OPEN, 4.5, '2019-01-14', '2019-02-01', None, None,) in rows)
 
+rows = cursor.execute('SELECT * FROM tasks_users WHERE task_id = 3').fetchall()
+expect((3,ADMIN,OWNER) in rows)
+expect((3,USER2,OWNER) in rows)
+
 # end of description checks
+
+#est_time: absent | empty | invalid | number
+
+# est_time empty
+r = admin_session.post('http://localhost/task/add_to_project/3',allow_redirects=False,data={'name':'task four','description':'fourth task','users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+expectRedirect(r,'http://localhost/task/4/view')
+
+rows = cursor.execute('SELECT * FROM tasks').fetchall()
+expect((4, COMMON_PROJECT, None, 'task four', 'fourth task', OPEN, None, '2019-01-14', '2019-02-01', None, None,) in rows)
+
+rows = cursor.execute('SELECT * FROM tasks_users WHERE task_id = 4').fetchall()
+expect((4,ADMIN,OWNER) in rows)
+expect((4,USER2,READ) in rows)
+
+# est_time invalid
+r = admin_session.post('http://localhost/task/add_to_project/1',allow_redirects=False,data={'name':'task five','description':'fifth task','est_time':'donald trump','users[1]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+expectError(r,'"donald trump" is not a valid duration!')
+expect(r,'<input type="number" name="est_time" value="donald trump" />')
+
+# est time is integer
+r = admin_session.post('http://localhost/task/add_to_project/1',allow_redirects=False,data={'name':'task five','description':'fifth task','est_time':1,'users[1]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+expectRedirect(r,'http://localhost/task/5/view')
+
+rows = cursor.execute('SELECT * FROM tasks').fetchall()
+expect((5, ADMIN_PROJECT, None, 'task five', 'fifth task', OPEN, 1, '2019-01-14', '2019-02-01', None, None,) in rows)
+
+rows = cursor.execute('SELECT * FROM tasks_users WHERE task_id = 5').fetchall()
+expect((5,ADMIN,OWNER) in rows)
+
+# est time is float
+r = admin_session.post('http://localhost/task/add_to_project/1',allow_redirects=False,data={'name':'task six','description':'sixth task','est_time':1.7,'users[1]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+expectRedirect(r,'http://localhost/task/6/view')
+
+rows = cursor.execute('SELECT * FROM tasks').fetchall()
+expect((6, ADMIN_PROJECT, None, 'task six', 'sixth task', OPEN, 1.7, '2019-01-14', '2019-02-01', None, None,) in rows)
+
+rows = cursor.execute('SELECT * FROM tasks_users WHERE task_id = 6').fetchall()
+expect((6,ADMIN,OWNER) in rows)
+
+# end of est_time checks
+
+#users: absent | empty | text | number
+
 
 # fields: name, description, est_time, users, notify, tags, start_date, due_date
 
-#description: absent | empty | valid
-#est_time: absent | empty | text | number
-#users: absent | empty | text | number
+
+
+
 #notify: absent | empty | on
 #start_date: absent | empty | invalid | valid
 #due_date: absent | empty | invalid | valid
