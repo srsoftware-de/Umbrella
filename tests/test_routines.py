@@ -29,12 +29,24 @@ def expect(r,text=None):
     sys.stdout.flush()
     
 def expectError(response,message):
-    expect('<div class="errors">' in response.text)
-    expect(message in response.text)
+    if '<div class="errors">' not in response.text:
+        print response.text
+        print CYEL+'error tag expected, but not found!'+CEND
+        exit(-1)
+    if message not in response.text:
+        print response.text
+        print CYEL+'error '+CRED+message+CYEL+' expected, but other text found!'+CEND
+        exit(-1)
 
 def expectInfo(response,message):
-    expect('<div class="infos">' in response.text)
-    expect(message in response.text)
+    if '<div class="infos">' not in response.text:
+        print response.text
+        print CYEL+'info tag expected, but not found!'+CEND
+        exit(-1)
+    if message not in response.text:
+        print response.text
+        print CYEL+'info '+CRED+message+CYEL+' expected, but other text found!'+CEND
+        exit(-1)
 
 def expectRedirect(response,url):
     if ('location' in response.headers.keys()):
