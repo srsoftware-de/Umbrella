@@ -85,6 +85,7 @@ function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index'))
 function error($message,$args = null){
 	if ($message === null) return;
 	$_SESSION['errors'][crc32($message)] = t($message,$args);
+	return false;
 }
 
 function generateRandomString(){
