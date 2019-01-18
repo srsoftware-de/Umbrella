@@ -17,15 +17,21 @@ $name = post('name');
 $user_permissions = param('users');
 
 if ($name){
+	$users = [];
 	if (!empty($user_permissions) && is_array($user_permissions)){
-		$users = [];
-		foreach ($project['users'] as $uid => $entry){
-			$u = $entry['data'];
-			$perm = $uid == $user->id ? TASK_PERMISSION_OWNER : $user_permissions[$uid];
+		foreach ($user_permissions as $uid => $perm){
+			if (empty($project['users'][$uid])){
+				error('User with id ? is not member of the project!',$uid);
+				break;
+			}
+			if ($uid == $user->id) $perm = TASK_PERMISSION_OWNER;
 			if ($perm == 0) continue;
+			$u = $project['users'][$uid]['data'];
 			$u['permission'] = $perm;
 			$users[$uid] = $u;
 		}
+	}
+	if (!empty($users)){
 		$task = new Task();
 		if ($task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save()) redirect(getUrl('task',$task->id.'/view'));
 	} else error('Selection of at least one user is required!');

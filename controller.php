@@ -342,7 +342,8 @@
 				$start_stamp = strtotime($this->start_date);
 				if ($start_stamp === false) return error('Start date (?) is not a valid date!',$this->start_date);
 				if ($start_stamp > time()) $this->status = TASK_STATUS_PENDING;
-			}
+			} else $this->start_date = null;
+
 			if (!empty($this->due_date)){
 				$due_stamp = strtotime($this->due_date);
 				if ($due_stamp === false) return error('Due date (?) is not a valid date!', $this->due_date);
@@ -350,7 +351,8 @@
 					$this->start_date = $this->due_date;
 					info('Start date adjusted to match due date!');
 				}
-			}
+			} else $this->due_date = null;
+
 			if (!empty($this->est_time) && !is_numeric($this->est_time)) return error('"?" is not a valid duration!',$this->est_time);
 			$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, est_time, start_date, due_date, show_closed, no_index) VALUES (:name, :pid, :parent, :desc, :state, :est, :start, :due, :closed, :nidx);');
 			$args = [
@@ -372,9 +374,10 @@
 			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>TASK_PERMISSION_OWNER]);
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
+			$notify = (param('notify')=='on');
 			foreach ($this->users as $id => $new_user) {
 				if ($id == $user->id) continue;
-				$this->add_user($new_user);
+				$this->add_user($new_user,$notify);
 				if ($hash) request('bookmark','index',['share_user_id'=>$id,'share_url_hash'=>$hash,'notify'=>false]);
 			}
 			return $this;
@@ -401,7 +404,7 @@
 			return $this;
 		}
 
-		public function add_user($new_user = null){
+		public function add_user($new_user = null, $notify = false){
 			global $user,$services;
 			// check
 			assert(!empty($this->id),'Task does not contain "id"');
@@ -436,7 +439,7 @@
 				}
 
 				// notify if newly assigned
-				if (empty($rows) && param('notify') == 'on'){
+				if ($notify && empty($rows)){
 					$sender = $user->email;
 					$reciever = $new_user['email'];
 					$subject = t('? assigned you to a task',$user->login);
