@@ -23,7 +23,7 @@ def expect(r,text=None):
         if text not in r.text:
             print r.text
             print CYEL+'expected text not found: '+CRED+text+CEND
-            exit(-1)
+            assert(false)
         
     sys.stdout.write('.')
     sys.stdout.flush()
@@ -32,21 +32,21 @@ def expectError(response,message):
     if '<div class="errors">' not in response.text:
         print response.text
         print CYEL+'error tag expected, but not found!'+CEND
-        exit(-1)
+        assert(false)
     if message not in response.text:
         print response.text
         print CYEL+'error '+CRED+message+CYEL+' expected, but other text found!'+CEND
-        exit(-1)
+        assert(false)
 
 def expectInfo(response,message):
     if '<div class="infos">' not in response.text:
         print response.text
         print CYEL+'info tag expected, but not found!'+CEND
-        exit(-1)
+        assert(false)
     if message not in response.text:
         print response.text
         print CYEL+'info '+CRED+message+CYEL+' expected, but other text found!'+CEND
-        exit(-1)
+        assert(false)
 
 def expectRedirect(response,url):
     keys = response.headers.keys()
@@ -57,13 +57,14 @@ def expectRedirect(response,url):
         print CYEL+'response:'+CEND
         print response.text
         print CYEL+'No Location header set, but '+CRED+url+CYEL+' expected'+CEND
-        exit(-1)
+        assert(false)
+        
     if response.headers.get('Location') == url:
         sys.stdout.write('.')
         sys.stdout.flush()
     else:
         print CYEL+'Expected redirect to '+CRED+url+CYEL+', but found '+CRED+response.headers.get('Location')+CEND
-        exit(-1)
+        assert(false)
 
 
 def expectJson(response,json_string):
@@ -75,7 +76,7 @@ def expectJson(response,json_string):
         print ''
         print 'expected json: '+json.dumps(j1)
         print '     got json: '+json.dumps(j2)
-        exit(-1)
+        assert(false)
 
 def params(url):
     return urlparse.parse_qs(urlparse.urlparse(url).query)
