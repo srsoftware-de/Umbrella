@@ -16,10 +16,10 @@ admin_session,token = getSession('admin','admin','user')
 
 # check add form after login
 r = admin_session.get('http://localhost/user/add',allow_redirects=False)
-expect('<form method="POST">' in r.text)
-expect('<input type="text" name="login" />' in r.text)
-expect('<input type="password" name="pass" />' in r.text)
-expect('<button type="submit">Nutzer hinzufügen</button>' in r.text)
+expect(r,'<form method="POST">')
+expect(r,'<input type="text" name="login" />')
+expect(r,'<input type="password" name="pass" />')
+expect(r,'<button type="submit">Nutzer hinzufügen</button>')
 
 # adding a new uer without setting a password should not work
 r = admin_session.post('http://localhost/user/add',data={'login':'new_user'},allow_redirects=False)
@@ -37,10 +37,13 @@ expectError(r,'Es existiert bereits ein Nutzer mit diesem Login!')
 r = admin_session.post('http://localhost/user/add',data={'login':'user2','pass':'test-passwd'},allow_redirects=False)
 expectRedirect(r,'http://localhost/user/')
 
-# the new user should appear afterwards
+# the new users should appear afterwards
 r = admin_session.get('http://localhost/user/',allow_redirects=False)
 expectInfo(r,'Nutzer user2 wurde hinzugefügt')
-expect('<td>admin</td>' in r.text)
-expect('<td>user2</td>' in r.text)
+expect(r,'<td>admin</td>')
+expect(r,'<td>user2</td>')
+
+# add another user required for task tests
+r = admin_session.post('http://localhost/user/add',data={'login':'user3','pass':'numb3rThree'},allow_redirects=False)
 
 print ('done')
