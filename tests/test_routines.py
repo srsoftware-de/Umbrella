@@ -49,19 +49,20 @@ def expectInfo(response,message):
         exit(-1)
 
 def expectRedirect(response,url):
-    if ('location' in response.headers.keys()):
+    keys = response.headers.keys()
+    if ('Location' in keys):
         sys.stdout.write('.')
     else:
         print ''
         print CYEL+'response:'+CEND
         print response.text
-        print CYEL+'No location header set, but '+CRED+url+CYEL+' expected'+CEND
+        print CYEL+'No Location header set, but '+CRED+url+CYEL+' expected'+CEND
         exit(-1)
-    if response.headers.get('location') == url:
+    if response.headers.get('Location') == url:
         sys.stdout.write('.')
         sys.stdout.flush()
     else:
-        print CYEL+'Expected redirect to '+CRED+url+CYEL+', but found '+CRED+response.headers.get('location')+CEND
+        print CYEL+'Expected redirect to '+CRED+url+CYEL+', but found '+CRED+response.headers.get('Location')+CEND
         exit(-1)
 
 
@@ -85,15 +86,15 @@ def getSession(login, password, module):
 
     # get token
     r = session.get('http://localhost/user/login?returnTo=http://localhost/'+module+'/',allow_redirects=False)
-    expect('location' in r.headers)
-    redirect = r.headers.get('location');
+    expect('Location' in r.headers)
+    redirect = r.headers.get('Location');
 
     expect('http://localhost/'+module+'/?token=' in redirect)
     prefix,token=redirect.split('=')
 
     # create new session to test token function
     session = requests.session()
-
+    
     # redirect should contain a token in the GET parameters, thus the page should redirect to the same url without token parameter
     r = session.get(redirect,allow_redirects=False)
     expectRedirect(r,'http://localhost/'+module+'/');
