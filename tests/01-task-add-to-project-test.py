@@ -157,7 +157,7 @@ expect((new_id,USER2,WRITE) in rows)
 
 # est_time invalid
 r = admin_session.post('http://localhost/task/add_to_project/1',allow_redirects=False,data={'name':'task five','description':'fifth task','est_time':'donald trump','users[1]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
-expectError(r,'"donald trump" is not a valid duration!')
+expectError(r,'"donald trump" ist keine gültige Dauer!')
 expect(r,'<input type="number" name="est_time" value="donald trump" />')
 
 # est time is integer

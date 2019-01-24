@@ -13,10 +13,9 @@ if (empty($project)){
 	redirect(getUrl('project'));
 }
 
-$name = post('name');
-$user_permissions = param('users');
 
-if ($name){
+if ($name = post('name')){
+	$user_permissions = param('users');
 	$users = [];
 	if (!empty($user_permissions) && is_array($user_permissions)){
 		foreach ($user_permissions as $uid => $perm){
