@@ -4,13 +4,15 @@ Hier soll kurz erklärt werden, wie du die Umbrella-Suite (oder Teile davon) auf
 
 ## Voraussetzungen
 
-Du brauchst auf jeden Fall einen funktionierenden Webserver mit PHP-Unterstützung (PHP 5.6 oder neuer).
+Du brauchst auf jeden Fall einen funktionierenden **Webserver mit PHP**-Unterstützung (PHP 5.6 oder neuer).
 Welchen Webserver und welche PHP-Version du verwendest sollte keine große Rolle spielen.
 
 Entwickelt und getestet wird die Software auf einem Debian-Server mit PHP 5.6 und apache 2.4.10.
 
 Für die Standardinstallation wird **git** benötigt.
-Außerdem muss noch die Sqlite-Unterstützung installiert werden, z.B. mit `apt-get install git php5-sqlite sqlite3`.
+Außerdem muss noch die Sqlite-Unterstützung installiert werden, z.B. mit `apt-get install git php-sqlite sqlite3`.
+
+Für einige Module benutzen DOMDocuemnt (funktionieren aber auch ohne), es wird empfohlen das Paket `php-dom` zu installieren
 
 
 ### PHP7
