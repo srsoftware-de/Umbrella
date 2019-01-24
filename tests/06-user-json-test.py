@@ -15,7 +15,7 @@ expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2F
 admin_session,token = getSession('admin','admin','user')
 
 r = admin_session.get('http://localhost/user/json',allow_redirects=False)
-expectJson(r,'{"1":{"login":"admin","email":"user1@example.com","theme":null,"id":1},"2":{"login":"user2","email":"user2@example.com","theme":null,"id":2}}');
+expectJson(r,'{"1": {"login": "admin", "theme": null, "email": "user1@example.com", "id": 1}, "3": {"login": "user3", "theme": null, "email": null, "id": 3}, "2": {"login": "user2", "theme": null, "email": "user2@example.com", "id": 2}}');
 
 r = admin_session.get('http://localhost/user/1/json',allow_redirects=False)
 expectJson(r,'{"id":1,"login":"admin","email":"user1@example.com","theme":null}')
@@ -32,7 +32,7 @@ expectJson(r,'{"id":2,"login":"user2","email":"user2@example.com","theme":null}'
 r = admin_session.post('http://localhost/user/json',allow_redirects=False,data={'ids[0]':2,'ids[1]':1})
 expectJson(r,'{"1":{"id":1,"login":"admin","email":"user1@example.com","theme":null},"2":{"id":2,"login":"user2","email":"user2@example.com","theme":null}}')
 
-r = admin_session.get('http://localhost/user/3/json',allow_redirects=False)
+r = admin_session.get('http://localhost/user/4/json',allow_redirects=False)
 assert(r.status_code == 400)
 assert('Diesen Nutzer gibt es nicht' in r.text)
 

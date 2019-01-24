@@ -19,6 +19,7 @@ assert('<td>admin</td>' in r.text)
 assert('<td>user1@example.com</td>' in r.text)
 assert('<td>user2</td>' in r.text)
 assert('<td>user2@example.com</td>' in r.text)
-assert('<td>3</td>' not in r.text)
+assert('<td>user3</td>' in r.text)
+assert('<td>4</td>' not in r.text)
 
 print 'done'
