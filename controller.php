@@ -45,7 +45,6 @@ function get_or_create_db(){
 				} else $sql .= $props.", ";
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-			$query = $db->prepare($sql);
 			assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
 		}
 	} else {
@@ -79,7 +78,7 @@ class CustomerPrice extends UmbrellaObject{
 			'single_price'	=> 'INTEGER',
 		];
 	}
-	
+
 	static function load($company_id,$customer_number,$item_code){
 		$db = get_or_create_db();
 		$sql = 'SELECT item_code,* FROM customer_prices WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ';
@@ -94,7 +93,7 @@ class CustomerPrice extends UmbrellaObject{
 		}
 		return null;
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM customer_prices WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ');
@@ -121,7 +120,7 @@ class CustomerPrice extends UmbrellaObject{
 				$args[':price'] = $this->single_price;
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update customer_prices in database!');
-				$dirty = [];
+				$this->dirty = [];
 			}
 		}
 	}
@@ -130,8 +129,8 @@ class CustomerPrice extends UmbrellaObject{
 class DocumentPosition extends UmbrellaObject{
 	const UPDATE_REMAINING = true;
 	const SKIP_UPDATE = false;
-	
-	static function table(){	
+
+	static function table(){
 		return [
 			'document_id'	=> ['INTEGER','NOT NULL'],
 			'pos'			=> ['INTEGER','NOT NULL'],
@@ -157,9 +156,9 @@ class DocumentPosition extends UmbrellaObject{
 		$this->document_id = $document->id;
 	}
 
-	public function copy(Document $document){		
+	public function copy(Document $document){
 		$new_position = new DocumentPosition($document);
-		foreach ($this as $field => $value){			
+		foreach ($this as $field => $value){
 			if (in_array($field, ['dirty','document','document_id','id'])) continue;
 			$new_position->patch([$field=>$value]);
 		}
@@ -167,7 +166,6 @@ class DocumentPosition extends UmbrellaObject{
 	}
 
 	public function save(){
-		global $services;
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM document_positions WHERE document_id = :iid AND pos = :pos ');
 		$args = [':iid'=>$this->document->id,':pos'=>$this->pos];
@@ -184,7 +182,7 @@ class DocumentPosition extends UmbrellaObject{
 					$args[':'.$f] = $this->{$f};
 				}
 			}
-			$sql = 'INSERT INTO document_positions ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';			
+			$sql = 'INSERT INTO document_positions ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
 			/*debug($query);
 			debug($args);
@@ -202,16 +200,16 @@ class DocumentPosition extends UmbrellaObject{
 				$sql = rtrim($sql,',').' WHERE document_id = :iid AND pos = :pos';
 				$query = $db->prepare($sql);
 				assert($query->execute($args),'Was no able to update document_positions in database!');
-				
+
 				$customer_price = CustomerPrice::load($this->document->company_id, $this->document->customer_number, $this->item_code);
 				if (!$customer_price) $customer_price = new CustomerPrice();
 				$customer_price->patch(['company_id'=>$this->document->company_id,'customer_number'=>$this->document->customer_number,'item_code'=>$this->item_code,'single_price'=>$this->single_price]);
-				$customer_price->save();				
+				$customer_price->save();
 			}
 		}
 		return $this;
 	}
-	
+
 	static function load($document){
 		$db = get_or_create_db();
 		$sql = 'SELECT pos,* FROM document_positions WHERE document_id = :iid ORDER BY pos';
@@ -228,13 +226,13 @@ class DocumentPosition extends UmbrellaObject{
 		}
 		return $result;
 	}
-	
+
 	public function delete($update_remaining = DocumentPosition::UPDATE_REMAINING){
 		global $services;
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM document_positions WHERE document_id = :iid AND pos = :pos');
 		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]),'Was not able to remove entry from document positions table!');
-		
+
 		if ($update_remaining){
 			$query = $db->prepare('UPDATE document_positions SET pos = pos-1 WHERE document_id = :iid AND pos > :pos');
 			assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]));
@@ -244,7 +242,7 @@ class DocumentPosition extends UmbrellaObject{
 		}
 		return $this;
 	}
-	
+
 }
 
 class CompanySettings extends UmbrellaObject{
@@ -258,7 +256,7 @@ class CompanySettings extends UmbrellaObject{
 		$this->type_number = 1;
 		$this->type_mail_text = "Dear Ladies and Gentlemen,\n\nAttached to this mail you will find a new ? document. To open it, you need a pdf viewer.";
 	}
-	
+
 	static function load($company,$doc_type_id){
 		$company_id = is_array($company) ? $company['id'] : $company;
 		$companySettings = new CompanySettings($company_id,$doc_type_id);
@@ -270,11 +268,11 @@ class CompanySettings extends UmbrellaObject{
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($rows as $row) $companySettings->patch($row);
 		$companySettings->dirty = [];
-		return $companySettings;		
+		return $companySettings;
 	}
-	
+
 	function applyTo(Document $document){
-		//debug($document,1);		
+		//debug($document,1);
 		$document->company_id = $this->company_id;
 
 		$document->number = $this->type_prefix.$this->type_number.$this->type_suffix;
@@ -282,7 +280,7 @@ class CompanySettings extends UmbrellaObject{
 		$document->head = $this->default_header;
 		$document->footer = $this->default_footer;
 	}
-	
+
 	static function table(){
 		return [
 			'company_id'				=> ['INT','NOT NULL'],
@@ -296,7 +294,7 @@ class CompanySettings extends UmbrellaObject{
 			'PRIMARY KEY'				=> '(company_id, document_type_id)',
 		];
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM company_settings WHERE company_id = :cid AND document_type_id = :dtid');
@@ -313,7 +311,7 @@ class CompanySettings extends UmbrellaObject{
 				}
 			}
 			$sql = 'INSERT INTO company_settings ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
-			$query = $db->prepare($sql);			
+			$query = $db->prepare($sql);
 			assert($query->execute($args),'Was not able to insert new row into company_settings');
 		} else {
 			if (!empty($this->dirty)){
@@ -329,18 +327,17 @@ class CompanySettings extends UmbrellaObject{
 			}
 		}
 	}
-	
+
 	function updateFrom(Document $document){
-		$type = '';
 		$prefix = preg_replace('/[1-9]+\D*$/', '', $document->number);
 		$suffix = preg_replace('/^\D*\d+/', '', $document->number);
-		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;				
+		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;
 		$data = [
 			'default_header' => $document->head,
-			'default_footer' => $document->footer,			
+			'default_footer' => $document->footer,
 			'type_prefix' => $prefix,
 			'type_suffix' => $suffix,
-			'type_number' => max($number,$this->{'type_number'}),	
+			'type_number' => max($number,$this->{'type_number'}),
 		];
 		$this->patch($data);
 		$this->save();
@@ -354,7 +351,7 @@ class Document extends UmbrellaObjectWithId{
 	const STATE_PAYED = 4;
 	const STATE_DECLINED = 5; // for offers
 	const STATE_ERROR = 99;
-	
+
 	/*** static functions ********/
 	static function states(){
 		return [
@@ -366,20 +363,20 @@ class Document extends UmbrellaObjectWithId{
 		static::STATE_ERROR => 'error',
 		];
 	}
-	
+
 	static function load($options = []){
 		$db = get_or_create_db();
 		$user_companies = request('company','json');
 		$user_company_ids = array_keys($user_companies);
-	
+
 		$args = [];
 		if ($user_company_ids !== null){
 			if (!is_array($user_company_ids)) $user_company_ids = [ $user_company_ids ];
 			$qmarks = str_repeat('?,', count($user_company_ids) - 1) . '?';
 			$args = $user_company_ids;
 		}
-		$sql = 'SELECT * FROM documents WHERE company_id IN ('.$qmarks.')';
-	
+		$sql = "SELECT * FROM documents WHERE company_id IN (".$qmarks.')';
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -391,7 +388,7 @@ class Document extends UmbrellaObjectWithId{
 			$args = array_merge($args, $ids);
 			$sql .= ' AND id IN ('.$qmarks.')';
 		}
-	
+
 		if (isset($options['times'])){
 			$tids = $options['times'];
 			if (!is_array($tids)) $tids = [$tids];
@@ -399,13 +396,15 @@ class Document extends UmbrellaObjectWithId{
 			$args = array_merge($args, $tids);
 			$sql .= ' AND id IN (SELECT document_id FROM document_positions WHERE time_id IN ('.$qmarks.'))';
 		}
-	
+
 		$sql .= ' ORDER BY ';
 		if (isset($options['order']) && array_key_exists($options['order'],Document::table())){
-			$sql .= $options['order'].' DESC, ';
+			if ($options['order'] == 'customer') {
+				$sql = str_replace('*', "*,trim(substr(replace(customer,x'0D0A','                                                   '),0,50)) as short", $sql); // strip everything after newline
+				$sql .= 'short ASC, ';
+			} else $sql .= $options['order'].' ASC, ';
 		}
 		$sql .= 'id DESC';
-	
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load documents!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -419,7 +418,7 @@ class Document extends UmbrellaObjectWithId{
 		}
 		return $documents;
 	}
-	
+
 	static function table(){
 		return [
 		'id'				=> ['INTEGER','KEY'=>'PRIMARY'],
@@ -433,19 +432,19 @@ class Document extends UmbrellaObjectWithId{
 		'head'				=> 'TEXT',
 		'footer'			=> 'TEXT',
 		'currency'			=> ['VARCHAR'=>10,'NOT NULL'],
-			
+
 		'sender'			=> ['TEXT','NOT NULL'],
 		'tax_number'		=> ['VARCHAR'=>255],
 		'bank_account'		=> 'TEXT',
 		'court'				=> 'TEXT',
-			
+
 		'customer'			=> 'TEXT',
 		'customer_number'	=> ['VARCHAR'=>255],
 		'customer_tax_number'=> ['VARCHAR'=>255],
 		'customer_email'	=> ['VARCHAR'=>255],
 		];
 	}
-	
+
 	/*** instance functions ********/
 	function __construct(array $company = []){
 		if (isset($company['id'])) $this->company_id = $company['id'];
@@ -453,56 +452,56 @@ class Document extends UmbrellaObjectWithId{
 		$this->state = static::STATE_NEW;
 		$this->date = time();
 	}
-	
+
 	function add_position($code,$title,$description,$amount,$unit,$price,$tax){
 		$db = get_or_create_db();
-	
+
 		$query = $db->prepare('SELECT MAX(pos) FROM document_positions WHERE document_id = :id');
-		assert($query->execute(array(':id'=>$document_id)),'Was not able to get last document position!');
+		assert($query->execute(array(':id'=>$this->document_id)),'Was not able to get last document position!');
 		$row = $query->fetch(PDO::FETCH_COLUMN);
 		$pos = ($row === null)?1:$row+1;
-	
+
 		$query = $db->prepare('INSERT INTO document_positions (document_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
-		$args = array(':id'=>$document_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
-		assert($query->execute($args),'Was not able to store new postion for document '.$document_id.'!');
+		$args = array(':id'=>$this->document_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
+		assert($query->execute($args),'Was not able to store new postion for document '.$this->document_id.'!');
 	}
-	
+
 	public function company($field = null){
 		if (!isset($this->company)) $this->company = request('company','json',['ids'=>$this->company_id,'single'=>true]);
 		if ($field !== null) return $this->company[$field];
 		return $this->company;
 	}
-	
+
 	public function company_settings(){
 		if (!isset($this->company_settings)){
 			$this->company_settings = CompanySettings::load($this->company_id);
 		}
 		return $this->company_settings;
 	}
-	
+
 	public function customer_short(){
 		return trim(reset(explode("\n",$this->customer)));
 	}
-	
+
 	public function date(){
 		return date('Y-m-d',$this->date);
 	}
-	
+
 	public function delivery_date(){
 		if (!isset($this->delivery_date) || $this->delivery_date === null) return '';
 		return $this->delivery_date;
 	}
-	
+
 	function derive($next_type_id = null){
 		if ($next_type_id === null) $next_type_id = $this->type()->next_type_id;
 		if ($next_type_id === null) {
 			error('No successor type defined for documents of type ?',$this->type()->name);
 			redirect(getUrl('document'));
 		}
-	
+
 		$new_document = new Document();
 		$new_document->type_id = $next_type_id;
-	
+
 		$company_settings = CompanySettings::load($this->company_id,$next_type_id);
 		$company_settings->applyTo($new_document);
 		foreach ($this as $field => $value){
@@ -511,12 +510,12 @@ class Document extends UmbrellaObjectWithId{
 		unset($new_document->id);
 		$new_document->save();
 		$company_settings->save();
-		
+
 		foreach ($this->positions() as $position) $new_position = $position->copy($new_document);
-	
+
 		return $new_document;
 	}
-	
+
 	function elevate($position_number){
 		if ($position_number<2) return;
 		$positions = $this->positions();
@@ -525,15 +524,15 @@ class Document extends UmbrellaObjectWithId{
 		$a->patch(['pos'=>$position_number-1])->save();
 		$b->patch(['pos'=>$position_number])->save();
 	}
-	
+
 	function get_customer_vcard(){
 		global $contacts;
-		
+
 		if (!isset($contacts) || $contacts === null) $contacts = request('contact','json',null,false,OBJECT_CONVERSION);
-		
+
 		if (empty($contacts)) return null;
-		$vcard = null;		
-		
+		$vcard = null;
+
 		// compary by customer number
 		if (!empty($this->customer_number)){
 			foreach ($contacts as $contact){
@@ -541,13 +540,13 @@ class Document extends UmbrellaObjectWithId{
 				if ($contact->{'X-CUSTOMER-NUMBER'} == $this->customer_number) return $contact;
 			}
 		}
-		
+
 		// compare by complete address
 		$adr = str_replace(["\r"],'',trim($this->customer));
 		foreach ($contacts as $contact){
 			if ($adr == str_replace(["\r"],'',trim(address_from_vcard($contact)))) return $contact;
 		}
-		
+
 		// compare by short ad
 		$name = $this->customer_short();
 		// search for match of name line from address
@@ -561,17 +560,17 @@ class Document extends UmbrellaObjectWithId{
 		}
 		return null;
 	}
-	
+
 	public function mail_text(){
 		$company_settings = CompanySettings::load($this->company,$this->type->id);
 		return $company_settings->type_mail_text;
 	}
-	
+
 	public function positions(){
 		if (!isset($this->positions)) $this->positions = DocumentPosition::load($this);
 		return $this->positions;
 	}
-	
+
 	public function save(){
 		global $user,$services;
 		$db = get_or_create_db();
@@ -619,13 +618,13 @@ class Document extends UmbrellaObjectWithId{
 					$fields[]=$f;
 					$args[':'.$f] = $this->{$f};
 				}
-			}			
+			}
 			$sql = 'INSERT INTO documents ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new document');	
+			assert($query->execute($args),'Was not able to insert new document');
 			$this->id = $db->lastInsertId();
 		}
-		
+
 		if (isset($services['bookmark']) && ($raw_tags = param('tags'))){
 			$raw_tags = explode(' ', str_replace(',',' ',$raw_tags));
 			$tags = [];
@@ -635,12 +634,12 @@ class Document extends UmbrellaObjectWithId{
 			request('bookmark','add',['url'=>getUrl('document').$this->id.'/view','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
 		}
 	}
-	
+
 	public function state(){
 		if (array_key_exists($this->state, Document::states())) return Document::states()[$this->state];
 		return t('unknown state');
 	}
-	
+
 	function sum(){
 		$sum = 0;
 		foreach ($this->positions() as $position){
@@ -649,22 +648,22 @@ class Document extends UmbrellaObjectWithId{
 		}
 		return round($sum/100.0,2);
 	}
-	
+
 	function template(){
 		if (!isset($this->template_id) || $this->template_id === null || $this->template_id < 1) return null;
 		$templates = Template::load($this->company_id);
 		if (!isset($templates[$this->template_id])) return null;
 		return $templates[$this->template_id];
 	}
-	
+
 	function type(){
 		if (!isset($this->type)) $this->type = DocumentType::load(['ids' => $this->type_id]);
 		return $this->type;
 	}
-	
+
 	public function update_mail_text($new_text){
 		$settings = CompanySettings::load($this->company,$this->type->id);
-		$settings->patch(['type_mail_text'=>$new_text]);		
+		$settings->patch(['type_mail_text'=>$new_text]);
 		$settings->save();
 	}
 }
@@ -752,9 +751,9 @@ class DocumentType extends UmbrellaObjectWithId{
 			$this->id = $db->lastInsertId();
 		}
 	}
-	
+
 	private static $all = [];
-	
+
 	public function successors(){
 		if (empty(DocumentType::$all)) DocumentType::$all = DocumentType::load();
 		$successors = [];
