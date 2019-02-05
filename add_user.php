@@ -32,20 +32,21 @@ include '../common_templates/messages.php';
 
 if ($allowed){ ?>
 <form method="POST">
-	<fieldset><legend><?= t('Add user to ?',$project->name)?></legend>
-		<fieldset>
-			<select name="new_user_id">
-				<option value="" selected="true"><?= t('== Select a user ==')?></option>
-				<?php foreach ($users as $id => $u){ if ($id == $user->id) continue; ?>
-				<option value="<?= $id ?>"><?= $u['login']?></option>
-				<?php }?>
-			</select>
+	<fieldset>
+		<legend><?= t('Add user to ?','<a href="view">'.$project->name.'</a>')?></legend>
+		<select name="new_user_id">
+			<option value="" selected="true"><?= t('== Select a user ==')?></option>
+			<?php foreach ($users as $id => $u){ if ($id == $user->id) continue; ?>
+			<option value="<?= $id ?>"><?= $u['login']?></option>
+			<?php }?>
+		</select>
+		<p>
 			<label>
-			<input type="checkbox" name="notify" value="on" checked="true" />
-			<?= t('notify user')?>
+				<input type="checkbox" name="notify" value="on" checked="true" />
+				<?= t('notify user')?>
 			</label>
-		</fieldset>
-		<button type="submit"><?= t('Add user') ?></button>
+		</p>
+		<button type="submit"><?= t('add user') ?></button>
 	</fieldset>
 </form>
 <?php }
