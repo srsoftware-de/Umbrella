@@ -38,10 +38,9 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php';
 
 if ($task->is_writable()){ ?>
-<h1><?= t('Add user to "?"',$task->name) ?></h1>
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add user to task') ?></legend>
+		<legend><?= t('Add user to task "?"','<a href="view">'.$task->name.'</a>') ?></legend>
 		<table>
 			<tr>
 				<th><?= t('User')?></th>
@@ -61,7 +60,9 @@ if ($task->is_writable()){ ?>
 			<?php } ?>
 		</table>
 		<p>
-			<input type="checkbox" name="notify" checked="checked"><?= t('notify user') ?>
+			<label>
+				<input type="checkbox" name="notify" checked="checked"> <?= t('notify user') ?>
+			</label>
 		</p>
 		<button type="submit"><?= t('add user') ?></button>
 	</fieldset>
