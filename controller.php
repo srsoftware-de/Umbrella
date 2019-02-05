@@ -409,6 +409,7 @@
 		}
 
 		static function require_login(){
+			global $theme;
 			$url = getUrl('user','login?returnTo='.urlencode(location()));
 			if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect($url);
 
@@ -416,6 +417,8 @@
 			if ($token->user_id == null) redirect($url);
 			if ($token != null) $user = User::load(['ids'=>$token->user_id]);
 			if ($user == null) redirect($url);
+			if (!empty($user->theme)) $theme = $user->theme;
+
 			return $user;
 		}
 
