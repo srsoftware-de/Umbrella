@@ -140,6 +140,10 @@ if (isset($_POST['document'])){
 
 	$companySettings = CompanySettings::load($document->company_id,$document->type_id);
 	$companySettings->updateFrom($document);
+
+	$customerSettings = CompanyCustomerSettings::load($document->company_id,$document->type_id,$document->customer_number);
+	$customerSettings->updateFrom($document);
+
 	info('Company settings have been updated.');
 }
 

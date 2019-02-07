@@ -26,10 +26,11 @@ if ($customer_contact_id = post('customer')){
 	}
 	$document = new Document($company);
 	$document->patch($_POST);
-
 	$company_settings = CompanySettings::load($company,$document->type_id);
 	$company_settings->applyTo($document);
 
+	$customer_settings = CompanyCustomerSettings::load($company,$document->type_id,$document->customer_number);
+	$customer_settings->applyTo($document);
 
 	$document->template_id = 0; // TODO impelement by selection
 	$document->save();

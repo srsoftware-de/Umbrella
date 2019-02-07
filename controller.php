@@ -1,7 +1,17 @@
 <?php include '../bootstrap.php';
 
 const MODULE = 'Document';
+const DB_VERSION = 1;
 $title = t('Umbrella Document Management');
+
+function db_version(){
+	$db = get_or_create_db();
+	$query = $db->prepare('SELECT value FROM settings WHERE key = "db_version"');
+	if (!$query->execute()) throw new Exception(_('Failed to query db_version!'));
+	$rows = $query->fetchAll(PDO::FETCH_COLUMN);
+	if (empty($rows)) return null;
+	return reset($rows);
+}
 
 function get_or_create_db(){
 	$table_filename = 'documents.db';
@@ -16,34 +26,13 @@ function get_or_create_db(){
 			'document_types'=>DocumentType::table(),
 			'company_settings'=>CompanySettings::table(),
 			'customer_prices'=>CustomerPrice::table(),
+			'settings'=>Settings::table(),
 			'templates'=>Template::table(),
 		];
 
 		foreach ($tables as $table => $fields){
 			$sql = 'CREATE TABLE '.$table.' ( ';
-			foreach ($fields as $field => $props){
-				if ($field == 'UNIQUE') {
-					$field .='('.implode(',',$props).')';
-					$props = null;
-				}
-				$sql .= $field . ' ';
-				if (is_array($props)){
-					foreach ($props as $prop_k => $prop_v){
-						switch (true){
-							case $prop_k==='VARCHAR':
-								$sql.= 'VARCHAR('.$prop_v.') '; break;
-							case $prop_k==='DEFAULT':
-								$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
-							case $prop_k==='KEY':
-								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in document/controller.php!');
-								$sql.= 'PRIMARY KEY '; break;
-							default:
-								$sql .= $prop_v.' ';
-						}
-					}
-					$sql .= ", ";
-				} else $sql .= $props.", ";
-			}
+			foreach ($fields as $field => $props) $sql .= field_description($field,$props);
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 			assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
 		}
@@ -151,7 +140,8 @@ class DocumentPosition extends UmbrellaObject{
 
 		$query = $db->prepare('SELECT max(pos) AS pos FROM document_positions WHERE document_id = :iid');
 		assert($query->execute([':iid'=>$document->id]),'Was not able to read document position table');
-		$this->pos = reset($query->fetch(PDO::FETCH_ASSOC)) +1;
+		$rows = $query->fetch(PDO::FETCH_ASSOC);
+		$this->pos = reset($rows) +1;
 		$this->document = $document;
 		$this->document_id = $document->id;
 	}
@@ -245,16 +235,99 @@ class DocumentPosition extends UmbrellaObject{
 
 }
 
+class CompanyCustomerSettings extends UmbrellaObject{
+	function __construct($company_id,$doc_type_id,$cust_num){
+		$this->company_id = $company_id;
+		$this->document_type_id = $doc_type_id;
+		$this->customer_number = $cust_num;
+		$this->default_header = t('Please enter a new header.');
+		$this->default_footer = t('Please enter a new footer.');
+		$this->type_mail_text = t("Dear Ladies and Gentlemen,\n\nAttached to this mail you will find a new ? document. To open it, you need a pdf viewer.");
+	}
+
+	function applyTo(Document $document){
+		$document->head = $this->default_header;
+		$document->footer = $this->default_footer;
+	}
+
+	static function load($company,$doc_type_id,$customer_number){
+		$company_id = is_array($company) ? $company['id'] : $company;
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM company_customer_settings WHERE company_id = :cid and document_type_id = :tid AND customer_number = :num';
+		$args = [':cid'=>$company_id, ':tid'=>$doc_type_id, ':num' => $customer_number];
+		$query = $db->prepare($sql);
+		assert($query->execute($args),'Was not able to load settings for the selected company/customer.');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$customerSettings = new CompanyCustomerSettings($company_id,$doc_type_id,$customer_number);
+		foreach ($rows as $row) $customerSettings->patch($row);
+		$customerSettings->dirty = [];
+		return $customerSettings;
+	}
+
+	function save(){
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT count(*) AS count FROM company_customer_settings WHERE company_id = :cid AND document_type_id = :dtid AND customer_number = :cust');
+		assert($query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id, ':cust'=>$this->customer_number]),'Was not able to count settings for company/customer!');
+		$count = reset($query->fetch(PDO::FETCH_ASSOC));
+		if ($count == 0){ // new!
+			$known_fields = array_keys(CompanyCustomerSettings::table());
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$sql = 'INSERT INTO company_customer_settings ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
+			$query = $db->prepare($sql);
+			assert($query->execute($args),'Was not able to insert new row into company_customer_settings');
+		} else {
+			if (!empty($this->dirty)){
+				$sql = 'UPDATE company_customer_settings SET';
+				$args = [':cid'=>$this->company_id,':dtid'=>$this->document_type_id, ':cust'=>$this->customer_number];
+				foreach ($this->dirty as $field){
+					$sql .= ' '.$field.'=:'.$field.',';
+					$args[':'.$field] = $this->{$field};
+				}
+				$sql = rtrim($sql,',').' WHERE company_id = :cid AND document_type_id = :dtid AND customer_number = :cust';
+				$query = $db->prepare($sql);
+				assert($query->execute($args),'Was no able to update company_customer_settings in database!');
+			}
+		}
+	}
+
+	static function table(){
+		return [
+				'company_id'				=> ['INT','NOT NULL'],
+				'document_type_id'			=> ['INT','NOT NULL'],
+				'customer_number'			=> ['VARCHAR'=>255],
+				'default_header' 			=> 'TEXT',
+				'default_footer'			=> 'TEXT',
+				'type_mail_text'			=> 'TEXT',
+				'PRIMARY KEY'				=> '(company_id, document_type_id, customer_number)',
+		];
+	}
+
+	function updateFrom(Document $document){
+		$data = [
+			'default_header' => $document->head,
+			'default_footer' => $document->footer,
+		];
+		$this->patch($data);
+		$this->save();
+	}
+
+
+}
+
 class CompanySettings extends UmbrellaObject{
 	function __construct($company_id,$doc_type_id){
 		$this->company_id = $company_id;
 		$this->document_type_id = $doc_type_id;
-		$this->default_header = 'Please enter a new header.';
-		$this->default_footer = 'Please enter a new footer';
 		$this->type_prefix = '[[';
 		$this->type_suffix = ']]';
 		$this->type_number = 1;
-		$this->type_mail_text = "Dear Ladies and Gentlemen,\n\nAttached to this mail you will find a new ? document. To open it, you need a pdf viewer.";
 	}
 
 	static function load($company,$doc_type_id){
@@ -277,20 +350,15 @@ class CompanySettings extends UmbrellaObject{
 
 		$document->number = $this->type_prefix.$this->type_number.$this->type_suffix;
 		$this->patch(['type_number'=>$this->type_number+1]);
-		$document->head = $this->default_header;
-		$document->footer = $this->default_footer;
 	}
 
 	static function table(){
 		return [
 			'company_id'				=> ['INT','NOT NULL'],
 			'document_type_id'			=> ['INT','NOT NULL'],
-			'default_header' 			=> 'TEXT',
-			'default_footer'			=> 'TEXT',
 			'type_prefix'				=> ['TEXT','DEFAULT'=>'A'],
 			'type_suffix'				=> ['TEXT','DEFAULT'=>null],
 			'type_number'				=> ['INT','NOT NULL','DEFAULT 1'],
-			'type_mail_text'			=> 'TEXT',
 			'PRIMARY KEY'				=> '(company_id, document_type_id)',
 		];
 	}
@@ -299,7 +367,8 @@ class CompanySettings extends UmbrellaObject{
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM company_settings WHERE company_id = :cid AND document_type_id = :dtid');
 		assert($query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id]),'Was not able to count settings for company!');
-		$count = reset($query->fetch(PDO::FETCH_ASSOC));
+		$rows = $query->fetch(PDO::FETCH_ASSOC);
+		$count = reset($rows);
 		if ($count == 0){ // new!
 			$known_fields = array_keys(CompanySettings::table());
 			$fields = [];
@@ -333,8 +402,6 @@ class CompanySettings extends UmbrellaObject{
 		$suffix = preg_replace('/^\D*\d+/', '', $document->number);
 		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;
 		$data = [
-			'default_header' => $document->head,
-			'default_footer' => $document->footer,
 			'type_prefix' => $prefix,
 			'type_suffix' => $suffix,
 			'type_number' => max($number,$this->{'type_number'}),
@@ -480,7 +547,8 @@ class Document extends UmbrellaObjectWithId{
 	}
 
 	public function customer_short(){
-		return trim(reset(explode("\n",$this->customer)));
+		$parts = explode("\n",$this->customer);
+		return trim(reset($parts));
 	}
 
 	public function date(){
@@ -562,7 +630,7 @@ class Document extends UmbrellaObjectWithId{
 	}
 
 	public function mail_text(){
-		$company_settings = CompanySettings::load($this->company,$this->type->id);
+		$company_settings = CompanyCustomerSettings::load($this->company,$this->type->id,$this->customer_number);
 		return $company_settings->type_mail_text;
 	}
 
@@ -662,7 +730,7 @@ class Document extends UmbrellaObjectWithId{
 	}
 
 	public function update_mail_text($new_text){
-		$settings = CompanySettings::load($this->company,$this->type->id);
+		$settings = CompanyCustomerSettings::load($this->company,$this->type->id,$this->customer_number);
 		$settings->patch(['type_mail_text'=>$new_text]);
 		$settings->save();
 	}
@@ -764,6 +832,15 @@ class DocumentType extends UmbrellaObjectWithId{
 			$succ_id = ($successor->next_type_id == $succ_id) ? null : $successor->next_type_id;
 		}
 		return $successors;
+	}
+}
+
+class Settings {
+	static function table(){
+		return [
+				'key'	=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+				'value'	=> ['VARCHAR'=>255,'NOT NULL'],
+		];
 	}
 }
 
