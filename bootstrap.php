@@ -88,6 +88,32 @@ function error($message,$args = null){
 	return false;
 }
 
+function field_description($field,$props){
+	$sql = '';
+	if ($field == 'UNIQUE') {
+		$field .='('.implode(',',$props).')';
+		$props = null;
+	}
+	$sql .= $field . ' ';
+	if (is_array($props)){
+		foreach ($props as $prop_k => $prop_v){
+			switch (true){
+				case $prop_k==='VARCHAR':
+					$sql.= 'VARCHAR('.$prop_v.') '; break;
+				case $prop_k==='DEFAULT':
+					$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
+				case $prop_k==='KEY':
+					assert($prop_v === 'PRIMARY','Non-primary keys not implemented in document/controller.php!');
+					$sql.= 'PRIMARY KEY '; break;
+				default:
+					$sql .= $prop_v.' ';
+			}
+		}
+		$sql .= ", ";
+	} else $sql .= $props.", ";
+	return $sql;
+}
+
 function generateRandomString(){
 	return bin2hex(openssl_random_pseudo_bytes(40));
 }
@@ -164,6 +190,10 @@ function module_version(){
 	if (empty($_SESSION['modules'])) $_SESSION['modules'] = [];
 	if (!isset($_SESSION['modules'][MODULE])) $_SESSION['modules'][MODULE] = exec('git show -s --format=%ci HEAD');
 	return '"'.MODULE.'" module ('.$_SESSION['modules'][MODULE].') - ';
+}
+
+function no_error(){
+	return empty($_SESSION['errors']);
 }
 
 function objectFrom($entity){
@@ -286,7 +316,7 @@ function require_login($service_name = null){
 
 	if ($user === null) validateToken($service_name);
 	if ($user === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
-	if (isset($user->theme)) $theme = $user->theme;
+	if (!empty($user->theme)) $theme = $user->theme;
 }
 
 function revoke_token($token){
