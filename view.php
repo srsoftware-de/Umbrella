@@ -76,4 +76,5 @@ include '../common_templates/messages.php';
 	</tr>
 	<?php } ?>
 </table>
-<?php include '../common_templates/closure.php'; ?>
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'time:'.$time_id],false,NO_CONVERSION);
+include '../common_templates/closure.php'; ?>

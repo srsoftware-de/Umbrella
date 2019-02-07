@@ -278,7 +278,6 @@
 				if (empty($task)) $ids_of_missing_tasks[] = $task_id;
 			}
 			if (!empty($ids_of_missing_tasks)){
-				debug('re-loading tasks');
 				$tasks = request('task','json',['ids'=>$ids_of_missing_tasks]);
 				foreach ($tasks as $task_id => $task) $this->tasks[$task_id] = $task;
 			}
