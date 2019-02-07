@@ -34,6 +34,7 @@ $translations = array(
 		'select user'=>'Nutzer auswählen',
 		'share'=>'teilen',
 		'Site: ?'=>'Seite: ?',
+		'Stock'=>'Inventar',
 		'Tag "?"'=>'Schlagwort "?"',
 		'Tasks'=>'Aufgaben',
 		'This may take a very long time!'=>'Das kann sehr lange dauern!',
