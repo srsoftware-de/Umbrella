@@ -111,6 +111,7 @@ $translations = array(
 		'Show time'=>'Zeit anzeigen',
 		'Single price'=>'Einzelpreis (EUR)',
 		'State'=>'Status',
+		'Stock'=>'Inventar',
 		'Store PDF'=>'PDF speichern',
 		'Subject'=>'Betreff',
 		'Successor'=>'Nachfolger',
