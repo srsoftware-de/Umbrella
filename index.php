@@ -75,6 +75,6 @@ include '../common_templates/messages.php'; ?>
 		</tr>
 	</table>
 </fieldset>
-<?php if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(getUrl('files','index?path='.$path))],false,NO_CONVERSSION); ?>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'files:'.$path],false,NO_CONVERSSION); ?>
+<?php if (isset($services['bookmark'])) echo request('bookmark','html',['hash'=>sha1(getUrl('files','index?path='.$path))],false,NO_CONVERSION); ?>
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'files:'.$path],false,NO_CONVERSION); ?>
 <?php include '../common_templates/closure.php'; ?>

@@ -29,7 +29,8 @@ if (access_granted($dir) && !in_array($dir,['company','project'])){
 	redirect(getUrl('files','?path='.$dir));
 }
 
-$realm = array_shift(explode(DS,$dir));
+$parts = explode(DS,$dir);
+$realm = array_shift($parts);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
