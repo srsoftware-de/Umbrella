@@ -23,7 +23,7 @@ def expect(r,text=None):
         if text not in r.text:
             print r.text
             print CYEL+'expected text not found: '+CRED+text+CEND
-            assert(false)
+            assert(False)
         
     sys.stdout.write('.')
     sys.stdout.flush()
@@ -47,6 +47,15 @@ def expectInfo(response,message):
         print response.text
         print CYEL+'info '+CRED+message+CYEL+' expected, but other text found!'+CEND
         assert(false)
+        
+def expectNot(r,text):
+    if text in r.text:
+        print r.text
+        print CYEL+'found unexpected text: '+CRED+text+CEND
+        assert(False)
+        
+    sys.stdout.write('.')
+    sys.stdout.flush()
 
 def expectRedirect(response,url):
     keys = response.headers.keys()
