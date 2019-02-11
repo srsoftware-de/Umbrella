@@ -39,14 +39,14 @@ expectError(r,'Sie sind nicht an diesem Projekt beteiligt!')
 
 # user should be able to add users to own project, check form
 r = admin_session.get('http://localhost/project/1/add_user',allow_redirects=False)
-expect('<body class="project 1 add_user">' in r.text)
-expect('<form method="POST">' in r.text)
-expect('Benutzer zu admin-project hinzufügen' in r.text)
-expect('<select name="new_user_id">' in r.text)
-expect('<option value="" selected="true">== Nutzer auswählen ==</option>' in r.text)
-expect('<option value="1">admin</option>' not in r.text)
-expect('<option value="2">user2</option>' in r.text)
-expect('<input type="checkbox" name="notify" value="on" checked="true" />' in r.text)
+expect(r,'<body class="project 1 add_user">')
+expect(r,'<form method="POST">')
+expect(r,'Benutzer zu <a href="view">admin-project</a> hinzufügen')
+expect(r,'<select name="new_user_id">')
+expect(r,'<option value="" selected="true">== Nutzer auswählen ==</option>')
+expectNot(r,'<option value="1">admin</option>')
+expect(r,'<option value="2">user2</option>')
+expect(r,'<input type="checkbox" name="notify" value="on" checked="true" />')
 
 # user 2 should not be able to add users to project of user 1
 r = user_session.get('http://localhost/project/1/add_user',allow_redirects=False)
@@ -56,20 +56,20 @@ expectError(r,'Sie sind nicht berechtigt, die Nutzerliste dieses Projekts zu än
 
 # user should be able to add users to own project, check form
 r = user_session.get('http://localhost/project/3/add_user',allow_redirects=False)
-expect('<body class="project 3 add_user">' in r.text)
-expect('<form method="POST">' in r.text)
-expect('Benutzer zu common-project hinzufügen' in r.text)
-expect('<select name="new_user_id">' in r.text)
-expect('<option value="" selected="true">== Nutzer auswählen ==</option>' in r.text)
-expect('<option value="1">admin</option>' in r.text)
-expect('<option value="2">user2</option>' not in r.text)
-expect('<input type="checkbox" name="notify" value="on" checked="true" />' in r.text)
+expect(r,'<body class="project 3 add_user">')
+expect(r,'<form method="POST">')
+expect(r,'Benutzer zu <a href="view">common-project</a> hinzufügen')
+expect(r,'<select name="new_user_id">')
+expect(r,'<option value="" selected="true">== Nutzer auswählen ==</option>')
+expect(r,'<option value="1">admin</option>')
+expectNot(r,'<option value="2">user2</option>')
+expect(r,'<input type="checkbox" name="notify" value="on" checked="true" />')
 
 # add user 1 to project 3
 r = user_session.post('http://localhost/project/3/add_user',allow_redirects=False,data={'new_user_id':1})
 expectRedirect(r,'view')
 r = user_session.get('http://localhost/project/3/view',allow_redirects=False)
-expect('user2 (Eigentümer)' in r.text)
-expect('admin (Mitglied)' in r.text)
+expect(r,'user2 (Eigentümer)')
+expect(r,'admin (Mitglied)')
 
 print ('done')
