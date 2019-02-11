@@ -32,21 +32,21 @@ def expectError(response,message):
     if '<div class="errors">' not in response.text:
         print response.text
         print CYEL+'error tag expected, but not found!'+CEND
-        assert(false)
+        assert(False)
     if message not in response.text:
         print response.text
         print CYEL+'error '+CRED+message+CYEL+' expected, but other text found!'+CEND
-        assert(false)
+        assert(False)
 
 def expectInfo(response,message):
     if '<div class="infos">' not in response.text:
         print response.text
         print CYEL+'info tag expected, but not found!'+CEND
-        assert(false)
+        assert(False)
     if message not in response.text:
         print response.text
         print CYEL+'info '+CRED+message+CYEL+' expected, but other text found!'+CEND
-        assert(false)
+        assert(False)
         
 def expectNot(r,text):
     if text in r.text:
@@ -66,14 +66,14 @@ def expectRedirect(response,url):
         print CYEL+'response:'+CEND
         print response.text
         print CYEL+'No Location header set, but '+CRED+url+CYEL+' expected'+CEND
-        assert(false)
+        assert(False)
         
     if response.headers.get('Location') == url:
         sys.stdout.write('.')
         sys.stdout.flush()
     else:
         print CYEL+'Expected redirect to '+CRED+url+CYEL+', but found '+CRED+response.headers.get('Location')+CEND
-        assert(false)
+        assert(False)
 
 
 def expectJson(response,json_string):
@@ -85,7 +85,7 @@ def expectJson(response,json_string):
         print ''
         print 'expected json: '+json.dumps(j1)
         print '     got json: '+json.dumps(j2)
-        assert(false)
+        assert(False)
 
 def params(url):
     return urlparse.parse_qs(urlparse.urlparse(url).query)
