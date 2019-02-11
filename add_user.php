@@ -1,36 +1,41 @@
 <?php include 'controller.php';
 require_login('task');
 
-if ($task_id = param('id')){
-	$task = Task::load(['ids'=>$task_id]);
-
-	$title = $task->name.' - Umbrella';
-
-	if (!$task->is_writable()){
-		error('You are not allowed to edit the user list of this task!');
-		redirect('view');
-	}
-
-	$project_users = $task->project('users');
-	foreach ($task->users() as $uid => $u) unset($project_users[$uid]);
-
-	if (empty($project_users)) {
-		warn('All members of this project are already assigned to this task.');
-		redirect('view');
-	}
-
-	if ($users = param('users')){
-		$users = array_intersect_key($users,$project_users); // only users of the project may be added to the task
-		foreach ($users as $uid => $perm){
-			$u = $project_users[$uid]['data'];
-			$u['permission'] = $perm;
-			$task->add_user($u);
-		}
-		redirect('view');
-	}
-} else {
+$task_id = param('id');
+if (empty($task_id)){
 	error('No task id passed to add user!');
 	redirect(getUrl('task'));
+}
+
+$task = Task::load(['ids'=>$task_id]);
+if (empty($task)){
+	error('You don`t have access to that task!');
+	redirect(getUrl('task'));
+}
+
+$title = $task->name.' - Umbrella';
+
+if (!$task->is_writable()){
+	error('You are not allowed to edit the user list of this task!');
+	redirect(getUrl('task',$task_id.'/view'));
+}
+
+$project_users = $task->project('users');
+foreach ($task->users() as $uid => $u) unset($project_users[$uid]);
+
+if (empty($project_users)) {
+	warn('All members of this project are already assigned to this task.');
+	redirect(getUrl('task',$task_id.'/view'));
+}
+
+if ($users = param('users')){
+	$users = array_intersect_key($users,$project_users); // only users of the project may be added to the task
+	foreach ($users as $uid => $perm){
+		$u = $project_users[$uid]['data'];
+		$u['permission'] = $perm;
+		$task->add_user($u);
+	}
+	redirect(getUrl('task',$task_id.'/view'));
 }
 
 include '../common_templates/head.php';
