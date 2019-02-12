@@ -21,21 +21,30 @@ if (!$task->is_writable()){
 }
 
 $project_users = $task->project('users');
-foreach ($task->users() as $uid => $u) unset($project_users[$uid]);
-
 if (empty($project_users)) {
 	warn('All members of this project are already assigned to this task.');
 	redirect(getUrl('task',$task_id.'/view'));
 }
 
-if ($users = param('users')){
-	$users = array_intersect_key($users,$project_users); // only users of the project may be added to the task
+$users = param('users');
+if (!empty($users) && is_array($users)){
+	$notify = param('notify') == 'on';
+	$added = false;
 	foreach ($users as $uid => $perm){
+		if (!array_key_exists($uid, $project_users)){
+			error('User with id ? is not part of the project!',$uid);
+			continue;
+		}
+		if (array_key_exists($uid, $task->users())){
+			warn('? already assigned to task',$task->users()[$uid]);
+			continue;
+		}
+		if ($perm == Task::PERMISSION_OWNER) $perm = Task::PERMISSION_READ_WRITE;
 		$u = $project_users[$uid]['data'];
 		$u['permission'] = $perm;
-		$task->add_user($u);
+		if ($task->add_user($u,$notify)) $added = true;
 	}
-	redirect(getUrl('task',$task_id.'/view'));
+	if ($added) redirect(getUrl('task',$task_id.'/view'));
 }
 
 include '../common_templates/head.php';
@@ -58,8 +67,8 @@ if ($task->is_writable()){ ?>
 			?>
 			<tr>
 				<td><?= $u['data']['login']?></td>
-				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= TASK_PERMISSION_READ_WRITE ?>" <?= $perm == TASK_PERMISSION_READ_WRITE ? 'checked="checked"':'' ?>/></td>
-				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>"    value="<?= TASK_PERMISSION_READ ?>" <?= $perm == TASK_PERMISSION_READ ? 'checked="checked"':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $perm == Task::PERMISSION_READ_WRITE ? 'checked="checked"':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>"    value="<?= Task::PERMISSION_READ ?>" <?= $perm == Task::PERMISSION_READ ? 'checked="checked"':'' ?>/></td>
 				<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>"    value="0" <?= $perm == 0 ? 'checked="checked"':'' ?>/></td>
 			</tr>
 			<?php } ?>

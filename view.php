@@ -165,8 +165,8 @@ include '../common_templates/messages.php'; ?>
 					(<?= Task::perm_name($u['permissions']) ?>)
 					<?php if (isset($services['rtc']) && $uid != $user->id) { ?><a class="symbol" target="_blank" title="<?= t('Start conversation') ?>" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php } ?>
 					<?php if ( // deletion of user only possible if:
-						($task->users[$user->id]['permissions'] == TASK_PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task
-						&& $u['permissions'] != TASK_PERMISSION_OWNER){ // but only if user to be removed is not owner ?>
+						($task->users[$user->id]['permissions'] == Task::PERMISSION_OWNER || $uid == $user->id) // only owner of task may remove other users ; user may remove himself/herself from task
+						&& $u['permissions'] != Task::PERMISSION_OWNER){ // but only if user to be removed is not owner ?>
 					<a class="symbol" title="<?= t('De-assign user from task') ?>" href="drop_user?uid=<?= $uid ?>"></a>
 					<?php } ?>
 				</li>

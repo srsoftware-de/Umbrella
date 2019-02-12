@@ -64,5 +64,100 @@ expect(r,'<input type="radio" name="users[2]" title="nur lesen"    value="4" />'
 expect(r,'<input type="radio" name="users[2]" title="kein Zugriff"    value="0" checked="checked"/>')
 expect(r,'<input type="checkbox" name="notify" checked="checked"> Benutzer benachrichtigen')
 
+# users: missing | empty | non-existing | not-in-project | already-assinged | valid
+# users/value: missing | undefined | owner | read | write
+# notify: missing | empty | off | on
 
-print 'done '+CYEL+'(Tests missing: no form value combinations tested)'+CEND+'.'
+# users: missing, should re-produce form
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'notify':'on'})
+expect(r,'Benutzer zu Aufgabe "<a href="view">task one</a>" hinzufügen')
+expect(r,'<td>user2</td>')
+
+# users: empty, should re-produce the form
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users':'','notify':'on'})
+expect(r,'Benutzer zu Aufgabe "<a href="view">task one</a>" hinzufügen')
+expect(r,'<td>user2</td>')
+
+# users: non-existing
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[9999]':WRITE})
+expectError(r,'Nutzer mit ID 9999 ist nicht am Projekt beteiligt!');
+
+# users: not-in-project
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[3]':WRITE})
+expectError(r,'Nutzer mit ID 3 ist nicht am Projekt beteiligt!');
+
+# users: already-assigned
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[1]':WRITE})
+expectWarning(r,'admin ist dieser Aufgabe bereits zugewiesen')
+
+# users/value: missing, removes user from task
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[2]':''})
+expectRedirect(r,'http://localhost/task/1/view');
+
+
+
+# users/value: undefined
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[2]':9999})
+expectError(r,'Ungültige Berechtigung für user2 angefordert');
+
+# users/value: owner
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[2]':OWNER})
+expectRedirect(r,'http://localhost/task/1/view');
+
+rows = cursor.execute('SELECT * FROM tasks_users').fetchall()
+expect((1,USER2,WRITE) in rows)
+expect((1,USER2,OWNER) not in rows)
+cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
+db.commit();
+
+# users/value: read
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[2]':READ})
+expectRedirect(r,'http://localhost/task/1/view');
+
+rows = cursor.execute('SELECT * FROM tasks_users').fetchall()
+expect((1,USER2,READ) in rows)
+cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
+db.commit();
+
+# users/value: read
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[2]':WRITE})
+expectRedirect(r,'http://localhost/task/1/view');
+
+rows = cursor.execute('SELECT * FROM tasks_users').fetchall()
+expect((1,USER2,WRITE) in rows)
+cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
+db.commit();
+
+# notify: absent
+r = admin_session.post('http://localhost/task/1/add_user',data={'users[2]':WRITE})
+expectNot(r,'benachrichtigt')
+
+cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
+db.commit();
+
+# notify: empty
+r = admin_session.post('http://localhost/task/1/add_user',data={'users[2]':WRITE,'notify':''})
+expectNot(r,'benachrichtigt')
+
+cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
+db.commit();
+
+# notify: off
+r = admin_session.post('http://localhost/task/1/add_user',data={'users[2]':WRITE,'notify':'off'})
+expectNot(r,'benachrichtigt')
+
+cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
+db.commit();
+
+# notify: on
+r = admin_session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[2]':WRITE,'notify':'on'})
+expectRedirect(r,'http://localhost/task/1/view')
+
+r = admin_session.get('http://localhost/task/1/view')
+expectInfo(r,'Nutzer wurde per Mail benachrichtigt.')
+
+rows = cursor.execute('SELECT * FROM tasks_users').fetchall()
+expect((1,ADMIN,OWNER) in rows)
+expect((1,USER2,WRITE) in rows) # user should be added
+
+print 'done'

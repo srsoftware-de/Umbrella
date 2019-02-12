@@ -1,9 +1,6 @@
 <?php
 	include '../bootstrap.php';
 
-	const TASK_PERMISSION_OWNER = 1;
-	const TASK_PERMISSION_READ_WRITE = 2;
-	const TASK_PERMISSION_READ = 4;
 	const MODULE = 'Task';
 	$title = t('Umbrella Task Management');
 
@@ -56,6 +53,7 @@
 	}
 
 	class Task extends UmbrellaObjectWithId{
+		const NO_PERMISSION = 0;
 		const PERMISSION_OWNER = 1;
 		const PERMISSION_READ_WRITE = 2;
 		const PERMISSION_READ = 4;
@@ -242,7 +240,7 @@
 
 		public function is_writable(){
 			global $user;
-			return in_array($this->users($user->id)['permissions'],[TASK_PERMISSION_OWNER,TASK_PERMISSION_READ_WRITE]);
+			return in_array($this->users($user->id)['permissions'],[Task::PERMISSION_OWNER,Task::PERMISSION_READ_WRITE]);
 		}
 
 		public function send_note_notification($note_id = null){
@@ -371,7 +369,7 @@
 			assert($query->execute($args),'Was not able to create new task entry in database');
 			$this->id = $db->lastInsertId();
 			unset($this->dirty);
-			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>TASK_PERMISSION_OWNER]);
+			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>Task::PERMISSION_OWNER]);
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
 			$notify = (param('notify')=='on');
@@ -410,15 +408,27 @@
 			assert(!empty($this->id),'Task does not contain "id"');
 			assert(array_key_exists('id', $new_user),'$new_user array does not contain "id"');
 			assert(array_key_exists('permission', $new_user),'$new_user array does not contain "permission"');
-			assert(is_numeric($new_user['permission']),'new_user[permission] must be numeric, is '.$new_user['permission']);
+
+			$permission = $new_user['permission'];
+			switch ($permission){
+				case Task::PERMISSION_OWNER:
+				case Task::NO_PERMISSION: // also catches false and null
+				case Task::PERMISSION_READ:
+				case Task::PERMISSION_READ_WRITE:
+					break;
+				default:
+					debug($new_user);
+					error('Invalid permission set for ?',$new_user['login']);
+					return false;
+			}
 
 			$args = [':tid'=>$this->id,':uid'=>$new_user['id']];
 
 			$db = get_or_create_db();
 
-			if ($new_user['permission'] == 0){ // deassign
+			if ($new_user['permission'] == Task::NO_PERMISSION){ // deassign
 				$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != :perm;');
-				$args[':perm'] = TASK_PERMISSION_OWNER;
+				$args[':perm'] = Task::PERMISSION_OWNER;
 				assert($query->execute($args),'Was not able to remove user from task!');
 			} else { // assign
 				$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
@@ -448,6 +458,7 @@
 					info('Notification email has been sent.');
 				}
 			}
+			return true;
 		}
 
 		public function set_state($state){
@@ -536,7 +547,7 @@
 			$query = $db->prepare('DELETE FROM tasks_users WHERE user_id = :new AND task_id IN ('.$select.')');
 			assert($query->execute($args),'Was not able to strip your current permissions from user`s tasks!');
 
-			$query = $db->prepare('UPDATE tasks_users SET permissions='.TASK_PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
+			$query = $db->prepare('UPDATE tasks_users SET permissions='.Task::PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
 			assert($query->execute($args),'Was not able to assign user`s tasks to you!');
 		}
 

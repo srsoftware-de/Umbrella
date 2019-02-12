@@ -6,7 +6,7 @@ if ($project_id = param('id')){
 	if ($target_pid = param('target_project')){
 		$source = request('project','json',['ids'=>$project_id,'users'=>true]);
 		$users = [];
-		foreach ($source['users'] as $uid => $dummy) $users[$uid] = ['id'=>$uid, 'permission'=>TASK_PERMISSION_READ_WRITE];
+		foreach ($source['users'] as $uid => $dummy) $users[$uid] = ['id'=>$uid, 'permission'=>Task::PERMISSION_READ_WRITE];
 		$task = new Task();
 		$task->patch(['name'=>$source['name'],'description'=>$source['description'],'project_id'=>$target_pid,'users'=>$users])->save();
 

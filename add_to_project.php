@@ -23,7 +23,7 @@ if ($name = post('name')){
 				error('User with id ? is not member of the project!',$uid);
 				break;
 			}
-			if ($uid == $user->id) $perm = TASK_PERMISSION_OWNER;
+			if ($uid == $user->id) $perm = Task::PERMISSION_OWNER;
 			if ($perm == 0) continue;
 			$u = $project['users'][$uid]['data'];
 			$u['permission'] = $perm;
@@ -75,8 +75,8 @@ include '../common_templates/messages.php'; ?>
 				?>
 				<tr>
 					<td><?= $u['data']['login']?></td>
-					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= TASK_PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked"':'' ?>/></td>
-					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>" value="<?= TASK_PERMISSION_READ ?>" /></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked"':'' ?>/></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" /></td>
 					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>" value="0" <?= $owner?'':'checked="checked"' ?>/></td>
 				</tr>
 			<?php } ?>
