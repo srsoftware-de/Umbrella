@@ -48,6 +48,17 @@ def expectInfo(response,message):
         print CYEL+'info '+CRED+message+CYEL+' expected, but other text found!'+CEND
         assert(False)
         
+def expectJson(response,json_string):
+    j1 = json.loads(json_string)
+    j2 = json.loads(response.text)
+    if j1 == j2:
+        sys.stdout.write('.')
+    else:
+        print ''
+        print 'expected json: '+json.dumps(j1)
+        print '     got json: '+json.dumps(j2)
+        assert(False)
+        
 def expectNot(r,text):
     if text in r.text:
         print r.text
@@ -75,16 +86,14 @@ def expectRedirect(response,url):
         print CYEL+'Expected redirect to '+CRED+url+CYEL+', but found '+CRED+response.headers.get('Location')+CEND
         assert(False)
 
-
-def expectJson(response,json_string):
-    j1 = json.loads(json_string)
-    j2 = json.loads(response.text)
-    if j1 == j2:
-        sys.stdout.write('.')
-    else:
-        print ''
-        print 'expected json: '+json.dumps(j1)
-        print '     got json: '+json.dumps(j2)
+def expectWarning(response,message):
+    if '<div class="warnings">' not in response.text:
+        print response.text
+        print CYEL+'warnings tag expected, but not found!'+CEND
+        assert(False)
+    if message not in response.text:
+        print response.text
+        print CYEL+'warning '+CRED+message+CYEL+' expected, but other text found!'+CEND
         assert(False)
 
 def params(url):
