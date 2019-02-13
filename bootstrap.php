@@ -147,8 +147,7 @@ function getUrl($service_name,$path=''){
 	global $services;
 	assert($service_name !== null,'No service handed to getUrl!');
 	assert(isset($services[$service_name]['path']),'No '.$service_name.' service configured!');
-	$url = $services[$service_name]['path'].$path;
-	return $url;
+	return $services[$service_name]['path'].$path;
 }
 
 function html2plain($text){
