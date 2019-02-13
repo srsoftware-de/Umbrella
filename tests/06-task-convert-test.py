@@ -44,7 +44,6 @@ user_session,token = getSession('user2','test-passwd','task');
 # insert tasks for tests
 r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'subtask one','description':'first subtask','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 
-    
 # task id: none | non-existing | unaccessible | valid
 
 # task_id: absent
@@ -74,7 +73,7 @@ r = admin_session.get('http://localhost/task/1/convert',allow_redirects=False)
 expectRedirect(r,'http://localhost/project/4/view');
 
 r = admin_session.get(r.headers['location'])
-expectInfo(r,'Task wurde gelöscht')
+expectInfo(r,'Aufgabe wurde gelöscht')
 expect(r,'<title>Umbrella: Projekt task one</title>')
 expect(r,'<h1>task one</h1>')
 expect(r,'<p>task without name</p>')

@@ -1,26 +1,29 @@
 <?php include 'controller.php';
 require_login('task');
 
-if ($task_id = param('id')) {
-	$task = Task::load(['ids'=>$task_id]);
-	if ($task->is_writable()){
-		$target = param('redirect');
-		if (param('confirm')=='yes'){
-			$task->delete();
-			if ($target){
-				redirect($target);
-			} elseif ($task->parent_task_id){
-				redirect('../'.$task->parent_task_id.'/view');
-			}
-			redirect('../../project/'.$task->project_id.'/view');
-		}
-	} else {
-		error('Task does not exist or you are not allowed to access it.');
-	}
-
-} else {
+$task_id = param('id');
+if (empty($task_id)){
 	error('No task id passed!');
 	redirect(getUrl('task'));
+}
+
+$task = Task::load(['ids'=>$task_id]);
+if (empty($task)){
+	error('You don`t have access to that task!');
+	redirect(getUrl('task'));
+}
+
+if (!$task->is_writable()){
+	error('You are not allowed to modify this task.');
+	redirect(getUrl('task',$task->id.'/view'));
+}
+
+
+if (param('confirm')=='yes'){
+	$task->delete();
+	if ($target = param('redirect')) redirect($target);
+	if ($task->parent_task_id) redirect(getUrl('task',$task->parent_task_id.'/view'));
+	redirect(getUrl('project',$task->project_id.'/view'));
 }
 
 include '../common_templates/head.php';
