@@ -50,6 +50,7 @@ $translations = array(
 		'region'=>'Region',
 		'Save'=>'Speichern',
 		'short'=>'kurz',
+		'Stock'=>'Inventar',
 		'street'=>'Straße/Nummer',
 		'Street'=>'Straße/Nummer',
 		'suffix'=>'Suffix',
