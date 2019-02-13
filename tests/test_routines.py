@@ -8,7 +8,7 @@ import json
 CRED = '\033[91m'
 CYEL = '\033[33m'
 CEND = '\033[0m'
-error_count = 3
+error_count = 0
 
 # next three lines allow unicode handling
 import sys
