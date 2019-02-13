@@ -2,7 +2,6 @@
 require_login('task');
 
 $task_id = param('id');
-//if ($task_id != null && $task_id != 9999 && $task_id != 9999) redirect($task_id);
 if (empty($task_id)){
 	error('No task id passed!');
 	redirect(getUrl('task'));

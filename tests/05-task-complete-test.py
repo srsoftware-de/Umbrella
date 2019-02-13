@@ -20,7 +20,7 @@ READ=4
 
 # states:
 OPEN=10
-CANCELED=100
+COMPLETE=60
 
 db = sqlite3.connect('../db/tasks.db')
 cursor = db.cursor()
@@ -34,8 +34,8 @@ cursor.execute('UPDATE tasks SET status='+str(OPEN))
 db.commit();
 
 # check redirect to login for users that are not logged in
-r = requests.get('http://localhost/task/1/cancel',allow_redirects=False)
-expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Ftask%2F1%2Fcancel%3Fid%3D1')
+r = requests.get('http://localhost/task/1/complete',allow_redirects=False)
+expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Ftask%2F1%2Fcomplete%3Fid%3D1')
 
 # login
 admin_session,token = getSession('admin','admin','task')
@@ -48,21 +48,21 @@ r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=Fal
 # task id: none | non-existing | unaccessible | valid
 
 # task_id: absent
-r = admin_session.get('http://localhost/task/cancel',allow_redirects=False)
+r = admin_session.get('http://localhost/task/complete',allow_redirects=False)
 expectRedirect(r,'http://localhost/task/');
 
 r = admin_session.get('http://localhost/task/')
 expectError(r,'Keine Aufgaben-ID angegeben!')
 
 # task_id: non-existig
-r = admin_session.get('http://localhost/task/9999/cancel',allow_redirects=False)
+r = admin_session.get('http://localhost/task/9999/complete',allow_redirects=False)
 expectRedirect(r,'http://localhost/task/');
 
 r = admin_session.get('http://localhost/task/')
 expectError(r,'Sie sind nicht berechtigt, auf diese Aufgabe zuzugreifen')
 
 # task_id: non-accessible
-r = user_session.get('http://localhost/task/1/cancel',allow_redirects=False)
+r = user_session.get('http://localhost/task/1/complete',allow_redirects=False)
 expectRedirect(r,'http://localhost/task/');
 
 r = user_session.get('http://localhost/task/')
@@ -70,18 +70,18 @@ expectError(r,'Sie sind nicht berechtigt, auf diese Aufgabe zuzugreifen')
 
 # valid:
 # task with parent should redirect to parent
-r = user_session.get('http://localhost/task/2/cancel',allow_redirects=False)
+r = user_session.get('http://localhost/task/2/complete',allow_redirects=False)
 expectRedirect(r,'http://localhost/task/1/view');
 
 rows = cursor.execute('SELECT id,status FROM tasks').fetchall()
 expect((1,OPEN) in rows)
-expect((2,CANCELED) in rows)
+expect((2,COMPLETE) in rows)
     
 # task without redirect should be redirected to itself
-r = admin_session.get('http://localhost/task/1/cancel',allow_redirects=False)
+r = admin_session.get('http://localhost/task/1/complete',allow_redirects=False)
 expectRedirect(r,'http://localhost/task/1/view');
 
 rows = cursor.execute('SELECT id,status FROM tasks').fetchall()
-expect((1,CANCELED) in rows)
+expect((1,COMPLETE) in rows)
 
 print 'done.'
