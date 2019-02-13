@@ -130,14 +130,10 @@ function getLocallyFromToken(){
 	$user = null;
 
 	$query = $db->prepare('DELETE FROM tokens WHERE token = :token;');
-	foreach ($rows as $index => $row){
+	foreach ($rows as $row){
 		if ($row['expiration'] > $time){
 			$user = json_decode($row['user_data']); // read user data
-			//error_log('Loaded user locally by token');
-		} else {
-			$query->execute([':token'=>$row['token']]); // drop expired token
-			//error_log('removed expired token');
-		}
+		} else $query->execute([':token'=>$row['token']]); // drop expired token
 	}
 
 	return $user;
@@ -251,7 +247,6 @@ function query_insert($query,$args){
 }
 
 function redirect($url){
-	//error_log('redirecting to '.$url);
 	header('Location: '.$url);
 	die();
 }
