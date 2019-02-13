@@ -32,7 +32,7 @@ expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2F
 
 # login
 admin_session,token = getSession('admin','admin','task')
-user_session,token = getSession('user2','test-passwd','user');
+user_session,token = getSession('user2','test-passwd','task');
 
 # no project id: should produce redirect, then error
 r = admin_session.get('http://localhost/task/add_to_project',allow_redirects=False)

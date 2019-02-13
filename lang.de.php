@@ -55,6 +55,7 @@ $translations = array(
 		'No parent task id passed!'=>'Keine Id der übergeorndeten Aufgabe angegeben!',
 		'No project id passed!'=>'Keine Projekt-ID angegeben!',
 		'No task id passed to add user!'=>'Keine Aufgaben-ID zum Hinzufügen von Nutzern angegeben!',
+		'No task id passed!'=>'Keine Aufgaben-ID angegeben!',
 		'Notes'=>'Notizen',
 		'Notification email has been sent.'=>'Nutzer wurde per Mail benachrichtigt.',
 		'notify user'=>'Benutzer benachrichtigen',

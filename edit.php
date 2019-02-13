@@ -176,7 +176,9 @@ include '../common_templates/messages.php'; ?>
 				<input type="checkbox" name="silent" /> <?= t("Don't notify users") ?>
 			</label>
 		</fieldset>
-		<input type="submit" />
+		<button type="submit">
+			<?= t('Save task') ?>
+		</button>
 	</fieldset>
 </form>
 <?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task->id,'form'=>false],false,NO_CONVERSION);

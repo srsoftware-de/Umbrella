@@ -37,25 +37,24 @@ r = requests.get('http://localhost/task/add_subtask',allow_redirects=False)
 expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Ftask%2Fadd_subtask')
 
 # login
-admin_session,token = getSession('admin','admin','task')
-user_session,token = getSession('user2','test-passwd','user');
+session,token = getSession('admin','admin','task')
 
 # no parent id: should produce redirect, then error
-r = admin_session.get('http://localhost/task/add_subtask',allow_redirects=False)
+r = session.get('http://localhost/task/add_subtask',allow_redirects=False)
 expectRedirect(r,'http://localhost/project/')
 
-r = admin_session.get('http://localhost/project/',allow_redirects=False)
+r = session.get('http://localhost/project/',allow_redirects=False)
 expectError(r,'Keine Id der übergeorndeten Aufgabe angegeben!')
 
 # non-existing parent, shoud produce redirect, then error
-r = admin_session.get('http://localhost/task/9999/add_subtask',allow_redirects=False)
+r = session.get('http://localhost/task/9999/add_subtask',allow_redirects=False)
 expectRedirect(r,'http://localhost/project/')
 
-r = admin_session.get('http://localhost/project/',allow_redirects=False)
+r = session.get('http://localhost/project/',allow_redirects=False)
 expectError(r,'Sie sind nicht berechtigt, auf diese Aufgabe zuzugreifen!')
 
 # test form
-r = admin_session.get('http://localhost/task/1/add_subtask',allow_redirects=False)
+r = session.get('http://localhost/task/1/add_subtask',allow_redirects=False)
 expect(r,'Unteraufgabe zu "<a href="http://localhost/task/1/view">task one</a>" hinzufügen')
 expect(r,'<a href="http://localhost/project/3/view">common-project</a>')
 expect(r,'<input type="text" name="name" value="" autofocus="true"/>')
@@ -82,7 +81,7 @@ expect(r,'<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}
 #due_date: absent | empty | invalid | valid
 
 # name absent: shoud re-produce the form, with fields pre-filled
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'description':'task without name','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'description':'task without name','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expect(r,'Unteraufgabe zu "<a href="http://localhost/task/1/view">task one</a>" hinzufügen')
 expect(r,'<a href="http://localhost/project/3/view">common-project</a>')
 expect(r,'<input type="text" name="name" value="" autofocus="true"/>')
@@ -94,7 +93,7 @@ expect(r,'<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{
 expect(r,'<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" value="2019-02-01" />')
 
 # name empty: shoud re-produce the form, with fields pre-filled
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'','description':'task without name','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'','description':'task without name','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expect(r,'Unteraufgabe zu "<a href="http://localhost/task/1/view">task one</a>" hinzufügen')
 expect(r,'<a href="http://localhost/project/3/view">common-project</a>')
 expect(r,'<input type="text" name="name" value="" autofocus="true"/>')
@@ -106,7 +105,7 @@ expect(r,'<input name="start_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{
 expect(r,'<input name="due_date" type="date" pattern="[0-9]{4}-[0-9]{2}-[0-9]{2}" value="2019-02-01" />')
 
 # name valid: shoud produce redirect to task
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'subtask one','description':'first subtask','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'subtask one','description':'first subtask','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectRedirect(r,'http://localhost/task/1/view')
 
 # check task has been created in database
@@ -123,7 +122,7 @@ expect((new_id,USER2,READ) in rows)
 #description: absent | empty | valid
 
 # description absent: shoud produce redirect to task
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task three','est_time':3.5,'users[1]':READ,'users[2]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task three','est_time':3.5,'users[1]':READ,'users[2]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id+=1
 expectRedirect(r,'http://localhost/task/1/view')
 
@@ -136,7 +135,7 @@ expect((new_id,ADMIN,OWNER) in rows)
 expect((new_id,USER2,WRITE) in rows)
 
 # description empty: shoud produce redirect to task
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task four','description':'','est_time':4.5,'users[1]':WRITE,'users[2]':OWNER,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task four','description':'','est_time':4.5,'users[1]':WRITE,'users[2]':OWNER,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id+=1
 expectRedirect(r,'http://localhost/task/2/view')
 
@@ -153,7 +152,7 @@ expect((new_id,USER2,OWNER) in rows)
 #est_time: absent | empty | invalid | number
 
 # est_time empty
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task four','description':'fourth task','users[1]':OWNER,'users[2]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task four','description':'fourth task','users[1]':OWNER,'users[2]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/2/view')
 
@@ -166,12 +165,12 @@ expect((new_id,ADMIN,OWNER) in rows)
 expect((new_id,USER2,WRITE) in rows)
 
 # est_time invalid
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task five','description':'fifth task','est_time':'donald trump','users[1]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task five','description':'fifth task','est_time':'donald trump','users[1]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectError(r,'"donald trump" ist keine gültige Dauer!')
 expect(r,'<input type="number" name="est_time" value="donald trump" />')
 
 # est time is integer
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task five','description':'fifth task','est_time':1,'users[1]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task five','description':'fifth task','est_time':1,'users[1]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/2/view')
 
@@ -182,7 +181,7 @@ rows = cursor.execute('SELECT * FROM tasks_users WHERE task_id = '+str(new_id)).
 expect((new_id,ADMIN,OWNER) in rows)
 
 # est time is float
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task six','description':'sixth task','est_time':1.7,'users[1]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task six','description':'sixth task','est_time':1.7,'users[1]':WRITE,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/2/view')
 
@@ -197,19 +196,19 @@ expect((new_id,ADMIN,OWNER) in rows)
 #users: absent | empty | text | non-existing | not-in-project | valid
 
 # users absent
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectError(r,'Es muss mindestens ein Benutzer ausgewählt werden!')
 
 # users empty
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users':'','notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users':'','notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectError(r,'Es muss mindestens ein Benutzer ausgewählt werden!')
 
 # users is string
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users':'nope','notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users':'nope','notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectError(r,'Es muss mindestens ein Benutzer ausgewählt werden!')
 
 # users is array of strings
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users[1]':'nope','notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users[1]':'nope','notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/2/view')
 
@@ -220,51 +219,51 @@ rows = cursor.execute('SELECT * FROM tasks_users WHERE task_id = '+str(new_id)).
 expect((new_id,ADMIN,OWNER) in rows)
 
 # users contains non-existing user
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users[9999]':OWNER,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users[9999]':OWNER,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectError(r,'Es muss mindestens ein Benutzer ausgewählt werden!')
 
 # user is not in project
-r = admin_session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users[3]':OWNER,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/2/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':1.7,'users[3]':OWNER,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 expectError(r,'Es muss mindestens ein Benutzer ausgewählt werden!')
 
 
 #notify: absent | empty | off | on
 
 #notify: absent
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task seven','description':'seventh task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
-r = admin_session.post('http://localhost/task/1/view')
+r = session.post('http://localhost/task/1/view')
 expectNot(r,'Nutzer wurde per Mail benachrichtigt.')
 
 #notify: empty
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task eigth','description':'eigth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task eigth','description':'eigth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
-r = admin_session.post('http://localhost/task/1/view')
+r = session.post('http://localhost/task/1/view')
 expectNot(r,'Nutzer wurde per Mail benachrichtigt.')
 
 #notify: off
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task nine','description':'ninth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'off','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task nine','description':'ninth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'off','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
-r = admin_session.post('http://localhost/task/1/view')
+r = session.post('http://localhost/task/1/view')
 expectNot(r,'Nutzer wurde per Mail benachrichtigt.')
 
 #notify: on
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task ten','description':'tenth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task ten','description':'tenth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
-r = admin_session.post('http://localhost/task/1/view')
+r = session.post('http://localhost/task/1/view')
 expect(r,'Nutzer wurde per Mail benachrichtigt.')
 
 #start_date: absent | empty | invalid | valid
 # start_date absent
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task eleven','description':'eleventh task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task eleven','description':'eleventh task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
@@ -272,7 +271,7 @@ rows = cursor.execute('SELECT * FROM tasks').fetchall()
 expect((new_id, COMMON_PROJECT, 1, 'task eleven', 'eleventh task', 10, 2.5, None, '2019-02-01', None, None) in rows)
 
 # start_date empty
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task twelfe','description':'twelfth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task twelfe','description':'twelfth task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'','due_date':'2019-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
@@ -280,12 +279,12 @@ rows = cursor.execute('SELECT * FROM tasks').fetchall()
 expect((new_id, COMMON_PROJECT, 1, 'task twelfe', 'twelfth task', 10, 2.5, None, '2019-02-01', None, None) in rows)
 
 # start_date invalid
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task thirteen','description':'13th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'grunzwanzling','due_date':'2019-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task thirteen','description':'13th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'grunzwanzling','due_date':'2019-02-01'})
 expect(r,'Startdatum (grunzwanzling) ist kein gültiges Datum!')
 
 #due_date: absent | empty | invalid | valid
 #due_date: abent
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task thirteen','description':'13th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task thirteen','description':'13th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
@@ -293,7 +292,7 @@ rows = cursor.execute('SELECT * FROM tasks').fetchall()
 expect((new_id, COMMON_PROJECT, 1, 'task thirteen', '13th task', 10, 2.5, '2019-01-14', None, None, None) in rows)
 
 #due_date: empty
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task fourteen','description':'14th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':''})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task fourteen','description':'14th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':''})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
@@ -301,14 +300,14 @@ rows = cursor.execute('SELECT * FROM tasks').fetchall()
 expect((new_id, COMMON_PROJECT, 1, 'task fourteen', '14th task', 10, 2.5, '2019-01-14', None, None, None) in rows)
 
 #due_date: invalid
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task fourteen','description':'14th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'vorgonische Dichtung'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task fourteen','description':'14th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'vorgonische Dichtung'})
 expect(r,'Fälligkeits-Datum (vorgonische Dichtung) ist kein gültiges Datum!')
 
-r = admin_session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task fifteen','description':'15th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2018-02-01'})
+r = session.post('http://localhost/task/1/add_subtask',allow_redirects=False,data={'name':'task fifteen','description':'15th task','est_time':2.5,'users[1]':OWNER,'users[2]':READ,'notify':'on','tags':'ene mene muh','start_date':'2019-01-14','due_date':'2018-02-01'})
 new_id += 1
 expectRedirect(r,'http://localhost/task/1/view')
 
-r = admin_session.get('http://localhost/task/1/view')
+r = session.get('http://localhost/task/1/view')
 expect(r,'Start-Datum wurde dem Fälligkeitsdatum angepasst!')
 
 print 'done.'
