@@ -106,7 +106,7 @@ if ($action == 'delete'){?>
 				<ul>
 				<?php foreach ($process->connectors() as $conn) { ?>
 					<li title="<?= $conn->description ?>">
-						<span class="symbol"><?= $conn->base->direction?'':''?></span>
+						<span class="symbol"><?= $conn->base->direction?'':''?></span>
 						<input type="text" name="connector_names[<?= $conn->id ?>]" value="<?= $conn->base->id ?>" />
 					</li>
 				<?php } ?>
