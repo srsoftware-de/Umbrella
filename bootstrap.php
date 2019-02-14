@@ -83,6 +83,7 @@ function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index'))
 }
 
 function error($message,$args = null){
+	if ($message instanceof Exception) $message = $message->getMessage();
 	if ($message === null) return;
 	$_SESSION['errors'][crc32($message)] = t($message,$args);
 	return false;
@@ -415,6 +416,10 @@ function task_state($state){
 		case TASK_STATUS_COMPLETE : return 'completed';
 	}
 	return 'unknown';
+}
+
+function throw_exception($text,$replacements){
+	throw new Exception(t($text,$replacements));
 }
 
 /* uses the user service to validate the session token and get user data */
