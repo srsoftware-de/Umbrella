@@ -276,23 +276,7 @@
 			global $services,$user;
 
 			// check
-			assert(!empty($this->id),'$task does not contain "id"');
-			assert(!empty($this->name),'Task name must be set!');
-			assert(!empty($this->project_id),'Task must reference project!');
-
-			// calculate
-			if (!empty($this->start_date)){
-				$start_stamp = strtotime($this->start_date);
-				assert($start_stamp !== false,'Start date is not a valid date!');
-			}
-			if (!empty($this->due_date)){
-				$due_stamp = strtotime($this->due_date);
-				assert($due_stamp !== false,'Due date is not a valid date!');
-				if ($start_stamp && $start_stamp > $due_stamp){
-					$this->start_date = $this->due_date;
-					warn('Start date adjusted to match due date!');
-				}
-			}
+			if (empty($this->id)) throw new Exception("task does not contain id");
 
 			// save
 			$db = get_or_create_db();
@@ -309,11 +293,11 @@
 					':closed'=>$this->show_closed,
 					':nidx'=>$this->no_index,
 			];
-			assert($query->execute($args),'Was not able to alter task entry in database');
+			assert($query->execute($args),'Was not able to alter task entry in dtabase');
 			unset($this->dirty);
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
-			if (param('silent') != 'on'){ // notify task users
+			if (param('silent','off') != 'on'){ // notify task users
 				$sender = $user->email;
 				foreach ($this->users() as $uid => $u){
 					if ($uid == $user->id) continue;
@@ -329,29 +313,33 @@
 
 		public function save(){
 			global $user,$services;
-			if (isset($this->id)) return $this->update();
-			$db = get_or_create_db();
-			assert(!empty($this->name),'Task name must not be empty or null!');
-			assert(is_numeric($this->project_id),'Task must reference project!');
-			$start_stamp = null;
-			$this->status = TASK_STATUS_OPEN;
 
+			if (empty($this->name)) throw new Exception('Task name must be set!');
+			if (!is_numeric($this->project_id)) throw new Exception('Task must reference existing project!');
+			if (!empty($this->est_time) && !is_numeric($this->est_time)) throw_exception('"?" is not a valid duration!',$this->est_time);
+
+			$start_stamp = null;
 			if (!empty($this->start_date)){
 				$start_stamp = strtotime($this->start_date);
-				if ($start_stamp === false) return error('Start date (?) is not a valid date!',$this->start_date);
+				if ($start_stamp === false) throw_exception('Start date (?) is not a valid date!',$this->start_date);
 				if ($start_stamp > time()) $this->status = TASK_STATUS_PENDING;
 			} else $this->start_date = null;
 
 			if (!empty($this->due_date)){
 				$due_stamp = strtotime($this->due_date);
-				if ($due_stamp === false) return error('Due date (?) is not a valid date!', $this->due_date);
+				if ($due_stamp === false) throw_exception('Due date (?) is not a valid date!', $this->due_date);
 				if ($start_stamp && $start_stamp > $due_stamp){
 					$this->start_date = $this->due_date;
 					info('Start date adjusted to match due date!');
 				}
 			} else $this->due_date = null;
 
-			if (!empty($this->est_time) && !is_numeric($this->est_time)) return error('"?" is not a valid duration!',$this->est_time);
+			if (isset($this->id)) return $this->update();
+			$db = get_or_create_db();
+
+			$this->status = TASK_STATUS_OPEN;
+
+
 			$query = $db->prepare('INSERT INTO tasks (name, project_id, parent_task_id, description, status, est_time, start_date, due_date, show_closed, no_index) VALUES (:name, :pid, :parent, :desc, :state, :est, :start, :due, :closed, :nidx);');
 			$args = [
 					':name'=>$this->name,
@@ -389,6 +377,7 @@
 				$query->execute([':tid'=>$this->id]);
 				return $this;
 			}
+			if (!is_array($required_task_ids)) throw_exception('Required tasks should be a list, ? found!',$required_task_ids);
 			$required_task_ids = array_keys($required_task_ids);
 
 			$qmarks = implode(',', array_fill(0, count($required_task_ids), '?'));
@@ -398,7 +387,10 @@
 			$query = $db->prepare('DELETE FROM task_dependencies WHERE required_task_id NOT IN ('.$qmarks.') AND task_id = ?');
 			$query->execute($args);
 			$query = $db->prepare('INSERT INTO task_dependencies (task_id, required_task_id) VALUES (:id, :req);');
-			foreach ($required_task_ids as $rid) $query->execute([':id'=>$this->id,':req'=>$rid]);
+			foreach ($required_task_ids as $rid) {
+				if (empty($rid)) continue;
+				$query->execute([':id'=>$this->id,':req'=>$rid]);
+			}
 			return $this;
 		}
 

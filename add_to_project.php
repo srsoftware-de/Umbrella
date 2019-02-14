@@ -32,7 +32,11 @@ if ($name = post('name')){
 	}
 	if (!empty($users)){
 		$task = new Task();
-		if ($task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save()) redirect(getUrl('task',$task->id.'/view'));
+		try {
+			if ($task->patch($_POST)->patch(['project_id'=>$project_id,'users'=>$users])->save()) redirect(getUrl('task',$task->id.'/view'));
+		} catch (Exception $e){
+			error($e);
+		}
 	} else error('Selection of at least one user is required!');
 }
 

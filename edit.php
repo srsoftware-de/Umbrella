@@ -1,44 +1,73 @@
 <?php include 'controller.php';
 require_login('task');
 
-if ($task_id = param('id')){
-	$task = Task::load(['ids'=>$task_id]);
-	if (!$task->is_writable()) {
-		error('You are not allowed to edit this task!');
-		redirect('view');
-	}
+$task_id = param('id');
+if (empty($task_id)){
+	error('No task id passed!');
+	redirect(getUrl('task'));
+}
 
-	if ($name = post('name')){
-		$task->patch(['name'=>$name]);
+$task = Task::load(['ids'=>$task_id]);
+if (empty($task)){
+	error('You don`t have access to that task!');
+	redirect(getUrl('task'));
+}
 
-		if ($start_date = post('start_date')){
-			$modifier = post('start_extension');
-			$task->patch(['start_date' => $modifier ? date('Y-m-d',strtotime($start_date.' '.$modifier)) : $start_date]);
-		} else $task->patch(['start_date' => null]);
-
-		if ($due_date = post('due_date')){
-			$modifier = post('due_extension');
-			$task->patch(['due_date' => $modifier ? date('Y-m-d',strtotime($due_date.' '.$modifier)) : $due_date]);
-		} else $task->patch(['due_date' => null]);
-
-		if ($description = post('description')) $task->patch(['description' => $description]);
-
-		if ($parent = post('parent_task_id')) $task->patch(['parent_task_id' => ($parent == 0) ? null : $parent]);
-		if ($new_project_id = post('project_id')) {
-			if ($new_project_id != $task->project_id) $task->patch(['project_id' => $new_project_id,'parent_task_id' => null]);
-		}
-		$task->patch(['show_closed'=>(post('show_closed','off')=='on')?1:0]);
-		$task->patch(['no_index'=>(post('no_index','off')=='on')?1:0]);
-		$task->save()->update_requirements(post('required_tasks'));
-
-		redirect(param('redirect','view'));
-	}
-} else error('No task id passed!');
+if (!$task->is_writable()){
+	error('You are not allowed to modify this task.');
+	redirect(getUrl('task',$task->id.'/view'));
+}
 
 $projects = request('project','json',['users'=>'true']);
 
 // load other tasks of the project for the dropdown menu
 $project_tasks = Task::load(['order'=>'name','project_ids'=>$task->project_id]);
+
+if ($name = post('name')){
+	try {
+		$task->patch(['name'=>$name]);
+
+		if ($start_date = post('start_date')){
+			$modifier = post('start_extension');
+			$modifier = empty($modifier) ? '' : ' '.$modifier;
+			$stamp = strtotime($start_date.$modifier);
+			if ($stamp === false) throw_exception('Start date (?) is not a valid date!',$start_date.$modifier);
+			$task->patch(['start_date' => date('Y-m-d',$stamp)]);
+		} else $task->patch(['start_date' => null]);
+
+		if ($due_date = post('due_date')){
+			$modifier = post('due_extension');
+			$modifier = empty($modifier) ? '' : ' '.$modifier;
+			$stamp = strtotime($due_date.$modifier);
+			if ($stamp === false) throw_exception('Due date (?) is not a valid date!',$due_date.$modifier);
+			$task->patch(['due_date' => date('Y-m-d',$stamp)]);
+		} else $task->patch(['due_date' => null]);
+
+		$description = post('description');
+		if ($description !== null) $task->patch(['description' => empty($description)?'':$description]);
+
+		$est_time = post('est_time');
+		if ($est_time !== null) $task->patch(['est_time' => empty($est_time)?null:$est_time]);
+
+		$parent = post('parent_task_id');
+		if (!empty($parent)) {
+			if (!array_key_exists($parent, $project_tasks)) throw new Exception('Parent task must belong to the same project as the edited task!');
+			$task->patch(['parent_task_id' => $parent]);
+		} else $task->patch(['parent_task_id' => null]);
+
+		if ($new_project_id = post('project_id')) {
+			if (!array_key_exists($new_project_id, $projects)) throw new Exception('Task must reference existing project!');
+			if ($new_project_id != $task->project_id) $task->patch(['project_id' => $new_project_id,'parent_task_id' => null]);
+		}
+		$task->patch(['show_closed'=>(post('show_closed','off')=='on')?1:0]);
+		$task->patch(['no_index'=>(post('no_index','off')=='on')?1:0]);
+		$task->save()->update_requirements(post('required_tasks'));
+		redirect(param('redirect',getUrl('task',$task->id.'/view')));
+	} catch (Exception $e){
+		error($e->getMessage());
+	}
+}
+
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('task',$task_id.'/view'));
