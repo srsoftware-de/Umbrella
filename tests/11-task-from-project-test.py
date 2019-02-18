@@ -36,8 +36,8 @@ cursor.execute('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (
 db.commit();
 
 # check redirect to login for users that are not logged in
-r = requests.get('http://localhost/task/1/from_project',allow_redirects=False)
-expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Ftask%2F1%2Ffrom_project%3Fid%3D1')
+r = requests.get('http://localhost/task/from_project',allow_redirects=False)
+expectRedirect(r,'http://localhost/user/login?returnTo=http%3A%2F%2Flocalhost%2Ftask%2Ffrom_project')
 
 # login
 admin_session,token = getSession('admin','admin','task')
