@@ -1,28 +1,43 @@
 <?php include 'controller.php';
 require_login('task');
 
-if ($project_id = param('id')){
-	$all_projects = request('project','json');
-	if ($target_pid = param('target_project')){
-		$source = request('project','json',['ids'=>$project_id,'users'=>true]);
-		$users = [];
-		foreach ($source['users'] as $uid => $dummy) $users[$uid] = ['id'=>$uid, 'permission'=>Task::PERMISSION_READ_WRITE];
-		$task = new Task();
-		$task->patch(['name'=>$source['name'],'description'=>$source['description'],'project_id'=>$target_pid,'users'=>$users])->save();
-
-		$tasks_of_source = Task::load(['project_ids'=>$project_id]);
-		foreach ($tasks_of_source as $depending_task){
-			$depending_task->patch(['project_id'=>$target_pid]);
-			if (empty($depending_task->parent_task_id)) $depending_task->patch(['parent_task_id' => $task->id]);
-			$depending_task->save();
-		}
-		if (isset($services['notes'])) request('notes','project:'.$project_id.'/update_uri?new=task:'.$task->id);
-		request('project','cancel',['id'=>$project_id]);
-		redirect(getUrl('task',$task->id.'/view'));
-	}
-} else {
+$project_id = param('id');
+if (empty($project_id)){
 	error('No project id passed!');
 	redirect(getUrl('task'));
+}
+
+$source = request('project','json',['ids'=>$project_id,'users'=>true]);
+if (empty($source)){
+	error('You don`t have access to that project!');
+	redirect(getUrl('task'));
+}
+
+$all_projects = request('project','json');
+if ($target_pid = param('target_project')){
+	if (!array_key_exists($target_pid, $all_projects)){
+		error('You don`t have access to that project!');
+		redirect(getUrl('project',$project_id.'/view'));
+	}
+	if ($target_pid == $project_id){
+		error('You can`t add the project to itself!');
+		redirect(getUrl('project',$project_id.'/view'));
+	}
+
+	$users = [];
+	foreach ($source['users'] as $uid => $dummy) $users[$uid] = ['id'=>$uid, 'permission'=>Task::PERMISSION_READ_WRITE];
+	$task = new Task();
+	$task->patch(['name'=>$source['name'],'description'=>$source['description'],'project_id'=>$target_pid,'users'=>$users])->save();
+
+	$tasks_of_source = Task::load(['project_ids'=>$project_id]);
+	foreach ($tasks_of_source as $depending_task){
+		$depending_task->patch(['project_id'=>$target_pid]);
+		if (empty($depending_task->parent_task_id)) $depending_task->patch(['parent_task_id' => $task->id]);
+		$depending_task->save();
+	}
+	if (isset($services['notes'])) request('notes','project:'.$project_id.'/update_uri?new=task:'.$task->id);
+	request('project','cancel',['id'=>$project_id]);
+	redirect(getUrl('task',$task->id.'/view'));
 }
 
 include '../common_templates/head.php';

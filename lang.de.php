@@ -120,6 +120,7 @@ $translations = array(
 		'Yes'=>'Ja',
 		'You are not allowed to add users to this task, who are not member of the project.'=>'Sie können der Aufgabe keine Nutzer zuordnen, die nicht zum Projekt gehören.',
 		'You are not allowed to modify this task.'=>'Sie haben keine Berechtigung die Aufgabe zu ändern!',
+		'You can`t add the project to itself!'=>'Sie können das Projekt nicht in sich selbst einfügen!',
 		'You don`t have access to that project!'=>'Sie sind nicht berechtigt, auf dieses Projekt zuzugreifen!',
 		'You don`t have access to that task!'=>'Sie sind nicht berechtigt, auf diese Aufgabe zuzugreifen!',
 		'You have been assigned to the task "?": '=>'Sie wurden der Aufgabe "?" zugewiesen: ',

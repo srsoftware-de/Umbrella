@@ -20,7 +20,7 @@ READ=4
 
 # states:
 OPEN=10
-editED=100
+CANCELED=100
 
 db = sqlite3.connect('../db/tasks.db')
 cursor = db.cursor()

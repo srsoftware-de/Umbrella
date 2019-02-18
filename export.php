@@ -1,19 +1,27 @@
 <?php include 'controller.php';
 require_login('task');
 
-$bookmark = false;
+$task_id = param('id');
+if (empty($task_id)){
+	error('No task id passed!');
+	redirect(getUrl('task'));
+}
 
-if ($task_id = param('id')){
-	if ($task = Task::load(['ids'=>$task_id])){
-		$title = $task->name.' - Umbrella';
-		$show_closed_children = param('closed') == 'show';
-		if (isset($services['bookmark'])){
-			$hash = sha1(location('*'));
-			$bookmark = request('bookmark','json_get?id='.$hash);
-		}
-//		header('Content-Disposition: attachment; filename="'.$task->name.'.html"');
-	} else error('Task does not exist or you are not allowed to access it.');
-} else error('No task id passed to view!');
+$task = Task::load(['ids'=>$task_id]);
+if (empty($task)){
+	error('You don`t have access to that task!');
+	redirect(getUrl('task'));
+}
+
+$title = $task->name.' - Umbrella';
+$show_closed_children = param('closed') == 'show';
+
+$bookmark = false;
+if (isset($services['bookmark'])){
+	$hash = sha1(location('*'));
+	$bookmark = request('bookmark','json_get?id='.$hash);
+}
+header('Content-Disposition: attachment; filename="'.$task->name.'.html"');
 
 function display_children($task){
 	global $show_closed_children,$task_id,$services;
