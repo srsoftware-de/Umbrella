@@ -3,7 +3,7 @@
 import sys, time
 sys.path.append("/var/www/tests")
 from test_routines import *
-exit(0);
+
 # Projects
 ADMIN_PROJECT=1
 USER2_PROJECT=2
