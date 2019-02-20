@@ -45,7 +45,7 @@ r = session.get('http://localhost/task/add_user',allow_redirects=False)
 expectRedirect(r,'http://localhost/task/')
 
 r = session.get('http://localhost/task/',allow_redirects=False)
-expectError(r,'Keine Aufgaben-ID zum Hinzufügen von Nutzern angegeben!')
+expectError(r,'Keine Aufgaben-ID angegeben!')
 
 # non-existing task id, shoud produce redirect, then error
 r = session.get('http://localhost/task/9999/add_user',allow_redirects=False)
