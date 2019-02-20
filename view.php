@@ -1,22 +1,27 @@
 <?php include 'controller.php';
 require_login('task');
 
-$task_id = param('id');
-$bookmark = false;
 
-if ($task_id){
-	if ($task = Task::load(['ids'=>$task_id])){
-		$title = $task->name.' - Umbrella';
-		$show_closed_children = $task->show_closed == 1 || param('closed') == 'show';
-		if ($note_id = param('note_added')) $task->send_note_notification($note_id);
-		if (isset($services['bookmark'])){
-			$hash = sha1(location('*'));
-			$bookmark = request('bookmark','json_get?id='.$hash);
-		}
-	} else { // task not loaded
-		error('Task does not exist or you are not allowed to access it.');
-	}
-} else /*no task id*/ error('No task id passed to view!');
+$task_id = param('id');
+if (empty($task_id)){
+	error('No task id passed!');
+	redirect(getUrl('task'));
+}
+
+$task = Task::load(['ids'=>$task_id]);
+if (empty($task)){
+	error('You don`t have access to that task!');
+	redirect(getUrl('task'));
+}
+
+$title = $task->name.' - Umbrella';
+$show_closed_children = $task->show_closed == 1 || param('closed') == 'show';
+if ($note_id = param('note_added')) $task->send_note_notification($note_id);
+$bookmark = false;
+if (isset($services['bookmark'])){
+	$hash = sha1(location('*'));
+	$bookmark = request('bookmark','json_get?id='.$hash);
+}
 
 function display_children($task){
 	global $show_closed_children,$task_id,$services;

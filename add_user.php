@@ -3,7 +3,7 @@ require_login('task');
 
 $task_id = param('id');
 if (empty($task_id)){
-	error('No task id passed to add user!');
+	error('No task id passed!');
 	redirect(getUrl('task'));
 }
 
