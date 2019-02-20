@@ -53,7 +53,7 @@ function get_or_create_db(){
 	return $db;
 }
 
-function arrow($x1,$y1,$x2,$y2,$text = null,$link = null){
+function arrow($x1,$y1,$x2,$y2,$text = null,$link = null, $title=null){
 if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 <g class="arrow">
 	<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
@@ -61,9 +61,10 @@ if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 	<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
 	<?php $x1 = $x2 - 25*sin($alpha-0.2); $y1 = $y2 - 25*cos($alpha-0.2); ?>
 	<line x1="<?= $x1 ?>" y1="<?= $y1 ?>" x2="<?= $x2 ?>" y2="<?= $y2 ?>" />
-	<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="15" /><text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?></text>
+	<circle cx="<?= $x2-$dx/2 ?>" cy="<?= $y2-$dy/2 ?>" r="15" />
+	<text x="<?= $x2-$dx/2 ?>" y="<?= $y2-$dy/2 ?>"><?= $text ?><?php if (!empty($title)) { ?><title><?= htmlspecialchars($title) ?></title><?php } ?></text>
 </g>
-<?php if ($link){ ?></a><?php } 
+<?php if ($link){ ?></a><?php }
 }
 
 function markdown($text){
@@ -79,7 +80,7 @@ class Connector extends UmbrellaObjectWithId{
 	/* static functions */
 	const DIR_IN = 0;
 	const DIR_OUT = 1;
-	
+
 	static function fields(){
 		return [
 			'id' => ['VARCHAR'=>255, 'NOT NULL'],
@@ -89,13 +90,13 @@ class Connector extends UmbrellaObjectWithId{
 			'PRIMARY KEY'=>'(id, project_id)',
 		];
 	}
-	
+
 	static function load($options = []){
 		//debug(['method'=>'Connector::load','options'=>$options]);
 		$sql = 'SELECT * FROM connectors';
 		$where = [];
 		$args = [];
-	
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -107,25 +108,25 @@ class Connector extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['process_id'])){
 			$where[] = 'process_id = ?';
 			$args[] = $options['process_id'];
 		}
-		
+
 		if (isset($options['project_id'])){
 			$where[] = 'project_id = ?';
 			$args[] = $options['project_id'];
 		}
 
 		$db = get_or_create_db();
-		
+
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
 		//debug(query_insert($query,$args));
 		assert($query->execute($args),'Was not able to load connectors');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$connectors = [];
-	
+
 		foreach ($rows as $row){
 			$connector = new Connector();
 			$connector->patch($row);
@@ -136,27 +137,27 @@ class Connector extends UmbrellaObjectWithId{
 		if ($single) return null;
 		return $connectors;
 	}
-	
+
 	/** instance functions **/
 	public function __construct(){
 		$this->patch(['direction'=>0]);
 	}
-	
+
 	public function delete(){
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM connectors WHERE project_id = :pid AND id = :id');
 		$args = [':pid'=>$this->project_id,':id'=>$this->id];
 		debug(query_insert($query,$args));
-		$query->execute($args);		
+		$query->execute($args);
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE connectors SET';
 				$args = [':id'=>$this->id];
-	
+
 				foreach ($this->dirty as $field){
 					if (array_key_exists($field, Connector::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
@@ -186,7 +187,7 @@ class Connector extends UmbrellaObjectWithId{
 		}
 		unset($this->dirty);
 	}
-	
+
 	public function turn(){
 		$this->patch(['direction' => 1-$this->direction]);
 		$this->save();
@@ -211,7 +212,7 @@ class ConnectorInstance extends UmbrellaObjectWithId{
 		$sql = 'SELECT * FROM connector_instances';
 		$where = [];
 		$args = [];
-		
+
 		if (isset($options['connector_id'])){
 			$where[] = 'connector_id = ?';
 			$args[] = $options['connector_id'];
@@ -228,31 +229,31 @@ class ConnectorInstance extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['model_id'])){
 			$where[] = 'model_id = ?';
 			$args[] = $options['model_id'];
 		}
-		
+
 		if (isset($options['process_instance_id'])){
 			$where[] = 'process_instance_id = ?';
 			$args[] = $options['process_instance_id'];
 		}
-		
+
 		if (isset($options['project_id'])){
 			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
 			$args[] = $options['project_id'];
 		}
-		
+
 		$sql .= ' WHERE '.implode(' AND ',$where);
 		$query = $db->prepare($sql);
-		
+
 		assert($query->execute($args),'Was not able to load connectors');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$connectors = [];
 
 		foreach ($rows as $row){
-			$connector = new ConnectorInstance();			
+			$connector = new ConnectorInstance();
 			$connector->base = Connector::load(['model_id'=>$row['model_id'],'ids'=>$row['connector_id']]);
 			$connector->patch($row);
 			unset($connector->dirty);
@@ -266,16 +267,16 @@ class ConnectorInstance extends UmbrellaObjectWithId{
 	/* instance methods */
 	function delete(){
 		foreach ($this->flows() as $flow) $flow->delete();
-		
+
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM connector_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
 		debug(query_insert($query,$args));
 		assert($query->execute($args),t('Was not able to remove connector instance "?" from database.',$this->base->id));
 		$other_instances = ConnectorInstance::load(['project_id'=>$this->base->project_id,'connector_id'=>$this->connector_id]);
-		if (empty($other_instances)) $this->base->delete();		
+		if (empty($other_instances)) $this->base->delete();
 	}
-	
+
 	function flows(){
 		if (!isset($this->flows)) $this->flows = FlowInstance::load(['model_id'=>$this->model_id,'connector'=>$this->id]);
 		return $this->flows;
@@ -313,7 +314,7 @@ class ConnectorInstance extends UmbrellaObjectWithId{
 		}
 		unset($this->dirty);
 	}
-	
+
 	public function select_angle(){
 		$connectors = ConnectorInstance::load(['model_id'=>$this->model_id,'process_instance_id'=>$this->process_instance_id]);
 		$angles = [];
@@ -346,7 +347,7 @@ class Flow extends UmbrellaObjectWithId{
 	const TO_CONNECTOR = 0;
 	const TO_TERMINAL = 1;
 	const TO_SIBLING = 2;
-	
+
 	static function fields(){
 		return [
 			'id' => ['VARCHAR'=>255, 'NOT NULL'],
@@ -356,13 +357,13 @@ class Flow extends UmbrellaObjectWithId{
 			'PRIMARY KEY'=>'(id, project_id)',
 		];
 	}
-	
+
 	static function load($options = []){
-		
+
 		$sql = 'SELECT * FROM flows';
 		$where = [];
 		$args = [];
-		
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -374,24 +375,24 @@ class Flow extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['project_id'])){
 			$where[] = 'project_id = ?';
 			$args[] = $options['project_id'];
 		}
-		
+
 		if (isset($options['model_id'])){
 			$where[] = 'project_id = (SELECT project_id FROM models WHERE id = ?)';
 			$args[] = $options['model_id'];
 		}
-	
+
 		$db = get_or_create_db();
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
-		
+
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$flows = [];
-		
+
 		foreach ($rows as $row){
 			$flow = new Flow();
 			$flow->patch($row);
@@ -402,7 +403,7 @@ class Flow extends UmbrellaObjectWithId{
 		if ($single) return null;
 		return $flows;
 	}
-	
+
 	/** instance functions **/
 	public function delete(){
 		$db = get_or_create_db();
@@ -411,7 +412,7 @@ class Flow extends UmbrellaObjectWithId{
 		debug(query_insert($query,$args));
 		$query->execute($args);
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
@@ -427,7 +428,7 @@ class Flow extends UmbrellaObjectWithId{
 						$args[':new_id'] = $this->{$field};
 						$this->update_references($this->{$field});
 					}
-						
+
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
@@ -450,7 +451,7 @@ class Flow extends UmbrellaObjectWithId{
 		}
 		unset($this->dirty);
 	}
-	
+
 	private function update_references($new_id){
 		$instances = FlowInstance::load(['model_id'=>$this->model_id,'flow_id'=>$this->id]);
 		foreach ($instances as $flow){
@@ -462,7 +463,7 @@ class Flow extends UmbrellaObjectWithId{
 
 class FlowInstance extends UmbrellaObjectWithId{
 	/** static **/
-	
+
 	static function fields(){
 		return [
 			'id' => ['INTEGER','KEY'=>'PRIMARY'],
@@ -474,12 +475,12 @@ class FlowInstance extends UmbrellaObjectWithId{
 			'end_terminal' => ['INT'], // null for connector
 		];
 	}
-	
+
 	static function load($options = []){
 		$db = get_or_create_db();
-		
+
 		$sql = 'SELECT * FROM flow_instances';
-		$where = [];		
+		$where = [];
 		$args = [];
 
 		if (isset($options['connector'])){
@@ -498,30 +499,30 @@ class FlowInstance extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['flow_id'])){
 			$where[] = 'flow_id = ?';
 			$args[] = $options['flow_id'];
 		}
-		
+
 		$bases = [];
 		if (isset($options['model_id'])){
 			$where[] = 'model_id  = ?';
 			$args[] = $options['model_id'];
 			$bases = Flow::load(['model_id'=>$options['model_id']]);
 		}
-		
+
 		if (isset($options['project_id'])){
 			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
 			$args[] = $options['project_id'];
 		}
-		
+
 		$query = $db->prepare($sql.' WHERE '.implode(' AND ',$where));
 		assert($query->execute($args),'Was not able to load flows');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		
+
 		$flows = [];
-		
+
 		foreach ($rows as $row){
 			$flow = new FlowInstance();
 			$flow_id = $row['flow_id'];
@@ -547,7 +548,7 @@ class FlowInstance extends UmbrellaObjectWithId{
 		$other_instances = FlowInstance::load(['project_id'=>$this->base->project_id,'flow_id'=>$this->flow_id]);
 		if (empty($other_instances)) $this->base->delete();
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
@@ -643,7 +644,7 @@ class Model extends UmbrellaObjectWithId{
 			$sql .= ' AND id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		$sql .= ' ORDER BY name';
 
 		$query = $db->prepare($sql);
@@ -669,13 +670,13 @@ class Model extends UmbrellaObjectWithId{
 		$this->name = $name;
 		$this->description = $description;
 	}
-	
+
 	public function connectors($id = null){
 		if (!isset($this->connectors)) $this->connectors = Connector::load(['model_id'=>$this->id]);
 		if ($id) return $this->connectors[$id];
 		return $this->connectors;
 	}
-	
+
 	public function connector_instances($id = null){
 		if (!isset($this->connector_instances)) $this->connector_instances = ConnectorInstance::load(['model_id'=>$this->id]);
 		if ($id) return $this->connector_instances[$id];
@@ -778,7 +779,6 @@ class Process extends UmbrellaObjectWithId{
 			'id' => ['VARCHAR'=>255, 'NOT NULL'],
 			'project_id' => ['INT','NOT NULL'],
 			'description' => 'TEXT',
-			'r' => ['INT','DEFAULT 30'],
 			'PRIMARY KEY'=>'(id, project_id)',
 		];
 	}
@@ -802,12 +802,12 @@ class Process extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['project_id'])){
 			$where[] = 'project_id = ?';
 			$args[] = $options['project_id'];
 		}
-		
+
 		$sql .= implode(' AND ', $where);
 
 		$query = $db->prepare($sql);
@@ -827,14 +827,10 @@ class Process extends UmbrellaObjectWithId{
 	}
 
 	/** instance functions **/
-	public function __construct(){
-		$this->patch(['r'=>50]);
-	}
-	
 	public function children(){
 		return ProcessInstance::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
 	}
-	
+
 	public function delete(){
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM processes WHERE project_id = :pid AND id = :id');
@@ -842,19 +838,19 @@ class Process extends UmbrellaObjectWithId{
 		debug(query_insert($query,$args));
 		$query->execute($args);
 	}
-	
+
 	public function instances($options = []){
 		$options['base'] = $this;
-		return ProcessInstance::load($options); 
+		return ProcessInstance::load($options);
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE processes SET';
 				$args = [':id'=>$this->id];
-								
+
 				foreach ($this->dirty as $field){
 					if (array_key_exists($field, Process::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
@@ -888,8 +884,8 @@ class Process extends UmbrellaObjectWithId{
 		}
 		unset($this->dirty);
 	}
-	
-	public function update_references($new_id){		
+
+	public function update_references($new_id){
 		$process_instances = ProcessInstance::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
 		$connectors = Connector::load(['model_id'=>$this->model_id,'process_id'=>$this->id]);
 		$children = ProcessInstance::load(['model_id'=>$this->model_id,'parent'=>$this->id]);
@@ -901,7 +897,7 @@ class Process extends UmbrellaObjectWithId{
 			$process->patch(['parent'=>$new_id]);
 			$process->save();
 		}
-		
+
 		foreach ($connectors as $connector){
 			$connector->patch(['process_id'=>$new_id]);
 			$connector->save();
@@ -919,6 +915,8 @@ class ProcessInstance extends UmbrellaObjectWithId{
 			'parent' => 'TEXT',
 			'x' => ['INT', 'DEFAULT 30'],
 			'y' => ['INT', 'DEFAULT 30'],
+			'r' => ['INT', 'DEFAULT 30'],
+			'hide_children' => ['BOOLEAN','DEFAULT 0'],
 		];
 	}
 
@@ -937,12 +935,12 @@ class ProcessInstance extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
-		
+
 		if (isset($options['model_id'])){
 			$where[] = 'model_id = ?';
 			$args[] = $options['model_id'];
 		}
-		
+
 		if (array_key_exists('parent',$options)){
 			if ($options['parent'] === null){
 				$where[] = 'parent IS NULL';
@@ -951,24 +949,24 @@ class ProcessInstance extends UmbrellaObjectWithId{
 				$args[] = $options['parent'];
 			}
 		}
-		
+
 		if (isset($options['process_id'])){
 			$where[] = 'process_id = ?';
 			$args[] = $options['process_id'];
 		}
-		
+
 		if (isset($options['project_id'])){
 			$where[] = 'model_id IN (SELECT id FROM models WHERE project_id = ?)';
 			$args[] = $options['project_id'];
 		}
-		
+
 		$sql = 'SELECT * FROM process_instances WHERE '.implode(' AND ', $where).' ORDER BY process_id';
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		//debug(query_insert($query,$args));
 		assert($query->execute($args),'Was not able to load processes');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
-		
+
 		$models = [];
 		$bases = [];
 
@@ -976,12 +974,11 @@ class ProcessInstance extends UmbrellaObjectWithId{
 		foreach ($rows as $row){
 			$process_id = $row['process_id'];
 			$model_id = $row['model_id'];
-			
+
 			if (!isset($bases[$process_id])){ // load bases on demand
-				if (!isset($models[$model_id])) $models[$model_id] = Model::load(['ids'=>$model_id]); // load models on demand, needed to retrieve base 
+				if (!isset($models[$model_id])) $models[$model_id] = Model::load(['ids'=>$model_id]); // load models on demand, needed to retrieve base
 				$bases[$process_id] = Process::load(['ids'=>$process_id,'project_id' => $models[$model_id]->project_id]);
 			}
-			
 			$process = new ProcessInstance();
 			$process->base = $bases[$process_id];
 			$process->patch($row);
@@ -994,6 +991,11 @@ class ProcessInstance extends UmbrellaObjectWithId{
 	}
 
 	/** instance functions **/
+
+	public function __construct(){
+		$this->patch(['r'=>50]);
+	}
+
 	function addChild($child_process_id){
 		$db = get_or_create_db();
 		$sql = 'INSERT INTO child_processes (process_id, parent_process) VALUES (:child_id, :parent_id)';
@@ -1001,7 +1003,7 @@ class ProcessInstance extends UmbrellaObjectWithId{
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to assign child to process');
 	}
-	
+
 	function add_connector_instances($base_connectors){
 		foreach ($base_connectors as $base){
 			$connector = new ConnectorInstance();
@@ -1037,12 +1039,12 @@ class ProcessInstance extends UmbrellaObjectWithId{
 		}
 		return $this->connectors;
 	}
-	
+
 	function delete(){
 		//debug(['item'=>$this,'method'=>'delete']);
 		foreach ($this->children() as $child_process) $child_process->delete();
 		foreach ($this->connectors() as $conn) $conn->delete();
-		
+
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM process_instances WHERE id = :id');
 		$args = [':id'=>$this->id];
@@ -1051,18 +1053,10 @@ class ProcessInstance extends UmbrellaObjectWithId{
 		$other_instances = ProcessInstance::load(['project_id'=>$this->base->project_id,'process_id'=>$this->process_id]);
 		if (empty($other_instances)) $this->base->delete();
 	}
-	
+
 	function parent_process(){
 		if ($this->parent) return Process::load(['model_id'=>$this->model_id,'ids'=>$this->parent]);
 		return null;
-	}
-
-	function patch($data = array()){
-		foreach ($data as $key => $val){
-			if ($key === 'r') {
-				$this->base->patch([$key => $val]);
-			} else parent::patch([$key => $val]);
-		}
 	}
 
 	public function save(){
@@ -1109,7 +1103,7 @@ class ProcessInstance extends UmbrellaObjectWithId{
 		$referenced_terminal_instances = [];
 		$this->path = $this->id;
 		if (isset($parent)){
-			$rad = $parent->base->r;
+			$rad = $parent->r;
 			$this->x = $this->x < -$rad ? -$rad : ($this->x > $rad ? $rad : $this->x);
 			$this->y = $this->y < -$rad ? -$rad : ($this->y > $rad ? $rad : $this->y);
 			$this->path = $parent->path.'.'.$this->path;
@@ -1123,7 +1117,7 @@ class ProcessInstance extends UmbrellaObjectWithId{
 					class="process"
 					cx="0"
 					cy="0"
-					r="<?= $this->base->r ?>"
+					r="<?= $this->r ?>"
 					id="process_<?= $this->id ?>">
 				<title><?= $this->base->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 			</circle>
@@ -1134,99 +1128,101 @@ class ProcessInstance extends UmbrellaObjectWithId{
 						if ($flow->start_terminal){
 							$terminal = $model->terminal_instances($flow->start_terminal)->applyFactor($factor);
 							$referenced_terminal_instances[$terminal->id] = $terminal;
-							
-							$x2 =  sin($conn->angle*RAD)*$this->base->r;
-							$y2 = -cos($conn->angle*RAD)*$this->base->r;
-							
+
+							$x2 =  sin($conn->angle*RAD)*$this->r;
+							$y2 = -cos($conn->angle*RAD)*$this->r;
+
 							$x1 = -$this->x + $terminal->x + $terminal->base->w/2;
 							$y1 = -$this->y + $terminal->y + ($terminal->y > $y2 ? 0 : 30) + 25;
-	
+
 							$proc_pointer = $parent;
 							while ($proc_pointer){
 								$x1 -= $proc_pointer->x;
 								$y1 -= $proc_pointer->y;
 								$proc_pointer = $proc_pointer->parent;
 							}
-	
-							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id),$flow->base->description);
 							continue;
 						}
-	
+
 						if ($flow->end_terminal){
 							$terminal = $model->terminal_instances($flow->end_terminal)->applyFactor($factor);
-								
+
 							$referenced_terminal_instances[$terminal->id] = $terminal;
-							
-							$x1 = + sin($conn->angle*RAD)*$this->base->r;
-							$y1 = - cos($conn->angle*RAD)*$this->base->r;
-	
+
+							$x1 = + sin($conn->angle*RAD)*$this->r;
+							$y1 = - cos($conn->angle*RAD)*$this->r;
+
 							$x2 = -$this->x + $terminal->x + $terminal->base->w/2;
 							$y2 = -$this->y + $terminal->y + ($terminal->y > $y1 ? 0 : 30);
-	
+
 							$proc_pointer = $this;
 							while (isset($proc_pointer->parent_instance)){
 								$proc_pointer = $proc_pointer->parent_instance;
 								$x2 -= $proc_pointer->x;
 								$y2 -= $proc_pointer->y;
 							}
-	
-							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+
+							arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id),$flow->base->description);
 							continue;
 						}
-	
+
 						if ($conn->base->direction){ // OUT
 							if ($flow->start_connector != $conn->id) continue;
 							if ($parent === null) { // flow goes to connector of top-level process
 								foreach ($model->process_instances() as $top_process){
 									$end_connector = $top_process->connectors($flow->end_connector);
 									if ($end_connector){
-										$x1 = $this->base->r*sin($conn->angle*RAD);
-										$y1 = -$this->base->r*cos($conn->angle*RAD);
-										
-										$x2 = -$this->x + $top_process->x + $top_process->base->r * sin($end_connector->angle*RAD);
-										$y2 = -$this->y + $top_process->y - $top_process->base->r * cos($end_connector->angle*RAD);
-										
-										arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+										$x1 = $this->r*sin($conn->angle*RAD);
+										$y1 = -$this->r*cos($conn->angle*RAD);
+
+										$x2 = -$this->x + $top_process->x + $top_process->r * sin($end_connector->angle*RAD);
+										$y2 = -$this->y + $top_process->y - $top_process->r * cos($end_connector->angle*RAD);
+
+										arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id),$flow->base->description);
 										break;
 									}
 								}
 							} else {
 								$end_connector = $parent->connectors($flow->end_connector);
-								
+
 								if ($end_connector){ // flow goes to connector of parent
-									$x1 = $this->base->r*sin($conn->angle*RAD);
-									$y1 = -$this->base->r*cos($conn->angle*RAD);
-		
-									$x2 = -$this->x + $parent->base->r * sin($end_connector->angle*RAD);
-									$y2 = -$this->y - $parent->base->r * cos($end_connector->angle*RAD);
-		
-									arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+									$x1 = $this->r*sin($conn->angle*RAD);
+									$y1 = -$this->r*cos($conn->angle*RAD);
+
+									$x2 = -$this->x + $parent->r * sin($end_connector->angle*RAD);
+									$y2 = -$this->y - $parent->r * cos($end_connector->angle*RAD);
+
+									arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id),$flow->base->description);
 								}
 							}
 						} else { // IN
 							if ($flow->end_connector != $conn->id) continue;
-							if ($parent === null) continue; 
+							if ($parent === null) continue;
 							$start_connector = $parent->connectors($flow->start_connector);
-							if ($start_connector === null){ // flow comes from sobling of process
+							if ($start_connector === null){ // flow comes from sibling of process
 								foreach ($parent->children() as $sibling){
 									$start_connector = $sibling->connectors($flow->start_connector);
 									if ($start_connector) break;
 								}
-								$x1 = -$this->x + $sibling->x + $sibling->base->r * sin($start_connector->angle*RAD);
-								$y1 = -$this->y + $sibling->y - $sibling->base->r * cos($start_connector->angle*RAD);
-	
-								$x2 = $this->base->r*sin($conn->angle*RAD);
-								$y2 = -$this->base->r*cos($conn->angle*RAD);
-	
-								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+
+								$x1 = -$this->x + $sibling->x + $sibling->r * sin($start_connector->angle*RAD);
+								$y1 = -$this->y + $sibling->y - $sibling->r * cos($start_connector->angle*RAD);
+
+								$x2 = $this->r*sin($conn->angle*RAD);
+								$y2 = -$this->r*cos($conn->angle*RAD);
+								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id),$flow->base->description);
+
+
 							} else { // flow comes from connector of parent
-								$x1 = -$this->x + $parent->base->r * sin($start_connector->angle*RAD);
-								$y1 = -$this->y - $parent->base->r * cos($start_connector->angle*RAD);;
-	
-								$x2 = $this->base->r*sin($conn->angle*RAD);
-								$y2 = -$this->base->r*cos($conn->angle*RAD);
-	
-								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));
+								$x1 = -$this->x + $parent->r * sin($start_connector->angle*RAD);
+								$y1 = -$this->y - $parent->r * cos($start_connector->angle*RAD);;
+
+								$x2 = $this->r*sin($conn->angle*RAD);
+								$y2 = -$this->r*cos($conn->angle*RAD);
+
+								arrow($x1,$y1,$x2,$y2,$flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id),$flow->base->description);
 							}
 						}
 					} // foreach flow */
@@ -1236,11 +1232,13 @@ class ProcessInstance extends UmbrellaObjectWithId{
 				<circle
 						class="connector"
 						cx="0"
-						cy="<?= -$this->base->r ?>"
+						cy="<?= -$this->r ?>"
 						r="15"
 						id="connector_<?= $conn->id ?>"
 						transform="rotate(<?= $conn->angle ?>,0,0)">
-					<title><?= $conn->base->id ?></title>
+					<title><?= $conn->base->id ?>
+
+<?= t('Mouse wheel alters position.') ?></title>
 				</circle>
 			</a>
 			<?php } // foreach connector
@@ -1250,8 +1248,7 @@ class ProcessInstance extends UmbrellaObjectWithId{
 				$terminal_references = $child->svg($model,$this,$options);
 				$referenced_terminal_instances = array_merge($referenced_terminal_instances,$terminal_references);
 			} ?>
-		</g><?php
-		return $referenced_terminal_instances; 
+		</g><?php return $referenced_terminal_instances;
 	}
 
 	function url(){
@@ -1262,7 +1259,7 @@ class ProcessInstance extends UmbrellaObjectWithId{
 class Terminal extends UmbrellaObjectWithId{
 	const TERMINAL = 0;
 	const DATABASE = 1;
-	
+
 	/** static functions **/
 	static function fields(){
 		return [
@@ -1274,17 +1271,17 @@ class Terminal extends UmbrellaObjectWithId{
 			'PRIMARY KEY' => '(id, project_id)',
 		];
 	}
-	
+
 	static function load($options = []){
 		$db = get_or_create_db();
-	
+
 		assert(isset($options['project_id']),'No project id passed to Terminal::load()!');
-	
+
 		$where = ['project_id = ?'];
 		$args = [$options['project_id']];
-		
+
 		$sql = 'SELECT * FROM terminals WHERE ';
-		
+
 		$single = false;
 		if (isset($options['ids'])){
 			$ids = $options['ids'];
@@ -1297,7 +1294,7 @@ class Terminal extends UmbrellaObjectWithId{
 			$args = array_merge($args, $ids);
 		}
 		$sql .= implode(' AND ', $where);
-		
+
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was not able to load terminals');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -1313,12 +1310,12 @@ class Terminal extends UmbrellaObjectWithId{
 		if ($single) return null;
 		return $bases;
 	}
-	
+
 	/** instance functions **/
 	public function __construct(){
 		$this->patch(['w'=>50]);
 	}
-	
+
 	public function delete(){
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM terminals WHERE project_id = :pid AND id = :id');
@@ -1326,19 +1323,19 @@ class Terminal extends UmbrellaObjectWithId{
 		debug(query_insert($query,$args));
 		$query->execute($args);
 	}
-	
+
 	public function instances($options = []){
 		return TerminalInstance::load(['terminal_id'=>$this->id]);
 	}
-	
+
 	public function save(){
 		$db = get_or_create_db();
-		
+
 		if (isset($this->id)){
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE terminals SET';
 				$args = [':id'=>$this->id];
-	
+
 				foreach ($this->dirty as $field){
 					if (array_key_exists($field, Terminal::fields())){
 						$sql .= ' '.$field.'=:'.$field.',';
@@ -1348,7 +1345,7 @@ class Terminal extends UmbrellaObjectWithId{
 						$args[':new_id'] = $this->name;
 						$this->update_references($this->name);
 					}
-				}				
+				}
 				if (count($args)>1){
 					$sql = rtrim($sql,',').' WHERE id = :id AND project_id = :pid';
 					$args[':pid'] = $this->project_id;
@@ -1373,7 +1370,7 @@ class Terminal extends UmbrellaObjectWithId{
 		}
 		unset($this->dirty);
 	}
-	
+
 	public function update_references($new_id){
 		foreach ($this->instances() as $terminal){
 			$terminal->patch(['terminal_id'=>$new_id]);
@@ -1440,7 +1437,7 @@ class TerminalInstance extends UmbrellaObjectWithId{
 		foreach ($rows as $row){
 
 			$terminal_id = $row['terminal_id'];
-			$model_id = $row['model_id'];			
+			$model_id = $row['model_id'];
 
 			if (!isset($bases[$terminal_id])){ // load bases on demand
 				if (!isset($models[$model_id])) $models[$model_id] = Model::load(['ids'=>$model_id]); // load models on demand, needed to retrieve base
@@ -1496,7 +1493,7 @@ class TerminalInstance extends UmbrellaObjectWithId{
 		}
 		return $this;
 	}
-	
+
 	function delete(){
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM terminal_instances WHERE id = :id');
@@ -1512,7 +1509,7 @@ class TerminalInstance extends UmbrellaObjectWithId{
 		$other_instances = TerminalInstance::load(['project_id'=>$this->base->project_id,'terminal_id'=>$this->terminal_id]);
 		if (empty($other_instances)) $this->base->delete();
 	}
-	
+
 	function isDB(){
 		return $this->base->type == Terminal::DATABASE;
 	}

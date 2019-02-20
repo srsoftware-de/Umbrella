@@ -119,7 +119,7 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Display') ?></th>
 		<td>
-			<?php $process->x = $process->y =  175+$process->base->r;
+			<?php $process->x = $process->y =  175+$process->r;
 				$factor = $process->x / 500;
 			?>
 			<svg
@@ -132,10 +132,10 @@ if ($action == 'delete'){?>
 				$null = null;
 				$referenced_terminal_instances = $process->svg($model,$null,['arrows'=>false,'factor'=>1.1]);
 				foreach ($process->connectors() as $conn) {
-					$x1 = $process->x + sin($conn->angle*RAD)*$process->base->r ;
-					$y1 = $process->y - cos($conn->angle*RAD)*$process->base->r ;
-					$x2 = $process->x + sin($conn->angle*RAD)*(100+$process->base->r);
-					$y2 = $process->y - cos($conn->angle*RAD)*(100+$process->base->r);
+					$x1 = $process->x + sin($conn->angle*RAD)*$process->r ;
+					$y1 = $process->y - cos($conn->angle*RAD)*$process->r ;
+					$x2 = $process->x + sin($conn->angle*RAD)*(100+$process->r);
+					$y2 = $process->y - cos($conn->angle*RAD)*(100+$process->r);
 					$flow = reset($conn->flows());
 					if ($conn->base->direction){
 						arrow($x1,$y1,$x2,$y2, $flow->base->id,getUrl('model',$model->id.'/flow/'.$flow->id));

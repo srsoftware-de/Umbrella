@@ -54,11 +54,13 @@ $translations = array(
 		'Model: ?'=>'Modell: ?',
 		'Models' => 'Modelle',
 		'Models must be assigned to projects. You have not created any projects, yet.'=>'Modelle müssen Projekten zugeordnet werden. Sie haben noch keine Projekte angelegt.',
+		'Mouse wheel alters position.'=>'Mausrad verändert Position.',
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
 		'Notes for "?"'=>'Notizen zu "?"',
 		'outbound connector'=>'ausgehender Verbinder',
 		'Outflows'=>'ausgehende Datenströme',
+		'Please select starting point for flow'=>'Bitte Startpunkt für Datenfluss auswählen',
 		'Process'=>'Prozess',
 		'Process: "?"'=>'Prozess: "?"',
 		'Processes'=>'Prozesse',
@@ -80,6 +82,8 @@ $translations = array(
 		'Y-m-d H:i:s'=>'d.m.Y H:i:s',
 		'Yes'=>'Ja',
 		'You are about to delete the flow "?". Are you sure you want to proceed?'=>'Sie sind dabei, den Fluss "?" zu löschen. Sind Sie sicher?',
+		'You are about to delete the model "?". Are you sure you want to proceed?'=>'Sie sind dabei, das Modell "?" zu löschen. Sind Sie sicher?',
 		'You are about to delete the process "?". Are you sure you want to proceed?'=>'Sie sind dabei, den Prozess "?" zu löschen. Sind Sie sicher?',
-		'You are about to delete the terminal "?". Are you sure you want to proceed?'=>'Sie Sind dabei, das Terminal "?" zu löschen. Sind Sie sicher?',
+		'You are about to delete the terminal "?". Are you sure you want to proceed?'=>'Sie sind dabei, das Terminal "?" zu löschen. Sind Sie sicher?',
+
 );
