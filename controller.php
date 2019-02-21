@@ -86,23 +86,25 @@
 		static function load($options){
 			global $user,$services;
 
-			$sql = 'SELECT * FROM items';
+			$sql = "SELECT items.id as id, items.code as code, items.name as name, items.location_id as location_id FROM items\n";
 
 			$where = [];
 			$args =  [];
 			$single = false;
 
 			if (isset($options['search'])){
-				$key = $options['search'];
+				$key = '%'.$options['search'].'%';
+
+				$sql .= "LEFT JOIN item_props ON item_props.item_id = items.id\nLEFT JOIN locations ON locations.id = items.location_id\n";
 
 				$companies = isset($services['company']) ? request('company','json') : null;
 
-				$cond = '(id LIKE ?';
+				$cond = "(items.id LIKE ?\n";
 				$args[] = 'user:'.$user->id.':%';
 
 				if (!empty($companies)){
 					foreach ($companies as $cid => $dummy){
-						$cond .= ' OR id LIKE ?';
+						$cond .= " OR items.id LIKE ?\n";
 						$args[] = 'company:'.$cid.':%';
 					}
 				}
@@ -111,9 +113,13 @@
 				$where[] = $cond;
 
 
-				$where[] = 'code LIKE ? OR name LIKE ?';
-				$args[] = "%$key%";
-				$args[] = "%$key%";
+				$where[] = "(code LIKE ?\n OR items.name LIKE ?\n OR value LIKE ?\n OR locations.name LIKE ?\n OR locations.description LIKE ?\n OR locations.id LIKE ?)";
+				$args[] = $key;
+				$args[] = $key;
+				$args[] = $key;
+				$args[] = $key;
+				$args[] = $key;
+				$args[] = $key;
 			} elseif (isset($options['ids'])){
 				$ids = $options['ids'];
 				if (!is_array($ids)){
@@ -134,7 +140,7 @@
 
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
 
-			$sql .= ' COLLATE NOCASE';
+			$sql .= "\n COLLATE NOCASE GROUP BY items.id";
 
 			if (isset($options['order'])){
 				switch ($options['order']){
