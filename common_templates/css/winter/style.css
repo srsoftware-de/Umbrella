@@ -14,8 +14,13 @@ a{
 	text-decoration: none;
 }
 textarea {
+	min-width: 25%;
+	min-height: 40px;
+}
+
+textarea:hover{
+	min-height: 400px;
 	width: 100%;
-	min-height: 100px;
 }
 
 input[type=text]{
@@ -278,6 +283,15 @@ td > h1{
 .bookmark .share,
 .bookmark .tags{
 	display: inline-block;
+}
+
+.bookmark form .share{
+	height: 20px;
+	overflow: hidden;
+}
+
+.bookmark form .share:hover{
+	height: initial;
 }
 
 fieldset.bookmark > fieldset{

@@ -219,14 +219,29 @@ legend{
 	right: 0;
 	top: 8px;
 	height: 35px;
+	overflow: hidden;
 }
 
+.share:hover{
+	height: inherit;
+}
+
+.bookmark textarea[name=comment]{
+	max-height: 50px;
+}
+
+.bookmark textarea[name=comment]:hover{
+	max-height: unset;
+}
+
+.bookmark input{
+	width: 100%;
+}
 
 .notes .note{
 	border: 1px solid;
 	border-radius: 5px;
 }
-
 
 .warnings span{
 	background: yellow;

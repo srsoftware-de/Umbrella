@@ -22,7 +22,7 @@ function addDescriptionOption(text){
 function getHeadings(elem){
 	$('select[name=alt_comment]').remove();
 	$('textarea[name=comment]').val('');
-	var url=window.location.href.replace('/add','/headings')+'?page='+encodeURIComponent(elem.value);
+	var url=window.location.href.replace(/\/([^\/]*)$/,'/headings')+'?page='+encodeURIComponent(elem.value);
 	$.ajax({
 		url: url,
 		dataType: "json",
