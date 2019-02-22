@@ -9,11 +9,11 @@ if ($prefix) {
 	$parts = explode(':', $prefix,2);
 	$realm = array_shift($parts);
 	$realm_id = array_shift($parts);
-	
+
 	switch ($realm){
 		case 'company':
 			if (array_key_exists($realm_id, $companies)){
-				$owner = $companies[$realm_id]['name'];				
+				$owner = '<a href="'.getUrl('company',$companies[$realm_id]['id'].'/view').'">'.$companies[$realm_id]['name'].'</a>';
 				break;
 			} else warn('You are not allowed to access the stock of this company!');
 		default:
@@ -32,14 +32,14 @@ $items = Item::load($options);
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 if ($companies){ ?>
 <fieldset>
 	<legend><?= t('Companies')?></legend>
 	<?= t('You are viewing the items of <b>?</b>.',$owner)?><br/>
 	<?= t('To view the stock of one of your companies, click on its name:')?>
-	<?php 
+	<?php
 	foreach ($companies as $company){ ?>
 	<a class="button" href="<?= $base_url.'company:'.$company['id'].DS.'index'?>"><?= $company['name'] ?></a>
 	<?php } // foreach company	?>
