@@ -14,11 +14,14 @@ $users = load_connected_users();
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php';
+
+include 'addform.php';
+?>
 
 <fieldset class="bookmark">
 	<legend><?= t('latest bookmarks')?></legend>
-	
+
 	<?php foreach ($urls as $hash => $bookmark ) {?>
 	<fieldset>
 		<legend>
@@ -27,13 +30,13 @@ include '../common_templates/messages.php'; ?>
 			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url ?></a>
 		</legend>
 		<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
-		<div class="tags">		
+		<div class="tags">
 			<?php foreach ($bookmark->tags() as $tag){ ?>
 			<a class="button" href="<?= getUrl('bookmark',$tag->tag.'/view') ?>"><?= $tag->tag ?></a>
 			<?php } ?>
 		</div>
 		<fieldset class="share">
-			<legend><?= t('share')?></legend>
+			<legend><?= t('Share bookmark')?></legend>
 			<form method="POST">
 				<input type="hidden" name="share_url_hash" value="<?= $hash?>" />
 				<input type="hidden" name="notify" value="1" />
@@ -44,11 +47,11 @@ include '../common_templates/messages.php'; ?>
 				<option value="<?= $uid?>"><?= $some_user['login'] ?></option>
 				<?php } ?>
 				</select>
-				<input type="submit" />
+				<button type="submit"><?= t('share')?></button>
 			</form>
 		</fieldset>
 	</fieldset>
-	<?php } ?>	
+	<?php } ?>
 </fieldset>
 
-<?php include '../common_templates/closure.php'; ?> 
+<?php include '../common_templates/closure.php'; ?>

@@ -30,47 +30,8 @@ $users = load_connected_users();
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; ?>
+include '../common_templates/messages.php';
 
-<form method="POST">
-	<fieldset>
-		<legend><?= t('Add new URL') ?></legend>
-		<fieldset>
-			<legend>URL</legend>
-			<input type="text" name="url" id="url" value="<?= $url ?>" autofocus="true"/>
-		</fieldset>
-		<fieldset>
-			<legend><?= t('Description')?></legend>
-			<textarea name="comment" descr="<?= t('You can select a comment from the site here')?>"></textarea>
-		</fieldset>
-		<fieldset>
-			<legend>Tags</legend>
-			<input type="text" name="tags" value="<?= $tags ?>" />
-		</fieldset>
-		<fieldset>
-			<legend><?= t('Share bookmark')?></legend>
-			<table>
-				<tr>
-					<th><?= t('User')?></th>
-					<th><?= t('Don\'t share')?></th>
-					<th><?= t('Share & notify')?></th>
-					<th><?= t('Share, don\'t notify')?></th>
-				</tr>
-				<?php foreach ($users as $usr) {  if ($usr['id']==$user->id) continue; ?>
-				<tr>
-					<td><?= $usr['login']?></td>
-					<td><input type="radio" name="users[<?= $usr['id']?>]" value="<?= NO_SHARE ?>" checked="checked"/></td>
-					<td><input type="radio" name="users[<?= $usr['id']?>]" value="<?= SHARE_AND_NOTIFY ?>" /></td>
-					<td><input type="radio" name="users[<?= $usr['id']?>]" value="<?= SHARE_DONT_NOTIFY ?>" /></td>
-				</tr>
-				<?php } ?>
-			</table>
-		</fieldset>
-		<input type="submit" />
-	</fieldset>
-	<script type="text/javascript">
-	$('#url').bind('input',getHeadings_delayed);
-	</script>
-</form>
+include 'addform.php'; 
 
-<?php include '../common_templates/closure.php'; ?>
+include '../common_templates/closure.php'; ?>
