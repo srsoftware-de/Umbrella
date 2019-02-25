@@ -9,6 +9,15 @@ $company = null;
 if (($company_id = param('company')) && isset($companies[$company_id])) $company = $companies[$company_id];
 if ($company === null) redirect('.');
 
+if ($doc_type_id = param('type_id')){
+	$pending_doc = Document::load(['type'=>$doc_type_id,'company_id'=>$company_id,'empty'=>true]);
+	if (!empty($pending_doc)){
+		$doc = reset($pending_doc);
+		error('There already is a(n) ? which has not been used:',t($doc->type()->name));
+		redirect(getUrl('document',$doc->id.'/view'));
+	}
+}
+
 $contacts = request('contact','json',null,false,OBJECT_CONVERSION);
 if (empty($contacts)) warn('You can not select a customer because your contact list is empty. Create a contact in the contacts module first.');
 if ($customer_contact_id = post('customer')){

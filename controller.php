@@ -433,14 +433,19 @@ class Document extends UmbrellaObjectWithId{
 
 	static function load($options = []){
 		$db = get_or_create_db();
-		$user_companies = request('company','json');
-		$user_company_ids = array_keys($user_companies);
 
 		$args = [];
-		if ($user_company_ids !== null){
-			if (!is_array($user_company_ids)) $user_company_ids = [ $user_company_ids ];
-			$qmarks = str_repeat('?,', count($user_company_ids) - 1) . '?';
-			$args = $user_company_ids;
+		if (!empty($options['company_id'])){ // select documents from single company
+			$qmarks = '?';
+			$args = [$options['company_id']];
+		} else { // select docuemnts from all companies of user
+			$user_companies = request('company','json');
+			$user_company_ids = array_keys($user_companies);
+			if ($user_company_ids !== null){
+				if (!is_array($user_company_ids)) $user_company_ids = [ $user_company_ids ];
+				$qmarks = str_repeat('?,', count($user_company_ids) - 1) . '?';
+				$args = $user_company_ids;
+			}
 		}
 		$sql = "SELECT * FROM documents WHERE company_id IN (".$qmarks.')';
 
@@ -463,6 +468,13 @@ class Document extends UmbrellaObjectWithId{
 			$args = array_merge($args, $tids);
 			$sql .= ' AND id IN (SELECT document_id FROM document_positions WHERE time_id IN ('.$qmarks.'))';
 		}
+
+		if (!empty($options['type'])){
+			$sql .= ' AND type_id = ?';
+			$args[] = $options['type'];
+		}
+
+		if (!empty($options['empty'])) $sql .= ' AND id NOT IN (SELECT DISTINCT document_id FROM document_positions)';
 
 		$sql .= ' ORDER BY ';
 		if (isset($options['order']) && array_key_exists($options['order'],Document::table())){

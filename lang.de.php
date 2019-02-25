@@ -123,6 +123,7 @@ $translations = array(
 		'Tax number'=>'Steuernummer',
 		'Template'=>'Vorlage',
 		'Template ?'=>'Vorlage ?',
+		'There already is a(n) ? which has not been used:'=>'Es gibt noch ein(e) ?, welche(s) noch nicht benutzt wurde:',
 		'This document has already been sent and can no longer be edited.'=>'Dieses Dokument wurde schon versendet und kann nicht mehr bearbeitet werden.',
 		'thousands_separator'=>'Tausendertrennzeichen',
 		'timetrack'=>'Zeiterfassung',
