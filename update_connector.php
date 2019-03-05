@@ -2,10 +2,11 @@
 
 require_login('model');
 
-$model_id = param('id1');
-$connector_id = param('id2');
+$process_id = param('id');
+if (empty($process_id)) throw new Exception('No process id passed!');
 
-$model = Model::load(['ids'=>$model_id]);
-$conn = $model->connector_instances($connector_id);
-$conn->patch($_POST);
-$conn->save();
+$conn_id = param('elem');
+if (empty($conn_id)) throw new Exception('No connector id passed!');
+
+$terminal = ConnectorInstance::load($process_id,$conn_id);
+$terminal->patch($_POST)->save();

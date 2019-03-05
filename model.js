@@ -137,7 +137,7 @@ function presetConnectorName(elem){
 }
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
-	//reload_timer_handle = setTimeout(function(){location.reload()},750);
+	reload_timer_handle = setTimeout(function(){location.reload()},750);
 }
 
 function updateElement(elem,data){

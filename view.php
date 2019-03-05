@@ -62,6 +62,7 @@ if ($action == 'delete'){?>
 			<div class="symbol">
 				<a title="<?= t('add terminal')?>" href="add_terminal"></a>
 				<a title="<?= t('add process')?>" href="add_process"></a>
+				<a title="<?= t('add connector')?>" href="add_connector"></a>
 			</div>
 		</th>
 		<td>
@@ -75,28 +76,28 @@ if ($action == 'delete'){?>
 				<script type="text/javascript">var model_base = '<?= getUrl('model')?>';</script>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
-				<?php $process->svg(); ?>
+				<?php $process->svg($process->id()); ?>
 			</svg>
 		</td>
 	</tr>
 
 	<?php
 	$shown = [];
-	if ($process->terminal_instances()){ ?>
+	if ($process->terminals()){ ?>
 	<tr>
 		<th><?= t('Terminals')?></th>
 		<td class="terminals">
-		<?php foreach ($process->terminal_instances() as $terminal){ if ($terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
-		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description?>"><?= $terminal->base->id ?></a>
-		<?php $shown[] = $terminal->base->id; } ?>
+		<?php foreach ($process->terminals() as $terminal){ if ($terminal->type == Terminal::DATABASE || in_array($terminal->name,$shown)) continue; ?>
+		<a class="button" href="terminal/<?= $terminal->id() ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
+		<?php $shown[] = $terminal->name; } ?>
 		</td>
 	</tr>
 	<tr>
 		<th><?= t('Databases')?></th>
 		<td class="databases">
-		<?php foreach ($process->terminal_instances() as $terminal){ if (!$terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
-		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description ?>"><?= $terminal->base->id ?></a>
-		<?php $shown[] = $terminal->base->id; } ?>
+		<?php foreach ($process->terminals() as $terminal){ if ($terminal->type == Terminal::TERMINAL || in_array($terminal->name,$shown)) continue; ?>
+		<a class="button" href="terminal/<?= $terminal->id() ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
+		<?php $shown[] = $terminal->name; } ?>
 		</td>
 	</tr>
 	<?php }
@@ -121,4 +122,5 @@ if ($action == 'delete'){?>
 	</tr>
 	<?php }}?>
 </table>
+<?php include '../common_templates/messages.php'; ?>
 <?php include '../common_templates/closure.php';

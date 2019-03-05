@@ -8,9 +8,7 @@ $options = ['r'=>0];
 if ($project_id = param('project')) $options['project_id'] = $project_id;
 $models = Process::load($options);
 
-foreach ($models as $model) $projects[$model->project_id]['models'][$model->id()] = $model;
-
-
+foreach ($models as $model) $projects[$model->project['id']]['models'][$model->id()] = $model;
 
 include '../common_templates/head.php';
 

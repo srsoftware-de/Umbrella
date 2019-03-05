@@ -13,6 +13,7 @@ function get_or_create_db(){
 		$tables = [
 			'connections'=> Connection::fields(),
 			'connectors'=> Connector::fields(),
+			'connector_instances'=> ConnectorInstance::fields(),
 			'terminals'=>Terminal::fields(),
 			'terminal_instances'=>TerminalInstance::fields(),
 			'flows'=>    Flow::fields(),
@@ -66,15 +67,182 @@ class Connection extends UmbrellaObjectWithId{
 			'flow_id'=>['VARCHAR'=>255,'NOT NULL'],
 		];
 	}
+
+	function load($options = []){
+		$sql = 'SELECT id,* FROM connections';
+		$where = [];
+		$args = [];
+
+		if (!empty($options['start_connector'])){
+			$where[] = 'start_connector = ?';
+			$args[] = $options['start_connector'];
+		}
+		if (!empty($options['end_connector'])){
+			$where[] = 'end_connector = ?';
+			$args[] = $options['end_connector'];
+		}
+		if (!empty($options['start_terminal'])){
+			$where[] = 'start_terminal = ?';
+			$args[] = $options['start_terminal'];
+		}
+		if (!empty($options['end_terminal'])){
+			$where[] = 'end_terminal = ?';
+			$args[] = $options['end_terminal'];
+		}
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to load connections!');
+
+		$flows = [];
+		$rows = $query->fetchAll(INDEX_FETCH);
+		foreach ($rows as $row){
+			$flow = Flow::load(['ids'=>$row['flow_id']]);
+			$flow->patch($row);
+			$flows[$flow->id] = $flow;
+		}
+		return $flows;
+	}
+
+	function save(){
+		$args = [];
+		foreach ($this->dirty as $key) $args[':'.$key] = $this->{$key};
+
+		$sql = 'INSERT INTO connections ('.implode(', ', $this->dirty).') VALUES (:'.implode(', :', $this->dirty).' )';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to add new connection to database!');
+		unset($this->dirty);
+	}
 }
 
 class Connector extends UmbrellaObjectWithId{
+
 	static function fields(){
 		return [
 			'id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'], // composed of project_id:name
-			'process_id'=>['VARCHAR'=>255,'NOT NULL'],
-			'angle'=>['INT','NOT NULL','DEFAULT'=>0]
 		];
+	}
+
+	function connections($type){
+		return Connection::load([$type.'_connector'=>$this->id()]);
+	}
+
+	function id(){
+		if (empty($this->project['id'])) throw new Exception('Connector is missing project id!');
+		if (empty($this->name)) throw new Exception('Connector is missing name!');
+		return $this->project['id'].':'.$this->name;
+	}
+
+	static function load($options = []){
+		$sql = 'SELECT * FROM connectors';
+		$where = [];
+		$args = [];
+		$single = false;
+
+		if (!empty($options['project_id'])){
+			if (empty($options['name'])){
+				$where[] = 'id LIKE ?';
+				$args[] = $options['project_id'].':%';
+			} else $options['ids']  = $options['project_id'].':'.$options['name'];
+		}
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$ids = [ $ids ];
+				$single = true;
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args));
+
+		if (!$query->execute($args)) throw new Exception('Was not able to execute "'.query_insert($query, $args).'"!');
+
+		$projects = request('project','json');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$connectors = [];
+		foreach ($rows as $id => $row){
+			$term = new Connector();
+			$term->patch($row);
+			$parts = explode(':', $id,2);
+			$proj_id = $parts[0];
+			$term->patch(['name'=>$parts[1],'project'=>&$projects[$proj_id]]);
+			unset($term->dirty);
+			if ($single) return $term;
+			$connectors[$id] = $term;
+		}
+		if ($single) return null;
+		return $connectors;
+	}
+
+	function save(){
+		$sql = 'REPLACE INTO connectors (id) VALUES (:id )';
+		$args = [':id'=>$this->id()];
+		debug(query_insert($sql, $args));
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to store connector!');
+		unset($this->dirty);
+	}
+}
+
+class ConnectorInstance extends UmbrellaObjectWithId{
+	function connector(){
+		$c = Connector::load(['ids'=>$this->connector_id]);
+		$c->angle = $this->angle;
+		return $c;
+	}
+
+	static function fields(){
+		return [
+				'connector_id'=>['VARCHAR'=>255,'NOT NULL'],
+				'process_id'=>['VARCHAR'=>255,'NOT NULL'],
+				'angle'=>['INT','NOT NULL','DEFAULT'=>0],
+				'PRIMARY KEY'=>['connector_id','process_id']
+		];
+	}
+
+	static function load($process_id, $connector_id = null){
+		$sql  = 'SELECT * FROM connector_instances WHERE process_id = ?';
+		$args = [$process_id];
+
+		$single = false;
+		if (!empty($connector_id)){
+			$sql .= ' AND connector_id = ?';
+			$args[]=$connector_id;
+			$single = true;
+		}
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to request connectors of '.$process_id);
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$connectors = [];
+		foreach ($rows as $row){
+			$conn = new ConnectorInstance();
+			$conn->patch($row);
+			unset($conn->dirty);
+			if ($single) return $conn;
+			$connectors[$conn->connector_id] = $conn;
+		}
+		return $connectors;
+	}
+
+	function save(){
+		$sql = 'REPLACE INTO connector_instances (process_id, connector_id, angle) VALUES (:proc, :conn, :ang )';
+		$args = [':proc'=>$this->process_id,':conn'=>$this->connector_id,':ang'=>$this->angle];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to store process-connector assignment!');
+		unset($this->dirty);
 	}
 }
 
@@ -85,6 +253,72 @@ class Flow extends UmbrellaObjectWithId{
 				'description'=>['TEXT'],
 				'definition'=>['TEXT']
 		];
+	}
+
+	function id(){
+		if (empty($this->project['id'])) throw new Exception('Flow is missing project id!');
+		if (empty($this->name)) throw new Exception('Flow is missing name!');
+		return $this->project['id'].':'.$this->name;
+	}
+
+	static function load($options = []){
+		$sql = 'SELECT * FROM flows';
+		$where = [];
+		$args = [];
+		$single = false;
+
+		if (!empty($options['project_id'])){
+			if (empty($options['name'])){
+				$where[] = 'id LIKE ?';
+				$args[] = $options['project_id'].':%';
+			} else $options['ids']  = $options['project_id'].':'.$options['name'];
+		}
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$ids = [ $ids ];
+				$single = true;
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args));
+
+		if (!$query->execute($args)) throw new Exception('Was not able to execute "'.query_insert($query, $args).'"!');
+
+		$projects = request('project','json');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$flows = [];
+		foreach ($rows as $id => $row){
+			$flow = new Flow();
+			$flow->patch($row);
+			$parts = explode(':', $id,2);
+			$proj_id = $parts[0];
+			$flow->patch(['name'=>$parts[1],'project'=>&$projects[$proj_id]]);
+			unset($flow->dirty);
+			if ($single) return $flow;
+			$flows[$id] = $flow;
+		}
+		if ($single) return null;
+		return $flows;
+	}
+
+	function save(){
+		if (empty($this->project['id'])) throw new Exception('Can not save flow without project id!');
+		if (empty($this->name)) throw new Exception('Can not save flow without name');
+
+		$sql = 'REPLACE INTO flows (id, description, definition) VALUES (:id, :desc, :def)';
+		$args = [':id'=>$this->id(), ':desc'=>$this->description,':def'=>$this->definition];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to execute "'.query_insert($query, $args).'"!');
+		unset($this->dirty);
 	}
 }
 
@@ -99,7 +333,7 @@ class Process extends UmbrellaObjectWithId{
 		return [
 			'id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'], // composed of project_id:name
 			'description'=>['TEXT'],
-			'r'=>['INT','NOT NULL','DEFAULT'=>50]
+			'r'=>['INT','NOT NULL','DEFAULT'=>300]
 		];
 	}
 
@@ -120,13 +354,24 @@ class Process extends UmbrellaObjectWithId{
 		return $this->children;
 	}
 
+	function connectors(){
+		if (empty($this->connectors)) {
+			$dummy = ConnectorInstance::load($this->id());
+			if (!empty($dummy)){
+				$this->connectors = Connector::load(['ids'=>array_keys($dummy)]);
+				foreach ($this->connectors as $id => &$conn) $conn->patch(['angle'=>$dummy[$id]->angle]);
+			}
+		}
+		return $this->connectors;
+	}
+
 	function terminals(){
 		if (empty($this->terminals)){
 			$dummy = TerminalInstance::load($this->id());
 			if (!empty($dummy)){
 				$this->terminals = Terminal::load(['ids'=>array_keys($dummy)]);
 				foreach ($this->terminals as $id => &$term) $term->patch(['x'=>$dummy[$id]->x,'y'=>$dummy[$id]->y,'w'=>$dummy[$id]->w]);
-			}
+			} else $this->terminals = [];
 
 		}
 		return $this->terminals;
@@ -134,7 +379,7 @@ class Process extends UmbrellaObjectWithId{
 
 	function id(){
 		if (empty($this->project['id'])) throw new Exception('Process is missing project id!');
-		if (empty($this->name)) throw new Exception('Process is mission name!');
+		if (empty($this->name)) throw new Exception('Process is missing name!');
 		return $this->project['id'].':'.$this->name;
 	}
 
@@ -203,7 +448,7 @@ class Process extends UmbrellaObjectWithId{
 		unset($this->dirty);
 	}
 
-	function svg($show_children = true){
+	function svg($root_proc){
 		if ($this->r != 0) { ?>
 		<g class="process" transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
 			<circle
@@ -213,30 +458,171 @@ class Process extends UmbrellaObjectWithId{
 				r="<?= $this->r ?>"
 				id="<?= $this->id() ?>">
 				<title><?= $this->description."\n".t('Use Shift+Mousewheel to alter size')?></title>
-			<?php } // r != 0
-
-			if ($this->r != 0) { ?>
 			</circle>
 			<text x="0" y="0">
 				<title><?= $this->description."\n".t('Use Shift+Mousewheel to alter size')?></title>
 				<?= $this->name ?>
-			</text><?php } // r != 0
-			if ($show_children)	{
-				foreach ($this->children() as $child) $child->svg(false);
-				foreach ($this->terminals() as $terminal) $terminal->svg(false);
-			}
-			if ($this->r != 0) { ?></g> <?php } // r != 0
-	}
+			</text><?php
+			foreach ($this->connectors() as $conn){ ?>
+				<a xlink:href="<?= getUrl('model',$root_proc.DS.'connect?connector='.$conn->id()) ?>">
+				<circle
+					class="connector"
+					cx="0"
+					cy="<?= -$this->r ?>"
+					r="15"
+					id="<?= $conn->id() ?>"
+					transform="rotate(<?= $conn->angle ?>,0,0)">
+			<title><?= $conn->name ?>
 
-	function terminal_instances(){
-		error_log('Process::terminal_instances not implemented');
-		return null;
+<?= t('Mouse wheel alters position.') ?></title>
+				</circle>
+			</a> <?php
+			}
+		} // r != 0
+		if ($root_proc == $this->id())	{
+			foreach ($this->children() as $child) $child->svg($root_proc);
+			foreach ($this->terminals() as $terminal) $terminal->svg();
+			$drawn_flows = [];
+
+			foreach ($this->connectors() as $connector){
+				foreach($connector->connections('start') as $flow){ // connections starting from connector of current process
+					$start_x = $this->r * sin(RAD*$connector->angle);
+					$start_y = -$this->r * cos(RAD*$connector->angle);
+					$end_x = null;
+
+					if (!empty($flow->end_connector)){ // flow connects to other connector
+						$endpoint = $flow->end_connector;
+						if (!empty($this->connectors[$endpoint])){ // endpoint is connector of the same process
+							$end_con = $this->connectors[$endpoint];
+							$end_x = $this->r * sin(RAD*$end_con->angle);
+							$end_y = -$this->r * cos(RAD*$end_con->angle);
+						} else {
+							foreach ($this->children() as $child){
+								if (!empty($child->connectors[$endpoint])){ // endpoint is connector of the child process
+									$end_con = $child->connectors[$endpoint];
+									$end_x = $child->x + $child->r * sin(RAD*$end_con->angle);
+									$end_y = $child->y - $child->r * cos(RAD*$end_con->angle);
+								}
+							}
+						}
+					}
+					if (!empty($flow->end_terminal)){ // flow connects to terminal
+						foreach ($this->terminals() as $term){
+							if ($flow->end_terminal == $term->id()){
+								$end_x = $term->x + $term->w/2;
+								$end_y = $term->y;
+								if ($start_y > $end_y+40 ) $end_y+=40;
+							}
+						}
+					}
+					if ($end_x !== null && empty($drawn_flows[$flow->id])) {
+						arrow($start_x, $start_y, $end_x, $end_y, $flow->name." ($flow->id)",getUrl('model','flow/'.$flow->id),$flow->description);
+						$drawn_flows[$flow->id] = true;
+					}
+				}
+
+				foreach($connector->connections('end') as $flow){ // connections going to connector of current process
+					$end_x = $this->r * sin(RAD*$connector->angle);
+					$end_y = -$this->r * cos(RAD*$connector->angle);
+					$start_x = null;
+
+					if (!empty($flow->start_connector)){ // flow connects to other connector
+						$startpoint = $flow->start_connector;
+						if (!empty($this->connectors[$startpoint])){ // startpoint is connector of the same process
+							$end_con = $this->connectors[$startpoint];
+							$start_x = $this->r * sin(RAD*$end_con->angle);
+							$start_y = -$this->r * cos(RAD*$end_con->angle);
+						} else {
+							foreach ($this->children() as $child){
+								if (!empty($child->connectors[$startpoint])){ // startpoint is connector of the child process
+									$end_con = $child->connectors[$startpoint];
+									$start_x = $child->x + $child->r * sin(RAD*$end_con->angle);
+									$start_y = $child->y - $child->r * cos(RAD*$end_con->angle);
+								}
+							}
+						}
+					}
+					if (!empty($flow->end_terminal)){ // flow connects to terminal
+						foreach ($this->terminals() as $term){
+							if ($flow->end_terminal == $term->id()){
+								$start_x = $term->x + $term->w/2;
+								$start_y = $term->y;
+							}
+						}
+					}
+					if ($start_x !== null && empty($drawn_flows[$flow->id])) {
+						arrow($start_x, $start_y, $end_x, $end_y, $flow->name." ($flow->id)",getUrl('model','flow/'.$flow->id),$flow->description);
+						$drawn_flows[$flow->id] = true;
+					}
+				}
+
+			}
+			foreach ($this->terminals() as $terminal){
+				foreach($terminal->connections('start') as $flow){ // connections starting from terminal of current process
+					$start_x = $terminal->x;
+					$start_y = $terminal->y;
+					$end_x = null;
+
+					if (!empty($flow->end_connector)){ // flow connects to other connector
+						$endpoint = $flow->end_connector;
+						if (!empty($this->connectors[$endpoint])){ // endpoint is connector of the same process
+							$end_con = $this->connectors[$endpoint];
+							$end_x = $this->r * sin(RAD*$end_con->angle);
+							$end_y = -$this->r * cos(RAD*$end_con->angle);
+						} else {
+							foreach ($this->children() as $child){
+								if (!empty($child->connectors[$endpoint])){ // endpoint is connector of the child process
+									$end_con = $child->connectors[$endpoint];
+									$end_x = $child->x + $child->r * sin(RAD*$end_con->angle);
+									$end_y = $child->y - $child->r * cos(RAD*$end_con->angle);
+								}
+							}
+						}
+					}
+					if ($end_x !== null && empty($drawn_flows[$flow->id])) {
+						if ($start_y+40 < end_y) $start_y+=30;
+						arrow($start_x, $start_y, $end_x, $end_y, $flow->name." ($flow->id)",getUrl('model','flow/'.$flow->id),$flow->description);
+						$drawn_flows[$flow->id] = true;
+					}
+				}
+
+				foreach($terminal->connections('end') as $flow){ // connections going to terminal of current process
+					$end_x = $terminal->x+$terminal->w/2;
+					$end_y = $terminal->y;
+					$start_x = null;
+
+					if (!empty($flow->start_connector)){ // flow connects to other connector
+						$startpoint = $flow->start_connector;
+						if (!empty($this->connectors[$startpoint])){ // startpoint is connector of the same process
+							$end_con = $this->connectors[$startpoint];
+							$start_x = $this->r * sin(RAD*$end_con->angle);
+							$start_y = -$this->r * cos(RAD*$end_con->angle);
+						} else {
+							foreach ($this->children() as $child){
+								if (!empty($child->connectors[$startpoint])){ // startpoint is connector of the child process
+									$end_con = $child->connectors[$startpoint];
+									$start_x = $child->x + $child->r * sin(RAD*$end_con->angle);
+									$start_y = $child->y - $child->r * cos(RAD*$end_con->angle);
+								}
+							}
+						}
+					}
+					if ($start_x !== null && empty($drawn_flows[$flow->id])) {
+						if ($end_y+30 < $start_y) $end_y+=40;
+						arrow($start_x, $start_y, $end_x, $end_y, $flow->name." ($flow->id)",getUrl('model','flow/'.$flow->id),$flow->description);
+						$drawn_flows[$flow->id] = true;
+					}
+				}
+
+			}
+		}
+		if ($this->r != 0) { ?></g> <?php } // r != 0
 	}
 }
 
 class ProcessChild extends UmbrellaObject{
 	function __construct(){
-		$this->r = 50;
+		$this->r = 300;
 		$this->x = 10;
 		$this->y = 10;
 	}
@@ -293,6 +679,10 @@ class Terminal extends UmbrellaObjectWithId{
 	const TERMINAL = 0;
 	const DATABASE = 1;
 
+	function connections($type){
+		return Connection::load([$type.'_terminal'=>$this->id()]);
+	}
+
 	static function fields(){
 		return [
 			'id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'], // composed of project_id:name
@@ -303,7 +693,7 @@ class Terminal extends UmbrellaObjectWithId{
 
 	function id(){
 		if (empty($this->project['id'])) throw new Exception('Terminal is missing project id!');
-		if (empty($this->name)) throw new Exception('Terminal is mission name!');
+		if (empty($this->name)) throw new Exception('Terminal is missing name!');
 		return $this->project['id'].':'.$this->name;
 	}
 
@@ -362,7 +752,7 @@ class Terminal extends UmbrellaObjectWithId{
 		$db = get_or_create_db();
 
 		$query = $db->prepare($sql);
-		if (!$query->execute($args)) throw new Exception('Was not able to store process-child assignment!');
+		if (!$query->execute($args)) throw new Exception('Was not able to store terminal!');
 		unset($this->dirty);
 	}
 
@@ -374,12 +764,12 @@ class Terminal extends UmbrellaObjectWithId{
 				x="0"
 				y="0"
 				width="<?= $this->w ?>"
-				height="30"
+				height="40"
 				id="<?= $this->id() ?>">
 			<title><?= $this->description ?></title>
 		</rect>
-		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= $this->description ?></title><?= $this->id() ?></text>
-		<?php } else { ?>
+		<text x="<?= $this->w/2 ?>" y="20" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
+		<?php } else { // database?>
 		<ellipse
 				 cx="<?= $this->w/2 ?>"
 				 cy="40"
@@ -404,7 +794,7 @@ class Terminal extends UmbrellaObjectWithId{
 				 ry="15">
 			<title><?= $this->description ?></title>
 		</ellipse>
-		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= $this->description ?></title><?= $this->id() ?></text>
+		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
 		<?php } ?>
 	</g>
 	<?php }
