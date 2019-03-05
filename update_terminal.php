@@ -2,21 +2,11 @@
 
 require_login('model');
 
-$model_id = param('id1');
-$terminal_id = param('id2');
+$process_id = param('id');
+if (empty($process_id)) throw new Exception('No process id passed!');
 
-if (!$model_id){
-	error('No model id passed to terminal.');
-	redirect(getUrl('model'));
-}
-if (!$terminal_id){
-	error('No terminal id passed to terminal.');
-	redirect(getUrl('model'));
-}
+$term_id = param('elem');
+if (empty($term_id)) throw new Exception('No terminal id passed!');
 
-$model = Model::load(['ids'=>$model_id]);
-$terminal = $model->terminal_instances($terminal_id);
-debug($terminal);
-$terminal->patch($_POST);
-$terminal->base->save();
-$terminal->save();
+$terminal = TerminalInstance::load($process_id,$term_id);
+$terminal->patch($_POST)->save();

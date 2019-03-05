@@ -112,11 +112,24 @@ class Process extends UmbrellaObjectWithId{
 	function children(){
 		if (empty($this->children)) {
 			$dummy = ProcessChild::load($this->id());
-			$this->children = Process::load(['ids'=>array_keys($dummy)]);
-			foreach ($this->children as $id => $child) $child->patch(['x'=>$dummy[$id]->x,'y'=>$dummy[$id]->y,'r'=>$dummy[$id]->r]);
-
+			if (!empty($dummy)){
+				$this->children = Process::load(['ids'=>array_keys($dummy)]);
+				foreach ($this->children as $id => &$child) $child->patch(['x'=>$dummy[$id]->x,'y'=>$dummy[$id]->y,'r'=>$dummy[$id]->r]);
+			}
 		}
 		return $this->children;
+	}
+
+	function terminals(){
+		if (empty($this->terminals)){
+			$dummy = TerminalInstance::load($this->id());
+			if (!empty($dummy)){
+				$this->terminals = Terminal::load(['ids'=>array_keys($dummy)]);
+				foreach ($this->terminals as $id => &$term) $term->patch(['x'=>$dummy[$id]->x,'y'=>$dummy[$id]->y,'w'=>$dummy[$id]->w]);
+			}
+
+		}
+		return $this->terminals;
 	}
 
 	function id(){
@@ -208,7 +221,10 @@ class Process extends UmbrellaObjectWithId{
 				<title><?= $this->description."\n".t('Use Shift+Mousewheel to alter size')?></title>
 				<?= $this->name ?>
 			</text><?php } // r != 0
-			if ($show_children)	foreach ($this->children() as $child) $child->svg(false);
+			if ($show_children)	{
+				foreach ($this->children() as $child) $child->svg(false);
+				foreach ($this->terminals() as $terminal) $terminal->svg(false);
+			}
 			if ($this->r != 0) { ?></g> <?php } // r != 0
 	}
 
@@ -249,7 +265,8 @@ class ProcessChild extends UmbrellaObject{
 
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
-		if (!$query->execute($args)) throw new Exception('Was not able to request children of '.$process_id);
+		//debug(query_insert($query, $args));
+		if (!$query->execute($args)) throw new Exception('Was not able to request children of '.$parent_id);
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$children = [];
 		foreach ($rows as $row){
@@ -348,6 +365,49 @@ class Terminal extends UmbrellaObjectWithId{
 		if (!$query->execute($args)) throw new Exception('Was not able to store process-child assignment!');
 		unset($this->dirty);
 	}
+
+	public function svg(){ ?>
+	<g transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
+		<?php if ($this->type == Terminal::TERMINAL) { // terminal ?>
+		<rect
+				class="terminal"
+				x="0"
+				y="0"
+				width="<?= $this->w ?>"
+				height="30"
+				id="<?= $this->id() ?>">
+			<title><?= $this->description ?></title>
+		</rect>
+		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= $this->description ?></title><?= $this->id() ?></text>
+		<?php } else { ?>
+		<ellipse
+				 cx="<?= $this->w/2 ?>"
+				 cy="40"
+				 rx="<?= $this->w/2?>"
+				 ry="15">
+			<title><?= $this->description ?></title>
+		</ellipse>
+		<rect
+				class="terminal"
+				x="0"
+				y="0"
+				width="<?= $this->w ?>"
+				height="40"
+			  	stroke-dasharray="0,<?= $this->w ?>,40,<?= $this->w ?>,40"
+				id="<?= $this->id() ?>">
+			<title><?= $this->description ?></title>
+		</rect>
+		<ellipse
+				 cx="<?= $this->w/2 ?>"
+				 cy="0"
+				 rx="<?= $this->w/2?>"
+				 ry="15">
+			<title><?= $this->description ?></title>
+		</ellipse>
+		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= $this->description ?></title><?= $this->id() ?></text>
+		<?php } ?>
+	</g>
+	<?php }
 }
 
 class TerminalInstance extends UmbrellaObjectWithId{
@@ -358,8 +418,34 @@ class TerminalInstance extends UmbrellaObjectWithId{
 			'x'=>['INT','NOT NULL','DEFAULT 10'],
 			'y'=>['INT','NOT NULL','DEFAULT 10'],
 			'w'=>['INT','NOT NULL','DEFAULT 10'],
-			'PRIMARY_KEY'=>['terminal_id','process_id']
+			'PRIMARY KEY'=>['terminal_id','process_id']
 		];
+	}
+
+	static function load($process_id, $terminal_id = null){
+		$sql  = 'SELECT * FROM terminal_instances WHERE process_id = ?';
+		$args = [$process_id];
+
+		$single = false;
+		if (!empty($terminal_id)){
+			$sql .= ' AND terminal_id = ?';
+			$args[]=$terminal_id;
+			$single = true;
+		}
+
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to request terminals of '.$process_id);
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$terminals = [];
+		foreach ($rows as $row){
+			$term = new TerminalInstance();
+			$term->patch($row);
+			unset($term->dirty);
+			if ($single) return $term;
+			$terminals[$term->terminal_id] = $term;
+		}
+		return $terminals;
 	}
 
 	function save(){
