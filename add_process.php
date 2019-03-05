@@ -2,25 +2,20 @@
 
 require_login('model');
 
-if ($model_id = param('id')){
-	$model = Model::load(['ids'=>$model_id]);
-} else {
-	error('No Model id passed to add_process!');
-	redirect($model->url());
+$process_id = param('id');
+if (empty($process_id)) {
+	error('No model id passed to view!');
+	redirect(getUrl('model'));
 }
 
+$process = Process::load(['ids'=>$process_id]);
+
 if ($name = param('name')){
-	$base = Process::load(['project_id'=>$model->project_id,'ids'=>$name]);
-	if ($base === null) {
-		$base = new Process();
-		$base->patch($_POST);
-		$base->save();
-	}
-	$process = new ProcessInstance();
-	$process->base = $base;
-	$process->patch(['model_id'=>$model_id,'process_id'=>$name,'x'=>50,'y'=>50]);
-	$process->save();
-	redirect('view');
+	$child = new Process();
+	$child->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description')]);
+	$child->save();
+	$process->add($child);
+	redirect(getUrl('model',$process->id().'/view'));
 }
 include '../common_templates/head.php';
 
@@ -28,10 +23,10 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add process to "?"',$model->name); ?></legend>
+	<legend><?= t('Add process to ?',t(($process->r == 0?'model':'process').' "?"',$process->name)); ?></legend>
 	<form method="POST">
-	<input type="hidden" name="project_id" value="<?= $model->project_id ?>" />
-	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
+	<input type="hidden" name="project_id" value="<?= $process->project_id ?>" />
+	<input type="hidden" name="model_id" value="<?= $process->id ?>" />
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
 		<input type="text" name="name" value="<?= param('name','') ?>" />

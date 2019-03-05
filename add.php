@@ -4,7 +4,8 @@ require_login('model');
 
 if ($project_id = param('project')){
 	if ($name = param('name')){
-		$model = new Model($project_id, $name,param('description'));
+		$model = new Process();
+		$model->patch(['project_id'=>$project_id,'name'=>$name,'description'=>param('description'),'r'=>0]);
 		$model->save();
 		redirect(getUrl('model',$model->id.'/view'));
 	}

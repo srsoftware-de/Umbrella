@@ -2,23 +2,18 @@
 
 require_login('model');
 
-if ($model_id = param('id')){
-	if (strpos($model_id,'project:')===0) redirect(getUrl('model','?project='.substr($model_id,8))); // notes module may have uri model:project:xxx which links to model/project:xxx/view
-	$model = Model::load(['ids'=>$model_id]);
-} else {
-	error('No model id passed!');
+$process_id = param('id');
+if (empty($process_id)) {
+	error('No model id passed to view!');
 	redirect(getUrl('model'));
 }
 
+$process = Process::load(['ids'=>$process_id]);
+
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
-	$model->delete();
-	redirect(getUrl('model','?project='.$model->project_id));
-}
-
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$parsedown  = Parsedown::instance();
+	$process->delete();
+	redirect(getUrl('model','?project='.$process->project_id));
 }
 
 include '../common_templates/head.php';
@@ -28,8 +23,8 @@ include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
-		<legend><?= t('Delete "?"',$model->name)?></legend>
-		<?= t('You are about to delete the model "?". Are you sure you want to proceed?',$model->name) ?>
+		<legend><?= t('Delete "?"',$process->name)?></legend>
+		<?= t('You are about to delete the model "?". Are you sure you want to proceed?',$process->name) ?>
 		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?"><?= t('No')?></a>
 	</fieldset>
@@ -39,7 +34,7 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Model')?></th>
 		<td>
-			<h1><?= $model->name ?></h1>
+			<h1><?= $process->name ?></h1>
 			<span class="symbol">
 				<a title="<?= t('edit')?>"	href="edit"></a>
 				<a title="<?= t('export model') ?>" href="export"></a>
@@ -50,18 +45,18 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Project')?></th>
 		<td class="project">
-			<a href="<?= getUrl('project',$model->project_id.'/view'); ?>"><?= $model->project['name']?></a>
+			<a href="<?= getUrl('project',$process->project['id'].'/view'); ?>"><?= $process->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
-			<a class="symbol" title="<?= t('show other models') ?>"   href="<?= getUrl('model').'?project='.$model->project_id ?>"></a>
+			<a href="<?= getUrl('files').'?path=project/'.$process->project['id'] ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
+			<a class="symbol" title="<?= t('show other models') ?>"   href="<?= getUrl('model').'?project='.$process->project['id'] ?>"></a>
 			</td>
 	</tr>
-	<?php if ($model->description){ ?>
+	<?php if ($process->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $parsedown?$parsedown->parse($model->description):str_replace("\n", "<br/>", $model->description) ?></td>
+		<td class="description"><?= markdown($process->description) ?></td>
 	</tr>
-	<?php } $dummy=null; ?>
+	<?php } ?>
 		<tr>
 		<th><?= t('Display') ?>
 			<div class="symbol">
@@ -79,23 +74,18 @@ if ($action == 'delete'){?>
 				 onwheel="wheel(evt)">
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
-				<?php foreach ($model->process_instances() as $process){
-					if ($process->parent === null) $process->svg($model);
-				} // foreach process
-				foreach ($model->terminal_instances() as $term){
- 					$term->svg();
- 				} // foreach terminal ?>
+				<?php $process->svg(); ?>
 			</svg>
 		</td>
 	</tr>
 
 	<?php
 	$shown = [];
-	if ($model->terminal_instances()){ ?>
+	if ($process->terminal_instances()){ ?>
 	<tr>
 		<th><?= t('Terminals')?></th>
 		<td class="terminals">
-		<?php foreach ($model->terminal_instances() as $terminal){ if ($terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
+		<?php foreach ($process->terminal_instances() as $terminal){ if ($terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
 		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description?>"><?= $terminal->base->id ?></a>
 		<?php $shown[] = $terminal->base->id; } ?>
 		</td>
@@ -103,18 +93,18 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Databases')?></th>
 		<td class="databases">
-		<?php foreach ($model->terminal_instances() as $terminal){ if (!$terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
+		<?php foreach ($process->terminal_instances() as $terminal){ if (!$terminal->base->type || in_array($terminal->base->id,$shown)) continue; ?>
 		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->base->description ?>"><?= $terminal->base->id ?></a>
 		<?php $shown[] = $terminal->base->id; } ?>
 		</td>
 	</tr>
 	<?php }
 	$shown = [];
-	if ($model->process_instances()){ ?>
+	if ($process->children()){ ?>
 	<tr>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
-		<?php foreach ($model->process_instances() as $process){ if (in_array($process->base->id,$shown)) continue;?>
+		<?php foreach ($process->process_instances() as $process){ if (in_array($process->base->id,$shown)) continue;?>
 		<a class="button" href="process/<?= $process->id ?>" title="<?= $process->base->description ?>"><?= $process->base->id ?></a>
 		<?php $shown[] = $process->base->id; } ?>
 		</td>
@@ -122,7 +112,7 @@ if ($action == 'delete'){?>
 	<?php } ?>
 
 	<?php if (isset($services['notes'])) {
-		$notes = request('notes','html',['uri'=>'model:'.$model_id],false,NO_CONVERSION);
+		$notes = request('notes','html',['uri'=>'model:'.$process->id()],false,NO_CONVERSION);
 		if ($notes){ ?>
 	<tr>
 		<th><?= t('Notes')?></th>
