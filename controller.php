@@ -89,11 +89,17 @@ class Flow extends UmbrellaObjectWithId{
 }
 
 class Process extends UmbrellaObjectWithId{
+	function __construct(){
+		// center process by default
+		$this->x = 500;
+		$this->y = 500;
+	}
+
 	static function fields(){
 		return [
-				'id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'], // composed of project_id:name
-				'description'=>['TEXT'],
-				'r'=>['INT','NOT NULL','DEFAULT'=>50]
+			'id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'], // composed of project_id:name
+			'description'=>['TEXT'],
+			'r'=>['INT','NOT NULL','DEFAULT'=>50]
 		];
 	}
 
@@ -104,7 +110,12 @@ class Process extends UmbrellaObjectWithId{
 	}
 
 	function children(){
-		if (empty($this->children)) $this->children = ProcessChild::load($this->id());
+		if (empty($this->children)) {
+			$dummy = ProcessChild::load($this->id());
+			$this->children = Process::load(['ids'=>array_keys($dummy)]);
+			foreach ($this->children as $id => $child) $child->patch(['x'=>$dummy[$id]->x,'y'=>$dummy[$id]->y,'r'=>$dummy[$id]->r]);
+
+		}
 		return $this->children;
 	}
 
@@ -168,7 +179,7 @@ class Process extends UmbrellaObjectWithId{
 	}
 
 	function save(){
-		if (empty($this->project_id)) throw new Exception('Can not save process without project id!');
+		if (empty($this->project['id'])) throw new Exception('Can not save process without project id!');
 		if (empty($this->name)) throw new Exception('Can not save project without name');
 
 		$sql = 'REPLACE INTO processes (id, description, r) VALUES (:id, :desc, :r)';
@@ -179,27 +190,25 @@ class Process extends UmbrellaObjectWithId{
 		unset($this->dirty);
 	}
 
-	function svg(){
+	function svg($show_children = true){
 		if ($this->r != 0) { ?>
-		<circle
-			class="process"
-			cx="0"
-			cy="0"
-			r="<?= $this->r ?>"
-			id="<?= $this->id() ?>">
-			<title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
-		<?php } // r != 0
-		foreach ($this->children() as $child){ ?>
+		<g class="process" transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
 			<circle
 				class="process"
-				cx="<?= $child->x ?>"
-				cy="<?= $child->y ?>"
-				r="<?= $child->r ?>"
-				id="<?= $child->id() ?>">
-			<title><?= $child->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
-			</circle> <?php
-		}
-		if ($this->r != 0) { ?></circle> <?php } // r != 0
+				cx="0"
+				cy="0"
+				r="<?= $this->r ?>"
+				id="<?= $this->id() ?>">
+				<title><?= $this->description."\n".t('Use Shift+Mousewheel to alter size')?></title>
+			<?php } // r != 0
+			if ($show_children)	foreach ($this->children() as $child) $child->svg(false);
+			if ($this->r != 0) { ?>
+			</circle>
+			<text x="0" y="0">
+				<title><?= $this->description."\n".t('Use Shift+Mousewheel to alter size')?></title>
+				<?= $this->name ?>
+			</text>
+			</g> <?php } // r != 0
 	}
 
 	function terminal_instances(){
@@ -209,6 +218,12 @@ class Process extends UmbrellaObjectWithId{
 }
 
 class ProcessChild extends UmbrellaObject{
+	function __construct(){
+		$this->r = 50;
+		$this->x = 10;
+		$this->y = 10;
+	}
+
 	static function fields(){
 		return [
 			'parent_id'=>['VARCHAR'=>255,'NOT NULL'],
@@ -220,32 +235,38 @@ class ProcessChild extends UmbrellaObject{
 		];
 	}
 
-	static function load($process_id){
+	static function load($parent_id, $process_id = null){
 		$sql  = 'SELECT * FROM process_children WHERE parent_id = ?';
-		$args = [$process_id];
+		$args = [$parent_id];
+
+		$single = false;
+		if (!empty($process_id)){
+			$sql .= ' AND process_id = ?';
+			$args[]=$process_id;
+			$single = true;
+		}
+
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to request children of '.$process_id);
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$children = [];
 		foreach ($rows as $row){
-			$pid = $row['process_id'];
-			$child = Process::load(['ids'=>$pid]);
-			unset($row['parent_id'],$row['process_id']);
-			$child->patch($row);
-			$children[$pid] = $child;
-			unset($child->dirty);
+			$pc = new ProcessChild();
+			$pc->patch($row);
+			unset($pc->dirty);
+			if ($single) return $pc;
+			$children[$pc->process_id] = $pc;
 		}
 		return $children;
 	}
 
 	function save(){
-		$sql = 'REPLACE INTO process_children (parent_id, process_id, x, y, r) VALUES (:par, :prc, :x, :y, :r)';
+		$sql = 'REPLACE INTO process_children (parent_id, process_id, x, y, r) VALUES (:par, :prc, :x, :y, :r )';
 		$args = [':par'=>$this->parent_id,':prc'=>$this->process_id,':x'=>$this->x,':y'=>$this->y,':r'=>$this->r];
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to store process-child assignment!');
-
 	}
 }
 

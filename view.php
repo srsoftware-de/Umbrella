@@ -72,6 +72,7 @@ if ($action == 'delete'){?>
 				 onmousemove="drag(evt)"
 				 onmouseup="drop(evt)"
 				 onwheel="wheel(evt)">
+				<script type="text/javascript">var model_base = '<?= getUrl('model')?>';</script>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 				<?php $process->svg(); ?>
@@ -104,9 +105,9 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
-		<?php foreach ($process->process_instances() as $process){ if (in_array($process->base->id,$shown)) continue;?>
-		<a class="button" href="process/<?= $process->id ?>" title="<?= $process->base->description ?>"><?= $process->base->id ?></a>
-		<?php $shown[] = $process->base->id; } ?>
+		<?php foreach ($process->children() as $child){ if (in_array($child->id(),$shown)) continue;?>
+		<a class="button" href="process/<?= $child->id() ?>" title="<?= $child->description ?>"><?= $child->id() ?></a>
+		<?php $shown[] = $child->id(); } ?>
 		</td>
 	</tr>
 	<?php } ?>

@@ -56,8 +56,8 @@ function drop(evt){
 			var moveX = cp.x - PointGrabbed.x;
 			var moveY = cp.y - PointGrabbed.y;
 			if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) { // if not dragged: handle as click
-				var href = location.href.replace(/\/\d*$/,'').replace(/[^\/]*$/,''); // first: strip trailing number, if present. then: strip page				
-				location.href = href + elem.id.replace(/_([^_]*)$/,'/$1');
+								
+				location.href = model_base + elem.id + '/view';
 			} else {
 				var x = GroupOrigin.x + moveX;
 				var y = GroupOrigin.y + moveY;
@@ -141,7 +141,8 @@ function schedule_reload(){
 }
 
 function updateElement(elem,data){
-	var script = 'update_'+elem.id.replace(/_([^_]*)$/,'/$1');
+	var script = 'update_'+elem.getAttribute('class');
+	data['elem']=elem.id;
 	$.ajax({
 		url: script,
 		method: 'POST',
