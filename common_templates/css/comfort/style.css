@@ -69,6 +69,11 @@ fieldset{
 }
 
 
+.completed a{
+	text-decoration: line-through;
+}
+
+
 .button{
 	padding:2px;
 	margin:5px;
@@ -103,6 +108,10 @@ fieldset{
 	border: 1px solid red;
 	border-radius: 5px;
 	background: white;
+}
+
+.canceled{
+	text-decoration: line-through
 }
 
 .hover:hover{
