@@ -12,7 +12,7 @@ $process = Process::load(['ids'=>$process_id]);
 
 if ($name = param('name')){
 	$child = new Process();
-	$child->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description')]);
+	$child->patch(['project'=>$process->project,'json','name'=>$name,'description'=>param('description')]);
 	$child->save();
 	$process->add($child);
 	redirect(getUrl('model',$process->id().'/view'));

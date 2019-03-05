@@ -2,24 +2,24 @@
 
 require_login('model');
 
-if ($model_id = param('id')){
-	$model = Model::load(['ids'=>$model_id]);
-} else {
-	error('No Model id passed to add_terminal!');
-	redirect('index');
+$process_id = param('id');
+if (empty($process_id)) {
+	error('No model id passed to view!');
+	redirect(getUrl('model'));
 }
 
+$process = Process::load(['ids'=>$process_id]);
+
 if ($name = param('name')){
-	$base = Terminal::load(['project_id'=>$model->project_id,'ids'=>$name]);
-	if ($base === null) {
-		$base = new Terminal();		
-		$base->patch($_POST);		
-		$base->save();
+
+	$terminal = Terminal::load(['ids'=>$process->project['id'].':'.$name]);
+	if (empty($terminal)) {
+		$terminal = new Terminal();
+		$terminal->patch(['project'=>$process->project])->patch($_POST)->save();
 	}
-	$terminal = new TerminalInstance();
-	$terminal->base = $base;
-	$terminal->patch(['model_id'=>$model_id,'terminal_id'=>$name,'x'=>0,'y'=>0]);
-	$terminal->save();
+	//debug(['terminal'=>$terminal,'process'=>$process],1);
+	$instance = new TerminalInstance();
+	$instance->patch(['terminal_id'=>$terminal->id(),'process_id'=>$process->id(),'x'=>100,'y'=>100,'w'=>200])->save();
 	redirect('view');
 }
 include '../common_templates/head.php';
@@ -28,10 +28,8 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add Terminal Instance to "?"',$model->name); ?></legend>
+	<legend><?= t('Add Terminal Instance to "?"',$process->name); ?></legend>
 	<form method="POST">
-	<input type="hidden" name="project_id" value="<?= $model->project_id ?>" />
-	<input type="hidden" name="model_id" value="<?= $model->id ?>" />
 	<fieldset>
 	<legend><?= t('Type')?></legend>
 	<label>
@@ -45,7 +43,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Name'); ?></legend>
 		<input type="text" name="name" value="<?= param('name','') ?>" />
 	</fieldset>
-	
+
 	<fieldset>
 		<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 		<textarea name="description"><?= param('description','') ?></textarea>

@@ -105,7 +105,7 @@ class Process extends UmbrellaObjectWithId{
 
 	function add(Process $process){
 		$child = new ProcessChild();
-		$child->patch(['parent_id'=>$this->id(),'process_id'=>$process->id(),'x'=>10,'y'=>10,'r'=>20]);
+		$child->patch(['parent_id'=>$this->id(),'process_id'=>$process->id(),'x'=>$this->r==0?500:0,'y'=>$this->r==0?500:0,'r'=>100]);
 		$child->save();
 	}
 
@@ -201,14 +201,15 @@ class Process extends UmbrellaObjectWithId{
 				id="<?= $this->id() ?>">
 				<title><?= $this->description."\n".t('Use Shift+Mousewheel to alter size')?></title>
 			<?php } // r != 0
-			if ($show_children)	foreach ($this->children() as $child) $child->svg(false);
+
 			if ($this->r != 0) { ?>
 			</circle>
 			<text x="0" y="0">
 				<title><?= $this->description."\n".t('Use Shift+Mousewheel to alter size')?></title>
 				<?= $this->name ?>
-			</text>
-			</g> <?php } // r != 0
+			</text><?php } // r != 0
+			if ($show_children)	foreach ($this->children() as $child) $child->svg(false);
+			if ($this->r != 0) { ?></g> <?php } // r != 0
 	}
 
 	function terminal_instances(){
@@ -267,16 +268,85 @@ class ProcessChild extends UmbrellaObject{
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to store process-child assignment!');
+		unset($this->dirty);
 	}
 }
 
 class Terminal extends UmbrellaObjectWithId{
+	const TERMINAL = 0;
+	const DATABASE = 1;
+
 	static function fields(){
 		return [
 			'id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'], // composed of project_id:name
 			'description'=>['TEXT'],
 			'type'=>['INT','NOT NULL','DEFAULT'=>1]
 		];
+	}
+
+	function id(){
+		if (empty($this->project['id'])) throw new Exception('Terminal is missing project id!');
+		if (empty($this->name)) throw new Exception('Terminal is mission name!');
+		return $this->project['id'].':'.$this->name;
+	}
+
+	static function load($options = []){
+		$sql = 'SELECT * FROM terminals';
+		$where = [];
+		$args = [];
+		$single = false;
+
+		if (!empty($options['project_id'])){
+			if (empty($options['name'])){
+				$where[] = 'id LIKE ?';
+				$args[] = $options['project_id'].':%';
+			} else $options['ids']  = $options['project_id'].':'.$options['name'];
+		}
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$ids = [ $ids ];
+				$single = true;
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args));
+
+		if (!$query->execute($args)) throw new Exception('Was not able to execute "'.query_insert($query, $args).'"!');
+
+		$projects = request('project','json');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$terminals = [];
+		foreach ($rows as $id => $row){
+			$term = new Terminal();
+			$term->patch($row);
+			$parts = explode(':', $id,2);
+			$proj_id = $parts[0];
+			$term->patch(['name'=>$parts[1],'project'=>&$projects[$proj_id]]);
+			unset($term->dirty);
+			if ($single) return $term;
+			$terminals[$id] = $term;
+		}
+		if ($single) return null;
+		return $terminals;
+	}
+
+	function save(){
+		$sql = 'REPLACE INTO terminals (id, type, description) VALUES (:id, :tp, :ds )';
+		$args = [':id'=>$this->id(),':tp'=>$this->type,':ds'=>$this->description];
+		debug(query_insert($sql, $args));
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to store process-child assignment!');
+		unset($this->dirty);
 	}
 }
 
@@ -287,8 +357,17 @@ class TerminalInstance extends UmbrellaObjectWithId{
 			'process_id'=>['VARCHAR'=>255,'NOT NULL'],
 			'x'=>['INT','NOT NULL','DEFAULT 10'],
 			'y'=>['INT','NOT NULL','DEFAULT 10'],
-			'r'=>['INT','NOT NULL','DEFAULT 10'],
+			'w'=>['INT','NOT NULL','DEFAULT 10'],
 			'PRIMARY_KEY'=>['terminal_id','process_id']
 		];
+	}
+
+	function save(){
+		$sql = 'REPLACE INTO terminal_instances (process_id, terminal_id, x, y, w) VALUES (:proc, :term, :x, :y, :w )';
+		$args = [':proc'=>$this->process_id,':term'=>$this->terminal_id,':x'=>$this->x,':y'=>$this->y,':w'=>$this->w];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to store process-terminal assignment!');
+		unset($this->dirty);
 	}
 }

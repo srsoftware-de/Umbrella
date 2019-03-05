@@ -106,7 +106,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
 		<?php foreach ($process->children() as $child){ if (in_array($child->id(),$shown)) continue;?>
-		<a class="button" href="process/<?= $child->id() ?>" title="<?= $child->description ?>"><?= $child->id() ?></a>
+		<a class="button" href="<?= getUrl('model',$child->id().'/view') ?>" title="<?= $child->description ?>"><?= $child->id() ?></a>
 		<?php $shown[] = $child->id(); } ?>
 		</td>
 	</tr>
