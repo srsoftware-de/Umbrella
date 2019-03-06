@@ -125,7 +125,7 @@ class Process extends UmbrellaObjectWithId{
 				'project_id'  => ['INT','NOT NULL'],
 				'name'        => ['VARCHAR'=>255,'NOT NULL'],
 				'description' => ['TEXT'],
-				'r'           => ['INT','DEFAULT NULL'],
+				'r'           => ['INT','DEFAULT'=>450],
 				'UNIQUE'      => ['project_id','name']
 		];
 	}
@@ -135,19 +135,27 @@ class Process extends UmbrellaObjectWithId{
 				'id'         => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
 				'context'    => ['INT','NOT NULL','REFERENCES processes(id)'],
 				'process_id' => ['INT','NOT NULL','REFERENCES processes(id)'],
-				'x'          => ['INT','NOT NULL','DEFAULT'=>500],
-				'y'          => ['INT','NOT NULL','DEFAULT'=>500],
+				'x'          => ['INT','NOT NULL','DEFAULT'=>0], // standardmäßig wird der Kind-Prozess im Zentrum des Eltern-Prozesses angelegt
+				'y'          => ['INT','NOT NULL','DEFAULT'=>0], // standardmäßig wird der Kind-Prozess im Zentrum des Eltern-Prozesses angelegt
 				'r'          => ['INT','NOT NULL','DEFAULT'=>250],
 		];
 	}
 	/* end of table functions */
 	static function load($options = []){
+
 		$sql   = 'SELECT id,* FROM processes';
 		$where = [];
 		$args  = [];
 		$single = false;
 
-		if (!empty($options['models'])) $where[] = 'r IS NULL';
+		if (!empty($options['context'])) {
+			$fields = array_merge(Process::fields(),Process::place_table());
+			unset($fields['id'],$fields['UNIQUE'],$fields['r']);
+			$sql = 'SELECT process_places.id as place_id, processes.id as id, '.implode(', ', array_keys($fields)).', process_places.r as r FROM processes LEFT JOIN process_places ON processes.id = process_places.process_id';
+			$where[] = 'context = ?';
+			$args[] = $options['context'];
+		}
+
 
 		if (!empty($options['ids'])){
 			$ids = $options['ids'];
@@ -160,15 +168,27 @@ class Process extends UmbrellaObjectWithId{
 			$args = array_merge($args, $ids);
 		}
 
+		if (!empty($options['models'])) $where[] = 'r IS NULL';
+
+		if (!empty($options['name'])) {
+			$where[] = 'name = ?';
+			$args[]  = $options['name'];
+		}
+
+		if (!empty($options['project_id'])) {
+			$where[] = 'project_id = ?';
+			$args[]  = $options['project_id'];
+			if (!empty($options['name'])) $single = true; // if name and project id are set, process should be unique
+		}
+
 		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
 
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
-		//debug(query_insert($query, $args));
-
 		if (!$query->execute($args)) throw new Exception('Was not able to read processes!');
 
 		$rows = $query->fetchAll(INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
 		$processes = [];
 
 		foreach ($rows as $id => $row){
@@ -182,10 +202,27 @@ class Process extends UmbrellaObjectWithId{
 		if ($single) return null;
 		return $processes;
 	}
+
 	/* end of static functions */
+	function add($child){
+		$args = [':ctx'=>$this->id,':prc'=>$child->id,':x'=>0,':y'=>0];
+		$sql = 'INSERT INTO process_places (context, process_id, x, y) VALUES (:ctx, :prc, :x, :y)';
+		if ($this->isModel()){
+			$args[':x']=500;
+			$args[':y']=500;
+		}
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to add new process '.$child->name.' to '.$this->name);
+		return $this;
+	}
+
 	function children(){
-		error_log('Process->children not implemented');
-		return [];
+		return Process::load(['context'=>$this->id]);
+	}
+
+	function isModel(){
+		return empty($this->r);
 	}
 
 	function loadProject(){
@@ -197,32 +234,58 @@ class Process extends UmbrellaObjectWithId{
 		if (!empty($this->id)) return $this->update();
 
 		$keys = [];
-		$vals = [];
+		$args = [];
 		foreach ($this->dirty as $field){
 			if (array_key_exists($field, Process::fields())){
 				$keys[] = $field;
-				$vals[':'.$field] = $this->{$field};
+				$args[':'.$field] = $this->{$field};
 			}
 		}
 
 		$sql = 'INSERT INTO processes ('.implode(', ',$keys).') VALUES (:'.implode(', :', $keys).' )';
 		$db = get_or_create_db();
-		$query = $db->prepare($sql);
 
-		if (!$query->execute($vals)) throw new Exception('Was not able to store new process!');
+		$query = $db->prepare($sql);
+		//debug(query_insert($sql, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new process!');
 
 		$this->patch(['id'=>$db->lastInsertId()]);
 		unset($this->dirty);
+
 		return $this;
 	}
 
-	function svg(){
-		error_log('Process->svg(context) not implemented');
+	function show_processes(){
+		$processes = $this->children();
+		foreach ($processes as $process) $process->svg($this);
+	}
+
+	function svg($context = null){
+		if (empty($this->r)){ // we try to display a model
+			// do not show bubble
+		} else { // we try to display a process ?>
+			<g class="process" transform="translate(<?= empty($context)?500:$this->x ?>,<?= empty($context)?500:$this->y ?>)">
+				<circle class="process" cx="0" cy="0" r="<?= $this->r ?>" id="<?= $this->id ?>">
+					<title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
+				</circle>
+				<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
+		}
+		if (empty($context)) $this->show_processes();
+
+		if (empty($this->r)){ // we try to display a model
+			// do not show bubble
+		} else { // we try to display a process ?></g><?php }
+
 	}
 
 	function terminals(){
 		error_log('Process->terminals not implemented');
 		return [];
+	}
+
+	function update(){
+		error_log('Process->update not implemented');
+		return $this;
 	}
 }
 

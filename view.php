@@ -76,7 +76,7 @@ if ($action == 'delete'){?>
 				<script type="text/javascript">var model_base = '<?= getUrl('model')?>';</script>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
-				<?php $process->svg($process->id); ?>
+				<?php $process->svg(); ?>
 			</svg>
 		</td>
 	</tr>
