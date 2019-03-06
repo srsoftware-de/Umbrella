@@ -300,7 +300,24 @@ class Process extends UmbrellaObjectWithId{
 	}
 
 	function update(){
-		error_log('Process->update not implemented');
+		$keys = [];
+		$args = [':id'=>$this->id];
+		foreach ($this->dirty as $field){
+			if ($field == 'id') continue;
+			if (array_key_exists($field, Process::fields())){
+				$keys[] = $field.' = :'.$field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'UPDATE processes SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update process!');
+
+		unset($this->dirty);
+
 		return $this;
 	}
 }
