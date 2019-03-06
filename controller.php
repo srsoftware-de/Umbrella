@@ -73,6 +73,18 @@ class Connection extends UmbrellaObjectWithId{
 		$where = [];
 		$args = [];
 
+		$single = false;
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$ids = [ $ids ];
+				$single = true;
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
 		if (!empty($options['start_connector'])){
 			$where[] = 'start_connector = ?';
 			$args[] = $options['start_connector'];
@@ -99,19 +111,33 @@ class Connection extends UmbrellaObjectWithId{
 		foreach ($rows as $row){
 			$flow = Flow::load(['ids'=>$row['flow_id']]);
 			$flow->patch($row);
+			unset($flow->dirty);
+			if ($single) return $flow;
 			$flows[$flow->id] = $flow;
 		}
+		if ($single) return null;
 		return $flows;
 	}
 
 	function save(){
 		$args = [];
+
+		$db = get_or_create_db();
+		$db->beginTransaction();
+
+		if (!empty($this->id)){
+			$query = $db->prepare('DELETE FROM connections WHERE id = :id');
+			if (!$query->execute([$this->id])) throw new Exception('Was not able to remove connection '.$this->id);
+		}
+
 		foreach ($this->dirty as $key) $args[':'.$key] = $this->{$key};
 
 		$sql = 'INSERT INTO connections ('.implode(', ', $this->dirty).') VALUES (:'.implode(', :', $this->dirty).' )';
-		$db = get_or_create_db();
+		error_log(query_insert($sql, $args));
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to add new connection to database!');
+		$db->commit();
+		$this->id = $db->lastInsertId();
 		unset($this->dirty);
 	}
 }
@@ -559,7 +585,7 @@ class Process extends UmbrellaObjectWithId{
 			}
 			foreach ($this->terminals() as $terminal){
 				foreach($terminal->connections('start') as $flow){ // connections starting from terminal of current process
-					$start_x = $terminal->x;
+					$start_x = $terminal->x + $terminal->w/2;
 					$start_y = $terminal->y;
 					$end_x = null;
 
@@ -580,7 +606,7 @@ class Process extends UmbrellaObjectWithId{
 						}
 					}
 					if ($end_x !== null && empty($drawn_flows[$flow->id])) {
-						if ($start_y+40 < end_y) $start_y+=30;
+						if ($start_y+40 < $end_y) $start_y+=40;
 						arrow($start_x, $start_y, $end_x, $end_y, $flow->name." ($flow->id)",getUrl('model','flow/'.$flow->id),$flow->description);
 						$drawn_flows[$flow->id] = true;
 					}

@@ -2,19 +2,9 @@
 
 require_login('model');
 
-if ($model_id = param('id1')){
-	$model = Model::load(['ids'=>$model_id]);
-} else {
-	error('No model id passed!');
-	redirect(getUrl('model'));
-}
+$connection_id = param('id');
 
-if ($flow_id = param('id2')){
-	$flow = FlowInstance::load(['model_id'=>$model_id,'ids'=>$flow_id]);
-} else {
-	error('No flow id passed to model/'.$model->id.'/flow!');
-	redirect($model->url());
-}
+$flow = Connection::load(['ids'=>$connection_id]);
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
@@ -25,7 +15,7 @@ if ($action == 'delete' && param('confirm')=='true'){
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
@@ -42,9 +32,10 @@ if ($action == 'delete'){?>
 		<th>
 			<?= t('Flow')?></th>
 		<td>
-			<h1><?= $flow->base->id ?></h1>
+			<h1><?= $flow->name ?></h1>
 			<span class="symbol">
-				<a href="../edit_flow/<?= $flow_id ?>" title="<?= t('edit')?>"></a>
+				<a href="../edit_flow/<?= $flow->id ?>" title="<?= t('edit')?>"></a>
+				<a href="../turn/<?= $flow->id ?>" title="<?= t('turn')?>"></a>
 				<a title="<?= t('delete') ?>" href="?action=delete"></a>
 			</span>
 		</td>
@@ -52,27 +43,21 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Project')?></th>
 		<td class="project">
-			<a href="<?= getUrl('project',$model->project_id.'/view'); ?>"><?= $model->project['name']?></a>
+			<a href="<?= getUrl('project',$flow->project['id'].'/view'); ?>"><?= $flow->project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$model->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
+			<a href="<?= getUrl('files').'?path=project/'.$flow->project['id'] ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
 			</td>
 	</tr>
-	<tr>
-		<th><?= t('Model')?></th>
-		<td class="model">
-			<a href="<?= $model->url(); ?>"><?= $model->name ?></a>
-		</td>
-	</tr>
-	<?php if ($flow->base->definition){ ?>
+	<?php if ($flow->definition){ ?>
 	<tr>
 		<th><?= t('Definition')?></th>
-		<td class="definition"><?= htmlentities($flow->base->definition); ?></td>
+		<td class="definition"><?= htmlentities($flow->definition); ?></td>
 	</tr>
 	<?php } ?>
-	<?php if ($flow->base->description){ ?>
+	<?php if ($flow->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= markdown($flow->base->description); ?></td>
+		<td class="description"><?= markdown($flow->description); ?></td>
 	</tr>
 	<?php } ?>
 </table>
