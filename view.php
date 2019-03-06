@@ -8,7 +8,7 @@ if (empty($process_id)) {
 	redirect(getUrl('model'));
 }
 
-$process = Process::load(['ids'=>$process_id]);
+$process = Process::load(['ids'=>$process_id])->loadProject();
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
@@ -32,7 +32,7 @@ if ($action == 'delete'){?>
 
 <table class="vertical model" style="width: 100%">
 	<tr>
-		<th><?= t('Model')?></th>
+		<th><?= t(empty($process->r)?'Model':'Process')?></th>
 		<td>
 			<h1><?= $process->name ?></h1>
 			<span class="symbol">
@@ -76,7 +76,7 @@ if ($action == 'delete'){?>
 				<script type="text/javascript">var model_base = '<?= getUrl('model')?>';</script>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
-				<?php $process->svg($process->id()); ?>
+				<?php $process->svg($process->id); ?>
 			</svg>
 		</td>
 	</tr>
@@ -114,7 +114,7 @@ if ($action == 'delete'){?>
 	<?php } ?>
 
 	<?php if (isset($services['notes'])) {
-		$notes = request('notes','html',['uri'=>'model:'.$process->id()],false,NO_CONVERSION);
+		$notes = request('notes','html',['uri'=>'model:'.$process->id],false,NO_CONVERSION);
 		if ($notes){ ?>
 	<tr>
 		<th><?= t('Notes')?></th>

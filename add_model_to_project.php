@@ -2,7 +2,7 @@
 
 require_login('model');
 
-$project_id = param('project');
+$project_id = param('id');
 if (empty($project_id)){
 	error('No project id passed!');
 	redirect(getUrl('model'));
@@ -16,9 +16,12 @@ if (empty($project)){
 
 if ($name = param('name')){
 	$process = new Process();
-	$process->patch(['project'=>$project,'name'=>$name,'description'=>param('description'),'r'=>0]);
-	$process->save();
-	redirect(getUrl('model',$process->id().'/view'));
+	try {
+		$process->patch(['project_id'=>$project_id,'name'=>$name,'description'=>param('description'),'r'=>NULL])->save();
+		redirect(getUrl('model',$process->id.'/view'));
+	} catch (Exception $e){
+		error($e);
+	}
 }
 
 
