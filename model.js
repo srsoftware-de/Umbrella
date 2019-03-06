@@ -141,10 +141,9 @@ function schedule_reload(){
 }
 
 function updateElement(elem,data){
-	var script = 'update_'+elem.getAttribute('class');
-	data['elem']=elem.id;
+	if (elem.hasAttribute('place_id')) data['place_id'] = elem.getAttribute('place_id');
 	$.ajax({
-		url: script,
+		url: model_base+'update_'+elem.getAttribute('class')+'/'+elem.id,
 		method: 'POST',
 		data: data,
 		complete: function(a,b){

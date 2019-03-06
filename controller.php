@@ -156,7 +156,6 @@ class Process extends UmbrellaObjectWithId{
 			$args[] = $options['context'];
 		}
 
-
 		if (!empty($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
@@ -201,6 +200,23 @@ class Process extends UmbrellaObjectWithId{
 		}
 		if ($single) return null;
 		return $processes;
+	}
+
+	static function updatePlace($values){
+		$place_id = $values['place_id'];
+		unset($values['place_id']);
+		$keys = [];
+		$args = [':id'=>$place_id];
+		foreach ($values as $key => $val){
+			if (array_key_exists($key, Process::place_table())) {
+				$keys[] = $key.' = :'.$key;
+				$args[':'.$key] = $val;
+			}
+		}
+		$sql = 'UPDATE process_places SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update process placement!');
 	}
 
 	/* end of static functions */
@@ -257,20 +273,20 @@ class Process extends UmbrellaObjectWithId{
 
 	function show_processes(){
 		$processes = $this->children();
-		foreach ($processes as $process) $process->svg($this);
+		foreach ($processes as $place_id => $process) $process->svg($place_id);
 	}
 
-	function svg($context = null){
+	function svg($place_id = null){
 		if (empty($this->r)){ // we try to display a model
 			// do not show bubble
 		} else { // we try to display a process ?>
-			<g class="process" transform="translate(<?= empty($context)?500:$this->x ?>,<?= empty($context)?500:$this->y ?>)">
-				<circle class="process" cx="0" cy="0" r="<?= $this->r ?>" id="<?= $this->id ?>">
+			<g class="process" transform="translate(<?= empty($place_id)?500:$this->x ?>,<?= empty($place_id)?500:$this->y ?>)">
+				<circle class="process" cx="0" cy="0" r="<?= $this->r ?>" id="<?= $this->id ?>" <?= empty($place_id)?'':'place_id="'.$place_id.'"'?>>
 					<title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 				</circle>
 				<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
 		}
-		if (empty($context)) $this->show_processes();
+		if (empty($place_id)) $this->show_processes();
 
 		if (empty($this->r)){ // we try to display a model
 			// do not show bubble

@@ -72,7 +72,8 @@ if ($action == 'delete'){?>
 				 onmousedown="grab(evt)"
 				 onmousemove="drag(evt)"
 				 onmouseup="drop(evt)"
-				 onwheel="wheel(evt)">
+				 onwheel="wheel(evt)"
+				 context="<?= $process->id ?>">
 				<script type="text/javascript">var model_base = '<?= getUrl('model')?>';</script>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
