@@ -221,15 +221,25 @@ class Process extends UmbrellaObjectWithId{
 
 	/* end of static functions */
 	function add($child){
-		$args = [':ctx'=>$this->id,':prc'=>$child->id,':x'=>0,':y'=>0];
-		$sql = 'INSERT INTO process_places (context, process_id, x, y) VALUES (:ctx, :prc, :x, :y)';
+		$db = get_or_create_db();
+
+		if ($child instanceof Process) {
+			$sql = 'INSERT INTO process_places (context, process_id, x, y) VALUES (:ctx, :prc, :x, :y)';
+			$args = [':ctx'=>$this->id,':prc'=>$child->id,':x'=>0,':y'=>0];
+			$type = 'process';
+		} else if ($child instanceof Terminal){
+			$sql = 'INSERT INTO terminal_places (context, terminal_id, x, y) VALUES (:ctx, :trm, :x, :y)';
+			$args = [':ctx'=>$this->id,':trm'=>$child->id,':x'=>0,':y'=>0];
+			$type = 'terminal';
+		}
+
 		if ($this->isModel()){
 			$args[':x']=500;
 			$args[':y']=500;
 		}
-		$db = get_or_create_db();
 		$query = $db->prepare($sql);
-		if (!$query->execute($args)) throw new Exception('Was not able to add new process '.$child->name.' to '.$this->name);
+		if (!$query->execute($args)) throw new Exception('Was not able to add new '.$type.' "'.$child->name.'" to '.$this->name);
+
 		return $this;
 	}
 
@@ -276,6 +286,11 @@ class Process extends UmbrellaObjectWithId{
 		foreach ($processes as $place_id => $process) $process->svg($place_id);
 	}
 
+	function show_terminals(){
+		$terminals = $this->terminals();
+		foreach ($terminals as $place_id => $terminal) $terminal->svg($place_id);
+	}
+
 	function svg($place_id = null){
 		if (empty($this->r)){ // we try to display a model
 			// do not show bubble
@@ -286,7 +301,11 @@ class Process extends UmbrellaObjectWithId{
 				</circle>
 				<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
 		}
-		if (empty($place_id)) $this->show_processes();
+
+		if (empty($place_id)) {
+			$this->show_processes();
+			$this->show_terminals();
+		}
 
 		if (empty($this->r)){ // we try to display a model
 			// do not show bubble
@@ -295,8 +314,7 @@ class Process extends UmbrellaObjectWithId{
 	}
 
 	function terminals(){
-		error_log('Process->terminals not implemented');
-		return [];
+		return Terminal::load(['context'=>$this->id]);
 	}
 
 	function update(){
@@ -323,6 +341,9 @@ class Process extends UmbrellaObjectWithId{
 }
 
 class Terminal extends UmbrellaObjectWithId{
+	const TERMINAL = 0;
+	const DATABASE = 1;
+
 	static function fields(){
 		return [
 				'id'          => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
@@ -343,5 +364,168 @@ class Terminal extends UmbrellaObjectWithId{
 				'y'           => ['INT','NOT NULL','DEFAULT'=>500],
 				'w'           => ['INT','NOT NULL','DEFAULT'=>200],
 		];
+	}
+	/* end of table functions */
+
+	static function load($options = []){
+
+		$sql   = 'SELECT id,* FROM terminals';
+		$where = [];
+		$args  = [];
+		$single = false;
+
+		if (!empty($options['context'])) {
+			$fields = array_merge(Terminal::fields(),Terminal::place_table());
+			unset($fields['id'],$fields['w']);
+			$sql = 'SELECT terminal_places.id as place_id, terminals.id as id, '.implode(', ', array_keys($fields)).', terminal_places.w as w FROM terminals LEFT JOIN terminal_places ON terminals.id = terminal_places.terminal_id';
+			$where[] = 'context = ?';
+			$args[] = $options['context'];
+		}
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($options['name'])) {
+			$where[] = 'name = ?';
+			$args[]  = $options['name'];
+		}
+
+		if (!empty($options['project_id'])) {
+			$where[] = 'project_id = ?';
+			$args[]  = $options['project_id'];
+			if (!empty($options['name'])) $single = true; // if name and project id are set, process should be unique
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to read terminals!');
+
+		$rows = $query->fetchAll(INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
+
+		$terminals = [];
+
+		foreach ($rows as $id => $row){
+			$terminal = new Terminal();
+			$terminal->patch($row);
+			unset($terminal->dirty);
+
+			if ($single) return $terminal;
+			$terminals[$id] = $terminal;
+		}
+		if ($single) return null;
+		return $terminals;
+	}
+
+	static function updatePlace($values){
+		$place_id = $values['place_id'];
+		unset($values['place_id']);
+		$keys = [];
+		$args = [':id'=>$place_id];
+		foreach ($values as $key => $val){
+			if (array_key_exists($key, Terminal::place_table())) {
+				$keys[] = $key.' = :'.$key;
+				$args[':'.$key] = $val;
+			}
+		}
+		$sql = 'UPDATE terminal_places SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update terminal placement!');
+	}
+	/* end of static functions */
+
+	function save(){
+		if (!empty($this->id)) return $this->update();
+
+		$keys = [];
+		$args = [];
+		foreach ($this->dirty as $field){
+			if (array_key_exists($field, Terminal::fields())){
+				$keys[] = $field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'INSERT INTO terminals ('.implode(', ',$keys).') VALUES (:'.implode(', :', $keys).' )';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new terminal!');
+
+		$this->patch(['id'=>$db->lastInsertId()]);
+		unset($this->dirty);
+
+		return $this;
+	}
+
+	function svg($place_id = null){ ?>
+	<g transform="translate(<?= $this->x>0?$this->x:0 ?>,<?= $this->y>0?$this->y:0 ?>)">
+		<?php if (!$this->base->type) { // terminal ?>
+		<rect class="terminal" x="0" y="0" width="<?= $this->w ?>" height="30" id="<?= $this->id ?>" <?= empty($place_id)?'':'place_id="'.$place_id.'"'?>>
+			<title><?= $this->description ?></title>
+		</rect>
+		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
+		<?php } else { ?>
+		<ellipse
+				 cx="<?= $this->w/2 ?>"
+				 cy="40"
+				 rx="<?= $this->w/2?>"
+				 ry="15">
+			<title><?= $this->description ?></title>
+		</ellipse>
+		<rect
+				class="terminal"
+				x="0"
+				y="0"
+				width="<?= $this->w ?>"
+				height="40"
+			  	stroke-dasharray="0,<?= $this->w ?>,40,<?= $this->w ?>,40"
+				id="<?= $this->id ?>">
+			<title><?= $this->description ?></title>
+		</rect>
+		<ellipse
+				 cx="<?= $this->w/2 ?>"
+				 cy="0"
+				 rx="<?= $this->w/2?>"
+				 ry="15">
+			<title><?= $this->description ?></title>
+		</ellipse>
+		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
+		<?php } ?>
+	</g>
+	<?php }
+
+	function update(){
+		$keys = [];
+		$args = [':id'=>$this->id];
+		foreach ($this->dirty as $field){
+			if ($field == 'id') continue;
+			if (array_key_exists($field, Terminal::fields())){
+				$keys[] = $field.' = :'.$field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'UPDATE terminals SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update terminal!');
+
+		unset($this->dirty);
+
+		return $this;
 	}
 }

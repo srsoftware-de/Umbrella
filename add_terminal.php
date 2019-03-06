@@ -11,15 +11,12 @@ if (empty($process_id)) {
 $process = Process::load(['ids'=>$process_id]);
 
 if ($name = param('name')){
-
-	$terminal = Terminal::load(['ids'=>$process->project['id'].':'.$name]);
+	$terminal = Terminal::load(['project_id'=>$process->project_id,'name'=>$name]);
 	if (empty($terminal)) {
 		$terminal = new Terminal();
-		$terminal->patch(['project'=>$process->project])->patch($_POST)->save();
+		$terminal->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description')])->save();
 	}
-	//debug(['terminal'=>$terminal,'process'=>$process],1);
-	$instance = new TerminalInstance();
-	$instance->patch(['terminal_id'=>$terminal->id(),'process_id'=>$process->id(),'x'=>100,'y'=>100,'w'=>200])->save();
+	$process->add($terminal);
 	redirect('view');
 }
 include '../common_templates/head.php';

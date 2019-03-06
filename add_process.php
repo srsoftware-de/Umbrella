@@ -14,8 +14,7 @@ if ($name = param('name')){
 	$child = Process::load(['project_id'=>$process->project_id,'name'=>$name]);
 	if (empty($child)){
 		$child = new Process();
-		$child->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description')]);
-		$child->save();
+		$child->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description')])->save();
 	}
 	$process->add($child);
 	redirect(getUrl('model',$process->id.'/view'));
