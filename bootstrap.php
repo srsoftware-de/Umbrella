@@ -90,29 +90,31 @@ function error($message,$args = null){
 }
 
 function field_description($field,$props){
-	$sql = '';
-	if ($field == 'UNIQUE') {
-		$field .='('.implode(',',$props).')';
-		$props = null;
+	switch ($field){
+		case 'UNIQUE':
+		case 'PRIMARY KEY':
+			return $field .' ('.implode(', ',$props).')';
+
+		default:
+			$sql = $field . ' ';
+			if (is_array($props)){
+				foreach ($props as $prop_k => $prop_v){
+					switch (true){
+						case $prop_k==='VARCHAR':
+							$sql.= 'VARCHAR('.$prop_v.') '; break;
+						case $prop_k==='DEFAULT':
+							$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
+						case $prop_k==='KEY':
+							assert($prop_v === 'PRIMARY','Non-primary keys not implemented in document/controller.php!');
+							$sql.= 'PRIMARY KEY '; break;
+						default:
+							$sql .= $prop_v.' ';
+					}
+				}
+				$sql .= ", ";
+			} else $sql .= $props.", ";
+			return $sql;
 	}
-	$sql .= $field . ' ';
-	if (is_array($props)){
-		foreach ($props as $prop_k => $prop_v){
-			switch (true){
-				case $prop_k==='VARCHAR':
-					$sql.= 'VARCHAR('.$prop_v.') '; break;
-				case $prop_k==='DEFAULT':
-					$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
-				case $prop_k==='KEY':
-					assert($prop_v === 'PRIMARY','Non-primary keys not implemented in document/controller.php!');
-					$sql.= 'PRIMARY KEY '; break;
-				default:
-					$sql .= $prop_v.' ';
-			}
-		}
-		$sql .= ", ";
-	} else $sql .= $props.", ";
-	return $sql;
 }
 
 function generateRandomString(){
@@ -235,13 +237,16 @@ function query_insert($query,$args){
 	$pos = strpos($sql,'?');
 	if ($pos > 0){
 		while ($pos > 0){
-			$sql = substr_replace($sql,array_shift($args),$pos,1);
+			$v = array_shift($args);
+			$t = $v === null ? 'NULL':'"'.$v.'"';
+			$sql = substr_replace($sql,$t,$pos,1);
 			$pos = strpos($sql,'?');
 		}
 	} else {
 		foreach ($args as $k => $v){
-			$sql = str_replace($k.',','"'.$v.'",',$sql);
-			$sql = str_replace($k.' ','"'.$v.'" ',$sql);
+			$t = $v === null ? 'NULL':'"'.$v.'"';
+			$sql = str_replace($k.',',$t.',',$sql);
+			$sql = str_replace($k.' ',$t.' ',$sql);
 		}
 	}
 	return $sql;
