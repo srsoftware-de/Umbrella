@@ -449,12 +449,17 @@ class Process extends UmbrellaObjectWithId{
 	function show_connectors($process_place_id = null){
 		$connectors = $this->connectors($process_place_id);
 
-		foreach ($connectors as $pc_id => $connector) { ?>
-			<a xlink:href="<?= getUrl('model') ?>">
-				<circle class="connector" cx="0" cy="<?= -$this->r ?>" r="15" id="<?= $pc_id ?>" transform="rotate(<?= $connector->angle ?>,0,0)" <?= !empty($process_place_id)?'place_id="'.$process_place_id.'"':''?>>
-					<title><?= $connector->name ."\n\n". t('Mouse wheel alters position.') ?></title>
-				</circle>
-			</a><?php
+		foreach ($connectors as $pc_id => $connector) {
+			$x = sin(RAD*$connector->angle) * $this->r;
+			$y = -cos(RAD*$connector->angle) * $this->r;
+			?>
+			<g class="connector">
+				<a xlink:href="<?= getUrl('model') ?>">
+					<circle class="connector" cx="0" cy="0" r="15" id="<?= $pc_id ?>" transform="translate(<?= $x ?>, <?= $y ?>)" <?= !empty($process_place_id)?'place_id="'.$process_place_id.'"':''?>>
+						<title><?= $connector->name ."\n\n". t('Mouse wheel alters position.') ?></title>
+					</circle>
+				</a>
+			</g><?php
 		}
 	}
 

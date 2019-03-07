@@ -52,27 +52,32 @@ function drop(evt){
 		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
 		var elem = getMainComponent(DragGroup);
 		if (elem != null){
-			var cp = clickPos(evt);
-			var moveX = cp.x - PointGrabbed.x;
-			var moveY = cp.y - PointGrabbed.y;
-			if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) { // if not dragged: handle as click
-								
-				location.href = model_base + elem.id + '/view';
+			if (elem.hasAttribute('class') && elem.getAttribute('class') == 'connector'){
+				moveConnector(DragGroup,elem);
 			} else {
-				var x = GroupOrigin.x + moveX;
-				var y = GroupOrigin.y + moveY;
-				updateElement(elem,{x: x, y: y});
+				var cp = clickPos(evt);
+				var moveX = cp.x - PointGrabbed.x;
+				var moveY = cp.y - PointGrabbed.y;
+				if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) { // if not dragged: handle as click
+									
+					location.href = model_base + elem.id + '/view';
+				} else {
+					var x = GroupOrigin.x + moveX;
+					var y = GroupOrigin.y + moveY;
+					updateElement(elem,{x: x, y: y});
+				}
 			}
 		}
 		DragGroup = null;
 	}
 }
 
-function getMainComponent(group){
-	var children = group.children;
+function getMainComponent(elem){
+	if (elem.hasAttribute('id')) return elem;
+	var children = elem.children;
 	for (var i=0; i<children.length; i++){
-		var child = children[i];
-		if (child.hasAttribute('id')) return child;
+		var main_component = getMainComponent(children[i]);
+		if (main_component != null) return main_component;
 	}
 	return null;
 }
@@ -80,7 +85,7 @@ function getMainComponent(group){
 function getTranslation(elem){
 	if (!elem.hasAttribute('transform')) return {x:0, y:0};
 	var trans = elem.getAttribute('transform');
-	var parts  = /translate\(\s*([^\s,)]+)[ ,]([^\s,)]+)/.exec(trans);
+	var parts  = /translate\(\s*([^\s,)]+)\s*,\s*([^\s,)]+)\s*\)/.exec(trans);
 	return {x:+parts[1], y:+parts[2]};
 }
 
@@ -95,8 +100,6 @@ function grab(evt){
 	if (evt.button != 0) return; // only respond to right button
 	if (evt.target == BackDrop) return; // don't drag the background
 
-	if (evt.target.getAttribute('class') == 'connector') return; // don't drag connectors
-	
 	DragGroup = evt.target;
 	// only move groups
 	while (DragGroup.nodeName != 'g'){
@@ -123,6 +126,38 @@ function initSVG(evt){
 	BackDrop = evt.target.ownerDocument.getElementById('backdrop');
 }
 
+function moveConnector(group,connector){
+	var trans_g = getTranslation(group);
+	var trans_c = getTranslation(connector);
+	
+	var x = trans_g.x + trans_c.x;
+	var y = trans_g.y + trans_c.y;
+	
+	var angle = 180*Math.atan(x/-y)/Math.PI;
+	if (y>0) {
+		angle = 180 + angle;
+	} else if (x<0)angle = 360 + angle;
+	
+	var process = parentGroup(group);
+	var circle = getMainComponent(process);
+	var rad = circle.getAttribute('r');
+	
+	x =  rad * Math.sin(angle*Math.PI/180);
+	y = -rad * Math.cos(angle*Math.PI/180);
+	
+	group.removeAttribute('transform');
+	connector.setAttribute('transform','translate('+x+','+y+')');
+	updateElement(connector,{angle:angle});
+}
+
+function parentGroup(elem){
+	do {
+		var elem = elem.parentNode;
+		if (elem == null) return null;
+		if (elem.nodeName == 'g') return elem;
+	} while (true);
+}
+
 function presetConnectorName(elem){
 	var id = $("input[name=process_id]").attr('value');
 	var out=elem.value;
@@ -135,6 +170,7 @@ function presetConnectorName(elem){
 		this.selectionEnd = 1000;
 	});
 }
+
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
 	//reload_timer_handle = setTimeout(function(){location.reload()},1000);
