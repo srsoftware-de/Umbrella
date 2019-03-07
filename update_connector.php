@@ -2,10 +2,10 @@
 
 require_login('model');
 
-$connector_id = param('id');
-if (empty($connector_id)) throw new Exception('No connector id passed!');
+$process_connector_id = param('id');
+if (empty($process_connector_id)) throw new Exception('No process_connector id passed!');
 
-$place_id = param('place_id');
-if (!empty($place_id)) {
-	Connector::updatePlace($_POST);
-} else Process::updateConnector(['id'=>$connector_id,'angle'=>param('angle')]);
+$process_place_id = param('place_id');
+if (!empty($process_place_id)) {
+	Connector::updatePlace(['process_connector_id'=>$process_connector_id,'process_place_id'=>$process_place_id,'angle'=>param('angle')]);
+} else Process::updateConnector(['process_connector_id'=>$process_connector_id,'angle'=>param('angle')]);

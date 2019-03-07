@@ -62,7 +62,7 @@ if ($action == 'delete'){?>
 			<div class="symbol">
 				<a title="<?= t('add terminal')?>" href="add_terminal"></a>
 				<a title="<?= t('add process')?>" href="add_process"></a>
-				<a title="<?= t('add connector')?>" href="add_connector"></a>
+				<?php if (!$process->isModel()) { ?><a title="<?= t('add connector')?>" href="add_connector"></a><?php } ?>
 			</div>
 		</th>
 		<td>
@@ -107,9 +107,9 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
-		<?php foreach ($process->children() as $child){ if (in_array($child->id(),$shown)) continue;?>
-		<a class="button" href="<?= getUrl('model',$child->id().'/view') ?>" title="<?= $child->description ?>"><?= $child->id() ?></a>
-		<?php $shown[] = $child->id(); } ?>
+		<?php foreach ($process->children() as $child){ if (in_array($child->id,$shown)) continue;?>
+		<a class="button" href="<?= getUrl('model',$child->id.'/view') ?>" title="<?= $child->description ?>"><?= $child->name ?></a>
+		<?php $shown[] = $child->id; } ?>
 		</td>
 	</tr>
 	<?php } ?>

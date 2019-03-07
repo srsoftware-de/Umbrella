@@ -71,10 +71,11 @@ class Connector extends UmbrellaObjectWithId{
 
 	static function place_table(){
 		return [
-				'id'               => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
-				'connector_id'     => ['INT','NOT NULL','REFERENCES connectors(id)'],
-				'process_place_id' => ['INT','NOT NULL','REFERENCES process_places(id)'],
-				'angle'            => ['INT','NOT NULL','DEFAULT'=>0],
+				'id'                   => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
+				'process_connector_id' => ['INT','NOT NULL','REFERENCES process_connectors(id)'],
+				'process_place_id'     => ['INT','NOT NULL','REFERENCES process_places(id)'],
+				'angle'                => ['INT','NOT NULL','DEFAULT'=>0],
+				'UNIQUE'               => ['process_connector_id','process_place_id']
 		];
 	}
 	/* end of table functions */
@@ -91,7 +92,7 @@ class Connector extends UmbrellaObjectWithId{
 		}
 
 		if (!empty($options['process_id'])){
-			$sql = 'SELECT process_connectors.id as pc_id, connectors.id as id, project_id, process_id, name, angle FROM connectors LEFT JOIN process_connectors ON connectors.id = process_connectors.connector_id';
+			$sql = 'SELECT process_connectors.id as pc_id, connectors.id as id, project_id, name, angle FROM connectors LEFT JOIN process_connectors ON connectors.id = process_connectors.connector_id';
 			$where[] = 'process_id = ?';
 			$args[] = $options['process_id'];
 		}
@@ -109,7 +110,7 @@ class Connector extends UmbrellaObjectWithId{
 		if (!$query->execute($args)) throw new Exception('Was not able to read connectors!');
 
 		$rows = $query->fetchAll(INDEX_FETCH);
-		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
+		// debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
 
 		$connectors = [];
 
@@ -123,6 +124,39 @@ class Connector extends UmbrellaObjectWithId{
 		}
 		if ($single) return null;
 		return $connectors;
+	}
+
+	static function loadPlaces($process_place_id){
+		$sql = 'SELECT * FROM connector_places WHERE process_place_id = :ppid';
+		$args = [':ppid'=>$process_place_id];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args));
+		if (!$query->execute($args)) throw new Exception('Was not able to request connector_places for process_place_id = '.$process_place_id);
+		return $query->fetchAll(INDEX_FETCH);
+	}
+
+	static function updatePlace($data){
+		$db = get_or_create_db();
+		$sql = 'SELECT id FROM connector_places WHERE process_connector_id = :pcid AND process_place_id = :ppid';
+		$args = [':pcid'=>$data['process_connector_id'],':ppid'=>$data['process_place_id']];
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to request id from connector_places!');
+
+		$row = $query->fetch(PDO::FETCH_ASSOC);
+
+
+		if (empty($row)){
+			$sql = 'INSERT INTO connector_places (process_connector_id, process_place_id, angle) VALUES (:pcid, :ppid, :angle)';
+			$query = $db->prepare($sql);
+		} else {
+			$sql = 'UPDATE connector_places SET angle = :angle WHERE id = :id';
+			$args = [':id' => $row['id']];
+			$query = $db->prepare($sql);
+		}
+		$args[':angle'] = $data['angle'];
+		//debug(query_insert($query, $args));
+		if (!$query->execute($args)) throw new Exception('Was not able to write to connector_places!');
 	}
 	/* end of static functions */
 
@@ -303,9 +337,10 @@ class Process extends UmbrellaObjectWithId{
 
 	static function updateConnector($data){
 		$sql = 'UPDATE process_connectors SET angle = :angle WHERE id = :id';
-		$args = [':id'=>$data['id'],':angle'=>$data['angle']];
+		$args = [':id'=>$data['process_connector_id'],':angle'=>$data['angle']];
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args));
 		if (!$query->execute($args)) throw new Exception('Was not able to update process connector '.$data['id']);
 	}
 
@@ -360,8 +395,21 @@ class Process extends UmbrellaObjectWithId{
 		return Process::load(['context'=>$this->id]);
 	}
 
-	function connectors(){
-		return Connector::load(['process_id'=>$this->id]);
+	function connectors($process_place_id = null){
+		// process_place_id wird genau dann übergeben, wenn der Prozess als Unterprozess eines anderen Prozesses dargestellt wird.
+		// Mit anderen Worten: wenn process_place_id null ist, werden die Verbinder des Prozesses abgerufen, der in der obersten Ebene dargestellt wird.
+		$connectors = Connector::load(['process_id'=>$this->id]);
+		if (empty($process_place_id)) return $connectors;
+
+		// An dieser Stelle enthält connectors die Verbinder, die dem Prozess zugeordnet sind.
+		// Wir haben aber einen Kontext (der Prozess wird als Unterprozess eines anderen Prozesses dargestellt) und wir müssen schauen, ob es für den Kontext gespeicherte Positionen gibt.
+
+		$overrides = Connector::loadPlaces($process_place_id);
+		foreach ($overrides as $override){
+			$index = $override['process_connector_id'];
+			$connectors[$index]->angle = $override['angle'];
+		}
+		return $connectors;
 	}
 
 	function isModel(){
@@ -398,11 +446,12 @@ class Process extends UmbrellaObjectWithId{
 		return $this;
 	}
 
-	function show_connectors(){
-		$connectors = $this->connectors();
+	function show_connectors($process_place_id = null){
+		$connectors = $this->connectors($process_place_id);
+
 		foreach ($connectors as $pc_id => $connector) { ?>
 			<a xlink:href="<?= getUrl('model') ?>">
-				<circle class="connector" cx="0" cy="<?= -$this->r ?>" r="15" id="<?= $pc_id ?>" transform="rotate(<?= $connector->angle ?>,0,0)">
+				<circle class="connector" cx="0" cy="<?= -$this->r ?>" r="15" id="<?= $pc_id ?>" transform="rotate(<?= $connector->angle ?>,0,0)" <?= !empty($process_place_id)?'place_id="'.$process_place_id.'"':''?>>
 					<title><?= $connector->name ."\n\n". t('Mouse wheel alters position.') ?></title>
 				</circle>
 			</a><?php
@@ -411,7 +460,7 @@ class Process extends UmbrellaObjectWithId{
 
 	function show_processes(){
 		$processes = $this->children();
-		foreach ($processes as $place_id => $process) $process->svg($place_id);
+		foreach ($processes as $proces_place_id => $process) $process->svg($proces_place_id);
 	}
 
 	function show_terminals(){
@@ -419,19 +468,19 @@ class Process extends UmbrellaObjectWithId{
 		foreach ($terminals as $place_id => $terminal) $terminal->svg($place_id);
 	}
 
-	function svg($place_id = null){
+	function svg($proces_place_id = null){
 		if (empty($this->r)){ // we try to display a model
 			// do not show bubble
 		} else { // we try to display a process ?>
-			<g class="process" transform="translate(<?= empty($place_id)?500:$this->x ?>,<?= empty($place_id)?500:$this->y ?>)">
-				<circle class="process" cx="0" cy="0" r="<?= $this->r ?>" id="<?= $this->id ?>" <?= empty($place_id)?'':'place_id="'.$place_id.'"'?>>
+			<g class="process" transform="translate(<?= empty($proces_place_id)?500:$this->x ?>,<?= empty($proces_place_id)?500:$this->y ?>)">
+				<circle class="process" cx="0" cy="0" r="<?= $this->r ?>" id="<?= $this->id ?>" <?= empty($proces_place_id)?'':'place_id="'.$proces_place_id.'"'?>>
 					<title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 				</circle>
 				<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
 		}
 
-		if (empty($place_id)) {
-			$this->show_connectors();
+		$this->show_connectors($proces_place_id);
+		if (empty($proces_place_id)) {
 			$this->show_processes();
 			$this->show_terminals();
 		}
