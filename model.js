@@ -173,7 +173,7 @@ function presetConnectorName(elem){
 
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
-	//reload_timer_handle = setTimeout(function(){location.reload()},1000);
+	reload_timer_handle = setTimeout(function(){location.reload()},1000);
 }
 
 function updateElement(elem,data){
@@ -192,55 +192,34 @@ function wheel(evt){
 	var elem = evt.target;
 	var cls = elem.getAttribute('class'); 
 
-	if (evt.target.nodeName == 'circle'){
-
-		if (cls == 'process' && evt.shiftKey){
-			evt.preventDefault();
-			var r = elem.getAttribute('r')-10*Math.sign(evt.deltaY);
-			if (r>10) {
-				elem.setAttribute('r',r);
-				updateElement(elem,{r: r});
-			}
-		} else if(cls == 'connector'){
-			evt.preventDefault();
-			var xforms = elem.getAttribute('transform');
-
-			var parts  = /rotate\(\s*([^\s,)]+)[ ,]([^\s,)]+)[ ,]([^\s,)]+)/.exec(xforms);
-			var da = 10*Math.sign(evt.deltaY);			
-			var a = +parts[1];
-			if (a<180) {
-				a += da;
-			} else a -= da;
-			while (a<0) a+=360;
-			while (a>=360) a-=360;
-			var x = +parts[2];
-			var y = +parts[3];
-			elem.setAttribute('transform','rotate('+a+','+x+','+y+')');
-			updateElement(elem,{angle: a});
+	if (cls == 'process' && evt.shiftKey){
+		evt.preventDefault();
+		var r = elem.getAttribute('r')-10*Math.sign(evt.deltaY);
+		if (r>10) {
+			elem.setAttribute('r',r);
+			updateElement(elem,{r: r});
 		}
-	} else {
-		if (cls == 'terminal' && evt.shiftKey){
-			evt.preventDefault();
-			var d = -10*Math.sign(evt.deltaY);
-			var w = +elem.getAttribute('width')+d;
-			if (w>10) {
-				elem.setAttribute('width',w);
+	}
+	if (cls == 'terminal' && evt.shiftKey){
+		evt.preventDefault();
+		var d = -10*Math.sign(evt.deltaY);
+		var w = +elem.getAttribute('width')+d;
+		if (w>10) {
+			elem.setAttribute('width',w);
 
-
-				var texts = elem.parentNode.getElementsByTagName('text');
-				if (texts.length > 0){
-					var text = texts[0];
-					text.setAttribute('x',+text.getAttribute('x')+d/2);
-				}
-				var ellipses = elem.parentNode.getElementsByTagName('ellipse');
-				for (var i=0; i<ellipses.length;i++){
-					var ellipse = ellipses[i];
-					ellipse.setAttribute('cx',+ellipse.getAttribute('cx')+d/2)
-					ellipse.setAttribute('rx',+ellipse.getAttribute('rx')+d/2)
-					elem.setAttribute('stroke-dasharray','0,'+w+',40,'+w+',40');
-				}
-				updateElement(elem,{w: w});
+			var texts = elem.parentNode.getElementsByTagName('text');
+			if (texts.length > 0){
+				var text = texts[0];
+				text.setAttribute('x',+text.getAttribute('x')+d/2);
 			}
+			var ellipses = elem.parentNode.getElementsByTagName('ellipse');
+			for (var i=0; i<ellipses.length;i++){
+				var ellipse = ellipses[i];
+				ellipse.setAttribute('cx',+ellipse.getAttribute('cx')+d/2)
+				ellipse.setAttribute('rx',+ellipse.getAttribute('rx')+d/2)
+				elem.setAttribute('stroke-dasharray','0,'+w+',40,'+w+',40');
+			}
+			updateElement(elem,{w: w});
 		}
 	}
 }

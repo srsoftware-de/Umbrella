@@ -89,7 +89,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Terminals')?></th>
 		<td class="terminals">
 		<?php foreach ($process->terminals() as $terminal){ if ($terminal->type == Terminal::DATABASE || in_array($terminal->name,$shown)) continue; ?>
-		<a class="button" href="terminal/<?= $terminal->id() ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
 		<?php $shown[] = $terminal->name; } ?>
 		</td>
 	</tr>
@@ -97,7 +97,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Databases')?></th>
 		<td class="databases">
 		<?php foreach ($process->terminals() as $terminal){ if ($terminal->type == Terminal::TERMINAL || in_array($terminal->name,$shown)) continue; ?>
-		<a class="button" href="terminal/<?= $terminal->id() ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
+		<a class="button" href="terminal/<?= $terminal->id ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
 		<?php $shown[] = $terminal->name; } ?>
 		</td>
 	</tr>

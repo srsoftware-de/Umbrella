@@ -14,7 +14,7 @@ if ($name = param('name')){
 	$terminal = Terminal::load(['project_id'=>$process->project_id,'name'=>$name]);
 	if (empty($terminal)) {
 		$terminal = new Terminal();
-		$terminal->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description')])->save();
+		$terminal->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description'),'type'=>param('type')])->save();
 	}
 	$process->add($terminal);
 	redirect('view');
