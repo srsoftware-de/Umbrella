@@ -60,9 +60,10 @@ if ($action == 'delete'){?>
 		<tr>
 		<th><?= t('Display') ?>
 			<div class="symbol">
-				<a title="<?= t('add terminal')?>" href="add_terminal"></a>
-				<a title="<?= t('add process')?>" href="add_process"></a>
-				<?php if (!$process->isModel()) { ?><a title="<?= t('add connector')?>" href="add_connector"></a><?php } ?>
+				<a title="<?= t('add terminal')?>" href="<?= getUrl('model','add_terminal_to_process/'.$process->id) ?>"></a>
+				<a title="<?= t('add process')?>"  href="<?= getUrl('model','add_subprocess_to/'.$process->id) ?>"></a>
+				<?php if (!$process->isModel()) { ?>
+				<a title="<?= t('add connector')?>" href="<?= getUrl('model','add_connector_to_process/'.$process->id) ?>"></a><?php } ?>
 			</div>
 		</th>
 		<td>
@@ -74,7 +75,11 @@ if ($action == 'delete'){?>
 				 onmouseup="drop(evt)"
 				 onwheel="wheel(evt)"
 				 context="<?= $process->id ?>">
-				<script type="text/javascript">var model_base = '<?= getUrl('model')?>';</script>
+				<script type="text/javascript">
+					var model_base = '<?= getUrl('model')?>';
+					var flow_prompt = '<?= t('Set name for new flow:'); ?>'
+					var no_name_set = '<?= t('No name given. Will not create flow.'); ?>'
+				</script>
 				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 				<?php $process->svg(); ?>

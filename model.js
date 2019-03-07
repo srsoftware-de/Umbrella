@@ -7,10 +7,37 @@ var SVGRoot = null;
 var pt = null;
 var reload_timer_handle = null;
 
+function addFlow(origin,target){
+	var from = {process_connector_id:origin.id};
+	var to = {process_connector_id:target.id};
+	if (origin.hasAttribute('place_id')) from['place_id'] = origin.getAttribute('place_id');
+	if (target.hasAttribute('place_id')) to['place_id'] = target.getAttribute('place_id');
+	var name = window.prompt(flow_prompt,'new flow');
+	if (name == null || name.trim() == ''){
+		alert(no_name_set);
+		return;
+	}
+	$.ajax({
+		url: model_base+'add_flow',
+		method: 'POST',
+		data: { from: from, to: to, name: name },
+		complete: function(a,b){
+			//schedule_reload();
+		}
+	});
+}
+
 function click(evt){
 	var href = location.href.replace(/\/\d*$/,'').replace(/[^\/]*$/,''); // first: strip trailing number, if present. then: strip page
 	if (evt.target.id == 'backdrop') return;
 	location.href = href + evt.target.id.replace(/_([^_]*)$/,'/$1');
+}
+
+function clickPos(evt){
+	pt.x = evt.clientX;
+	pt.y = evt.clientY;
+	var cursorpt =  pt.matrixTransform(SVGRoot.getScreenCTM().inverse());
+	return {x:cursorpt.x,y:cursorpt.y};
 }
 
 function crossHair(x,y,text){
@@ -38,6 +65,7 @@ function crossHair(x,y,text){
 
 function drag(evt){
 	// if we don't currently have an element in tow, don't do anything
+	
 	if (DragGroup){
 		var cp = clickPos(evt);
 		var x = GroupOrigin.x + cp.x - PointGrabbed.x;
@@ -50,25 +78,47 @@ function drop(evt){
 	// if we aren't currently dragging an element, don't do anything
 	if ( DragGroup )	{
 		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
+		
 		var elem = getMainComponent(DragGroup);
-		if (elem != null){
-			var cls = elem.hasAttribute('class') ? elem.getAttribute('class') : null;
-			
-			var cp = clickPos(evt);
-			var moveX = cp.x - PointGrabbed.x;
-			var moveY = cp.y - PointGrabbed.y;
-			if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) { // if not dragged: handle as click
-				location.href = model_base + cls + '/' + elem.id;
-			} else { // dragged
-				if (cls == 'connector'){ // connector has been dragged
-					moveConnector(DragGroup,elem);
-				} else { // process or terminal has been dragged
-					var x = GroupOrigin.x + moveX;
-					var y = GroupOrigin.y + moveY;
-					updateElement(elem,{x: x, y: y});
-				}
-			}
+		
+		if (elem == null){
+			DragGroup = null;
+			return;
 		}
+
+		var cls = elem.hasAttribute('class') ? elem.getAttribute('class') : null;
+		var target = evt.target;
+		
+		if (cls == 'connector' && target.hasAttribute('class') && target.getAttribute('class')==cls){
+		// we dropped a connector onto a connector!
+			addFlow(elem,target);
+			DragGroup = null;
+			return;
+		} 
+		
+		var cp = clickPos(evt);
+		var moveX = cp.x - PointGrabbed.x;
+		var moveY = cp.y - PointGrabbed.y;
+		
+		if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) {
+		// if not dragged: handle as click
+			var link = model_base + cls + '/' + elem.id
+			location.href = link + (elem.hasAttribute('place_id') ? '?place_id='+elem.getAttribute('place_id') : '');
+			DragGroup = null;
+			return;
+		}
+		
+		// dragged:
+		if (cls == 'connector'){ // connector has been dragged
+			moveConnector(DragGroup,elem);
+			DragGroup = null;
+			return;
+		}
+		
+		// process or terminal has been dragged
+		var x = GroupOrigin.x + moveX;
+		var y = GroupOrigin.y + moveY;
+		updateElement(elem,{x: x, y: y});
 		DragGroup = null;
 	}
 }
@@ -90,18 +140,12 @@ function getTranslation(elem){
 	return {x:+parts[1], y:+parts[2]};
 }
 
-function clickPos(evt){
-	pt.x = evt.clientX;
-	pt.y = evt.clientY;
-	var cursorpt =  pt.matrixTransform(SVGRoot.getScreenCTM().inverse());
-	return {x:cursorpt.x,y:cursorpt.y};
-}
-
 function grab(evt){
 	if (evt.button != 0) return; // only respond to right button
 	if (evt.target == BackDrop) return; // don't drag the background
 
 	DragGroup = evt.target;
+	
 	// only move groups
 	while (DragGroup.nodeName != 'g'){
 		DragGroup = DragGroup.parentNode;

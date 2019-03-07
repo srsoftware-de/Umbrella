@@ -79,6 +79,29 @@ class Connector extends UmbrellaObjectWithId{
 		];
 	}
 	/* end of table functions */
+	static function getOrCreatePlace($process_connector_id,$process_place_id){
+		$db = get_or_create_db();
+		$sql = 'SELECT * FROM connector_places WHERE process_connector_id = :pcid AND process_place_id = :ppid';
+		$args = [':pcid'=>$process_connector_id,':ppid'=>$process_place_id];
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to request id from connector_places!');
+
+		$row = $query->fetch(PDO::FETCH_ASSOC);
+
+		if (empty($row)){
+			$sql = 'INSERT INTO connector_places (process_connector_id, process_place_id) VALUES (:pcid, :ppid)';
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to add new connector_place!');
+			$row = [
+				'id' => $db->lastInsertId(),
+				'process_connector_id' => $process_connector_id,
+				'process_place_id' => $process_place_id,
+				'angle' => 0
+			];
+		}
+		return $row;
+	}
+
 	static function load($options = []){
 
 		$sql   = 'SELECT id,* FROM connectors';
@@ -97,6 +120,13 @@ class Connector extends UmbrellaObjectWithId{
 			$args[] = $options['process_id'];
 		}
 
+		if (!empty($options['process_connector_id'])){
+			$sql = 'SELECT process_connectors.id as pc_id, connectors.id as id, project_id, name, angle FROM connectors LEFT JOIN process_connectors ON connectors.id = process_connectors.connector_id';
+			$where[] = 'process_connectors.id = ?';
+			$args[] = $options['process_connector_id'];
+			$single = true;
+		}
+
 		if (!empty($options['project_id'])) {
 			$where[] = 'project_id = ?';
 			$args[]  = $options['project_id'];
@@ -107,10 +137,11 @@ class Connector extends UmbrellaObjectWithId{
 
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
+
 		if (!$query->execute($args)) throw new Exception('Was not able to read connectors!');
 
 		$rows = $query->fetchAll(INDEX_FETCH);
-		// debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
 
 		$connectors = [];
 
@@ -136,25 +167,13 @@ class Connector extends UmbrellaObjectWithId{
 		return $query->fetchAll(INDEX_FETCH);
 	}
 
-	static function updatePlace($data){
+	static function updatePlace($process_connector_id,$process_place_id,$angle){
+		$connector_place = Connector::getOrCreatePlace($process_connector_id,$process_place_id);
+
 		$db = get_or_create_db();
-		$sql = 'SELECT id FROM connector_places WHERE process_connector_id = :pcid AND process_place_id = :ppid';
-		$args = [':pcid'=>$data['process_connector_id'],':ppid'=>$data['process_place_id']];
+		$sql = 'UPDATE connector_places SET angle = :angle WHERE id = :id';
+		$args = [':id' => $connector_place['id'],':angle'=>$angle];
 		$query = $db->prepare($sql);
-		if (!$query->execute($args)) throw new Exception('Was not able to request id from connector_places!');
-
-		$row = $query->fetch(PDO::FETCH_ASSOC);
-
-
-		if (empty($row)){
-			$sql = 'INSERT INTO connector_places (process_connector_id, process_place_id, angle) VALUES (:pcid, :ppid, :angle)';
-			$query = $db->prepare($sql);
-		} else {
-			$sql = 'UPDATE connector_places SET angle = :angle WHERE id = :id';
-			$args = [':id' => $row['id']];
-			$query = $db->prepare($sql);
-		}
-		$args[':angle'] = $data['angle'];
 		//debug(query_insert($query, $args));
 		if (!$query->execute($args)) throw new Exception('Was not able to write to connector_places!');
 	}
@@ -185,9 +204,6 @@ class Connector extends UmbrellaObjectWithId{
 		return $this;
 	}
 
-	function svg(){
-	}
-
 	function update(){
 		$keys = [];
 		$args = [':id'=>$this->id];
@@ -212,13 +228,19 @@ class Connector extends UmbrellaObjectWithId{
 }
 
 class Flow extends UmbrellaObjectWithId{
+	const FROM_BORDER   = 0;
+	const TO_BORDER     = 1;
+	const FROM_TERMINAL = 2;
+	const TO_TERMINAL   = 3;
+
 	static function fields(){
 		return [
 				'id'          => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
 				'project_id'  => ['INT','NOT NULL'],
 				'name'        => ['VARCHAR'=>255,'NOT NULL'],
 				'definition'  => ['VARCHAR'=>255],
-				'description' => ['TEXT']
+				'description' => ['TEXT'],
+				'UNIQUE'      => ['project_id','name']
 		];
 	}
 
@@ -239,6 +261,144 @@ class Flow extends UmbrellaObjectWithId{
 				'from_id' => ['INT','NOT NULL','REFERENCES connector_places(id)'],
 				'to_id'   => ['INT','NOT NULL','REFERENCES connector_places(id)'],
 		];
+	}
+
+	static function add_external($project,$name,$origin,$target,$type){
+		$data = ['project_id'=>$project['id'],'name'=>$name];
+
+		// get or create flow:
+		$flow = Flow::load($data);
+		if (empty($flow)){
+			$flow = new Flow();
+			$flow->patch($data)->save();
+		}
+
+		// get or create connector_place:
+		$connector_place = Connector::getOrCreatePlace($target['process_connector_id'], $target['place_id']);
+
+		// create new flow reference:
+		$sql = 'INSERT INTO external_flows (flow_id, ext_id, connector_place_id, type) VALUES (:flow_id, :ext_id, :cp_id, :type )';
+		$args = [':flow_id'=>$flow->id, ':ext_id' => $origin['process_connector_id'], ':cp_id'=>$connector_place['id'],':type'=>$type];
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new external flow!');
+	}
+
+	static function add_internal($project,$name,$origin,$target){
+		debug(['method'=>'Flow::add_internal','name'=>$name,'project'=>$project,'origin'=>$origin,'target'=>$target]);
+
+		$data = ['project_id'=>$project['id'],'name'=>$name];
+
+		// get or create flow:
+		$flow = Flow::load($data);
+		if (empty($flow)){
+			$flow = new Flow();
+			$flow->patch($data)->save();
+		}
+
+		// get or create connector_places:
+		$origin_connector_place = Connector::getOrCreatePlace($origin['process_connector_id'], $origin['place_id']);
+		$target_connector_place = Connector::getOrCreatePlace($target['process_connector_id'], $target['place_id']);
+
+		// create new flow reference:
+		$sql = 'INSERT INTO internal_flows (flow_id, from_id, to_id) VALUES (:flow_id, :from, :to )';
+		$args = [':flow_id'=>$flow->id, ':from' => $origin_connector_place['id'], ':to'=>$target_connector_place['id']];
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new internal flow!');
+
+	}
+
+	static function load($options = []){
+
+		$sql   = 'SELECT id,* FROM flows';
+		$where = [];
+		$args  = [];
+		$single = false;
+
+		if (!empty($options['name'])) {
+			$where[] = 'name = ?';
+			$args[]  = $options['name'];
+		}
+
+		if (!empty($options['project_id'])) {
+			$where[] = 'project_id = ?';
+			$args[]  = $options['project_id'];
+			if (!empty($options['name'])) $single = true; // if name and project id are set, flow should be unique
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+
+		if (!$query->execute($args)) throw new Exception('Was not able to read flows!');
+
+		$rows = $query->fetchAll(INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
+
+		$flows = [];
+
+		foreach ($rows as $id => $row){
+			$flow = new Flow();
+			$flow->patch($row);
+			unset($flow->dirty);
+
+			if ($single) return $flow;
+			$flows[$id] = $flow;
+		}
+		if ($single) return null;
+		return $flows;
+	}
+	/* end of static functions */
+
+	function save(){
+		if (!empty($this->id)) return $this->update();
+
+		$keys = [];
+		$args = [];
+		foreach ($this->dirty as $field){
+			if (array_key_exists($field, Flow::fields())){
+				$keys[] = $field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'INSERT INTO flows ('.implode(', ',$keys).') VALUES (:'.implode(', :', $keys).' )';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		//debug(query_insert($query, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new flow!');
+
+		$this->patch(['id'=>$db->lastInsertId()]);
+		unset($this->dirty);
+
+		return $this;
+	}
+
+	function update(){
+		$keys = [];
+		$args = [':id'=>$this->id];
+		foreach ($this->dirty as $field){
+			if ($field == 'id') continue;
+			if (array_key_exists($field, Flow::fields())){
+				$keys[] = $field.' = :'.$field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'UPDATE flows SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update flow!');
+
+		unset($this->dirty);
+
+		return $this;
 	}
 }
 
@@ -289,6 +449,15 @@ class Process extends UmbrellaObjectWithId{
 			$args[] = $options['context'];
 		}
 
+		if (!empty($options['process_place_id'])) {
+			$fields = array_merge(Process::fields(),Process::place_table());
+			unset($fields['id'],$fields['UNIQUE'],$fields['r']);
+			$sql = 'SELECT process_places.id as place_id, processes.id as id, '.implode(', ', array_keys($fields)).', process_places.r as r FROM processes LEFT JOIN process_places ON processes.id = process_places.process_id';
+			$where[] = 'process_places.id = ?';
+			$args[] = $options['process_place_id'];
+			$single = true;
+		}
+
 		if (!empty($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
@@ -319,7 +488,7 @@ class Process extends UmbrellaObjectWithId{
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to read processes!');
 
-		$rows = $query->fetchAll(INDEX_FETCH);
+		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
 		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
 		$processes = [];
 
@@ -449,16 +618,14 @@ class Process extends UmbrellaObjectWithId{
 	function show_connectors($process_place_id = null){
 		$connectors = $this->connectors($process_place_id);
 
-		foreach ($connectors as $pc_id => $connector) {
+		foreach ($connectors as $process_connector_id => $connector) {
 			$x = sin(RAD*$connector->angle) * $this->r;
 			$y = -cos(RAD*$connector->angle) * $this->r;
 			?>
 			<g class="connector">
-				<a xlink:href="<?= getUrl('model','connect/'.$pc_id) ?>">
-					<circle class="connector" cx="0" cy="0" r="15" id="<?= $pc_id ?>" transform="translate(<?= $x ?>, <?= $y ?>)" <?= !empty($process_place_id)?'place_id="'.$process_place_id.'"':''?>>
-						<title><?= $connector->name ."\n\n". t('Mouse wheel alters position.') ?></title>
-					</circle>
-				</a>
+				<circle class="connector" cx="0" cy="0" r="15" id="<?= $process_connector_id ?>" transform="translate(<?= $x ?>, <?= $y ?>)" <?= !empty($process_place_id)?'place_id="'.$process_place_id.'"':''?>>
+					<title><?= $connector->name ."\n\n". t('Mouse wheel alters position.') ?></title>
+				</circle>
 			</g><?php
 		}
 	}

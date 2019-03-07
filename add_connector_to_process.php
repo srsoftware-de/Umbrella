@@ -17,7 +17,7 @@
 			$connector->patch(['project_id'=>$process->project_id,'name'=>$name])->save();
 		}
 		$process->add($connector);
-		redirect('view');
+		redirect('model','process/'.$process_id);
 	}
 
 	include '../common_templates/head.php';
