@@ -454,7 +454,7 @@ class Process extends UmbrellaObjectWithId{
 			$y = -cos(RAD*$connector->angle) * $this->r;
 			?>
 			<g class="connector">
-				<a xlink:href="<?= getUrl('model') ?>">
+				<a xlink:href="<?= getUrl('model','connect/'.$pc_id) ?>">
 					<circle class="connector" cx="0" cy="0" r="15" id="<?= $pc_id ?>" transform="translate(<?= $x ?>, <?= $y ?>)" <?= !empty($process_place_id)?'place_id="'.$process_place_id.'"':''?>>
 						<title><?= $connector->name ."\n\n". t('Mouse wheel alters position.') ?></title>
 					</circle>

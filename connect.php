@@ -1,7 +1,7 @@
 <?php include 'controller.php';
 
 require_login('model');
-
+debug('connect',1);
 $process_id = param('id');
 if (empty($process_id)) {
 	error('No model id passed to form!');
@@ -30,7 +30,7 @@ if ($name = param('name')){
 		$flow->patch(['name'=>$name,'project'=>$process->project])->patch($_POST)->save();
 
 	}
-	$connection = new Connection();
+	$connection = new Flow();
 
 	$parts = explode(':',param('endpoint'),2);
 	$endpoint_type = $parts[0];

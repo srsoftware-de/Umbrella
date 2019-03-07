@@ -52,16 +52,17 @@ function drop(evt){
 		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
 		var elem = getMainComponent(DragGroup);
 		if (elem != null){
-			if (elem.hasAttribute('class') && elem.getAttribute('class') == 'connector'){
-				moveConnector(DragGroup,elem);
-			} else {
-				var cp = clickPos(evt);
-				var moveX = cp.x - PointGrabbed.x;
-				var moveY = cp.y - PointGrabbed.y;
-				if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) { // if not dragged: handle as click
-									
-					location.href = model_base + elem.id + '/view';
-				} else {
+			var cls = elem.hasAttribute('class') ? elem.getAttribute('class') : null;
+			
+			var cp = clickPos(evt);
+			var moveX = cp.x - PointGrabbed.x;
+			var moveY = cp.y - PointGrabbed.y;
+			if (Math.abs(moveX) < 5 && Math.abs(moveY)<5) { // if not dragged: handle as click
+				location.href = model_base + cls + '/' + elem.id;
+			} else { // dragged
+				if (cls == 'connector'){ // connector has been dragged
+					moveConnector(DragGroup,elem);
+				} else { // process or terminal has been dragged
 					var x = GroupOrigin.x + moveX;
 					var y = GroupOrigin.y + moveY;
 					updateElement(elem,{x: x, y: y});

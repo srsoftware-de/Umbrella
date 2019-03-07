@@ -30,7 +30,7 @@ foreach ($projects as $project){
 		</span>
 	</legend>
 <?php foreach ($project['models'] as $model) { ?>
-	<a class="button" href="<?= getUrl('model',$model->id.'/view') ?>"><?= $model->name ?></a>
+	<a class="button" href="<?= getUrl('model','model/'.$model->id) ?>"><?= $model->name ?></a>
 <?php }?>
 <?= (isset($services['notes']) && $project_id) ? request('notes','html',['uri'=>'model:project:'.$project_id],false,NO_CONVERSION) : '' ?>
 </fieldset>
