@@ -79,7 +79,7 @@ class Connector extends UmbrellaObjectWithId{
 		];
 	}
 	/* end of table functions */
-	static function getOrCreatePlace($process_connector_id,$process_place_id){
+	static function getOrCreatePlace($process_connector_id,$process_place_id,$default_angle = 0){
 		$db = get_or_create_db();
 		$sql = 'SELECT * FROM connector_places WHERE process_connector_id = :pcid AND process_place_id = :ppid';
 		$args = [':pcid'=>$process_connector_id,':ppid'=>$process_place_id];
@@ -89,14 +89,15 @@ class Connector extends UmbrellaObjectWithId{
 		$row = $query->fetch(PDO::FETCH_ASSOC);
 
 		if (empty($row)){
-			$sql = 'INSERT INTO connector_places (process_connector_id, process_place_id) VALUES (:pcid, :ppid)';
+			$sql = 'INSERT INTO connector_places (process_connector_id, process_place_id, angle) VALUES (:pcid, :ppid, :angle)';
+			$args[':angle'] = $default_angle;
 			$query = $db->prepare($sql);
 			if (!$query->execute($args)) throw new Exception('Was not able to add new connector_place!');
 			$row = [
 				'id' => $db->lastInsertId(),
 				'process_connector_id' => $process_connector_id,
 				'process_place_id' => $process_place_id,
-				'angle' => 0
+				'angle' => $default_angle
 			];
 		}
 		return $row;
@@ -168,11 +169,9 @@ class Connector extends UmbrellaObjectWithId{
 	}
 
 	static function updatePlace($process_connector_id,$process_place_id,$angle){
-		$connector_place = Connector::getOrCreatePlace($process_connector_id,$process_place_id);
-
 		$db = get_or_create_db();
-		$sql = 'UPDATE connector_places SET angle = :angle WHERE id = :id';
-		$args = [':id' => $connector_place['id'],':angle'=>$angle];
+		$sql = 'UPDATE connector_places SET angle = :angle WHERE process_connector_id = :pcid AND process_place_id = :ppid';
+		$args = [':pcid' => $process_connector_id,':ppid'=>$process_place_id,':angle'=>$angle];
 		$query = $db->prepare($sql);
 		//debug(query_insert($query, $args));
 		if (!$query->execute($args)) throw new Exception('Was not able to write to connector_places!');
@@ -350,6 +349,27 @@ class Flow extends UmbrellaObjectWithId{
 			$flows[$id] = $flow;
 		}
 		if ($single) return null;
+		return $flows;
+	}
+
+	static function loadExternal($process_connector_id,$connector_places,$terminal = false){
+		$types = $terminal ? Flow::FROM_TERMINAL.', '.Flow::TO_TERMINAL : Flow::FROM_BORDER.', '.Flow::TO_BORDER;
+		$args = array_keys($connector_places);
+		$qMarks = str_repeat('?,', count($args)-1).'?';
+		$args[] = $process_connector_id;
+
+		$sql = 'SELECT flows.id as id,project_id,name,description,definition,type,ext_id,connector_place_id FROM flows LEFT JOIN external_flows ON flows.id = external_flows.flow_id WHERE connector_place_id in ('.$qMarks.') AND ext_id = ? AND type IN ('.$types.')';
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to load flows from external_flows table');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$flows = [];
+		foreach ($rows as $id => $row){
+			$flow = new Flow();
+			$flow->patch($row);
+			unset($flow->dirty);
+			$flows[$id] = $flow;
+		}
 		return $flows;
 	}
 	/* end of static functions */
@@ -570,14 +590,13 @@ class Process extends UmbrellaObjectWithId{
 		$connectors = Connector::load(['process_id'=>$this->id]);
 		if (empty($process_place_id)) return $connectors;
 
-		// An dieser Stelle enthält connectors die Verbinder, die dem Prozess zugeordnet sind.
-		// Wir haben aber einen Kontext (der Prozess wird als Unterprozess eines anderen Prozesses dargestellt) und wir müssen schauen, ob es für den Kontext gespeicherte Positionen gibt.
+		/* connectors ist ein Mapping von process_connectors.ids zu Connectors */
 
-		$overrides = Connector::loadPlaces($process_place_id);
-		foreach ($overrides as $override){
-			$index = $override['process_connector_id'];
-			$connectors[$index]->angle = $override['angle'];
+		foreach ($connectors as $process_connector_id => &$connector){
+			$override = Connector::getOrCreatePlace($process_connector_id, $process_place_id,$connector->angle);
+			$connector->angle = $override['angle'];
 		}
+
 		return $connectors;
 	}
 
@@ -628,11 +647,42 @@ class Process extends UmbrellaObjectWithId{
 				</circle>
 			</g><?php
 		}
+
+		return $connectors;
+	}
+
+	function show_flows($connectors,$child_processes){
+		/* connectors is a map from process_connectors.ids to connectors */
+		/* child_processes is a map from process_places.ids to processes */
+
+		foreach ($connectors as $process_connector_id => &$connector){
+			foreach ($child_processes as $process_place_id => &$child_process){
+				if (empty($child_process->connector_places)) $child_process->connector_places = Connector::loadPlaces($process_place_id);
+
+				$externalFlows = Flow::loadExternal($process_connector_id,$child_process->connector_places,false);
+
+				foreach ($externalFlows as $flow_id => $flow){
+
+
+					$start_x = $this->r *  sin(RAD*$connector->angle);
+					$start_y = $this->r * -cos(RAD*$connector->angle);
+					$end_x = $child_process->x + $child_process->r *  sin(RAD*$child_process->connector_places[$flow->connector_place_id]['angle']);
+					$end_y = $child_process->y + $child_process->r * -cos(RAD*$child_process->connector_places[$flow->connector_place_id]['angle']);
+
+					if ($flow->type == Flow::FROM_BORDER){
+						arrow($start_x, $start_y, $end_x, $end_y,$flow->name,null,$flow->description);
+					} else {
+						arrow($end_x, $end_y,$start_x, $start_y, $flow->name,null,$flow->description);
+					}
+				}
+			}
+		}
 	}
 
 	function show_processes(){
-		$processes = $this->children();
-		foreach ($processes as $proces_place_id => $process) $process->svg($proces_place_id);
+		$children = $this->children();
+		foreach ($children as $proces_place_id => $process) $process->svg($proces_place_id);
+		return $children;
 	}
 
 	function show_terminals(){
@@ -651,10 +701,11 @@ class Process extends UmbrellaObjectWithId{
 				<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
 		}
 
-		$this->show_connectors($proces_place_id);
+		$connectors = $this->show_connectors($proces_place_id);
 		if (empty($proces_place_id)) {
-			$this->show_processes();
+			$child_processes = $this->show_processes();
 			$this->show_terminals();
+			$this->show_flows($connectors,$child_processes);
 		}
 
 		if (empty($this->r)){ // we try to display a model

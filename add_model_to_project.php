@@ -15,10 +15,10 @@ if (empty($project)){
 }
 
 if ($name = param('name')){
-	$process = new Process();
+	$model = new Process();
 	try {
-		$process->patch(['project_id'=>$project_id,'name'=>$name,'description'=>param('description'),'r'=>NULL])->save();
-		redirect(getUrl('model',$process->id.'/view'));
+		$model->patch(['project_id'=>$project_id,'name'=>$name,'description'=>param('description'),'r'=>NULL])->save();
+		redirect(getUrl('model','model/'.$model->id));
 	} catch (Exception $e){
 		error($e);
 	}

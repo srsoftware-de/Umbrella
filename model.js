@@ -22,7 +22,7 @@ function addFlow(origin,target){
 		method: 'POST',
 		data: { from: from, to: to, name: name },
 		complete: function(a,b){
-			//schedule_reload();
+			schedule_reload();
 		}
 	});
 }
