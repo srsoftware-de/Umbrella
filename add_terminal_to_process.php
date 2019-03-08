@@ -17,7 +17,7 @@ if ($name = param('name')){
 		$terminal->patch(['project_id'=>$process->project_id,'name'=>$name,'description'=>param('description'),'type'=>param('type')])->save();
 	}
 	$process->add($terminal);
-	redirect('view');
+	redirect(getUrl('model','process/'.$process_id));
 }
 include '../common_templates/head.php';
 

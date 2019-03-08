@@ -7,11 +7,27 @@ var SVGRoot = null;
 var pt = null;
 var reload_timer_handle = null;
 
-function addFlow(origin,target){
-	var from = {process_connector_id:origin.id};
-	var to = {process_connector_id:target.id};
+function addFlow(origin,target){    
+    
+    DragGroup.removeAttribute('transform'); // restore original position of element
+    DragGroup = null;
+    
+    var from;
+    switch (origin.getAttribute('class')){
+        case 'connector': from = {process_connector_id:origin.id}; break;
+        case 'terminal':  from = {terminal_id:origin.id}; break;
+        default: return;
+    }
+    var to;
+    switch (target.getAttribute('class')){
+        case 'connector': to = {process_connector_id:target.id}; break;
+        case 'terminal': to = {terminal_id:target.id}; break;
+        default: return;
+    }
+    console.log({forom:from,to:to});
+    
 	if (origin.hasAttribute('place_id')) from['place_id'] = origin.getAttribute('place_id');
-	if (target.hasAttribute('place_id')) to['place_id'] = target.getAttribute('place_id');
+	if (target.hasAttribute('place_id')) to['place_id']   = target.getAttribute('place_id');
 	var name = window.prompt(flow_prompt,'new flow');
 	if (name == null || name.trim() == ''){
 		alert(no_name_set);
@@ -89,12 +105,17 @@ function drop(evt){
 		var cls = elem.hasAttribute('class') ? elem.getAttribute('class') : null;
 		var target = evt.target;
 		
-		if (cls == 'connector' && target.hasAttribute('class') && target.getAttribute('class')==cls){
-		// we dropped a connector onto a connector!
-			addFlow(elem,target);
-			DragGroup = null;
-			return;
-		} 
+		if (cls == 'connector' && target.hasAttribute('class')){
+            var target_class = target.getAttribute('class');
+            if (target_class=='connector'||target_class=='terminal'){
+                console.log('we dropped a connector onto a connector or terminal!');
+                return addFlow(elem,target);
+            }
+		}
+		if (cls == 'terminal' && target.hasAttribute('class') && target.getAttribute('class')=='connector'){
+            console.log('we dropped a terminal onto a connector!');
+            return addFlow(elem,target);
+        }
 		
 		var cp = clickPos(evt);
 		var moveX = cp.x - PointGrabbed.x;
@@ -218,7 +239,7 @@ function presetConnectorName(elem){
 
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
-	reload_timer_handle = setTimeout(function(){location.reload()},1000);
+	//reload_timer_handle = setTimeout(function(){location.reload()},1000);
 }
 
 function updateElement(elem,data){

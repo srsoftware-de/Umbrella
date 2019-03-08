@@ -285,7 +285,7 @@ class Flow extends UmbrellaObjectWithId{
 	}
 
 	static function add_internal($project,$name,$origin,$target){
-		debug(['method'=>'Flow::add_internal','name'=>$name,'project'=>$project,'origin'=>$origin,'target'=>$target]);
+		//debug(['method'=>'Flow::add_internal','name'=>$name,'project'=>$project,'origin'=>$origin,'target'=>$target]);
 
 		$data = ['project_id'=>$project['id'],'name'=>$name];
 
@@ -307,6 +307,28 @@ class Flow extends UmbrellaObjectWithId{
 
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to store new internal flow!');
+	}
+	
+	static function add_terminal_flow($project,$name,$connector,$terminal,$type){
+        //debug(['method'=>'Flow::add_terminal_flow','name'=>$name,'project'=>$project,'conn'=> $connector, 'term' => $terminal, 'type' => $type]);
+        
+   		$data = ['project_id'=>$project['id'],'name'=>$name];
+
+		// get or create flow:
+		$flow = Flow::load($data);
+		if (empty($flow)){
+			$flow = new Flow();
+			$flow->patch($data)->save();
+		}
+        $connector_place = Connector::getOrCreatePlace($connector['process_connector_id'], $connector['place_id']);
+        
+        // create new flow reference:
+		$sql = 'INSERT INTO external_flows (flow_id, ext_id, connector_place_id, type) VALUES (:flow_id, :ext_id, :cp_id, :type )';
+		$args = [':flow_id'=>$flow->id, ':ext_id' => $terminal['place_id'], ':cp_id'=>$connector_place['id'],':type'=>$type];
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new external flow!');
 
 	}
 
@@ -734,7 +756,7 @@ class Process extends UmbrellaObjectWithId{
 
 	function show_terminals(){
 		$terminals = $this->terminals();
-		foreach ($terminals as $place_id => $terminal) $terminal->svg($place_id);
+		foreach ($terminals as $terminal_place_id => $terminal) $terminal->svg($terminal_place_id);
 	}
 
 	function svg($proces_place_id = null){
@@ -830,6 +852,15 @@ class Terminal extends UmbrellaObjectWithId{
 			$where[] = 'context = ?';
 			$args[] = $options['context'];
 		}
+		
+        if (!empty($options['terminal_place_id'])) {
+			$fields = array_merge(Terminal::fields(),Terminal::place_table());
+			unset($fields['id'],$fields['w'],$fields['UNIQUE']);
+			$sql = 'SELECT terminal_places.id as place_id, terminals.id as id, '.implode(', ', array_keys($fields)).', terminal_places.w as w FROM terminals LEFT JOIN terminal_places ON terminals.id = terminal_places.terminal_id';
+			$where[] = 'terminal_places.id = ?';
+			$args[] = $options['terminal_place_id'];
+			$single = true;
+		}
 
 		if (!empty($options['ids'])){
 			$ids = $options['ids'];
@@ -919,10 +950,10 @@ class Terminal extends UmbrellaObjectWithId{
 		return $this;
 	}
 
-	function svg($place_id = null){ ?>
+	function svg($terminal_place_id = null){ ?>
 	<g transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
 		<?php if ($this->type == Terminal::TERMINAL) { // terminal ?>
-		<rect class="terminal" x="0" y="0" width="<?= $this->w ?>" height="30" id="<?= $this->id ?>" <?= empty($place_id)?'':'place_id="'.$place_id.'"'?>>
+		<rect class="terminal" x="0" y="0" width="<?= $this->w ?>" height="30" id="<?= $this->id ?>" <?= empty($terminal_place_id)?'':'place_id="'.$terminal_place_id.'"'?>>
 			<title><?= $this->description ?></title>
 		</rect>
 		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
@@ -930,7 +961,7 @@ class Terminal extends UmbrellaObjectWithId{
 		<ellipse cx="<?= $this->w/2 ?>" cy="40" rx="<?= $this->w/2?>" ry="15">
 			<title><?= $this->description ?></title>
 		</ellipse>
-		<rect class="terminal" x="0" y="0" width="<?= $this->w ?>" height="40" stroke-dasharray="0,<?= $this->w ?>,40,<?= $this->w ?>,40" id="<?= $this->id ?>" <?= empty($place_id)?'':'place_id="'.$place_id.'"'?>>
+		<rect class="terminal" x="0" y="0" width="<?= $this->w ?>" height="40" stroke-dasharray="0,<?= $this->w ?>,40,<?= $this->w ?>,40" id="<?= $this->id ?>" <?= empty($terminal_place_id)?'':'place_id="'.$terminal_place_id.'"'?>>
 			<title><?= $this->description ?></title>
 		</rect>
 		<ellipse cx="<?= $this->w/2 ?>" cy="0" rx="<?= $this->w/2?>" ry="15">
