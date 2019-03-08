@@ -372,6 +372,24 @@ class Flow extends UmbrellaObjectWithId{
 		}
 		return $flows;
 	}
+	
+    static function loadInternal($connector_place_id_from,$connector_place_id_to){
+		$sql = 'SELECT flows.id as id, project_id, name, description, definition FROM internal_flows LEFT JOIN flows ON flows.id = internal_flows.flow_id WHERE from_id = :from AND to_id = :to ';
+		$args = [ ':from'=>$connector_place_id_from, ':to'=>$connector_place_id_to];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		//debug(query_insert($query,$args));
+		if (!$query->execute($args)) throw new Exception('Was not able to load flows from internal_flows table');
+		$rows = $query->fetchAll(INDEX_FETCH);
+		$flows = [];
+		foreach ($rows as $id => $row){
+			$flow = new Flow();
+			$flow->patch($row);
+			unset($flow->dirty);
+			$flows[$id] = $flow;
+		}
+		return $flows;
+	}
 	/* end of static functions */
 
 	function save(){
@@ -655,6 +673,7 @@ class Process extends UmbrellaObjectWithId{
 		/* connectors is a map from process_connectors.ids to connectors */
 		/* child_processes is a map from process_places.ids to processes */
 
+		/* diplay flows from borders to inner processes */
 		foreach ($connectors as $process_connector_id => &$connector){
 			foreach ($child_processes as $process_place_id => &$child_process){
 				if (empty($child_process->connector_places)) $child_process->connector_places = Connector::loadPlaces($process_place_id);
@@ -676,6 +695,34 @@ class Process extends UmbrellaObjectWithId{
 					}
 				}
 			}
+		}
+		
+		/* diplay flows between inner processes */
+		while (!empty($child_processes)){
+            $p1 = array_pop($child_processes);
+            foreach ($p1->connector_places as $cp_id_1 => $cp1){
+                foreach ($child_processes as $p2){
+                    foreach ($p2->connector_places as $cp_id_2 => $cp2){
+                        $internal_flows = Flow::loadInternal($cp_id_1,$cp_id_2);
+                        foreach ($internal_flows as $flow){
+                            $start_x = $p1->x + $p1->r *  sin(RAD*$cp1['angle']);
+                            $start_y = $p1->y + $p1->r * -cos(RAD*$cp1['angle']);
+                            $end_x   = $p2->x + $p2->r *  sin(RAD*$cp2['angle']);
+                            $end_y   = $p2->y + $p2->r * -cos(RAD*$cp2['angle']);
+                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,null,$flow->description);
+                        }
+                        
+                        $internal_flows = Flow::loadInternal($cp_id_2,$cp_id_1);
+                        foreach ($internal_flows as $flow){
+                            $start_x = $p2->x + $p2->r *  sin(RAD*$cp2['angle']);
+                            $start_y = $p2->y + $p2->r * -cos(RAD*$cp2['angle']);
+                            $end_x   = $p1->x + $p1->r *  sin(RAD*$cp1['angle']);
+                            $end_y   = $p1->y + $p1->r * -cos(RAD*$cp1['angle']);
+                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,null,$flow->description);
+                        }
+                    }
+                }
+            }
 		}
 	}
 
