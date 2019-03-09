@@ -9,7 +9,7 @@ var reload_timer_handle = null;
 
 function addFlow(origin,target){    
     
-    DragGroup.removeAttribute('transform'); // restore original position of element
+	DragGroup.removeAttribute('transform'); // restore original position of element
     DragGroup = null;
     
     var from;
@@ -239,7 +239,7 @@ function presetConnectorName(elem){
 
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
-	//reload_timer_handle = setTimeout(function(){location.reload()},1000);
+	reload_timer_handle = setTimeout(function(){location.reload()},1000);
 }
 
 function updateElement(elem,data){

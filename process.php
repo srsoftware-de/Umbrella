@@ -12,7 +12,7 @@ $process = Process::load(['ids'=>$process_id])->loadProject();
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
-	$process->delete();
+	Process::delete($process->id);
 	redirect(getUrl('model','?project='.$process->project_id));
 }
 
