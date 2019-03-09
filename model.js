@@ -202,14 +202,14 @@ function menu(evt){
 	if (!elem.hasAttribute('class')) return false;
 	evt.preventDefault();
 	var cls = elem.getAttribute('class');
-	if (cls=='process'){
+	if (cls=='process'||cls=='terminal'){
 		if (!elem.hasAttribute('place_id')) return false;
 		$('#contextmenu').show();
 		$('#contextmenu').css({left:evt.clientX+'px',top:evt.clientY+'px'});
 		$('#contextmenu button.delete').off('click');
 		$('#contextmenu button.delete').on('click',function(){
 			hideContextMenu();
-			removeInstance('process',elem.getAttribute('place_id'));
+			removeInstance(cls,elem.getAttribute('place_id'));
 		});
 	}
 	return false;

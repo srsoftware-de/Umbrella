@@ -8,7 +8,12 @@ if (empty($process_id)) {
 	redirect(getUrl('model'));
 }
 
-$process = Process::load(['ids'=>$process_id])->loadProject();
+$process = Process::load(['ids'=>$process_id]);
+$project = $process->project();
+if (empty($project)){
+	error('You are not allowed to access this process!');
+	redirect(getUrl('model'));
+}
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
@@ -36,7 +41,7 @@ if ($action == 'delete'){?>
 		<td>
 			<h1><?= $process->name ?></h1>
 			<span class="symbol">
-				<a title="<?= t('edit')?>"	href="edit"></a>
+				<a title="<?= t('edit')?>"	href="<?= getUrl('model','edit_process/'.$process_id)?>"></a>
 				<a title="<?= t('export process') ?>" href="export"></a>
 				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>

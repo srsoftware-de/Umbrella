@@ -195,6 +195,11 @@ class Connector extends UmbrellaObjectWithId{
 	}
 	/* end of static functions */
 
+	function project(){
+		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		return $this->project;
+	}
+
 	function save(){
 		if (!empty($this->id)) return $this->update();
 
@@ -445,11 +450,12 @@ class Flow extends UmbrellaObjectWithId{
 		if (!$db->prepare($sql)->execute($connector_place_ids)) throw new Exception('Was not able to remove internal flows');
 	}
 
-	static function removeTerminalFlows($termonal_place_ids = []){
-		if (empty($termonal_place_ids)) return;
-		$qMarks = str_repeat('?,', count($termonal_place_ids)-1).'?';
-		$sql = 'DELETE FROM external_flows WHERE from_id IN ('.$qMarks.')';
-		if (!get_or_create_db()->prepare($sql)->execute($termonal_place_ids)) throw new Exception('Was not able to remove external flows');
+	static function removeTerminalFlows($terminal_place_ids = []){
+		if (empty($terminal_place_ids)) return;
+		$qMarks = str_repeat('?,', count($terminal_place_ids)-1).'?';
+		$sql = 'DELETE FROM external_flows WHERE ext_id IN ('.$qMarks.') AND type IN ('.Flow::TO_TERMINAL.', '.FLOW::FROM_TERMINAL.')';
+		//debug(query_insert($sql, $terminal_place_ids));
+		if (!get_or_create_db()->prepare($sql)->execute($terminal_place_ids)) throw new Exception('Was not able to remove external flows');
 	}
 	/* end of static functions */
 
@@ -693,9 +699,9 @@ class Process extends UmbrellaObjectWithId{
 		return empty($this->r);
 	}
 
-	function loadProject(){
-		$this->project = request('project','json',['ids'=>$this->project_id]);
-		return $this;
+	function project(){
+		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		return $this->project;
 	}
 
 	static function removePlaces($pid){
@@ -791,8 +797,8 @@ class Process extends UmbrellaObjectWithId{
 					$y1 = $process->y + $process->r * -cos(RAD*$process->connector_places[$flow->connector_place_id]['angle']);
 
 					$x2 = $terminal->x + $terminal->w/2;
-					$y2 = $terminal->y - 15;
-					if ($y2+70 < $y1) $y2+=70;
+					$y2 = $terminal->y - ($terminal->type ==Terminal::DATABASE ? 15 : 0);
+					if ($y2+70 < $y1) $y2+=($terminal->type ==Terminal::DATABASE ? 70 : 30);
 
 					if ($flow->type == Flow::FROM_TERMINAL){
 						arrow($x2, $y2,$x1, $y1, $flow->name,null,$flow->description);
@@ -1044,6 +1050,11 @@ class Terminal extends UmbrellaObjectWithId{
 		if (!$query->execute($args)) throw new Exception('Was not able to update terminal placement!');
 	}
 	/* end of static functions */
+
+	function project(){
+		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		return $this->project;
+	}
 
 	function save(){
 		if (!empty($this->id)) return $this->update();

@@ -1,5 +1,5 @@
 <?php include 'controller.php';
-ini_set('display_errors', 1);
+
 require_login('model');
 
 $origin = param('from');
@@ -15,33 +15,33 @@ if (!empty($origin['terminal_id'])){  // origin is a terminal
     $target_connector = Connector::load(['process_connector_id'=>$target['process_connector_id']]);
     if (empty($target_connector)) throw new Exception('Invalid connector specified for flow target!');
 
-    $project = request('project','json',['ids'=>$target_connector->project_id]);
+    $project = $target_connector->project();
     if (empty($project)) throw new Exception('The model you want to edit does not belong to one of your projects!');
 
     $origin_terminal = Terminal::load(['terminal_place_id'=>$origin['place_id']]);
     if (empty($origin_terminal)) throw new Exception('invalid terminal specified for flow origin!');
-    
+
     if ($target_connector->project_id != $origin_terminal->project_id) throw new Exception('You can not compose flows between endpoints in models of different projects!');
-    
+
     Flow::add_terminal_flow($project,$name,$target,$origin,Flow::FROM_TERMINAL);
 } elseif (!empty($target['terminal_id'])){  // target is a terminal
     $origin_connector = Connector::load(['process_connector_id'=>$origin['process_connector_id']]);
     if (empty($origin_connector)) throw new Exception('Invalid connector specified for flow origin!');
 
-    $project = request('project','json',['ids'=>$origin_connector->project_id]);
+    $project = $origin_connector->project();
     if (empty($project)) throw new Exception('The model you want to edit does not belong to one of your projects!');
 
     $target_terminal = Terminal::load(['terminal_place_id'=>$target['place_id']]);
     if (empty($target_terminal)) throw new Exception('invalid terminal specified for flow target!');
-    
+
     if ($origin_connector->project_id != $target_terminal->project_id) throw new Exception('You can not compose flows between endpoints in models of different projects!');
-    
+
     Flow::add_terminal_flow($project,$name,$origin,$target,Flow::TO_TERMINAL);
 } else { // neither origin nor target are terminals
     $origin_connector = Connector::load(['process_connector_id'=>$origin['process_connector_id']]);
     if (empty($origin_connector)) throw new Exception('Invalid connector specified for flow origin!');
 
-    $project = request('project','json',['ids'=>$origin_connector->project_id]);
+    $project = $origin_connector->project();
     if (empty($project)) throw new Exception('The model you want to edit does not belong to one of your projects!');
 
     $target_connector = Connector::load(['process_connector_id'=>$target['process_connector_id']]);

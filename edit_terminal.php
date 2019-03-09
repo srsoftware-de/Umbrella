@@ -2,27 +2,22 @@
 
 require_login('model');
 
-$model_id = param('id1');
-$terminal_instance_id = param('id2');
-
-if (!$model_id){
-	error('No model id passed to terminal.');
-	redirect(getUrl('model'));
-}
-if (!$terminal_instance_id){
-	error('No terminal id passed to terminal.');
+$terminal_id = param('id');
+if (empty($terminal_id)){
+	error('No terminal id specified!');
 	redirect(getUrl('model'));
 }
 
-$model = Model::load(['ids'=>$model_id]);
-$terminal_instance = $model->terminal_instances($terminal_instance_id);
+$terminal = Terminal::load(['ids'=>$terminal_id]);
+$project = $terminal->project();
+if (empty($project)){
+	error('You are not allowed to access that terminal!');
+	redirect(getUrl('model'));
+}
 
-if ($name = param('name')){
-	$base = $terminal_instance->base;
-	if ($name == $base->id) unset($_POST['name']);
-	$base->patch($_POST);
-	$base->save();
-	redirect($model->url());
+if (param('name')){
+	$terminal->patch($_POST)->save();
+	redirect(getUrl('model','terminal/'.$terminal_id));
 }
 
 include '../common_templates/head.php';
@@ -33,15 +28,15 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Edit terminal "?"',$terminal_instance->base->id)?>
+			<?= t('Edit terminal "?"',$terminal->name)?>
 		</legend>
 		<fieldset>
 			<legend><?= t('Name') ?></legend>
-			<input type="text" name="name" value="<?= $terminal_instance->base->id ?>" />
+			<input type="text" name="name" value="<?= $terminal->name ?>" />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="description"><?= $terminal_instance->base->description ?></textarea>
+			<textarea name="description"><?= $terminal->description ?></textarea>
 		</fieldset>
 		<button type="submit">
 			<?= t('Save'); ?>

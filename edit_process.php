@@ -2,25 +2,22 @@
 
 require_login('model');
 
-$model_id = param('id1');
-$process_instance_id = param('id2');
-
-if (!$model_id){
-	error('No model id passed to terminal.');
-	redirect(getUrl('model'));
-}
-if (!$process_instance_id){
-	error('No process instance id passed to terminal.');
+$process_id = param('id');
+if (empty($process_id)){
+	error('No process id specified!');
 	redirect(getUrl('model'));
 }
 
-$model = Model::load(['ids'=>$model_id]);
-$process = $model->process_instances($process_instance_id);
+$process = Process::load(['ids'=>$process_id]);
+$project = $process->project();
+if (empty($project)){
+	error('You are not allowed to access that process!');
+	redirect(getUrl('model'));
+}
 
 if (param('name')){
-	$process->base->patch($_POST);
-	$process->base->save();
-	redirect($model->url());
+	$process->patch($_POST)->save();
+	redirect(getUrl('model','process/'.$process_id));
 }
 
 include '../common_templates/head.php';
@@ -31,15 +28,15 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Edit process "?"',$process->base->id)?>
+			<?= t('Edit process "?"',$process->name)?>
 		</legend>
 		<label>
 			<?= t('Name') ?>
-			<input type="text" name="name" value="<?= $process->base->id ?>" />
+			<input type="text" name="name" value="<?= $process->name ?>" />
 		</label>
 		<label>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="description"><?= $process->base->description ?></textarea>
+			<textarea name="description"><?= $process->description ?></textarea>
 		</label>
 		<button type="submit">
 			<?= t('Save'); ?>
