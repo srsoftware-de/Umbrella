@@ -158,7 +158,7 @@ class Connector extends UmbrellaObjectWithId{
 		return $connectors;
 	}
 
-	static function loadPlaces($key_id,$key_is_process_connector_id){
+	static function loadPlaces($key_id,$key_is_process_connector_id = false){
 		$key = $key_is_process_connector_id ? 'process_connector_id' : 'process_place_id';
 		$sql = 'SELECT * FROM connector_places WHERE '.$key.' = :id';
 		$args = [':id'=>$key_id];

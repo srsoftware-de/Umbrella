@@ -8,7 +8,7 @@ $options = ['models'=>true];
 if ($project_id = param('project')) $options['project_id'] = $project_id;
 $models = Process::load($options);
 
-foreach ($models as $model) $projects[$model->project['id']]['models'][$model->id] = $model;
+foreach ($models as $model) $projects[$model->project_id]['models'][$model->id] = $model;
 
 include '../common_templates/head.php';
 
@@ -21,6 +21,7 @@ include '../common_templates/messages.php';
 <?php
 foreach ($projects as $project){
 	if (isset($project['models'])){ ?>
+
 <fieldset>
 	<legend>
 		<a href="<?= getUrl('project',$project['id'].'/view') ?>"><?= $project['name'] ?></a>
@@ -29,6 +30,7 @@ foreach ($projects as $project){
 			<a title="<?= t('export all models of this project') ?>" href="export?project=<?= $project['id'] ?>"></a>
 		</span>
 	</legend>
+
 <?php foreach ($project['models'] as $model) { ?>
 	<a class="button" href="<?= getUrl('model','model/'.$model->id) ?>"><?= $model->name ?></a>
 <?php }?>
