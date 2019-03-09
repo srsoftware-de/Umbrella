@@ -361,6 +361,17 @@ class Flow extends UmbrellaObjectWithId{
 		$args  = [];
 		$single = false;
 
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
 		if (!empty($options['name'])) {
 			$where[] = 'name = ?';
 			$args[]  = $options['name'];
@@ -458,6 +469,10 @@ class Flow extends UmbrellaObjectWithId{
 		if (!get_or_create_db()->prepare($sql)->execute($terminal_place_ids)) throw new Exception('Was not able to remove external flows');
 	}
 	/* end of static functions */
+	function project(){
+		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		return $this->project;
+	}
 
 	function save(){
 		if (!empty($this->id)) return $this->update();
@@ -763,6 +778,8 @@ class Process extends UmbrellaObjectWithId{
 		/* connectors is a map from process_connectors.ids to connectors */
 		/* child_processes is a map from process_places.ids to processes */
 
+		$url = getUrl('model','flow/');
+
 		/* diplay flows from borders to inner processes */
 		foreach ($child_processes as $process_place_id => &$child_process){
 			if (empty($child_process->connector_places)) $child_process->connector_places = Connector::loadPlaces($process_place_id);
@@ -777,9 +794,9 @@ class Process extends UmbrellaObjectWithId{
 					$end_y = $child_process->y + $child_process->r * -cos(RAD*$child_process->connector_places[$flow->connector_place_id]['angle']);
 
 					if ($flow->type == Flow::FROM_BORDER){
-						arrow($start_x, $start_y, $end_x, $end_y,$flow->name,null,$flow->description);
+						arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow_id,$flow->description);
 					} else {
-						arrow($end_x, $end_y,$start_x, $start_y, $flow->name,null,$flow->description);
+						arrow($end_x, $end_y,$start_x, $start_y, $flow->name,$url.$flow_id,$flow->description);
 					}
 				}
 			}
@@ -792,7 +809,7 @@ class Process extends UmbrellaObjectWithId{
 			foreach ($child_processes as $process){
 				if (empty($process->connector_places)) continue;
 				$flows = Flow::loadExternal($terminal_place_id, $process->connector_places,true);
-				foreach ($flows as $flow){
+				foreach ($flows as $flow_id => $flow){
 					$x1 = $process->x + $process->r *  sin(RAD*$process->connector_places[$flow->connector_place_id]['angle']);
 					$y1 = $process->y + $process->r * -cos(RAD*$process->connector_places[$flow->connector_place_id]['angle']);
 
@@ -801,9 +818,9 @@ class Process extends UmbrellaObjectWithId{
 					if ($y2+70 < $y1) $y2+=($terminal->type ==Terminal::DATABASE ? 70 : 30);
 
 					if ($flow->type == Flow::FROM_TERMINAL){
-						arrow($x2, $y2,$x1, $y1, $flow->name,null,$flow->description);
+						arrow($x2, $y2,$x1, $y1, $flow->name,$url.$flow_id,$flow->description);
 					} else {
-						arrow($x1, $y1,$x2, $y2, $flow->name,null,$flow->description);
+						arrow($x1, $y1,$x2, $y2, $flow->name,$url.$flow_id,$flow->description);
 					}
 				}
 			}
@@ -816,21 +833,21 @@ class Process extends UmbrellaObjectWithId{
                 foreach ($child_processes as $p2){
                     foreach ($p2->connector_places as $cp_id_2 => $cp2){
                         $internal_flows = Flow::loadInternal($cp_id_1,$cp_id_2);
-                        foreach ($internal_flows as $flow){
+                        foreach ($internal_flows as $flow_id => $flow){
                             $start_x = $p1->x + $p1->r *  sin(RAD*$cp1['angle']);
                             $start_y = $p1->y + $p1->r * -cos(RAD*$cp1['angle']);
                             $end_x   = $p2->x + $p2->r *  sin(RAD*$cp2['angle']);
                             $end_y   = $p2->y + $p2->r * -cos(RAD*$cp2['angle']);
-                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,null,$flow->description);
+                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow_id,$flow->description);
                         }
 
                         $internal_flows = Flow::loadInternal($cp_id_2,$cp_id_1);
-                        foreach ($internal_flows as $flow){
+                        foreach ($internal_flows as $flow_id => $flow){
                             $start_x = $p2->x + $p2->r *  sin(RAD*$cp2['angle']);
                             $start_y = $p2->y + $p2->r * -cos(RAD*$cp2['angle']);
                             $end_x   = $p1->x + $p1->r *  sin(RAD*$cp1['angle']);
                             $end_y   = $p1->y + $p1->r * -cos(RAD*$cp1['angle']);
-                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,null,$flow->description);
+                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow_id,$flow->description);
                         }
                     }
                 }

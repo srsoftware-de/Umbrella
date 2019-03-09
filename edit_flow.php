@@ -2,24 +2,22 @@
 
 require_login('model');
 
-if ($model_id = param('id1')){
-	$model = Model::load(['ids'=>$model_id]);
-} else {
-	error('No model id passed!');
+$flow_id = param('id');
+if (empty($flow_id)){
+	error('No flow id specified!');
 	redirect(getUrl('model'));
 }
 
-if ($flow_id = param('id2')){
-	$flow = FlowInstance::load(['model_id'=>$model_id,'ids'=>$flow_id]);
-} else {
-	error('No flow id passed to model/'.$model->id.'/flow!');
-	redirect($model->url());
+$flow = Flow::load(['ids'=>$flow_id]);
+$project = $flow->project();
+if (empty($project)){
+	error('You are not allowed to access that flow!');
+	redirect(getUrl('model'));
 }
 
 if ($name = param('name')){
-	$flow->base->patch($_POST);	
-	$flow->base->save();
-	redirect(getUrl('model',$model_id.'/view'));
+	$flow->patch($_POST)->save();
+	redirect(getUrl('model','flow/'.$flow_id));
 }
 
 include '../common_templates/head.php';
@@ -29,18 +27,18 @@ include '../common_templates/messages.php'; ?>
 
 <form method="post">
 	<fieldset>
-		<legend><?= t('Edit flow "?"',$flow->base->id); ?></legend>
+		<legend><?= t('Edit flow "?"',$flow->name); ?></legend>
 		<fieldset>
 			<legend><?= t('Name') ?></legend>
-			<input type="text" name="name" value="<?= $flow->base->id ?>"/>
+			<input type="text" name="name" value="<?= $flow->name ?>"/>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Definition') ?></legend>
-			<input type="text" name="definition" value="<?= htmlentities($flow->base->definition) ?>" />
+			<input type="text" name="definition" value="<?= htmlentities($flow->definition) ?>" />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="description"><?= $flow->base->description ?></textarea>			
+			<textarea name="description"><?= $flow->description ?></textarea>
 		</fieldset>
 		<button type="submit">
 			<?= t('Save'); ?>

@@ -2,14 +2,23 @@
 
 require_login('model');
 
-$connection_id = param('id');
+$flow_id = param('id');
+if (empty($flow_id)){
+	error('No flow id specified!');
+	redirect(getUrl('model'));
+}
 
-$flow = Connection::load(['ids'=>$connection_id]);
+$flow = Flow::load(['ids'=>$flow_id]);
+$project = $flow->project();
+if (empty($project)){
+	error('You are not allowed to access that flow!');
+	redirect(getUrl('model'));
+}
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
 	$flow->delete();
-	redirect($model->url());
+	redirect(getUrl('model'));
 }
 
 include '../common_templates/head.php';
@@ -19,8 +28,8 @@ include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
-		<legend><?= t('Delete "?"',$flow->base->id)?></legend>
-		<?= t('You are about to delete the flow "?". Are you sure you want to proceed?',$flow->base->id) ?>
+		<legend><?= t('Delete "?"',$flow->name)?></legend>
+		<?= t('You are about to delete the flow "?". Are you sure you want to proceed?',$flow->name) ?>
 		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?"><?= t('No')?></a>
 	</fieldset>
@@ -35,7 +44,6 @@ if ($action == 'delete'){?>
 			<h1><?= $flow->name ?></h1>
 			<span class="symbol">
 				<a href="../edit_flow/<?= $flow->id ?>" title="<?= t('edit')?>"></a>
-				<a href="../turn/<?= $flow->id ?>" title="<?= t('turn')?>"></a>
 				<a title="<?= t('delete') ?>" href="?action=delete"></a>
 			</span>
 		</td>
@@ -43,9 +51,10 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Project')?></th>
 		<td class="project">
-			<a href="<?= getUrl('project',$flow->project['id'].'/view'); ?>"><?= $flow->project['name']?></a>
+			<a href="<?= getUrl('project',$project['id'].'/view'); ?>"><?= $project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$flow->project['id'] ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
+			<a href="<?= getUrl('files').'?path=project/'.$project['id'] ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
+			<a class="symbol" title="<?= t('show other models') ?>"   href="<?= getUrl('model').'?project='.$project['id'] ?>"></a>
 			</td>
 	</tr>
 	<?php if ($flow->definition){ ?>
