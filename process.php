@@ -37,8 +37,8 @@ if ($action == 'delete'){?>
 			<h1><?= $process->name ?></h1>
 			<span class="symbol">
 				<a title="<?= t('edit')?>"	href="edit"></a>
-				<a title="<?= t('export model') ?>" href="export"></a>
-				<a title="<?= t('delete model')?>" href="?action=delete"></a>
+				<a title="<?= t('export process') ?>" href="export"></a>
+				<a title="<?= t('delete process')?>" href="?action=delete"></a>
 			</span>
 		</td>
 	</tr>
@@ -67,6 +67,9 @@ if ($action == 'delete'){?>
 			</div>
 		</th>
 		<td>
+			<div id="contextmenu" style="position: absolute; display: inline-block;">
+				<button class="delete">Delete</button>
+			</div>
 			<svg
 				 viewbox="0 0 1000 1000"
 				 onload="initSVG(evt)"
@@ -74,13 +77,16 @@ if ($action == 'delete'){?>
 				 onmousemove="drag(evt)"
 				 onmouseup="drop(evt)"
 				 onwheel="wheel(evt)"
+				 oncontextmenu="menu(evt)"
 				 context="<?= $process->id ?>">
+				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
 				<script type="text/javascript">
 					var model_base = '<?= getUrl('model')?>';
 					var flow_prompt = '<?= t('Set name for new flow:'); ?>'
 					var no_name_set = '<?= t('No name given. Will not create flow.'); ?>'
+					hideContextMenu();
 				</script>
-				<script xlink:href="<?= getUrl('model','model.js')?>"></script>
+
 				<rect id='backdrop' x='-10%' y='-10%' width='110%' height='110%' pointer-events='all' />
 				<?php $process->svg(); ?>
 			</svg>

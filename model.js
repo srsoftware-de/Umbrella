@@ -162,6 +162,7 @@ function getTranslation(elem){
 }
 
 function grab(evt){
+	hideContextMenu();	
 	if (evt.button != 0) return; // only respond to right button
 	if (evt.target == BackDrop) return; // don't drag the background
 
@@ -186,11 +187,34 @@ function grab(evt){
 	GroupOrigin = getTranslation(DragGroup);
 }
 
+function hideContextMenu(){
+	$('#contextmenu').hide();
+}
+
 function initSVG(evt){
 	SVGRoot = evt.target;
 	pt = SVGRoot.createSVGPoint();
 	BackDrop = evt.target.ownerDocument.getElementById('backdrop');
 }
+
+function menu(evt){
+	var elem = evt.target;
+	if (!elem.hasAttribute('class')) return false;
+	evt.preventDefault();
+	var cls = elem.getAttribute('class');
+	if (cls=='process'){
+		if (!elem.hasAttribute('place_id')) return false;
+		$('#contextmenu').show();
+		$('#contextmenu').css({left:evt.clientX+'px',top:evt.clientY+'px'});
+		$('#contextmenu button.delete').off('click');
+		$('#contextmenu button.delete').on('click',function(){
+			hideContextMenu();
+			removeInstance('process',elem.getAttribute('place_id'));
+		});
+	}
+	return false;
+}
+
 
 function moveConnector(group,connector){
 	var trans_g = getTranslation(group);
@@ -236,6 +260,20 @@ function presetConnectorName(elem){
 		this.selectionEnd = 1000;
 	});
 }
+
+function removeInstance(type,place_id){
+	if (confirm('Remove '+type+' instance?')){
+		$.ajax({
+			url: model_base+'remove_place',
+			method: 'POST',
+			data: {type:type,place_id:place_id},
+			complete: function(a,b){
+				schedule_reload();
+			}
+		});
+	}
+}
+
 
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
