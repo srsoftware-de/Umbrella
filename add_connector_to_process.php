@@ -31,7 +31,7 @@
 				<?= t('Add connector to process "?"',$process->name)?>
 			</legend>
 			<?= t('Connector name') ?>
-			<input type="text" name="name" value="" autofocus="autofocus" />
+			<input type="text" name="name" value="<?= param('name',$process->name.':') ?>" autofocus="autofocus" />
 			<button type="submit"><?= t('Save'); ?></button>
 		</fieldset>
 	</form>

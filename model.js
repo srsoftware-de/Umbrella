@@ -13,22 +13,28 @@ function addFlow(origin,target){
     DragGroup = null;
     
     var from;
+    var name = 'new flow';
     switch (origin.getAttribute('class')){
-        case 'connector': from = {process_connector_id:origin.id}; break;
+        case 'connector': 
+        	from = {process_connector_id:origin.id};
+        	name = proposeFlowName(origin,name);
+        	break;
         case 'terminal':  from = {terminal_id:origin.id}; break;
         default: return;
     }
     var to;
     switch (target.getAttribute('class')){
-        case 'connector': to = {process_connector_id:target.id}; break;
+        case 'connector': 
+        	to = {process_connector_id:target.id};
+        	name = proposeFlowName(target,name);
+        	break;
         case 'terminal': to = {terminal_id:target.id}; break;
         default: return;
     }
-    console.log({forom:from,to:to});
     
 	if (origin.hasAttribute('place_id')) from['place_id'] = origin.getAttribute('place_id');
 	if (target.hasAttribute('place_id')) to['place_id']   = target.getAttribute('place_id');
-	var name = window.prompt(flow_prompt,'new flow');
+	var name = window.prompt(flow_prompt,name);
 	if (name == null || name.trim() == ''){
 		alert(no_name_set);
 		return;
@@ -37,6 +43,9 @@ function addFlow(origin,target){
 		url: model_base+'add_flow',
 		method: 'POST',
 		data: { from: from, to: to, name: name },
+		success: function(data,status,jqXHR){
+			window.open(model_base+'edit_flow/'+data,'_blank');
+		},
 		complete: function(a,b){
 			schedule_reload();
 		}
@@ -259,6 +268,19 @@ function presetConnectorName(elem){
 		this.selectionStart = start;
 		this.selectionEnd = 1000;
 	});
+}
+
+function proposeFlowName(connector,default_name){
+	var connectorGroup = parentGroup(connector);
+	var processGroup = (parent == null) ? null : parentGroup(connectorGroup);
+	if (processGroup != null) {
+		var texts = processGroup.getElementsByTagName('text');
+		for (var index in texts){
+			var text = texts[index].lastChild;
+			if (text!=null) return text.nodeValue+':';
+		}
+	}
+	return default_name;
 }
 
 function removeInstance(type,place_id){

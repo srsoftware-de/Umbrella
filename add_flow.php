@@ -11,6 +11,8 @@ if (empty($target)) throw new Exception('add_flow called without "to" parameter!
 $name = param('name');
 if (empty($name)) throw new Exception('No name set for flow!');
 
+$flow = null;
+
 if (!empty($origin['terminal_id'])){  // origin is a terminal
     $target_connector = Connector::load(['process_connector_id'=>$target['process_connector_id']]);
     if (empty($target_connector)) throw new Exception('Invalid connector specified for flow target!');
@@ -23,7 +25,7 @@ if (!empty($origin['terminal_id'])){  // origin is a terminal
 
     if ($target_connector->project_id != $origin_terminal->project_id) throw new Exception('You can not compose flows between endpoints in models of different projects!');
 
-    Flow::add_terminal_flow($project,$name,$target,$origin,Flow::FROM_TERMINAL);
+    $flow = Flow::add_terminal_flow($project,$name,$target,$origin,Flow::FROM_TERMINAL);
 } elseif (!empty($target['terminal_id'])){  // target is a terminal
     $origin_connector = Connector::load(['process_connector_id'=>$origin['process_connector_id']]);
     if (empty($origin_connector)) throw new Exception('Invalid connector specified for flow origin!');
@@ -36,7 +38,7 @@ if (!empty($origin['terminal_id'])){  // origin is a terminal
 
     if ($origin_connector->project_id != $target_terminal->project_id) throw new Exception('You can not compose flows between endpoints in models of different projects!');
 
-    Flow::add_terminal_flow($project,$name,$origin,$target,Flow::TO_TERMINAL);
+    $flow = Flow::add_terminal_flow($project,$name,$origin,$target,Flow::TO_TERMINAL);
 } else { // neither origin nor target are terminals
     $origin_connector = Connector::load(['process_connector_id'=>$origin['process_connector_id']]);
     if (empty($origin_connector)) throw new Exception('Invalid connector specified for flow origin!');
@@ -51,9 +53,10 @@ if (!empty($origin['terminal_id'])){  // origin is a terminal
 
     if (empty($origin['place_id'])){
         if (empty($target['place_id'])) throw new Exception('Either origin or source need to have a place id');
-        Flow::add_external($project,$name,$origin,$target,Flow::FROM_BORDER); // from - to - type
+        $flow = Flow::add_external($project,$name,$origin,$target,Flow::FROM_BORDER); // from - to - type
     } elseif (empty($target['place_id'])){
-        Flow::add_external($project,$name,$target,$origin,Flow::TO_BORDER); // from - to - type
-    } else Flow::add_internal($project,$name,$origin,$target);
+    	$flow = Flow::add_external($project,$name,$target,$origin,Flow::TO_BORDER); // from - to - type
+    } else $flow = Flow::add_internal($project,$name,$origin,$target);
 }
+echo $flow->id;
 

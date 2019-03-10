@@ -304,6 +304,7 @@ class Flow extends UmbrellaObjectWithId{
 
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to store new external flow!');
+		return $flow;
 	}
 
 	static function add_internal($project,$name,$origin,$target){
@@ -329,6 +330,7 @@ class Flow extends UmbrellaObjectWithId{
 
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to store new internal flow!');
+		return $flow;
 	}
 
 	static function add_terminal_flow($project,$name,$connector,$terminal,$type){
@@ -351,7 +353,7 @@ class Flow extends UmbrellaObjectWithId{
 
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to store new external flow!');
-
+		return $flow;
 	}
 
 	static function load($options = []){
@@ -469,6 +471,39 @@ class Flow extends UmbrellaObjectWithId{
 		if (!get_or_create_db()->prepare($sql)->execute($terminal_place_ids)) throw new Exception('Was not able to remove external flows');
 	}
 	/* end of static functions */
+
+	function occurences(){
+		if (empty($this->occurences)){
+			$db = get_or_create_db();
+
+			$this->occurences = [];
+			$args = [':id'=>$this->id];
+
+			$sql = 'SELECT context,process_places.id FROM external_flows LEFT JOIN connector_places ON connector_places.id = external_flows.connector_place_id LEFT JOIN process_places ON process_places.id = process_place_id WHERE flow_id = :id GROUP BY context;';
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to read flow metadata');
+			$rows = $query->fetchAll(INDEX_FETCH);
+
+			$proc_ids = [];
+			if (!empty($rows)) $proc_ids = array_keys($rows);
+
+			$sql = 'SELECT context,process_places.id FROM internal_flows LEFT JOIN connector_places ON connector_places.id = from_id LEFT JOIN process_places ON process_places.id = connector_places.process_place_id WHERE flow_id = :id GROUP BY context;';
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to read flow metadata');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			if (!empty($rows)) $proc_ids = array_merge($proc_ids,array_keys($rows));
+
+			$sql = 'SELECT context,process_places.id FROM internal_flows LEFT JOIN connector_places ON connector_places.id = to_id LEFT JOIN process_places ON process_places.id = connector_places.process_place_id WHERE flow_id = :id GROUP BY context;';
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to read flow metadata');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			if (!empty($rows)) $proc_ids = array_merge($proc_ids,array_keys($rows));
+
+			$this->occurences = empty($proc_ids) ? [] : Process::load(['ids'=>$proc_ids]);
+		}
+		return $this->occurences;
+	}
+
 	function project(){
 		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
 		return $this->project;
@@ -714,6 +749,18 @@ class Process extends UmbrellaObjectWithId{
 		return empty($this->r);
 	}
 
+	function occurences(){
+		if (empty($this->occurences)){
+			$sql = 'SELECT context,process_id FROM process_places LEFT JOIN processes ON context = processes.id WHERE process_id = :id GROUP BY context';
+			$args =[':id'=>$this->id];
+			$query = get_or_create_db()->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to request contexts for process!');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			$this->occurences = empty($rows) ? [] : Process::load(['ids'=>array_keys($rows)]);
+		}
+		return $this->occurences;
+	}
+
 	function project(){
 		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
 		return $this->project;
@@ -814,8 +861,8 @@ class Process extends UmbrellaObjectWithId{
 					$y1 = $process->y + $process->r * -cos(RAD*$process->connector_places[$flow->connector_place_id]['angle']);
 
 					$x2 = $terminal->x + $terminal->w/2;
-					$y2 = $terminal->y - ($terminal->type ==Terminal::DATABASE ? 15 : 0);
-					if ($y2+70 < $y1) $y2+=($terminal->type ==Terminal::DATABASE ? 70 : 30);
+					$y2 = $terminal->y;
+					if ($y2+70 < $y1) $y2+=($terminal->type ==Terminal::DATABASE ? 55 : 30);
 
 					if ($flow->type == Flow::FROM_TERMINAL){
 						arrow($x2, $y2,$x1, $y1, $flow->name,$url.$flow_id,$flow->description);
@@ -1067,6 +1114,18 @@ class Terminal extends UmbrellaObjectWithId{
 		if (!$query->execute($args)) throw new Exception('Was not able to update terminal placement!');
 	}
 	/* end of static functions */
+
+	function occurences(){
+		if (empty($this->occurences)){
+			$sql = 'SELECT context,terminal_id FROM terminal_places LEFT JOIN processes ON context = processes.id WHERE terminal_id = :id GROUP BY context';
+			$args =[':id'=>$this->id];
+			$query = get_or_create_db()->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to request processes for terminal!');
+			$rows = $query->fetchAll(INDEX_FETCH);
+			$this->occurences = empty($rows) ? [] : Process::load(['ids'=>array_keys($rows)]);
+		}
+		return $this->occurences;
+	}
 
 	function project(){
 		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);

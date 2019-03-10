@@ -2,23 +2,25 @@
 
 require_login('model');
 
+$base_url = getUrl('model');
+
 $process_id = param('id');
 if (empty($process_id)) {
 	error('No model id passed to view!');
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 $process = Process::load(['ids'=>$process_id]);
 $project = $process->project();
 if (empty($project)){
 	error('You are not allowed to access this process!');
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
 	Process::delete($process->id);
-	redirect(getUrl('model','?project='.$process->project_id));
+	redirect($base_url.'?project='.$process->project_id);
 }
 
 include '../common_templates/head.php';
@@ -128,16 +130,26 @@ if ($action == 'delete'){?>
 		<?php $shown[] = $child->id; } ?>
 		</td>
 	</tr>
-	<?php } ?>
-
-	<?php if (isset($services['notes'])) {
+	<?php }
+	if (!empty($process->occurences())) { ?>
+	<tr>
+		<th><?= t('Occurences')?></th>
+		<td class="occurences">
+			<?php
+			foreach ($process->occurences() as $proc){ ?>
+				<a class="button" href="<?= $base_url.'process/'.$proc->id ?>"><?= $proc->name ?></a>
+			<?php }?>
+		</td>
+	</tr>
+	<?php }
+	if (isset($services['notes'])) {
 		$notes = request('notes','html',['uri'=>'model:'.$process->id],false,NO_CONVERSION);
 		if ($notes){ ?>
 	<tr>
 		<th><?= t('Notes')?></th>
 		<td><?= $notes ?></td>
 	</tr>
-	<?php }}?>
+	<?php }} ?>
 </table>
 <?php include '../common_templates/messages.php'; ?>
 <?php include '../common_templates/closure.php';

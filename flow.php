@@ -2,23 +2,25 @@
 
 require_login('model');
 
+$base_url = getUrl('model');
+
 $flow_id = param('id');
 if (empty($flow_id)){
 	error('No flow id specified!');
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 $flow = Flow::load(['ids'=>$flow_id]);
 $project = $flow->project();
 if (empty($project)){
 	error('You are not allowed to access that flow!');
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
 	$flow->delete();
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 include '../common_templates/head.php';
@@ -54,7 +56,7 @@ if ($action == 'delete'){?>
 			<a href="<?= getUrl('project',$project['id'].'/view'); ?>"><?= $project['name']?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$project['id'] ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
-			<a class="symbol" title="<?= t('show other models') ?>"   href="<?= getUrl('model').'?project='.$project['id'] ?>"></a>
+			<a class="symbol" title="<?= t('show other models') ?>"   href="<?= $base_url.'?project='.$project['id'] ?>"></a>
 			</td>
 	</tr>
 	<?php if ($flow->definition){ ?>
@@ -67,6 +69,16 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Description')?></th>
 		<td class="description"><?= markdown($flow->description); ?></td>
+	</tr>
+	<?php }
+	if (!empty($flow->occurences())){ ?>
+	<tr>
+		<th><?= t('Occurences')?></th>
+		<td class="occurences">
+			<?php foreach ($flow->occurences() as $proc){ ?>
+				<a class="button" href="<?= $base_url.'process/'.$proc->id ?>"><?= $proc->name ?></a>
+			<?php }?>
+		</td>
 	</tr>
 	<?php } ?>
 </table>

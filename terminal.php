@@ -2,23 +2,25 @@
 
 require_login('model');
 
+$base_url = getUrl('model');
+
 $terminal_id = param('id');
 if (empty($terminal_id)){
 	error('No terminal id specified!');
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 $terminal = Terminal::load(['ids'=>$terminal_id]);
 $project = $terminal->project();
 if (empty($project)){
 	error('You are not allowed to access that terminal!');
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
 	$terminal->delete();
-	redirect(getUrl('model'));
+	redirect($base_url);
 }
 
 include '../common_templates/head.php';
@@ -59,6 +61,17 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Description')?></th>
 		<td class="description"><?= markdown($terminal->description); ?></td>
+	</tr>
+	<?php }
+	if (!empty($terminal->occurences())) { ?>
+	<tr>
+		<th><?= t('Occurences')?></th>
+		<td class="occurences">
+			<?php
+			foreach ($terminal->occurences() as $proc){ ?>
+				<a class="button" href="<?= $base_url.'process/'.$proc->id ?>"><?= $proc->name ?></a>
+			<?php }?>
+		</td>
 	</tr>
 	<?php } ?>
 </table>
