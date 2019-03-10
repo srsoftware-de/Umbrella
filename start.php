@@ -14,5 +14,6 @@ if (empty($task)){
 }
 
 $task->set_state(TASK_STATUS_STARTED);
+if ($redirect = param('redirect')) redirect($redirect);
 if (empty($task->parent_task_id)) redirect(getUrl('task',$task->id.'/view'));
 redirect(getUrl('task',$task->parent_task_id.'/view'));

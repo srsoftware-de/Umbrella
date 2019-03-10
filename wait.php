@@ -22,6 +22,7 @@ if (!empty($task->start_date) && time() > strtotime($task->start_date)){
 if (empty($problems) || param('confirm','no')=='yes'){
 	if (in_array('start_date',$task->dirty)) $task->save(); // update start date
 	$task->set_state(TASK_STATUS_PENDING);
+	if ($redirect = param('redirect')) redirect($redirect);
 	if (empty($task->parent_task_id)) redirect(getUrl('task',$task->id.'/view'));
 	redirect(getUrl('task',$task->parent_task_id.'/view'));
 }
