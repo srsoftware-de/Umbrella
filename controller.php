@@ -124,7 +124,7 @@
 		if (in_array($dir, ['project','company'])) return t('You are not allowed to add files to "?"!',$dir);
 		$filename = base_dir().DS.$dir.DS.$file_data['name'];
 		if (!$filename) return null;
-		
+
 		if (file_exists($filename)) return 'A file "'.$filename.'" already exists!';
 		$directory = dirname($filename);
 		if (file_exists($directory)){
@@ -132,10 +132,10 @@
 		} else {
 			if (!mkdir($directory,0777,RECURSIVE)) return t('Was not able to create folder ?!',$directory);
 		}
-		
+
 		$dir_parts = explode(DS, $dir);
 		$base_folder = array_shift($dir_parts);
-		
+
 		$users = false;
 		if ($base_folder == 'project'){
 			$project_id = array_shift($dir_parts);
@@ -149,6 +149,8 @@
 			$subject = t('? uploaded a file for your company',$user->login);
 		}
 
+		if (!rename($file_data['tmp_name'], $filename)) return t('Was not able to move file to ?!',$directory);
+
 		if ($users && param('notify')){
 			$sender = $user->email;
 			$url = getUrl('files','?path='.$dir);
@@ -160,17 +162,24 @@
 			}
 			info('Notifications were sent.');
 		}
-		
-		if (!rename($file_data['tmp_name'], $filename)) return t('Was not able to move file to ?!',$directory);
-		
+
+		if (strtolower(substr($filename,-4))=='.dia'){
+			mkdir($directory.DS.'.dia');
+			$target = $directory.DS.'.dia'.DS.basename($filename).'.png';
+			$out = [];
+			$return_code = 0;
+			exec('dia -e '.$target.' '.$filename,$out,$return_code);
+			if ($return_code === 0) info('Created file ?',$target);
+
+		}
 		return ['name'=>$file_data['name'],'absolute'=>$filename,'dir'=>$dir];
-	}	
+	}
 
 	function delete_file($filename){
 		if (is_dir($filename)){
 			assert(rmdir($filename),t('Was not able to remove directory ?',basename($filename)));
 		} else {
-			assert(unlink($filename),t('Was not able to physically unlink file "?"',basename($filename)));	
+			assert(unlink($filename),t('Was not able to physically unlink file "?"',basename($filename)));
 		}
 	}
 
@@ -183,19 +192,19 @@
 
 	function get_shares($filename){
 		$absolute_path = base_dir().DS.$filename;
-		
+
 		$db = get_or_create_db();
-		
+
 		$query = $db->prepare('SELECT user_id,file FROM file_shares WHERE file = :file');
 		assert($query->execute([':file'=>$filename]),'Was no able to query file list.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		return $rows;
 	}
-	
+
 	function shared_files_list($filename = null){
 		global $user;
 		$db = get_or_create_db();
-		
+
 		$sql = 'SELECT file FROM file_shares WHERE user_id = :uid';
 		$args = [':uid'=>$user->id];
 		if ($filename !== null){
@@ -204,7 +213,7 @@
 		}
 		$query = $db->prepare($sql);
 		assert($query->execute($args),'Was no able to query file list.');
-		return $query->fetchAll(PDO::FETCH_ASSOC);		
+		return $query->fetchAll(PDO::FETCH_ASSOC);
 	}
 
 	function shared_files($filename = null){
@@ -280,14 +289,14 @@
 		$origin = base_dir().DS.$currentname;
 		$dir = dirname($origin);
 		$target = $dir.DS.$newname;
-		
+
 		if (!rename($origin,$target)) {
 			error('Was not able to rename file!');
 			return false;
 		}
-		
+
 		$new_local = dirname($currentname).DS.$newname;
-			
+
 		$db = get_or_create_db();
 		$query = $db->prepare('UPDATE file_shares SET file = replace(file, :currentname, :newname) WHERE file LIKE :search');
 		$query->execute([':currentname'=>$currentname.DS,':newname'=>$new_local.DS,':search'=>$currentname.DS.'%']);
@@ -296,7 +305,7 @@
 		//debug(['current name'=>$currentname,'origin'=>$origin,'dir'=>$dir,'new name'=>$newname,'new local'=>$new_local,'target'=>$target],1);
 		return true;
 	}
-	
+
 	function is_image($name){
 		$parts = explode('.',$name);
 		$extension = strtolower(array_pop($parts));
