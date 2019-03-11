@@ -1,5 +1,6 @@
 <?php
 $translations = array(
+		'A'=>'Z',
 		'Abort'=>'Abbrechen',
 		'add subtask'=>'Unteraufgabe hinzufügen',
 		'Add subtask to "?"'=>'Unteraufgabe zu "?" hinzufügen',
@@ -11,6 +12,7 @@ $translations = array(
 		'all'=>'alle',
 		'All members of this project are already assigned to this task.'=>'Es sind bereits alle Projekt-Nutzer an dieser Aufgabe beteiligt.',
 		'Always show closed sub-tasks'=>'Geschlossene Unteraufgaben immer anzeigen',
+		'assignee'=>'beauftragt',
 		'Bookmarks'=>'Lese&shy;zei&shy;chen',
 		'cancel'=>'abbrechen',
 		'Child tasks'=>'Unter&shy;auf&shy;gaben',

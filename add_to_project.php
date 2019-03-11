@@ -23,7 +23,7 @@ if ($name = post('name')){
 				error('User with id ? is not member of the project!',$uid);
 				break;
 			}
-			if ($uid == $user->id) $perm = Task::PERMISSION_OWNER;
+			if ($uid == $user->id) $perm = Task::PERMISSION_CREATOR;
 			if ($perm == 0) continue;
 			$u = $project['users'][$uid]['data'];
 			$u['permission'] = $perm;
@@ -70,6 +70,7 @@ include '../common_templates/messages.php'; ?>
 			<table>
 				<tr>
 					<th><?= t('User')?></th>
+					<th title="<?= t('assignee')?>" class="symbol"></th>
 					<th title="<?= t('read + write')?>" class="symbol"></th>
 					<th title="<?= t('read only')?>" class="symbol"></th>
 					<th title="<?= t('no access')?>" class="symbol"></th>
@@ -79,9 +80,10 @@ include '../common_templates/messages.php'; ?>
 				?>
 				<tr>
 					<td><?= $u['data']['login']?></td>
-					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked"':'' ?>/></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" <?= $owner?'checked="checked" ':'' ?>/></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" /></td>
 					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" /></td>
-					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>" value="0" <?= $owner?'':'checked="checked"' ?>/></td>
+					<td><input type="radio" name="users[<?= $id ?>]" title="<?= t('no access')?>" value="0" <?= $owner?'':'checked="checked" '?>/></td>
 				</tr>
 			<?php } ?>
 			</table>

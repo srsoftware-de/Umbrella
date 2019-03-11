@@ -54,9 +54,10 @@
 
 	class Task extends UmbrellaObjectWithId{
 		const NO_PERMISSION = 0;
-		const PERMISSION_OWNER = 1;
+		const PERMISSION_CREATOR = 1;
 		const PERMISSION_READ_WRITE = 2;
 		const PERMISSION_READ = 4;
+		const PERMISSION_ASSIGNEE = 3;
 
 		static function table(){
 			return [
@@ -77,7 +78,7 @@
 			return [
 				'task_id'=>['INT','NOT NULL'],
 				'user_id'=>['INT','NOT NULL'],
-				'permissions'=>['INT','DEFAULT'=>Task::PERMISSION_OWNER],
+				'permissions'=>['INT','DEFAULT'=>Task::PERMISSION_CREATOR],
 				'PRIMARY KEY'=>['task_id','user_id']
 			];
 		}
@@ -172,6 +173,14 @@
 			if ($single) return null;
 			return $tasks;
 		}
+		/* end of static functions */
+
+		public function assign_user($user_id){
+			assert(!empty($this->id),'invalid task id passed!');
+			$db = get_or_create_db();
+			$query = $db->prepare('REPLACE INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm)');
+			assert($query->execute([':tid'=>$this->id,':uid'=>$user_id,':perm'=>Task::PERMISSION_ASSIGNEE]),'Was not able to remove user from task.');
+		}
 
 		public function parent($field = null){
 			if (empty($this->parent_task_id)) return null;
@@ -240,7 +249,7 @@
 
 		public function is_writable(){
 			global $user;
-			return in_array($this->users($user->id)['permissions'],[Task::PERMISSION_OWNER,Task::PERMISSION_READ_WRITE]);
+			return in_array($this->users($user->id)['permissions'],[Task::PERMISSION_CREATOR,Task::PERMISSION_READ_WRITE]);
 		}
 
 		public function send_note_notification($note_id = null){
@@ -265,7 +274,8 @@
 
 		public static function perm_name($permission){
 			switch ($permission){
-				case Task::PERMISSION_OWNER:      return t('owner');
+				case Task::PERMISSION_ASSIGNEE: return t('assignee');
+				case Task::PERMISSION_CREATOR:      return t('owner');
 				case Task::PERMISSION_READ:       return t('read only');
 				case Task::PERMISSION_READ_WRITE: return t('read + write');
 			}
@@ -357,7 +367,7 @@
 			assert($query->execute($args),'Was not able to create new task entry in database');
 			$this->id = $db->lastInsertId();
 			unset($this->dirty);
-			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>Task::PERMISSION_OWNER]);
+			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>Task::PERMISSION_CREATOR]);
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
 			$notify = (param('notify')=='on');
@@ -403,10 +413,11 @@
 
 			$permission = $new_user['permission'];
 			switch ($permission){
-				case Task::PERMISSION_OWNER:
+				case Task::PERMISSION_CREATOR:
 				case Task::NO_PERMISSION: // also catches false and null
 				case Task::PERMISSION_READ:
 				case Task::PERMISSION_READ_WRITE:
+				case Task::PERMISSION_ASSIGNEE:
 					break;
 				default:
 					debug($new_user);
@@ -420,7 +431,7 @@
 
 			if ($new_user['permission'] == Task::NO_PERMISSION){ // deassign
 				$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != :perm;');
-				$args[':perm'] = Task::PERMISSION_OWNER;
+				$args[':perm'] = Task::PERMISSION_CREATOR;
 				assert($query->execute($args),'Was not able to remove user from task!');
 			} else { // assign
 				$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
@@ -539,7 +550,7 @@
 			$query = $db->prepare('DELETE FROM tasks_users WHERE user_id = :new AND task_id IN ('.$select.')');
 			assert($query->execute($args),'Was not able to strip your current permissions from user`s tasks!');
 
-			$query = $db->prepare('UPDATE tasks_users SET permissions='.Task::PERMISSION_OWNER.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
+			$query = $db->prepare('UPDATE tasks_users SET permissions='.Task::PERMISSION_CREATOR.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
 			assert($query->execute($args),'Was not able to assign user`s tasks to you!');
 		}
 

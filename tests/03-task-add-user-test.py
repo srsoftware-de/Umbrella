@@ -59,8 +59,8 @@ r = session.get('http://localhost/task/1/add_user',allow_redirects=False)
 expect(r,'Benutzer zu Aufgabe "<a href="view">task one</a>" hinzufügen')
 expect(r,'<td>user2</td>')
 expect(r,'<input type="radio" name="users[2]" title="lesen + schreiben" value="2" />')
-expect(r,'<input type="radio" name="users[2]" title="nur lesen"    value="4" />')
-expect(r,'<input type="radio" name="users[2]" title="kein Zugriff"    value="0" checked="checked"/>')
+expect(r,'<input type="radio" name="users[2]" title="nur lesen" value="4" />')
+expect(r,'<input type="radio" name="users[2]" title="kein Zugriff" value="0" checked="checked" />')
 expect(r,'<input type="checkbox" name="notify" checked="checked"> Benutzer benachrichtigen')
 
 # users: missing | empty | non-existing | not-in-project | already-assinged | valid
