@@ -101,6 +101,8 @@ function drag(evt){
 
 function drop(evt){
 	// if we aren't currently dragging an element, don't do anything
+	if (evt.button == 2) return menu(evt);
+
 	if ( DragGroup )	{
 		DragGroup.setAttributeNS(null, 'pointer-events', 'all'); // turn the pointer-events back on, so we can grab this item later
 		
@@ -172,6 +174,7 @@ function getTranslation(elem){
 
 function grab(evt){
 	hideContextMenu();	
+	//if (evt.button == 2) return menu(evt);
 	if (evt.button != 0) return; // only respond to right button
 	if (evt.target == BackDrop) return; // don't drag the background
 
@@ -207,9 +210,11 @@ function initSVG(evt){
 }
 
 function menu(evt){
+	if(evt.preventDefault != undefined) evt.preventDefault();
+	if(evt.stopPropagation != undefined) evt.stopPropagation();
+	
 	var elem = evt.target;
 	if (!elem.hasAttribute('class')) return false;
-	evt.preventDefault();
 	var cls = elem.getAttribute('class');
 	if (cls=='process'||cls=='terminal'){
 		if (!elem.hasAttribute('place_id')) return false;
@@ -299,7 +304,7 @@ function removeInstance(type,place_id){
 
 function schedule_reload(){
 	if (reload_timer_handle != null) clearTimeout(reload_timer_handle);
-	reload_timer_handle = setTimeout(function(){location.reload()},1000);
+	if (document.getElementById('autorelaod').checked) reload_timer_handle = setTimeout(function(){location.reload()},1000);
 }
 
 function updateElement(elem,data){

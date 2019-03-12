@@ -10,17 +10,47 @@ if (empty($flow_id)){
 	redirect($base_url);
 }
 
-$flow = Flow::load(['ids'=>$flow_id]);
+$type = param('type');
+switch ($type){
+	case null:
+		$options = ['ids'=>$flow_id];
+		break;
+	case 'ext':
+		$options = ['ext_id'=>$flow_id];
+		break;
+	case 'int':
+		$options = ['int_id'=>$flow_id];
+		break;
+	default:
+		throw new Exception('Unknown flow type');
+}
+
+$flow = Flow::load($options);
 $project = $flow->project();
 if (empty($project)){
 	error('You are not allowed to access that flow!');
 	redirect($base_url);
 }
 
+$occurences = $flow->occurences();
 $action = param('action');
 if ($action == 'delete' && param('confirm')=='true'){
-	$flow->delete();
-	redirect($base_url);
+	if (!empty($flow->ext_flow_id)) {
+		Flow::removeExternalFlow($flow->ext_flow_id);
+		foreach ($occurences as $process){
+			redirect($base_url.'process/'.$process->id);
+			break;
+		}
+	} elseif (!empty($flow->int_flow_id)) {
+		Flow::removeInternalFlow($flow->int_flow_id);
+		foreach ($occurences as $process){
+			redirect($base_url.'process/'.$process->id);
+			break;
+		}
+	} else {
+		$flow->delete();
+		redirect($base_url);
+	}
 }
 
 include '../common_templates/head.php';
@@ -32,7 +62,7 @@ if ($action == 'delete'){?>
 	<fieldset>
 		<legend><?= t('Delete "?"',$flow->name)?></legend>
 		<?= t('You are about to delete the flow "?". Are you sure you want to proceed?',$flow->name) ?>
-		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
+		<a class="button" href="?<?= $type?'type='.$type.'&':''?>action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?"><?= t('No')?></a>
 	</fieldset>
 <?php } ?>
@@ -46,7 +76,7 @@ if ($action == 'delete'){?>
 			<h1><?= $flow->name ?></h1>
 			<span class="symbol">
 				<a href="../edit_flow/<?= $flow->id ?>" title="<?= t('edit')?>"></a>
-				<a title="<?= t('delete') ?>" href="?action=delete"></a>
+				<a title="<?= t('delete') ?>" href="?<?= $type?'type='.$type.'&':''?>action=delete"></a>
 			</span>
 		</td>
 	</tr>
@@ -75,7 +105,7 @@ if ($action == 'delete'){?>
 	<tr>
 		<th><?= t('Occurences')?></th>
 		<td class="occurences">
-			<?php foreach ($flow->occurences() as $proc){ ?>
+			<?php foreach ($occurences as $proc){ ?>
 				<a class="button" href="<?= $base_url.'process/'.$proc->id ?>"><?= $proc->name ?></a>
 			<?php }?>
 		</td>

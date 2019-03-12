@@ -8,14 +8,30 @@ if (empty($flow_id)){
 	redirect(getUrl('model'));
 }
 
-$flow = Flow::load(['ids'=>$flow_id]);
+$type = param('type','flow');
+debug($type);
+switch ($type){
+	case 'flow':
+		$options = ['ids'=>$flow_id];
+		break;
+	case 'ext':
+		$options = ['ext_id'=>$flow_id];
+		break;
+	case 'int':
+		$options = ['int_id'=>$flow_id];
+		break;
+	default:
+		throw new Exception('Unknown flow type');
+}
+
+$flow = Flow::load($options);
 $project = $flow->project();
 if (empty($project)){
 	error('You are not allowed to access that flow!');
 	redirect(getUrl('model'));
 }
 
-if ($name = param('name')){
+if (param('name')){
 	$flow->patch($_POST)->save();
 	redirect(getUrl('model','flow/'.$flow_id));
 }

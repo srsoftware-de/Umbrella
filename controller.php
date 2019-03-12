@@ -110,6 +110,17 @@ class Connector extends UmbrellaObjectWithId{
 		$args  = [];
 		$single = false;
 
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
 		if (!empty($options['name'])) {
 			$where[] = 'name = ?';
 			$args[]  = $options['name'];
@@ -194,6 +205,26 @@ class Connector extends UmbrellaObjectWithId{
 		if (!$query->execute($args)) throw new Exception('Was not able to write to connector_places!');
 	}
 	/* end of static functions */
+
+	function delete(){
+		$sql = 'SELECT id FROM process_connectors WHERE connector_id = :cid';
+		$args=[':cid'=>$this->id];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (! $query->execute($args)) throw new Exception('Was not able to query process connectors');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($rows as $row) Connector::removePlaces(['process_connector_id'=>reset($row)]);
+		$sql = 'DELETE FROM process_connectors WHERE connector_id = :cid';
+		$query = $db->prepare($sql);
+		if (! $query->execute($args)) throw new Exception('Was not able to remove connector from processes!');
+		$sql = 'DELETE FROM connectors WHERE id = :cid';
+		$query = $db->prepare($sql);
+		if (! $query->execute($args)) throw new Exception('Was not able to remove connector!');
+	}
+
+	function occurences(){
+		return Process::load(['connector_id'=>$this->id]);
+	}
 
 	function project(){
 		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
@@ -357,11 +388,24 @@ class Flow extends UmbrellaObjectWithId{
 	}
 
 	static function load($options = []){
-
-		$sql   = 'SELECT id,* FROM flows';
+		$sql   = 'SELECT * FROM flows';
 		$where = [];
 		$args  = [];
 		$single = false;
+
+		if (!empty($options['ext_id'])){
+			$sql = 'SELECT flows.id,name,definition,description,project_id,external_flows.id as ext_flow_id, connector_place_id FROM external_flows LEFT JOIN flows ON external_flows.flow_id = flows.id';
+			$where = [ 'external_flows.id = ?'];
+			$args  = [$options['ext_id']];
+			$single=true;
+		}
+
+		if (!empty($options['int_id'])){
+			$sql = 'SELECT flows.id,name,definition,description,project_id,internal_flows.id as int_flow_id FROM internal_flows LEFT JOIN flows ON internal_flows.flow_id = flows.id';
+			$where = [ 'internal_flows.id = ?'];
+			$args  = [$options['int_id']];
+			$single=true;
+		}
 
 		if (!empty($options['ids'])){
 			$ids = $options['ids'];
@@ -373,6 +417,7 @@ class Flow extends UmbrellaObjectWithId{
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
 		}
+
 
 		if (!empty($options['name'])) {
 			$where[] = 'name = ?';
@@ -392,7 +437,7 @@ class Flow extends UmbrellaObjectWithId{
 
 		if (!$query->execute($args)) throw new Exception('Was not able to read flows!');
 
-		$rows = $query->fetchAll(INDEX_FETCH);
+		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
 		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
 
 		$flows = [];
@@ -415,7 +460,7 @@ class Flow extends UmbrellaObjectWithId{
 		$qMarks = str_repeat('?,', count($args)-1).'?';
 		$args[] = $ext_connector;
 
-		$sql = 'SELECT flows.id as id,project_id,name,description,definition,type,ext_id,connector_place_id FROM flows LEFT JOIN external_flows ON flows.id = external_flows.flow_id WHERE connector_place_id in ('.$qMarks.') AND ext_id = ? AND type IN ('.$types.')';
+		$sql = 'SELECT flows.id as id,project_id,name,description,definition,type,external_flows.id as ext_flow_id,connector_place_id FROM flows LEFT JOIN external_flows ON flows.id = external_flows.flow_id WHERE connector_place_id in ('.$qMarks.') AND ext_id = ? AND type IN ('.$types.')';
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to load flows from external_flows table');
@@ -431,7 +476,7 @@ class Flow extends UmbrellaObjectWithId{
 	}
 
     static function loadInternal($connector_place_id_from,$connector_place_id_to){
-		$sql = 'SELECT flows.id as id, project_id, name, description, definition FROM internal_flows LEFT JOIN flows ON flows.id = internal_flows.flow_id WHERE from_id = :from AND to_id = :to ';
+		$sql = 'SELECT flows.id as id, project_id, name, description, definition, internal_flows.id as int_flow_id FROM internal_flows LEFT JOIN flows ON flows.id = internal_flows.flow_id WHERE from_id = :from AND to_id = :to ';
 		$args = [ ':from'=>$connector_place_id_from, ':to'=>$connector_place_id_to];
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
@@ -463,6 +508,16 @@ class Flow extends UmbrellaObjectWithId{
 		if (!$db->prepare($sql)->execute($connector_place_ids)) throw new Exception('Was not able to remove internal flows');
 	}
 
+	static function removeExternalFlow($external_flows_id){
+		$sql = 'DELETE FROM external_flows WHERE id = :id';
+		if (!get_or_create_db()->prepare($sql)->execute([':id'=>$external_flows_id])) throw new Exception('Was not able to remove external flows');
+	}
+
+	static function removeInternalFlow($internal_flows_id){
+		$sql = 'DELETE FROM internal_flows WHERE id = :id';
+		if (!get_or_create_db()->prepare($sql)->execute([':id'=>$internal_flows_id])) throw new Exception('Was not able to remove internal flows');
+	}
+
 	static function removeTerminalFlows($terminal_place_ids = []){
 		if (empty($terminal_place_ids)) return;
 		$qMarks = str_repeat('?,', count($terminal_place_ids)-1).'?';
@@ -470,6 +525,7 @@ class Flow extends UmbrellaObjectWithId{
 		//debug(query_insert($sql, $terminal_place_ids));
 		if (!get_or_create_db()->prepare($sql)->execute($terminal_place_ids)) throw new Exception('Was not able to remove external flows');
 	}
+
 	/* end of static functions */
 
 	function occurences(){
@@ -613,6 +669,12 @@ class Process extends UmbrellaObjectWithId{
 			$single = true;
 		}
 
+		if (!empty($options['connector_id'])){
+			$sql = 'SELECT processes.id as id,* FROM process_connectors LEFT JOIN processes ON processes.id = process_connectors.process_id';
+			$where= ['process_connectors.id = ?'];
+			$args = [$options['connector_id']];
+		}
+
 		if (!empty($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
@@ -638,7 +700,7 @@ class Process extends UmbrellaObjectWithId{
 		}
 
 		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
-
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to read processes!');
@@ -813,7 +875,7 @@ class Process extends UmbrellaObjectWithId{
 			?>
 			<g class="connector">
 				<circle class="connector" cx="0" cy="0" r="15" id="<?= $process_connector_id ?>" transform="translate(<?= $x ?>, <?= $y ?>)" <?= !empty($process_place_id)?'place_id="'.$process_place_id.'"':''?>>
-					<title><?= $connector->name ."\n\n". t('Mouse wheel alters position.') ?></title>
+					<title><?= $connector->name ?></title>
 				</circle>
 			</g><?php
 		}
@@ -833,17 +895,16 @@ class Process extends UmbrellaObjectWithId{
 				foreach ($connectors as $process_connector_id => &$connector){
 
 				$externalFlows = Flow::loadExternal($process_connector_id,$child_process->connector_places,false);
-
-				foreach ($externalFlows as $flow_id => $flow){
+				foreach ($externalFlows as $flow){
 					$start_x = $this->r *  sin(RAD*$connector->angle);
 					$start_y = $this->r * -cos(RAD*$connector->angle);
 					$end_x = $child_process->x + $child_process->r *  sin(RAD*$child_process->connector_places[$flow->connector_place_id]['angle']);
 					$end_y = $child_process->y + $child_process->r * -cos(RAD*$child_process->connector_places[$flow->connector_place_id]['angle']);
 
 					if ($flow->type == Flow::FROM_BORDER){
-						arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow_id,$flow->description);
+						arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
 					} else {
-						arrow($end_x, $end_y,$start_x, $start_y, $flow->name,$url.$flow_id,$flow->description);
+						arrow($end_x, $end_y,$start_x, $start_y, $flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
 					}
 				}
 			}
@@ -865,9 +926,9 @@ class Process extends UmbrellaObjectWithId{
 					if ($y2+70 < $y1) $y2+=($terminal->type ==Terminal::DATABASE ? 55 : 30);
 
 					if ($flow->type == Flow::FROM_TERMINAL){
-						arrow($x2, $y2,$x1, $y1, $flow->name,$url.$flow_id,$flow->description);
+						arrow($x2, $y2,$x1, $y1, $flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
 					} else {
-						arrow($x1, $y1,$x2, $y2, $flow->name,$url.$flow_id,$flow->description);
+						arrow($x1, $y1,$x2, $y2, $flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
 					}
 				}
 			}
@@ -885,7 +946,7 @@ class Process extends UmbrellaObjectWithId{
                             $start_y = $p1->y + $p1->r * -cos(RAD*$cp1['angle']);
                             $end_x   = $p2->x + $p2->r *  sin(RAD*$cp2['angle']);
                             $end_y   = $p2->y + $p2->r * -cos(RAD*$cp2['angle']);
-                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow_id,$flow->description);
+                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow->int_flow_id.'?type=int',$flow->description);
                         }
 
                         $internal_flows = Flow::loadInternal($cp_id_2,$cp_id_1);
@@ -894,7 +955,7 @@ class Process extends UmbrellaObjectWithId{
                             $start_y = $p2->y + $p2->r * -cos(RAD*$cp2['angle']);
                             $end_x   = $p1->x + $p1->r *  sin(RAD*$cp1['angle']);
                             $end_y   = $p1->y + $p1->r * -cos(RAD*$cp1['angle']);
-                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow_id,$flow->description);
+                            arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow->int_flow_id.'?type=int',$flow->description);
                         }
                     }
                 }

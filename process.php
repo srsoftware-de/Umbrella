@@ -72,6 +72,10 @@ if ($action == 'delete'){?>
 				<?php if (!$process->isModel()) { ?>
 				<a title="<?= t('add connector')?>" href="<?= getUrl('model','add_connector_to_process/'.$process->id) ?>"></a><?php } ?>
 			</div>
+			<label>
+				<input type="checkbox" id="autorelaod" checked="checked" />
+				auto-reload
+			</label>
 		</th>
 		<td>
 			<div id="contextmenu" style="position: absolute; display: inline-block;">
