@@ -319,7 +319,7 @@ fieldset.bookmark > fieldset:hover{
 .copytext{
 	position:fixed;
 	width: 100px;
-	left: -105px;
+	left: -1000px;
 }
 
 img[src*="pos=right"] {
