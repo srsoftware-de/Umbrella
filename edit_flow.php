@@ -9,7 +9,7 @@ if (empty($flow_id)){
 }
 
 $type = param('type','flow');
-debug($type);
+
 switch ($type){
 	case 'flow':
 		$options = ['ids'=>$flow_id];

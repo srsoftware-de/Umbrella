@@ -11,13 +11,14 @@ if (empty($terminal_id)){
 $terminal = Terminal::load(['ids'=>$terminal_id]);
 $project = $terminal->project();
 if (empty($project)){
-	error('You are not allowed to access that terminal!');
+	error('You are not allowed to access tdat terminal!');
 	redirect(getUrl('model'));
 }
 
 if (param('name')){
 	$terminal->patch($_POST)->save();
-	redirect(getUrl('model','terminal/'.$terminal_id));
+	if (empty($terminal->new_field['name'])) redirect(getUrl('model','terminal/'.$terminal_id));
+	unset($_POST);
 }
 
 include '../common_templates/head.php';
@@ -38,9 +39,59 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $terminal->description ?></textarea>
 		</fieldset>
-		<button type="submit">
-			<?= t('Save'); ?>
-		</button>
+		<?php if ($terminal->isDB()) { $project_terminals = Terminal::load(['project_id'=>$project['id']]);?>
+		<fieldset>
+			<legend><?= t('Fields')?></legend>
+			<table>
+				<tr>
+					<td colspan="3"></td>
+					<td colspan="2">Beschränkungen</td>
+					<td></td>
+				</tr>
+				<tr>
+					<th><?= t('field') ?></th>
+					<th><?= t('type') ?></th>
+					<th>NOT NULL</th>
+					<th><?= t('DEFAULT') ?></th>
+					<th><?= t('Key') ?></th>
+					<th><?= t('reference') ?></th>
+				</tr>
+				<?php foreach ($terminal->fields() as $field){ ?>
+				<tr>
+					<td><?= $field['name']?></td>
+					<td><?= $field['type']?></td>
+					<td><?= $field['not_null']?'✓':''?></td>
+					<td><?= $field['default_val']?></td>
+					<td><?= $field['key_type']=='P'?'PRIMARY':($field['key_type']=='U'?'UNIQUE':$field['key_type'])?></td>
+					<td><?= $field['reference']=='NULL'?'':$field['reference']?></td>
+				</tr>
+				<?php } ?>
+				<tr>
+					<td><input type="text" name="new_field[name]" value=""></td>
+					<td><input type="text" name="new_field[type]" value="INT"></td>
+					<td><input type="checkbox" name="new_field[not_null]" checked="checked"/></td>
+					<td><input type="text" name="new_field[default_val]"/></td>
+					<td>
+						<select name="new_field[key_type]">
+							<option value="">----</option>
+							<option value="P">PRIMARY KEY</option>
+							<option value="U">UNIQUE</option>
+						</select>
+					</td>
+					<td>
+						<select name="new_field[reference]">
+							<option value="">----</option>
+							<?php foreach ($project_terminals as $term){
+								foreach ($term->fields() as $fid => $f){ if (empty($f['key_type'])) continue;?>
+							<option value="<?= $fid ?>"><?= $term->name.'.'.$f['name']?></option>
+							<?php }}?>
+						</select>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
+		<?php } // terminal is DB?>
+		<button type="submit"><?= t('Save'); ?></button>
 	</fieldset>
 </form>
 

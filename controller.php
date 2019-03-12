@@ -12,8 +12,9 @@ function get_or_create_db(){
 
 		$tables = [
 				'processes'          => Process::fields(),
-				'terminals'          => Terminal::fields(),
+				'terminals'          => Terminal::table(),
 				'connectors'         => Connector::fields(),
+				'fields'			 => Terminal::fields_table(),
 				'flows'              => Flow::fields(),
 				'process_places'     => Process::place_table(),
 				'terminal_places'    => Terminal::place_table(),
@@ -1050,7 +1051,7 @@ class Terminal extends UmbrellaObjectWithId{
 	const TERMINAL = 0;
 	const DATABASE = 1;
 
-	static function fields(){
+	static function table(){
 		return [
 				'id'          => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
 				'project_id'  => ['INT','NOT NULL'],
@@ -1059,6 +1060,20 @@ class Terminal extends UmbrellaObjectWithId{
 				'description' => ['TEXT'],
 				'w'           => ['INT','NOT NULL','DEFAULT'=>200],
 				'UNIQUE'      => ['project_id','name']
+		];
+	}
+
+	static function fields_table(){
+		return [
+				'id'          => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
+				'terminal_id' => ['INT','NOT NULL','REFERENCES terminals(id)'],
+				'name'        => ['VARCHAR'=>255,'NOT NULL'],
+				'type'        => ['VARCHAR'=>255,'NOT NULL'],
+				'not_null'    => ['INT','DEFAULT'=>1],
+				'default_val' => ['VARCHAR'=>255],
+				'key_type'    => ['CHAR','DEFAULT'=>'NULL'],
+				'reference'   => ['INT','REFERENCES fields(id)'],
+				'UNIQUE'      => ['terminal_id','name']
 		];
 	}
 
@@ -1074,6 +1089,14 @@ class Terminal extends UmbrellaObjectWithId{
 	}
 	/* end of table functions */
 
+	static function field($id){
+		$sql = 'SELECT terminals.id as id, terminals.name as tName, fields.name as fName FROM fields LEFT JOIN terminals ON terminals.id = terminal_id WHERE fields.id = :id';
+		$query = get_or_create_db()->prepare($sql);
+		if (!$query->execute([':id'=>$id])) throw new Exception('Was not able to request field information!');
+		return $query->fetch(PDO::FETCH_ASSOC);
+
+	}
+
 	static function load($options = []){
 
 		$sql   = 'SELECT id,* FROM terminals';
@@ -1082,7 +1105,7 @@ class Terminal extends UmbrellaObjectWithId{
 		$single = false;
 
 		if (!empty($options['context'])) {
-			$fields = array_merge(Terminal::fields(),Terminal::place_table());
+			$fields = array_merge(Terminal::table(),Terminal::place_table());
 			unset($fields['id'],$fields['w'],$fields['UNIQUE']);
 			$sql = 'SELECT terminal_places.id as place_id, terminals.id as id, '.implode(', ', array_keys($fields)).', terminal_places.w as w FROM terminals LEFT JOIN terminal_places ON terminals.id = terminal_places.terminal_id';
 			$where[] = 'context = ?';
@@ -1090,7 +1113,7 @@ class Terminal extends UmbrellaObjectWithId{
 		}
 
         if (!empty($options['terminal_place_id'])) {
-			$fields = array_merge(Terminal::fields(),Terminal::place_table());
+			$fields = array_merge(Terminal::table(),Terminal::place_table());
 			unset($fields['id'],$fields['w'],$fields['UNIQUE']);
 			$sql = 'SELECT terminal_places.id as place_id, terminals.id as id, '.implode(', ', array_keys($fields)).', terminal_places.w as w FROM terminals LEFT JOIN terminal_places ON terminals.id = terminal_places.terminal_id';
 			$where[] = 'terminal_places.id = ?';
@@ -1176,6 +1199,42 @@ class Terminal extends UmbrellaObjectWithId{
 	}
 	/* end of static functions */
 
+	function addField($param){
+		$table = Terminal::fields_table();
+		unset($table['UNIQUE']);
+
+		$param['terminal_id'] = $this->id;
+		$param['not_null'] = (!empty($param['not_null']) && $param['not_null']=='on') ? 1 : 0;
+		$param['reference'] = empty($param['reference']) ? 'NULL' : $param['reference'];
+		$args=[];
+		$keys=[];
+		foreach($param as $key => $val){
+			if (empty($table[$key])) continue; // $key is not part of the fields_table!
+			$args[":$key"] = $val;
+			$keys[] = $key;
+		}
+		if (empty($args)) return;
+		$sql = 'INSERT INTO fields ('.implode(', ',$keys).') VALUES (:'.implode(', :',$keys).' );';
+		$db = get_or_create_db();
+		//debug(query_insert($sql, $args),1);
+		if (!$db->prepare($sql)->execute($args)) throw new Exception('Was not able to store new table field!');
+	}
+
+	function fields(){
+		if (empty($this->fields)){
+			$sql = 'SELECT * FROM fields WHERE terminal_id = :tid ORDER BY id';
+			$args = [':tid'=>$this->id];
+			$query = get_or_create_db()->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to read "fields" table!');
+			$this->fields = $query->fetchAll(INDEX_FETCH);
+		}
+		return $this->fields;
+	}
+
+	function isDB(){
+		return $this->type==Terminal::DATABASE;
+	}
+
 	function occurences(){
 		if (empty($this->occurences)){
 			$sql = 'SELECT context,terminal_id FROM terminal_places LEFT JOIN processes ON context = processes.id WHERE terminal_id = :id GROUP BY context';
@@ -1194,12 +1253,14 @@ class Terminal extends UmbrellaObjectWithId{
 	}
 
 	function save(){
+		if (!empty($this->new_field['name'])) $this->addField($this->new_field);
+
 		if (!empty($this->id)) return $this->update();
 
 		$keys = [];
 		$args = [];
 		foreach ($this->dirty as $field){
-			if (array_key_exists($field, Terminal::fields())){
+			if (array_key_exists($field, Terminal::table())){
 				$keys[] = $field;
 				$args[':'.$field] = $this->{$field};
 			}
@@ -1242,20 +1303,22 @@ class Terminal extends UmbrellaObjectWithId{
 
 	function update(){
 		$keys = [];
-		$args = [':id'=>$this->id];
+		$args = [];
 		foreach ($this->dirty as $field){
 			if ($field == 'id') continue;
-			if (array_key_exists($field, Terminal::fields())){
+			if (array_key_exists($field, Terminal::table())){
 				$keys[] = $field.' = :'.$field;
 				$args[':'.$field] = $this->{$field};
 			}
 		}
-
+		if (empty($args)) return $this;
+		$args[':id']=$this->id;
 		$sql = 'UPDATE terminals SET '.implode(', ', $keys).' WHERE id = :id';
 		$db = get_or_create_db();
 
 		$query = $db->prepare($sql);
-		if (!$query->execute($args)) throw new Exception('Was not able to update terminal!');
+		if (!$query) throw new Exception(query_insert($sql, $args));
+		if (!$query->execute($args)) throw new Exception('Was not able to update terminal ('.query_insert($query, $args).')!');
 
 		unset($this->dirty);
 

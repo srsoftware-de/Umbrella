@@ -39,7 +39,7 @@ if ($action == 'delete'){?>
 
 <table class="vertical terminal">
 	<tr>
-		<th><?= t('Terminal')?></th>
+		<th><?= t($terminal->type==Terminal::TERMINAL?'Terminal':'Database')?></th>
 		<td>
 			<span class="right symbol">
 				<a href="<?= getUrl('model','edit_terminal/'.$terminal->id) ?>" title="<?= t('edit terminal') ?>"></a>
@@ -75,4 +75,39 @@ if ($action == 'delete'){?>
 	</tr>
 	<?php } ?>
 </table>
+
+		<?php if (!empty($terminal->fields())) {?>
+		<fieldset>
+			<legend><?= t('Fields')?></legend>
+			<table>
+				<tr>
+					<td colspan="3"></td>
+					<th colspan="2">Beschränkungen</th>
+					<td></td>
+				</tr>
+				<tr>
+					<th><?= t('field') ?></th>
+					<th><?= t('type') ?></th>
+					<th>NOT NULL</th>
+					<th><?= t('DEFAULT') ?></th>
+					<th><?= t('Key') ?></th>
+					<th><?= t('reference') ?></th>
+				</tr>
+				<?php foreach ($terminal->fields() as $field){ ?>
+				<tr>
+					<td><?= $field['name']?></td>
+					<td><?= $field['type']?></td>
+					<td><?= $field['not_null']?'✓':''?></td>
+					<td><?= $field['default_val']?></td>
+					<td><?= $field['key_type']=='P'?'PRIMARY':($field['key_type']=='U'?'UNIQUE':$field['key_type'])?></td>
+					<td><?php if ($field['reference']!='NULL') { $ref = Terminal::field($field['reference'])?>
+					<a href="<?= getUrl('model','terminal/'.$ref['id'])?>"><?= $ref['tName'].'.'.$ref['fName']?></a>
+					<?php }?>
+					</td>
+				</tr>
+				<?php } ?>
+			</table>
+		</fieldset>
+		<?php } // terminal is DB?>
+
 <?php include '../common_templates/closure.php';
