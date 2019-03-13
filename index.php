@@ -11,6 +11,14 @@ include '../common_templates/messages.php'; ?>
 
 <fieldset>
 	<legend><?= t('Your polls')?></legend>
+	<ul>
+		<?php foreach ($polls as $id => $poll) { ?>
+		<li>
+			<a class="button" href="<?= getUrl('poll','options?id='.$id) ?>"><?= $poll->name ?></a>
+			<a target="_blank" href="<?= getUrl('poll','view?id='.$id)?>"><?= getUrl('poll','view?id='.$id)?></a>
+		</li>
+		<?php } ?>
+	</ul>
 </fieldset>
 
-<?php include '../common_templates/closure.php';
+<?php debug($polls); include '../common_templates/closure.php';

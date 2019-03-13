@@ -14,6 +14,8 @@ if (empty($poll)){
 	redirect(getUrl('poll'));
 }
 
+$users = request('user','json');
+
 $sums = [];
 
 include '../common_templates/head.php';
@@ -34,7 +36,7 @@ include '../common_templates/messages.php'; ?>
 		</tr>
 		<?php foreach ($poll->selections() as $user => $selections) { ?>
 		<tr>
-			<td><?= $user ?></td>
+			<td><?= is_numeric($user)?'<a target="_blank" href="'.getUrl('user',$user.'/view').'">'.$users[$user]['login'].'</a>':$user ?></td>
 			<?php foreach ($poll->options() as $oid => $dummy) { $sums[$oid] += $selections[$oid]?>
 			<td><?= $selections[$oid] ?></td>
 			<?php }?>

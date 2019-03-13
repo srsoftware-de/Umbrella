@@ -220,7 +220,7 @@ class Poll extends UmbrellaObjectWithId{
 		$sql = 'REPLACE INTO selections (poll_id, user, option_id, weight) VALUES (:p, :u, :o, :w )';
 		$query = get_or_create_db()->prepare($sql);
 		foreach ($data['option'] as $oid => $weight){
-			$args = [':p'=>$this->id, ':u'=>$data['user'],':o'=>$oid,':w'=>$weight];
+			$args = [':p'=>$this->id, ':u'=>$data['name'],':o'=>$oid,':w'=>$weight];
 			if (!$query->execute($args)) throw new Exception('Was not able to store selection!');
 		}
 	}

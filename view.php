@@ -1,5 +1,7 @@
 <?php include 'controller.php';
 
+$user = empty($_SESSION['token']) ? null : getLocallyFromToken();
+
 $poll_id = param('id');
 if (empty($poll_id)) {
 	error('No poll id provided!');
@@ -17,19 +19,27 @@ $poll->weights();
 
 $confirmed = true;
 $options = param('option');
-$user = param('user');
+
+if (empty($user)){
+	$name = param('name');
+	if (is_numeric($name)){
+		error('"?" is not a valid name!',$name);
+		$name = '';
+	}
+} else $name = $user->id;
+
 if (!empty($options)) {
-	if (empty($user)){
+	if (empty($name)){
 		error('You must provide a name!');
 	} else {
-		$selections = $poll->get_selections($user);
+		$selections = $poll->get_selections($name);
 		if (!empty($selections)) $confirmed = false;
 		if (param('confirm')=='on') $confirmed = true;
 		if ($confirmed) {
 			$poll->save_selection($_POST);
 			info('Your selection has been saved.');
 		} else {
-			error('A user with name "?" has already submitted selections. Enter another name or confirm to overwrite existing selections!',$user);
+			error('A user with name "?" has already submitted selections. Enter another name or confirm to overwrite existing selections!',empty($user)?$name:$user->login);
 		}
 	}
 }
@@ -43,7 +53,12 @@ include '../common_templates/head.php'; ?>
 		<fieldset>
 			<legend><?= t('Who are you?')?></legend>
 			<?php include '../common_templates/messages.php'; ?>
-			<input type="text" name="user" value="<?= param('user') ?>"/>
+			<?php if (empty($user)) { ?>
+				<input type="text" name="name" value="<?= $name ?>"/>
+			<?php } else { ?>
+				<?= $user->login ?>
+				<input type="hidden" name="name" value="<?= $user->id ?>" />
+			<?php }?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Make your choices!')?></legend>
@@ -83,7 +98,7 @@ include '../common_templates/head.php'; ?>
 		<?php if (!$confirmed){ ?>
 		<fieldset>
 			<legend><?= t('Confirmation required') ?></legend>
-			<?= t('Are you sure you want to overwrite the choices of ??',$user)?>
+			<?= t('Are you sure you want to overwrite the choices of ??',$name)?>
 			<label>
 				<input type="checkbox" name="confirm" />
 				<?= t('Yes, I am sure.')?>
