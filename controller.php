@@ -167,6 +167,18 @@ class Poll extends UmbrellaObjectWithId{
 		return $this->options;
 	}
 
+	function remove_option($id){
+		$sql = 'DELETE FROM options WHERE id = :id AND poll_id = :pid';
+		$args = [':id'=>$id,':pid'=>$this->id];
+		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able to remove option from poll!');
+	}
+
+	function remove_weight($w){
+		$sql = 'DELETE FROM weights WHERE weight = :w AND poll_id = :pid';
+		$args = [':w'=>$w,':pid'=>$this->id];
+		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able to remove weight from poll!');
+	}
+
 	function save() {
 		global $user;
 		$this->patch(['user_id'=>$user->id]);

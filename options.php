@@ -14,6 +14,12 @@ if (empty($poll)){
 	redirect(getUrl('poll'));
 }
 
+$remove_option = param('remove_option');
+if (!empty($remove_option)) $poll->remove_option($remove_option);
+
+$remove_weight = param('remove_weight');
+if ($remove_weight !== null) $poll->remove_weight($remove_weight);
+
 $name = param('name');
 if (!empty($name)) $poll->add_option($_POST);
 
@@ -43,7 +49,7 @@ include '../common_templates/messages.php'; ?>
 					<td><?= $opt_id ?></td>
 					<td><?= $option['name']?></td>
 					<td><?= markdown($option['description'])?></td>
-					<td></td>
+					<td><a class="button" href="<?= getUrl('poll','options?id='.$poll->id.'&remove_option='.$opt_id)?>"><?= t('remove') ?></a></td>
 				</tr>
 				<?php } ?>
 				<tr>
@@ -75,7 +81,7 @@ include '../common_templates/messages.php'; ?>
 				<tr>
 					<td><?= $weight ?></td>
 					<td><?= markdown($meta['description'])?></td>
-					<td></td>
+					<td><a class="button" href="<?= getUrl('poll','options?id='.$poll->id.'&remove_weight='.$weight)?>"><?= t('remove') ?></a></td>
 				</tr>
 				<?php } ?>
 				<tr>
