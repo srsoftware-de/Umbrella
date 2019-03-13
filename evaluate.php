@@ -51,4 +51,13 @@ include '../common_templates/messages.php'; ?>
 	</table>
 </fieldset>
 
-<?php include '../common_templates/closure.php';
+<?php if (isset($services['notes'])) {
+	$notes = request('notes','html',['uri'=>'poll:'.$poll->id],false,NO_CONVERSION);
+	if ($notes){ ?>
+	<fieldset>
+		<legend><?= t('Notes')?></legend>
+		<?= $notes ?>
+	</fieldset>
+<?php }}
+
+include '../common_templates/closure.php';

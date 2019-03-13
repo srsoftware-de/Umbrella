@@ -44,7 +44,12 @@ if (!empty($options)) {
 	}
 }
 
-include '../common_templates/head.php'; ?>
+include '../common_templates/head.php';
+
+if (!empty($user)){
+	include '../common_templates/main_menu.php';
+	include 'menu.php';
+} ?>
 
 <fieldset>
 	<legend><?= t('Poll "?"',$poll->name) ?></legend>
@@ -108,5 +113,15 @@ include '../common_templates/head.php'; ?>
 		<button type="submit"><?= t('Submit')?></button>
 	</form>
 </fieldset>
+
+<?php if (!empty($user)) {
+	if (isset($services['notes'])) {
+		$notes = request('notes','html',['uri'=>'poll:'.$poll->id],false,NO_CONVERSION);
+		if ($notes){ ?>
+	<fieldset>
+		<legend><?= t('Notes')?></legend>
+		<?= $notes ?>
+	</fieldset>
+	<?php }}} ?>
 
 <?php include '../common_templates/closure.php';
