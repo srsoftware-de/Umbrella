@@ -225,6 +225,22 @@ class Poll extends UmbrellaObjectWithId{
 		}
 	}
 
+	function selections(){
+		$sql = 'SELECT * FROM selections WHERE poll_id = :id';
+		$query = get_or_create_db()->prepare($sql);
+		$args = [':id'=>$this->id];
+		if (!$query->execute($args)) throw new Exception('Was not able to read selections of poll!');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$selections = [];
+		foreach ($rows as $row){
+			$user = $row['user'];
+			$option_id = $row['option_id'];
+			$weight = $row['weight'];
+			if (empty($selections[$user])) $selections[$user] = [];
+			$selections[$user][$option_id] = $weight;
+		}
+		return $selections;
+	}
 
 	function weights(){
 		if (empty($this->weights)){
