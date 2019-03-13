@@ -1,6 +1,8 @@
 <?php include 'controller.php';
 
+// discover, if user is logged in
 $user = empty($_SESSION['token']) ? null : getLocallyFromToken();
+if ($user === null) validateToken('poll');
 
 $poll_id = param('id');
 if (empty($poll_id)) {
@@ -40,6 +42,7 @@ if (!empty($options)) {
 			info('Your selection has been saved.');
 		} else {
 			error('A user with name "?" has already submitted selections. Enter another name or confirm to overwrite existing selections!',empty($user)?$name:$user->login);
+			info('This will only alter options where you set a weight!');
 		}
 	}
 }
@@ -67,6 +70,7 @@ if (!empty($user)){
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Make your choices!')?></legend>
+			<?= t('If you need more information, move your pointer over the weights or options!')?>
 			<table>
 				<tr>
 					<th></th>

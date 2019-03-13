@@ -15,6 +15,7 @@ include '../common_templates/messages.php'; ?>
 		<?php foreach ($polls as $id => $poll) { ?>
 		<li>
 			<a class="button" href="<?= getUrl('poll','options?id='.$id) ?>"><?= $poll->name ?></a>
+			<a class="button" href="<?= getUrl('poll','evaluate?id='.$id) ?>"><?= t('Evaluation') ?></a>
 			<a target="_blank" href="<?= getUrl('poll','view?id='.$id)?>"><?= getUrl('poll','view?id='.$id)?></a>
 		</li>
 		<?php } ?>
