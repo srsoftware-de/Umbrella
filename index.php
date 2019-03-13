@@ -21,4 +21,4 @@ include '../common_templates/messages.php'; ?>
 	</ul>
 </fieldset>
 
-<?php debug($polls); include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php';
