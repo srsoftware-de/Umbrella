@@ -70,7 +70,7 @@ if (!empty($user)){
 			<table>
 				<tr>
 					<th></th>
-					<th><?= t('Weights')?></th>
+					<th colspan="<?= count($poll->weights()) ?>"><?= t('Weights')?></th>
 				</tr>
 				<tr>
 					<th><?= t('Option')?></th>

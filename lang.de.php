@@ -37,6 +37,7 @@ $translations = array(
 		'Submit'=>'Absenden',
 		'Tasks'=>'Aufgaben',
 		'Timetrack'=>'Zeiterfassung',
+		'Umbrella Poll Management'=>'Umbrella – Umfragen',
 		'Users'=>'Benutzer',
 		'Weights'=>'Gewichtungen',
 		'Who are you?'=>'Wer bist du?',
