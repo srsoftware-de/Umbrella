@@ -15,16 +15,28 @@ if (empty($poll)){
 }
 
 $remove_option = param('remove_option');
-if (!empty($remove_option)) $poll->remove_option($remove_option);
+if (!empty($remove_option)) {
+	$poll->remove_option($remove_option);
+	redirect(getUrl('poll','options?id='.$poll->id));
+}
 
 $remove_weight = param('remove_weight');
-if ($remove_weight !== null) $poll->remove_weight($remove_weight);
+if ($remove_weight !== null) {
+	$poll->remove_weight($remove_weight);
+	redirect(getUrl('poll','options?id='.$poll->id));
+}
 
 $name = param('name');
-if (!empty($name)) $poll->add_option($_POST);
+if (!empty($name)) {
+	$poll->add_option($_POST);
+	redirect(getUrl('poll','options?id='.$poll->id));
+}
 
 $weight = param('weight');
-if ($weight !== null) $poll->add_weight($_POST);
+if ($weight !== null) {
+	$poll->add_weight($_POST);
+	redirect(getUrl('poll','options?id='.$poll->id));
+}
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -98,6 +110,14 @@ include '../common_templates/messages.php'; ?>
 			</table>
 		</fieldset>
 	</form>
+	<fieldset>
+		<legend><?= t('Sharable link')?></legend>
+		<?= t('You can send this link to other users which you want to invite to this poll.')?>
+		<p>
+			<a target="_blank" href="<?= getUrl('poll','view?id='.$poll->id)?>"><?= getUrl('poll','view?id='.$poll->id)?></a>
+		</p>
+		<a class="button" href="<?= getUrl('poll','evaluate?id='.$poll->id)?>"><?= t('Evaluation')?></a>
+	</fieldset>
 </fieldset>
 
 <?php include '../common_templates/closure.php';

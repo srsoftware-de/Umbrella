@@ -69,18 +69,26 @@ class Poll extends UmbrellaObjectWithId{
 
 	static function selections_table() {
 		return [
+				'option_id'=>['INT','NOT NULL','REFERENCES options(id)'],
 				'poll_id'=>['VARCHAR'=>255,'NOT NULL','REFERENCES polls(id)'],
-				'options_id'=>['INT','NOT NULL','REFERENCES options(id)'],
 				'user'=>['VARCHAR'=>255,'NOT NULL'],
-				'weigth'=>['INT','NOT NULL','REFERENCES weights(weight)']
+				'weight'=>['INT','NOT NULL','REFERENCES weights(weight)'],
+				'PRIMARY KEY'=>['poll_id','user','option_id']
 		];
 	}
 	/**** end of table functions ******/
 	static function load($options){
 		global $user;
 		$sql = 'SELECT * FROM polls';
-		$where = ['user_id = ?'];
-		$args = [$user->id];
+
+		$where = [];
+		$args = [];
+
+		if (empty($options['open'])){
+			$where = ['user_id = ?'];
+			$args = [$user->id];
+		}
+
 		$single = false;
 
 		if (!empty($options['ids'])){
@@ -156,6 +164,14 @@ class Poll extends UmbrellaObjectWithId{
 		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able to add weight to poll!');
 	}
 
+	function get_selections($user){
+		$sql = 'SELECT * FROM selections WHERE poll_id = :poll AND user = :user';
+		$query = get_or_create_db()->prepare($sql);
+		$args = [':poll'=>$this->id, ':user'=>$user];
+		if (!$query->execute($args)) throw new Exception('Was not able to read selections!');
+		return $query->fetchAll(INDEX_FETCH);
+	}
+
 	function options(){
 		if (empty($this->options)){
 			$sql = 'SELECT * FROM options WHERE poll_id = :pid';
@@ -199,6 +215,16 @@ class Poll extends UmbrellaObjectWithId{
 		unset($this->dirty);
 		return $this;
 	}
+
+	function save_selection($data){
+		$sql = 'REPLACE INTO selections (poll_id, user, option_id, weight) VALUES (:p, :u, :o, :w )';
+		$query = get_or_create_db()->prepare($sql);
+		foreach ($data['option'] as $oid => $weight){
+			$args = [':p'=>$this->id, ':u'=>$data['user'],':o'=>$oid,':w'=>$weight];
+			if (!$query->execute($args)) throw new Exception('Was not able to store selection!');
+		}
+	}
+
 
 	function weights(){
 		if (empty($this->weights)){
