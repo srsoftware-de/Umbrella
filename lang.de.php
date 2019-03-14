@@ -27,6 +27,7 @@ $translations = array(
 		'open'=>'offen',
 		'Open timetracks'=>'laufende Zeiterfassungen',
 		'pending'=>'wartend',
+		'Polls'=>'Umfragen',
 		'Projects'=>'Projekte',
 		'References'=>'Verwendung',
 		'== Select a timetrack =='=>'== Timetrack auswählen ==',
