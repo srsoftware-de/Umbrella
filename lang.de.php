@@ -34,6 +34,7 @@ $translations = array(
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
 		'phone'=>'Telefon',
+		'Polls'=>'Umfragen',
 		'projects'=>'Projekte',
 		'Projects'=>'Projekte',
 		'Select a user'=>'Wählen Sie einen Nutzer',
