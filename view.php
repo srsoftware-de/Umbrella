@@ -107,7 +107,7 @@ if (!empty($user)){
 		<?php if (!$confirmed){ ?>
 		<fieldset>
 			<legend><?= t('Confirmation required') ?></legend>
-			<?= t('Are you sure you want to overwrite the choices of ??',$name)?>
+			<?= t('Are you sure you want to overwrite the choices of ??',empty($user)?$name:$user->login)?>
 			<label>
 				<input type="checkbox" name="confirm" />
 				<?= t('Yes, I am sure.')?>

@@ -24,6 +24,7 @@ $translations = array(
 		'Log out ?'=>'? ausloggen',
 		'Make your choices!'=>'Triff deine Wahl!',
 		'MARKDOWN_HELP'=>'https://www.markdownguide.org/cheat-sheet',
+		'Models'=>'Modelle',
 		'No poll id provided!'=>'Keine Umfrage-ID angegeben!',
 		'Notes'=>'Notizen',
 		'Number'=>'Nummer',
