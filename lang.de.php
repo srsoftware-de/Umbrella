@@ -53,6 +53,7 @@ $translations = array(
 		"Open the following site to see the note on \"?\":\n\n?"=>"Gehe zur folgenden Seite, um die Anmerkung zu \"?\" zu lesen:\n\n?",
 		'owner'=>'Eigentümer',
 		'participant'=>'Mitglied',
+		'Polls'=>'Umfragen',
 		'Project'=>'Projekt',
 		'Project: ?'=>'Projekt: ?',
 		'Projects'=>'Projekte',
