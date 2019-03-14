@@ -30,6 +30,7 @@ $translations = array(
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
 		'Notification has been sent to user.'=>'Nutzer wurde benachrichtigt.',
+		'Polls'=>'Umfragen',
 		'Projects'=>'Projekte',
 		'Save'=>'Speichern',
 		'Select file with links'=>'Datei mit Hyperlinks auswählen',
@@ -51,5 +52,5 @@ $translations = array(
 		'You can select a comment from the site here'=>'Hier kannst du einen Kommentar von der Seite wählen',
 		'You have been invited to have a look at ?. Visit ? to see all your bookmarks.'=>'Du wurdest eingeladen, dir ? anzuschauen. Gehe zu ? für eine Liste aller deiner Lesezeichen.',
 		'? has shared a bookmark with you.'=>'? hat ein Lesezeichen mit dir geteilt.',
-		
+
 );
