@@ -87,7 +87,8 @@ expectError(r,'Nutzer mit ID 3 ist nicht am Projekt beteiligt!');
 
 # users: already-assigned
 r = session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[1]':WRITE})
-expectWarning(r,'admin ist dieser Aufgabe bereits zugewiesen')
+expectRedirect(r,'http://localhost/task/1/view');
+
 
 # users/value: missing, removes user from task
 r = session.post('http://localhost/task/1/add_user',allow_redirects=False,data={'users[2]':''})
@@ -126,6 +127,9 @@ rows = cursor.execute('SELECT * FROM tasks_users').fetchall()
 expect((1,USER2,WRITE) in rows)
 cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
 db.commit();
+
+for row in rows:
+    print row
 
 # notify: absent
 r = session.post('http://localhost/task/1/add_user',data={'users[2]':WRITE})

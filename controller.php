@@ -420,7 +420,6 @@
 				case Task::PERMISSION_ASSIGNEE:
 					break;
 				default:
-					debug($new_user);
 					error('Invalid permission set for ?',$new_user['login']);
 					return false;
 			}
@@ -430,8 +429,7 @@
 			$db = get_or_create_db();
 
 			if ($new_user['permission'] == Task::NO_PERMISSION){ // deassign
-				$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != :perm;');
-				$args[':perm'] = Task::PERMISSION_CREATOR;
+				$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != '.Task::PERMISSION_CREATOR.';'); // do not delete creator!
 				assert($query->execute($args),'Was not able to remove user from task!');
 			} else { // assign
 				$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
@@ -441,7 +439,7 @@
 				if (empty($rows)){
 					$query = $db->prepare('INSERT INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm );');
 				} else {
-					$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid ;');
+					$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid AND permissions != '.Task::PERMISSION_CREATOR.';'); // do not alter creator!
 				}
 
 				assert($query->execute($args),'Was not able to write task assignment!');

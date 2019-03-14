@@ -35,7 +35,7 @@ if (!empty($users) && is_array($users)){
 			error('User with id ? is not part of the project!',$uid);
 			continue;
 		}
-		if ($perm == Task::PERMISSION_CREATOR) $perm = Task::PERMISSION_READ_WRITE;
+		if ($perm == Task::PERMISSION_CREATOR) $perm = Task::PERMISSION_READ_WRITE; // if someone tries to assign creator permissions to a task: fall back to read/write
 		$u = $project_users[$uid]['data'];
 		$u['permission'] = $perm;
 		if ($task->add_user($u,$notify)) $added = true;
