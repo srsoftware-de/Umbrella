@@ -311,11 +311,12 @@ class Note extends UmbrellaObjectWithId{
 		}
 	}
 
-	function url(){
+	function url($param = ''){
 		$parts = explode(':', $this->uri,2);
 		$module = array_shift($parts);
 		$id = array_shift($parts);
-		if ($module == 'files') return getUrl($module,'?path='.$id);
-		return getUrl($module,$id.'/view');
+		if ($module == 'files') return getUrl($module,'?path='.$id.'&'.$param);
+		if ($module == 'poll') return getUrl($module,'view?id='.$id.'&'.$param);
+		return getUrl($module,$id.'/view?'.$param);
 	}
 }
