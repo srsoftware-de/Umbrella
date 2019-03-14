@@ -40,6 +40,7 @@ $translations = array(
 		'ORG'=>'Organisation',
 		'Organization'=>'Organisation',
 		'phones'=>'Telefonnummern',
+		'Polls'=>'Umfragen',
 		'post_box'=>'Postfach',
 		'post_code'=>'Postleitzahl',
 		'Post Code'=>'Postleitzahl',
