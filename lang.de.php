@@ -46,6 +46,7 @@ $translations = [
 	'Number'=>'Nummer',
 	'Password'=>'Passwort',
 	'Phone numbers'=>'Telefonnummern',
+	'Polls'=>'Umfragen',
 	'Projects'=>'Projekte',
 	'Sending post data to "?" :'=>'Sende POST-Daten an "?" :',
 	'Sending data to: "?"'=>'Sende Daten an "?".',
