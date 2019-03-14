@@ -34,6 +34,7 @@ $translations = array(
 		'Poll description'=>'Beschreibung der Umfrage',
 		'Poll title'=>'Umfrage-Titel',
 		'Projects'=>'Projekte',
+		'remove'=>'entfernen',
 		'Sharable link'=>'Publizierbarer Link',
 		'Stock'=>'Inventar',
 		'Submit'=>'Absenden',

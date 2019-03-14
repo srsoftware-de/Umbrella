@@ -91,6 +91,15 @@ class Poll extends UmbrellaObjectWithId{
 
 		$single = false;
 
+		if (!empty($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$where[] = 'name LIKE ? OR description LIKE ? OR id IN (SELECT poll_id FROM options WHERE name LIKE ? OR description LIKE ?)';
+			$args[] = $key;
+			$args[] = $key;
+			$args[] = $key;
+			$args[] = $key;
+		}
+
 		if (!empty($options['ids'])){
 			$ids = $options['ids'];
 			if (!is_array($ids)) {
