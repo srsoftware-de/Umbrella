@@ -18,6 +18,7 @@ $translations = array(
 		'Models' => 'Modelle',
 		'new conversation'=>'neue Unterhaltung',
 		'Notes'=>'Notizen',
+		'Polls'=>'Umfragen',
 		'Select users to invite to conversation'=>'Nutzer auswählen, die zur Konversation eingeladen werden sollen',
 		'Stock'=>'Inventar',
 		'Subject'=>'Thema',
