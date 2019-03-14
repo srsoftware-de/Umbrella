@@ -68,6 +68,9 @@ fieldset{
 	vertical-align: top;
 }
 
+.hover:hover .hidden{
+	display: inherit;
+}
 
 .completed a{
 	text-decoration: line-through;
@@ -115,8 +118,8 @@ fieldset{
 }
 
 .hover:hover{
-	max-height: unset;
-	max-width: unset;
+	max-height: unset !important;
+	max-width: unset !important;
 }
 
 fieldset textarea{
@@ -128,10 +131,10 @@ img{
 }
 
 .infos {
-	display: inline;
 	margin: 5px;
 }
 
+.errors span,
 .infos span{
 	margin: 2px;
 	padding: 5px;
@@ -141,6 +144,11 @@ img{
 	position: fixed;
 	width: 90px;
 	left: -100px;
+}
+
+.poll td>*{
+	margin: 15px;
+	padding: 15px;
 }
 
 img[src*="pos=right"] {

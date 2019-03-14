@@ -12,6 +12,7 @@ item
 model
 notes
 *.phprj
+poll
 .project
 project
 rtc
