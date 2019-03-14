@@ -38,6 +38,7 @@ $translations = array(
 		'Notifiy project users after upload'=>'Projekt-Benutzer über Datei-Upload informieren',
 		'Notifiy company users after upload'=>'Firmen-Mitglieder über Datei-Upload informieren',
 		'Parent'=>'übergeordnete Aufgabe',
+		'Polls'=>'Umfragen',
 		'private files'=>'eigene Dateien',
 		'Projects'=>'Projekte',
 		'rename'=>'umbenennen',
