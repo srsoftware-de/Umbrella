@@ -91,6 +91,7 @@ $translations = array(
 		'Offer Number'=>'Angebotnummer',
 		'Page ?/?' => 'Seite ?/?',
 		'payed' => 'bezahlt',
+		'Polls'=>'Umfragen',
 		'Positions' => 'Posten',
 		'Projects'=>'Projekte',
 		'Price'=>'Preis (EUR)',
