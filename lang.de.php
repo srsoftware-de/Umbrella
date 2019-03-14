@@ -70,6 +70,7 @@ $translations = array(
 		'outbound connector'=>'ausgehender Verbinder',
 		'Outflows'=>'ausgehende Datenströme',
 		'Please select starting point for flow'=>'Bitte Startpunkt für Datenfluss auswählen',
+		'Polls'=>'Umfragen',
 		'Process'=>'Prozess',
 		'process "?"'=>'Prozess „?“',
 		'Process: "?"'=>'Prozess: „?“',
