@@ -19,6 +19,7 @@ $translations = array(
 		'Log out ?'=>'? ausloggen',
 		'Models' => 'Modelle',
 		'Notes'=>'Notizen',
+		'Polls'=>'Umfragen',
 		'Price per unit'=>'Preis pro Einheit',
 		'Projects'=>'Projekte',
 		'Save'=>'Speichern',
