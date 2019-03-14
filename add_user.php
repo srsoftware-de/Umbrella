@@ -35,10 +35,6 @@ if (!empty($users) && is_array($users)){
 			error('User with id ? is not part of the project!',$uid);
 			continue;
 		}
-		if (array_key_exists($uid, $task->users())){
-			warn('? already assigned to task',$task->users()[$uid]);
-			continue;
-		}
 		if ($perm == Task::PERMISSION_CREATOR) $perm = Task::PERMISSION_READ_WRITE;
 		$u = $project_users[$uid]['data'];
 		$u['permission'] = $perm;
@@ -71,10 +67,10 @@ if ($task->is_writable()){ ?>
 			</tr>
 			<tr>
 				<td><?= $u['data']['login']?></td>
-				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' disabled="disabled"':''?> title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" <?= $perm == Task::PERMISSION_ASSIGNEE ? 'checked="checked" ':'' ?>/></td>
-				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' disabled="disabled"':''?> title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $perm == Task::PERMISSION_READ_WRITE||$perm == Task::PERMISSION_CREATOR ? 'checked="checked" ':'' ?>/></td>
-				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' disabled="disabled"':''?> title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" <?= $perm == Task::PERMISSION_READ ? 'checked="checked"':'' ?>/></td>
-				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' disabled="disabled"':''?> title="<?= t('no access')?>" value="0" <?= $perm == 0 ? 'checked="checked" ':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' readonly="readonly"':''?> title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" <?= $perm == Task::PERMISSION_ASSIGNEE ? 'checked="checked" ':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' readonly="readonly"':''?> title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $perm == Task::PERMISSION_READ_WRITE||$perm == Task::PERMISSION_CREATOR ? 'checked="checked" ':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' readonly="readonly"':''?> title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" <?= $perm == Task::PERMISSION_READ ? 'checked="checked"':'' ?>/></td>
+				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' readonly="readonly"':''?> title="<?= t('no access')?>" value="0" <?= $perm == 0 ? 'checked="checked" ':'' ?>/></td>
 			</tr>
 			<?php } ?>
 		</table>

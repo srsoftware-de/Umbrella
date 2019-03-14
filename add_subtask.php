@@ -21,6 +21,7 @@ if (empty($project)){
 
 if (post('name')){
 	$user_permissions = post('users');
+	debug(['POST'=>$_POST,'user_permissions'=>$user_permissions]);
 	$users = [];
 	if (!empty($user_permissions) && is_array($user_permissions)){
 		foreach ($user_permissions as $uid => $perm){
@@ -35,6 +36,7 @@ if (post('name')){
 			$users[$uid] = $u;
 		}
 	}
+	debug($users);
 	if (!empty($users)){
 		$new_task = new Task();
 		$new_task->patch($_POST)->patch(['users'=>$users,'project_id'=>$task->project_id,'parent_task_id'=>$task_id]);
@@ -89,10 +91,10 @@ include '../common_templates/messages.php'; ?>
 			<?php foreach ($task->project('users') as $id => $u) { $owner = $id == $user->id; ?>
 				<tr>
 					<td><?= $u['data']['login']?></td>
-					<td><input type="radio" <?= $owner?'disabled="disabled"':''?>name="users[<?= $id ?>]" title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" /></td>
-					<td><input type="radio" <?= $owner?'disabled="disabled"':''?>name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked" ':'' ?>/></td>
-					<td><input type="radio" <?= $owner?'disabled="disabled"':''?>name="users[<?= $id ?>]" title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" /></td>
-					<td><input type="radio" <?= $owner?'disabled="disabled"':''?>name="users[<?= $id ?>]" title="<?= t('no access')?>" value="0" <?= $owner?'':'checked="checked" '?>/></td>
+					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" /></td>
+					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked" ':'' ?>/></td>
+					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" /></td>
+					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('no access')?>" value="0" <?= $owner?'':'checked="checked" '?>/></td>
 				</tr>
 			<?php } ?>
 			</table>
