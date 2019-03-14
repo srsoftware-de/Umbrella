@@ -19,6 +19,7 @@ $translations = array(
 		'No'=>'Nein',
 		'note'=>'Notiz',
 		'Notes'=>'Notizen',
+		'Polls'=>'Umfragen',
 		'Projects'=>'Projekte',
 		'rendered output'=>'gerenderte Ausgabe',
 		'Save'=>'Speichern',
@@ -33,5 +34,5 @@ $translations = array(
 		'Yes'=>'Ja',
 		'Y-m-d H:i:s'=>'d.m.Y H:i:s',
 		'Your last ? notes'=>'Ihre letzten ? Notizen',
-		
+
 );

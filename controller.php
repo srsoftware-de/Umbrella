@@ -97,7 +97,7 @@ class Note extends UmbrellaObjectWithId{
 				// uri is of the form model:xyz, go to default section
 				default:
 					$entities = request($module,'json',['ids'=>$id]);
-					if (empty($entities)) return [];
+					if (empty($entities)) return []; // only deliver notes for objects the user has access to!
 					break;
 			}
 			$where[] = 'uri = ?';
