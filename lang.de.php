@@ -41,6 +41,7 @@ $translations = array(
 		'No location'=>'Kein übergeordneter Ort',
 		'Notes'=>'Notizen',
 		'Overview'=>'Übersicht',
+		'Polls'=>'Umfragen',
 		'prop_type_0' => 'Zeichenkette',
 		'prop_type_1' => 'Ganzzahl',
 		'prop_type_2' => 'Gleitkommazahl',
