@@ -1,6 +1,6 @@
 <?php include 'controller.php';
 
-User::require_login();
+$user = User::require_login();
 
 $key = param('key');
 if (!$key){
@@ -21,7 +21,7 @@ include '../common_templates/messages.php'; ?>
 	if ($result){ ?>
 <fieldset class="<?= $service ?>">
 	<legend><?= t($data['name'])?></legend>
-	<?= $result ?>
+	<?= str_replace($key, '<span class="hit">'.$key.'</span>', $result) ?>
 </fieldset>
 <?php }
 }
