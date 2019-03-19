@@ -35,5 +35,10 @@
 			<button type="submit"><?= t('Save'); ?></button>
 		</fieldset>
 	</form>
-
+	<script type="text/javascript">
+	// set cursor to end
+		var inp = $('input[name=name]');
+		var len = inp.val().length+5;
+		inp[0].setSelectionRange(len,len);
+	</script>
 	<?php include '../common_templates/closure.php';

@@ -63,7 +63,7 @@ if ($action == 'delete'){?>
 		<legend><?= t('Delete "?"',$flow->name)?></legend>
 		<?= t('You are about to delete the flow "?". Are you sure you want to proceed?',$flow->name) ?>
 		<a class="button" href="?<?= $type?'type='.$type.'&':''?>action=delete&confirm=true"><?= t('Yes')?></a>
-		<a class="button" href="?"><?= t('No')?></a>
+		<a class="button" href="?<?= $type?'type='.$type:''?>"><?= t('No')?></a>
 	</fieldset>
 <?php } ?>
 

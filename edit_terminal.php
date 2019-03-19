@@ -44,8 +44,10 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Fields')?></legend>
 			<table>
 				<tr>
-					<td colspan="3"></td>
-					<td colspan="2">Beschränkungen</td>
+					<td colspan="2"></td>
+					<td colspan="3">Beschränkungen<hr/>
+					</td>
+					<td></td>
 					<td></td>
 				</tr>
 				<tr>
@@ -54,7 +56,8 @@ include '../common_templates/messages.php'; ?>
 					<th>NOT NULL</th>
 					<th><?= t('DEFAULT') ?></th>
 					<th><?= t('Key') ?></th>
-					<th><?= t('reference') ?></th>
+					<th><?= t('Reference') ?></th>
+					<th><?= t('Description') ?></th>
 				</tr>
 				<?php foreach ($terminal->fields() as $field){ ?>
 				<tr>
@@ -63,7 +66,11 @@ include '../common_templates/messages.php'; ?>
 					<td><?= $field['not_null']?'✓':''?></td>
 					<td><?= $field['default_val']?></td>
 					<td><?= $field['key_type']=='P'?'PRIMARY':($field['key_type']=='U'?'UNIQUE':$field['key_type'])?></td>
-					<td><?= $field['reference']=='NULL'?'':$field['reference']?></td>
+					<td><?php if ($field['reference']!='NULL') { $ref = Terminal::field($field['reference'])?>
+					<a href="<?= getUrl('model','terminal/'.$ref['id'])?>"><?= $ref['tName'].'.'.$ref['fName']?></a>
+					<?php }?>
+					</td>
+					<td><?= markdown($field['description']) ?></td>
 				</tr>
 				<?php } ?>
 				<tr>
@@ -86,6 +93,9 @@ include '../common_templates/messages.php'; ?>
 							<option value="<?= $fid ?>"><?= $term->name.'.'.$f['name']?></option>
 							<?php }}?>
 						</select>
+					</td>
+					<td>
+						<textarea name="new_field[description]"></textarea>
 					</td>
 				</tr>
 			</table>

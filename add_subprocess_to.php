@@ -31,7 +31,7 @@ include '../common_templates/messages.php'; ?>
 	<input type="hidden" name="model_id" value="<?= $process->id ?>" />
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
-		<input type="text" name="name" value="<?= param('name','') ?>" />
+		<input type="text" name="name" value="<?= param('name','') ?>" autofocus="autofocus" />
 	</fieldset>
 	<fieldset>
 		<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>

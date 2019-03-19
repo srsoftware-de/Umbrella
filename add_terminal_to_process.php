@@ -38,7 +38,7 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
-		<input type="text" name="name" value="<?= param('name','') ?>" />
+		<input type="text" name="name" value="<?= param('name','') ?>" autofocus="autofocus" />
 	</fieldset>
 
 	<fieldset>

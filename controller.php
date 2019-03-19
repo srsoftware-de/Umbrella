@@ -1073,6 +1073,7 @@ class Terminal extends UmbrellaObjectWithId{
 				'default_val' => ['VARCHAR'=>255],
 				'key_type'    => ['CHAR','DEFAULT'=>'NULL'],
 				'reference'   => ['INT','REFERENCES fields(id)'],
+				'description' => ['TEXT'],
 				'UNIQUE'      => ['terminal_id','name']
 		];
 	}
@@ -1216,7 +1217,7 @@ class Terminal extends UmbrellaObjectWithId{
 		if (empty($args)) return;
 		$sql = 'INSERT INTO fields ('.implode(', ',$keys).') VALUES (:'.implode(', :',$keys).' );';
 		$db = get_or_create_db();
-		//debug(query_insert($sql, $args),1);
+		//debug(query_insert($db->prepare($sql), $args),1);
 		if (!$db->prepare($sql)->execute($args)) throw new Exception('Was not able to store new table field!');
 	}
 
