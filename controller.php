@@ -42,7 +42,11 @@ function get_or_create_db(){
 		$db = new PDO('sqlite:db/notes.db');
 	}
 	return $db;
+}
 
+if (file_exists('../lib/parsedown/Parsedown.php')){
+	include '../lib/parsedown/Parsedown.php';
+	$parsedown  = Parsedown::instance();
 }
 
 class Note extends UmbrellaObjectWithId{

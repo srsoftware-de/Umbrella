@@ -9,11 +9,6 @@ $options['limit'] = $limit;
 
 $notes = Note::load($options);
 
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$parsedown  = Parsedown::instance();
-}
-
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';

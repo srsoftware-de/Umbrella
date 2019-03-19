@@ -8,11 +8,6 @@ assert($uri !== null,'Called notes/json without uri');
 $notes = Note::load(['uri'=>$uri,'limit'=>0,'order'=>'id']);
 $users = request('user','json');
 
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$parsedown  = Parsedown::instance();
-}
-
 foreach ($notes as $nid => $note){ ?>
 	<fieldset class="note" id="bkmk<?= $note->id ?>">
 		<legend><?= $users[$note->user_id]['login'] . ((isset($note->timestamp) && $note->timestamp>0) ? ' - '.date(t('Y-m-d H:i:s'),$note->timestamp) : '') ?></legend>

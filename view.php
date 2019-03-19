@@ -12,11 +12,6 @@ if ($new_code = param('code')){
 	redirect($note->url());
 }
 
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$parsedown  = Parsedown::instance();
-}
-
 include '../common_templates/head.php';
 
 include '../common_templates/main_menu.php';
