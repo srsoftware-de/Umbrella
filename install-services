@@ -294,6 +294,28 @@ EOF
 fi
 
 
+
+echo
+echo
+echo Poll module / Umfrage-Modul
+echo ==================================
+echo
+echo Using this module you can provide polls to your project members and also to externals.
+echo 
+echo Mit diesem Modul können Sie Ihren Mitarbeitern und auch externen Nutzern Umfragen bereitstellen.
+echo
+read -p 'Install poll module? / Umfrage-Modul installieren? ' -n 1 -r
+echo
+if [[ $REPLY = [YyJj] ]]; then
+	git clone -b poll $SOURCE poll
+	cat << EOF >> config.php
+	\$services['poll'] = ['name'=>'Polls','path'=>'$DOMAIN/poll/'];
+EOF
+fi
+
+
+
+
 echo
 echo
 echo Stock module / Inventar-Modul

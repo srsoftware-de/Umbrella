@@ -127,6 +127,11 @@ label.location::after {
 	white-space: pre;
 }
 
+.poll.evaluate table tr:nth-child(n+2) th,
+.poll.evaluate table td{
+	text-align: right;
+}
+
 .company div > fieldset,
 .company > table{
 	margin-right: 10px;
@@ -267,7 +272,10 @@ td > h1{
 	margin: 0 10px 0 0;
 }
 
-.infos, .errors, .warnings{
+.center,
+.infos,
+.errors,
+.warnings{
 	text-align: center;
 }
 

@@ -14,8 +14,13 @@ a{
 	text-decoration: none;
 }
 textarea {
+	min-width: 25%;
+	min-height: 40px;
+}
+
+textarea:hover{
+	min-height: 400px;
 	width: 100%;
-	min-height: 100px;
 }
 
 input[type=text]{
@@ -50,6 +55,10 @@ blockquote{
 
 .hidden{
 	display: none !important;
+}
+
+.hover:hover .hidden{
+	display: inherit;
 }
 
 .emphasized{
@@ -116,6 +125,11 @@ label.street:after,
 label.location::after {
 	content: "\a ";
 	white-space: pre;
+}
+
+.poll.evaluate table tr:nth-child(n+2) th,
+.poll.evaluate table td{
+	text-align: right;
 }
 
 .company div > fieldset,
@@ -258,7 +272,10 @@ td > h1{
 	margin: 0 10px 0 0;
 }
 
-.infos, .errors, .warnings{
+.center,
+.infos,
+.errors,
+.warnings{
 	text-align: center;
 }
 
@@ -278,6 +295,15 @@ td > h1{
 .bookmark .share,
 .bookmark .tags{
 	display: inline-block;
+}
+
+.bookmark form .share{
+	height: 20px;
+	overflow: hidden;
+}
+
+.bookmark form .share:hover{
+	height: initial;
 }
 
 fieldset.bookmark > fieldset{
@@ -305,7 +331,7 @@ fieldset.bookmark > fieldset:hover{
 .copytext{
 	position:fixed;
 	width: 100px;
-	left: -105px;
+	left: -1000px;
 }
 
 img[src*="pos=right"] {

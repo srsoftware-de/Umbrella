@@ -50,6 +50,7 @@ form.invoice textarea {
 	color: white;
 }
 
+.hit,
 .warnings span{
 	background-color: #ffff00;
 	color: black;
