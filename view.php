@@ -21,7 +21,6 @@ $poll->weights();
 
 $confirmed = true;
 $options = param('option');
-
 if (empty($user)){
 	$name = param('name');
 	if (is_numeric($name)){
@@ -30,12 +29,13 @@ if (empty($user)){
 	}
 } else $name = $user->id;
 
+$previous_selections = empty($name) ? null :$poll->get_selections($name);
+
 if (!empty($options)) {
 	if (empty($name)){
 		error('You must provide a name!');
 	} else {
-		$selections = $poll->get_selections($name);
-		if (!empty($selections)) $confirmed = false;
+		if (!empty($previous_selections)) $confirmed = false;
 		if (param('confirm')=='on') $confirmed = true;
 		if ($confirmed) {
 			$poll->save_selection($_POST);
@@ -95,13 +95,36 @@ if (!empty($user)){
 							<?= markdown($option['description'])?>
 						</span>
 					</td>
-					<?php foreach ($poll->weights() as $weight => $meta) { ?>
+					<?php foreach ($poll->weights() as $weight => $meta) {
+						$selected = false;
+						if (isset($options[$oid])){ // one of the weights for this option has been selected
+							if ($options[$oid]==$weight) $selected = true;
+						} else { // none of the weights for this options was selected
+							if (isset($previous_selections[$oid]['weight']) && $previous_selections[$oid]['weight'] == $weight) $selected = true; // option has been selected before
+						}
+					?>
 					<td>
-						<input type="radio" name="option[<?= $oid ?>]" value="<?= $weight ?>" <?= (isset($options[$oid]) && $options[$oid]==$weight)?'checked="checked" ':'' ?>/>
+						<input type="radio" name="option[<?= $oid ?>]" value="<?= $weight ?>" <?= $selected?'checked="checked" ':'' ?>/>
 					</td>
 					<?php }?>
 				</tr>
 				<?php } ?>
+				<tr>
+					<th><?= t('Option')?></th>
+					<?php foreach ($poll->weights() as $weight => $meta) { ?>
+					<th class="hover" style="min-width: 40px">
+						<?= $weight ?>
+						<span class="hidden">
+							<?= $meta['description']?>
+						</span>
+					</th>
+					<?php }?>
+				</tr>
+				<tr>
+					<th></th>
+					<th colspan="<?= count($poll->weights()) ?>"><?= t('Weights')?></th>
+				</tr>
+
 			</table>
 		</fieldset>
 		<?php if (!$confirmed){ ?>
