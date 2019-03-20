@@ -16,7 +16,64 @@ if (empty($poll)){
 
 $users = request('user','json');
 
+$options    = $poll->options();
+$selections = $poll->selections();
+
 $sums = [];
+
+foreach ($options as $option_id => $option){
+	$sum = 0;
+	foreach ($selections as $user_id => $selection) $sum += $selection[$option_id];
+	if (!isset($sums[$sum])) $sums[$sum] = [];
+	$sums[$sum][] = $option_id;
+}
+
+ksort($sums);
+
+// at this point, sums is a map of sums to option ids:
+// [sums] => Array(
+// 	[-10] => Array(
+// 			[0] => 16
+// 		)
+// 	[0] => Array(
+// 			[0] => 22
+// 		)
+// 	[5] => Array(
+// 			[0] => 12
+// 			)
+
+// 	[10] => Array(
+// 			[0] => 11
+// 		)
+// 	[15] => Array(
+// 			[0] => 1
+// 			[1] => 3
+// 			[2] => 4
+// 			[3] => 7
+// 			[4] => 8
+// 			[5] => 21
+// 		)
+// 	[20] => Array(
+// 			[0] => 2
+// 			[1] => 6
+// 			[2] => 10
+// 			[3] => 17
+// 			[4] => 20
+// 		)
+// 	[25] => Array(
+// 			[0] => 9
+// 			[1] => 13
+// 			[2] => 14
+// 			[3] => 18
+// 		)
+// 	[30] => Array(
+// 			[0] => 5
+// 			[1] => 15
+// 			[2] => 19
+// 		)
+// )
+
+$vertical = count($options) < count($selections);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -26,29 +83,57 @@ include '../common_templates/messages.php'; ?>
 <fieldset>
 	<legend><?= t('Evaluation of "?"',$poll->name)?></legend>
 	<a class="button" href="<?= getUrl('poll','options?id='.$poll->id) ?>"><?= t('Edit options')?></a>
-	<a target="_blank" href="<?= getUrl('poll','view?id='.$poll->id)?>"><?= getUrl('poll','view?id='.$poll->id)?></a>
+	<a class="button" href="<?= getUrl('poll','view?id='.$poll->id)?>" target="_blank"><?= t('Visit poll') ?></a>
+	<?php if ($vertical) { ?>
 	<table>
 		<tr>
 			<th><?= t('User')?> / <?= t('Options')?></th>
-			<?php foreach ($poll->options() as $oid => $option) { $sums[$oid] = 0; ?>
-			<th><?= $option['name'] ?></th>
-			<?php } ?>
+			<?php foreach ($sums as $sum => $option_list){
+				foreach ($option_list as $option_id){ ?>
+			<th><?= $options[$option_id]['name']?></th><?php
+				} // foreach $option_lost as $option_id
+			} // foreach $sums as $ums => $option_list ?>
 		</tr>
-		<?php foreach ($poll->selections() as $user => $selections) { ?>
+		<?php foreach ($selections as $uśer_id => $user_selections) { ?>
 		<tr>
-			<td><?= is_numeric($user)?'<a target="_blank" href="'.getUrl('user',$user.'/view').'">'.$users[$user]['login'].'</a>':$user ?></td>
-			<?php foreach ($poll->options() as $oid => $dummy) { $sums[$oid] += $selections[$oid]?>
-			<td><?= $selections[$oid] ?></td>
-			<?php }?>
-		</tr>
-		<?php }?>
+			<td><?= is_numeric($uśer_id)?'<a target="_blank" href="'.getUrl('user',$uśer_id.'/view').'">'.$users[$uśer_id]['login'].'</a>':$uśer_id ?></td>
+			<?php foreach ($sums as $sum => $option_list){
+				foreach ($option_list as $option_id){ ?>
+			<td><?= $user_selections[$option_id] ?></td><?php
+					} // foreach $option_lost as $option_id
+				} // foreach $sums as $ums => $option_list ?>
+		</tr><?php } // foreach selections as user_id => user_selections ?>
 		<tr>
-			<th><?= t('Average:') ?></th>
-			<?php foreach ($poll->options() as $oid => $dummy) { ?>
-			<th><?= $sums[$oid]/count($poll->selections()) ?></th>
-			<?php } ?>
+			<th><?= t('Average:')?></th>
+			<?php foreach ($sums as $sum => $option_list){
+				foreach ($option_list as $option_id){ ?>
+			<th><?= $sum/count($selections)?></th><?php
+				} // foreach $option_lost as $option_id
+			} // foreach $sums as $ums => $option_list ?>
 		</tr>
 	</table>
+	<?php } else { ?>
+	<table>
+		<tr>
+			<th><?= t('Options')?> / <?= t('User')?></th>
+			<?php foreach ($selections as $uśer_id => $user_selections) { ?>
+			<th><?= is_numeric($uśer_id)?'<a target="_blank" href="'.getUrl('user',$uśer_id.'/view').'">'.$users[$uśer_id]['login'].'</a>':$uśer_id ?></th>
+			<?php } ?>
+			<th><?= t('Average:')?></th>
+		</tr>
+		<?php foreach ($sums as $sum => $option_list) { ?>
+		<?php foreach ($option_list as $option_id) { ?>
+		<tr>
+			<th><?= $options[$option_id]['name']?></th>
+			<?php foreach ($selections as $user_selections) { ?>
+			<td><?= $user_selections[$option_id]?></td>
+			<?php } // foreach selections as user_id => user_selections ?>
+			<td><?= $sum/count($selections) ?></td>
+		</tr>
+		<?php } // foreach $option_list as $option_id ?>
+		<?php } // foreach sums as sum => $option_list ?>
+	</table>
+	<?php } ?>
 </fieldset>
 
 <?php if (isset($services['notes'])) {

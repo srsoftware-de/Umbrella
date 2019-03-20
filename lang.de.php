@@ -43,6 +43,7 @@ $translations = array(
 		'Timetrack'=>'Zeiterfassung',
 		'Umbrella Poll Management'=>'Umbrella – Umfragen',
 		'Users'=>'Benutzer',
+		'Visit poll'=>'Zur Umfrage',
 		'Weights'=>'Gewichtungen',
 		'Who are you?'=>'Wer bist du?',
 		'You are not allowed to modify this poll!'=>'Sie sind nicht berechtigt, diese Umfrage zu bearbeiten!',
