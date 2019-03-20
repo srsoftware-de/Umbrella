@@ -151,6 +151,20 @@ img{
 	padding: 15px;
 }
 
+.poll table{
+	border-spacing: 0;
+}
+
+.poll tr{
+	border-spacing: 0;
+}
+
+.poll td{
+	border-style: solid;
+	border-width: 1px 0 0 0;
+	border-color: black;
+}
+
 img[src*="pos=right"] {
   float:right;
   margin: 5px 0 5px 5px;
