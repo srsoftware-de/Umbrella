@@ -86,11 +86,13 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<tr>
 		<th><?= t('Project')?></th>
-		<td class="project">
-			<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project('name')?></a>
+		<td>
+			<span class="project">
+				<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project('name')?></a>
+			</span>
 			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="<?= t('show project files'); ?>" target="_blank"></a>
-			</td>
+			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" title="<?= t('show project files'); ?>" target="_blank"><span class="symbol"></span> <?= t('Files')?></a>
+		</td>
 	</tr>
 	<?php if ($parent = $task->parent()) { ?>
 	<tr>
@@ -145,10 +147,13 @@ include '../common_templates/messages.php'; ?>
 	<?php } ?>
 	<?php if (!empty($task->children())){?>
 	<tr>
-		<th><?= t('Child tasks')?></th>
+		<th>
+			<?= t('Child tasks')?>
+
+		</th>
 		<td class="children">
 			<?php if (!$show_closed_children) {?>
-			<a href="?closed=show"><?= t('show closed child tasks'); ?></a>
+			<a href="?closed=show"><span class="symbol"></span> <?= t('show closed child tasks'); ?></a>
 			<?php } ?>
 			<?php display_children($task); ?>
 		</td>

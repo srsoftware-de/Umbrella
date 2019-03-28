@@ -258,7 +258,7 @@
 			$subject = t('? added a note.',$user->login);
 			$text = t("Open the following site to see the note on \"?\":\n\n?",[$this->name,getUrl('task',$this->id.'/view#bkmk'.$note_id)]);
 			$recipients = [];
-			foreach ($task->users as $u){
+			foreach ($this->users() as $u){
 				if ($u['email'] != $user->email) $recipients[] = $u['email'];
 			}
 			send_mail($user->email, $recipients, $subject, $text);
