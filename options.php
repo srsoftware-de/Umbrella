@@ -14,9 +14,27 @@ if (empty($poll)){
 	redirect(getUrl('poll'));
 }
 
-$remove_option = param('remove_option');
-if (!empty($remove_option)) {
-	$poll->remove_option($remove_option);
+$option_id = param('remove_option');
+if (!empty($option_id)) {
+	$poll->remove_option($option_id);
+	redirect(getUrl('poll','options?id='.$poll->id));
+}
+
+$option_id = param('disable_option');
+if (!empty($option_id)){
+	$poll->set_option_status($option_id,Poll::OPTION_DISABLED);
+	redirect(getUrl('poll','options?id='.$poll->id));
+}
+
+$option_id = param('enable_option');
+if (!empty($option_id)){
+	$poll->set_option_status($option_id,Poll::OPTION_ENABLED);
+	redirect(getUrl('poll','options?id='.$poll->id));
+}
+
+$option_id = param('hide_option');
+if (!empty($option_id)){
+	$poll->set_option_status($option_id,Poll::OPTION_HIDDEN);
 	redirect(getUrl('poll','options?id='.$poll->id));
 }
 
@@ -37,6 +55,8 @@ if ($weight !== null) {
 	$poll->add_weight($_POST);
 	redirect(getUrl('poll','options?id='.$poll->id));
 }
+
+$base_url = getUrl('poll');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -61,7 +81,18 @@ include '../common_templates/messages.php'; ?>
 					<td><?= $opt_id ?></td>
 					<td><?= $option['name']?></td>
 					<td><?= markdown($option['description'])?></td>
-					<td><a class="button" href="<?= getUrl('poll','options?id='.$poll->id.'&remove_option='.$opt_id)?>"><?= t('remove') ?></a></td>
+					<td class="poll_status">
+						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&remove_option='.$opt_id ?>"><?= t('remove') ?></a>
+						<?php if ($option['status'] != Poll::OPTION_ENABLED) { ?>
+						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&enable_option='.$opt_id ?>"><?= t('enable')?></a>
+						<?php }
+						if ($option['status'] != Poll::OPTION_DISABLED) { ?>
+						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&disable_option='.$opt_id ?>"><?= t('disable')?></a>
+						<?php }
+						if ($option['status'] != Poll::OPTION_HIDDEN) { ?>
+						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&hide_option='.$opt_id ?>"><?= t('hide')?></a>
+						<?php } ?>
+					</td>
 				</tr>
 				<?php } ?>
 				<tr>

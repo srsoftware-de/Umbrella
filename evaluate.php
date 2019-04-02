@@ -122,8 +122,16 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Average:')?></th>
 		</tr>
 		<?php foreach ($sums as $sum => $option_list) { ?>
-		<?php foreach ($option_list as $option_id) { ?>
-		<tr>
+		<?php foreach ($option_list as $option_id) {
+			$class = null;
+			switch ($options[$option_id]['status']){
+				case Poll::OPTION_HIDDEN:
+					$class = 'hidden'; break;
+				case Poll::OPTION_DISABLED:
+					$class = 'disabled'; break;
+			}
+		?>
+		<tr<?= $class?' class="'.$class.'"':''?>>
 			<th><?= $options[$option_id]['name']?></th>
 			<?php foreach ($selections as $user_selections) { ?>
 			<td><?= $user_selections[$option_id]?></td>

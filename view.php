@@ -87,8 +87,16 @@ if (!empty($user)){
 					</th>
 					<?php }?>
 				</tr>
-				<?php foreach ($poll->options() as $oid => $option) { ?>
-				<tr class="hover">
+				<?php foreach ($poll->options() as $oid => $option) {
+					$classes = ['hover'];
+					switch ($option['status']){
+						case Poll::OPTION_DISABLED:
+							$classes[] = 'disabled'; break;
+						case Poll::OPTION_HIDDEN:
+							$classes[] = 'hidden'; break;
+					}
+				?>
+				<tr class="<?= implode(' ', $classes)?>">
 					<td>
 						<?= $option['name'] ?>
 						<span class="hidden">

@@ -39,6 +39,10 @@ function markdown($text){
 
 
 class Poll extends UmbrellaObjectWithId{
+	const OPTION_DISABLED = 2;
+	const OPTION_ENABLED = 1;
+	const OPTION_HIDDEN = 0;
+
 	static function table(){
 		return [
 				'id' => ['VARCHAR'=>255,'NOT NULL','PRIMARY KEY'],
@@ -54,6 +58,7 @@ class Poll extends UmbrellaObjectWithId{
 				'poll_id'=>['VARCHAR'=>255,'NOT NULL','REFERENCES polls(id)'],
 				'name'=>['VARCHAR'=>255,'NOT NULL'],
 				'description'=>['TEXT'],
+				'statsus'=>['INT','DEFAULT 0'],
 				'PRIMARY KEY'=>['id','poll_id']
 		];
 	}
@@ -171,6 +176,12 @@ class Poll extends UmbrellaObjectWithId{
 		$args[':poll_id']=$this->id;
 		$sql = 'INSERT INTO weights ('.implode(', ', $keys).') VALUES (:'.implode(', :',$keys).' )';
 		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able to add weight to poll!');
+	}
+
+	function set_option_status($id,$status = Poll::OPTION_ENABLED){
+		$sql = 'UPDATE options SET status = :status WHERE id = :id AND poll_id = :pid';
+		$args = [':id'=>$id,':pid'=>$this->id,':status'=>$status];
+		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able alter option status!');
 	}
 
 	function get_selections($user){
