@@ -37,7 +37,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="description"><?= $terminal->description ?></textarea>
+			<textarea name="description"><?= htmlspecialchars($terminal->description) ?></textarea>
 		</fieldset>
 		<?php if ($terminal->isDB()) { $project_terminals = Terminal::load(['project_id'=>$project['id']]);?>
 		<fieldset>

@@ -281,10 +281,12 @@ class Connector extends UmbrellaObjectWithId{
 }
 
 class Flow extends UmbrellaObjectWithId{
-	const FROM_BORDER   = 0;
-	const TO_BORDER     = 1;
-	const FROM_TERMINAL = 2;
-	const TO_TERMINAL   = 3;
+	const FROM_BORDER     = 0;
+	const TO_BORDER       = 1;
+	const FROM_TERMINAL   = 2;
+	const TO_TERMINAL     = 3;
+	const EXT_CON_TO_TERM = 4;
+	const TERM_TO_EXT_CON = 5;
 
 	static function fields(){
 		return [
@@ -376,14 +378,22 @@ class Flow extends UmbrellaObjectWithId{
 			$flow = new Flow();
 			$flow->patch($data)->save();
 		}
-        $connector_place = Connector::getOrCreatePlace($connector['process_connector_id'], $connector['place_id']);
 
-        // create new flow reference:
-		$sql = 'INSERT INTO external_flows (flow_id, ext_id, connector_place_id, type) VALUES (:flow_id, :ext_id, :cp_id, :type )';
-		$args = [':flow_id'=>$flow->id, ':ext_id' => $terminal['place_id'], ':cp_id'=>$connector_place['id'],':type'=>$type];
 		$db = get_or_create_db();
-
+		$sql = 'INSERT INTO external_flows (flow_id, ext_id, connector_place_id, type) VALUES (:flow_id, :ext_id, :cp_id, :type )';
 		$query = $db->prepare($sql);
+
+		switch ($type){
+			case Flow::EXT_CON_TO_TERM:
+			case Flow::TERM_TO_EXT_CON:
+				$args = [':flow_id'=>$flow->id, ':ext_id' => $terminal['place_id'], ':cp_id'=>$connector['process_connector_id'],':type'=>$type];
+				break;
+			default:
+				$connector_place = Connector::getOrCreatePlace($connector['process_connector_id'], $connector['place_id']);
+
+				// create new flow reference:
+				$args = [':flow_id'=>$flow->id, ':ext_id' => $terminal['place_id'], ':cp_id'=>$connector_place['id'],':type'=>$type];
+		}
 		if (!$query->execute($args)) throw new Exception('Was not able to store new external flow!');
 		return $flow;
 	}
@@ -455,8 +465,8 @@ class Flow extends UmbrellaObjectWithId{
 		return $flows;
 	}
 
-	static function loadExternal($ext_connector,$connector_places,$terminal = false){
-		$types = $terminal ? Flow::FROM_TERMINAL.', '.Flow::TO_TERMINAL : Flow::FROM_BORDER.', '.Flow::TO_BORDER;
+	static function loadExternal($ext_connector,$connector_places,$types){
+		$types = implode(', ',$types);
 		$args = array_keys($connector_places);
 		$qMarks = str_repeat('?,', count($args)-1).'?';
 		$args[] = $ext_connector;
@@ -758,8 +768,8 @@ class Process extends UmbrellaObjectWithId{
 			$type = 'connector';
 		} else {
 			if ($child instanceof Process) {
-				$sql = 'INSERT INTO process_places (context, process_id, x, y) VALUES (:ctx, :prc, :x, :y)';
-				$args = [':ctx'=>$this->id,':prc'=>$child->id,':x'=>-150,':y'=>-150];
+				$sql = 'INSERT INTO process_places (context, process_id, r, x, y) VALUES (:ctx, :prc, :r, :x, :y)';
+				$args = [':ctx'=>$this->id,':prc'=>$child->id,':x'=>-150,':y'=>-150,':r'=>5*strlen($child->name)];
 				$type = 'process';
 			} else if ($child instanceof Terminal){
 				$sql = 'INSERT INTO terminal_places (context, terminal_id, x, y) VALUES (:ctx, :trm, :x, :y)';
@@ -895,7 +905,7 @@ class Process extends UmbrellaObjectWithId{
 			if (empty($child_process->connector_places)) $child_process->connector_places = Connector::loadPlaces($process_place_id);
 				foreach ($connectors as $process_connector_id => &$connector){
 
-				$externalFlows = Flow::loadExternal($process_connector_id,$child_process->connector_places,false);
+				$externalFlows = Flow::loadExternal($process_connector_id,$child_process->connector_places,[Flow::FROM_BORDER,Flow::TO_BORDER]);
 				foreach ($externalFlows as $flow){
 					$start_x = $this->r *  sin(RAD*$connector->angle);
 					$start_y = $this->r * -cos(RAD*$connector->angle);
@@ -903,21 +913,41 @@ class Process extends UmbrellaObjectWithId{
 					$end_y = $child_process->y + $child_process->r * -cos(RAD*$child_process->connector_places[$flow->connector_place_id]['angle']);
 
 					if ($flow->type == Flow::FROM_BORDER){
-						arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
+						arrow($start_x, $start_y, $end_x, $end_y,$flow->name,$url.$flow->ext_flow_id.'?type=ext',htmlspecialchars($flow->description));
 					} else {
-						arrow($end_x, $end_y,$start_x, $start_y, $flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
+						arrow($end_x, $end_y,$start_x, $start_y, $flow->name,$url.$flow->ext_flow_id.'?type=ext',htmlspecialchars($flow->description));
 					}
 				}
 			}
 		}
 
 		$terminals = Terminal::load(['context'=>$this->id]);
-		//debug(['terminals'=>$terminals,'children'=>$child_processes,'connectors'=>$connectors]);
+	    //debug(['this'=>$this,'terminals'=>$terminals,'children'=>$child_processes,'connectors'=>$connectors]);
 
 		foreach ($terminals as $terminal_place_id => $terminal){
+			// handle flows from terminals to borders of process
+			$flows = Flow::loadExternal($terminal_place_id, $connectors,[Flow::EXT_CON_TO_TERM,Flow::TERM_TO_EXT_CON]);
+			//debug($flows);
+			foreach ($flows as $flow_id => $flow){
+				// $flow->connector_place_id ist die id des Connectors
+				$x1 = $this->r *   sin(RAD*$connectors[$flow->connector_place_id]->angle);
+				$y1 = $this->r *  -cos(RAD*$connectors[$flow->connector_place_id]->angle);
+
+				$x2 = $terminal->x + $terminal->w/2;
+				$y2 = $terminal->y;
+				if ($y2+70 < $y1) $y2+=($terminal->type ==Terminal::DATABASE ? 55 : 30);
+
+				if ($flow->type == Flow::EXT_CON_TO_TERM){
+					arrow($x1, $y1,$x2, $y2, $flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
+				} else {
+					arrow($x2, $y2,$x1, $y1, $flow->name,$url.$flow->ext_flow_id.'?type=ext',$flow->description);
+				}
+			}
+
+			// handle flows from terminals to inner processes
 			foreach ($child_processes as $process){
 				if (empty($process->connector_places)) continue;
-				$flows = Flow::loadExternal($terminal_place_id, $process->connector_places,true);
+				$flows = Flow::loadExternal($terminal_place_id, $process->connector_places,[Flow::FROM_TERMINAL,Flow::TO_TERMINAL]);
 				foreach ($flows as $flow_id => $flow){
 					$x1 = $process->x + $process->r *  sin(RAD*$process->connector_places[$flow->connector_place_id]['angle']);
 					$y1 = $process->y + $process->r * -cos(RAD*$process->connector_places[$flow->connector_place_id]['angle']);
@@ -979,9 +1009,9 @@ class Process extends UmbrellaObjectWithId{
 		if (!empty($this->r)){ // we try to display a process ?>
 			<g class="process" transform="translate(<?= empty($proces_place_id)?500:$this->x ?>,<?= empty($proces_place_id)?500:$this->y ?>)">
 				<circle class="process" cx="0" cy="0" r="<?= $this->r ?>" id="<?= $this->id ?>" <?= empty($proces_place_id)?'':'place_id="'.$proces_place_id.'"'?>>
-					<title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
+					<title><?= htmlspecialchars($this->description) ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
 				</circle>
-				<text x="0" y="0"><title><?= $this->description ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
+				<text x="0" y="0"><title><?= htmlspecialchars($this->description) ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
 		}
 
 		$connectors = $this->show_connectors($proces_place_id);
@@ -1284,20 +1314,20 @@ class Terminal extends UmbrellaObjectWithId{
 	<g transform="translate(<?= $this->x ?>,<?= $this->y ?>)">
 		<?php if ($this->type == Terminal::TERMINAL) { // terminal ?>
 		<rect class="terminal" x="0" y="0" width="<?= $this->w ?>" height="30" id="<?= $this->id ?>" <?= empty($terminal_place_id)?'':'place_id="'.$terminal_place_id.'"'?>>
-			<title><?= $this->description ?></title>
+			<title><?= htmlspecialchars($this->description) ?></title>
 		</rect>
-		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
+		<text x="<?= $this->w/2 ?>" y="15" fill="red"><title><?= htmlspecialchars($this->description) ?></title><?= $this->name ?></text>
 		<?php } else { // database ?>
 		<ellipse cx="<?= $this->w/2 ?>" cy="40" rx="<?= $this->w/2?>" ry="15">
-			<title><?= $this->description ?></title>
+			<title><?= htmlspecialchars($this->description) ?></title>
 		</ellipse>
 		<rect class="terminal" x="0" y="0" width="<?= $this->w ?>" height="40" stroke-dasharray="0,<?= $this->w ?>,40,<?= $this->w ?>,40" id="<?= $this->id ?>" <?= empty($terminal_place_id)?'':'place_id="'.$terminal_place_id.'"'?>>
-			<title><?= $this->description ?></title>
+			<title><?= htmlspecialchars($this->description) ?></title>
 		</rect>
 		<ellipse cx="<?= $this->w/2 ?>" cy="0" rx="<?= $this->w/2?>" ry="15">
-			<title><?= $this->description ?></title>
+			<title><?= htmlspecialchars($this->description) ?></title>
 		</ellipse>
-		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= $this->description ?></title><?= $this->name ?></text>
+		<text x="<?= $this->w/2 ?>" y="30" fill="red"><title><?= htmlspecialchars($this->description) ?></title><?= $this->name ?></text>
 		<?php } ?>
 	</g>
 	<?php }

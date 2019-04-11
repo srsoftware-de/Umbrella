@@ -219,7 +219,7 @@ function menu(evt){
 	if (cls=='process'||cls=='terminal'){
 		if (!elem.hasAttribute('place_id')) return false;
 		$('#contextmenu').show();
-		$('#contextmenu').css({left:evt.clientX+'px',top:evt.clientY+'px'});
+		$('#contextmenu').css({left:evt.layerX+'px',top:evt.layerY+'px'});
 		$('#contextmenu button.delete').off('click');
 		$('#contextmenu button.delete').on('click',function(){
 			hideContextMenu();

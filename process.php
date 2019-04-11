@@ -111,7 +111,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Terminals')?></th>
 		<td class="terminals">
 		<?php foreach ($process->terminals() as $terminal){ if ($terminal->type == Terminal::DATABASE || in_array($terminal->name,$shown)) continue; ?>
-		<a class="button" href="<?= getUrl('model','terminal/'. $terminal->id) ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
+		<a class="button" href="<?= getUrl('model','terminal/'. $terminal->id) ?>" title="<?= htmlspecialchars($terminal->description) ?>"><?= $terminal->name ?></a>
 		<?php $shown[] = $terminal->name; } ?>
 		</td>
 	</tr>
@@ -119,7 +119,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Databases')?></th>
 		<td class="databases">
 		<?php foreach ($process->terminals() as $terminal){ if ($terminal->type == Terminal::TERMINAL || in_array($terminal->name,$shown)) continue; ?>
-		<a class="button" href="<?= getUrl('model','database/'. $terminal->id) ?>" title="<?= $terminal->description?>"><?= $terminal->name ?></a>
+		<a class="button" href="<?= getUrl('model','database/'. $terminal->id) ?>" title="<?= htmlspecialchars($terminal->description) ?>"><?= $terminal->name ?></a>
 		<?php $shown[] = $terminal->name; } ?>
 		</td>
 	</tr>
@@ -141,7 +141,7 @@ if ($action == 'delete'){?>
 		<th><?= t('Processes')?></th>
 		<td class="processes">
 		<?php foreach ($process->children() as $child){ if (in_array($child->id,$shown)) continue;?>
-		<a class="button" href="<?= getUrl('model','process/'.$child->id) ?>" title="<?= $child->description ?>"><?= $child->name ?></a>
+		<a class="button" href="<?= getUrl('model','process/'.$child->id) ?>" title="<?= htmlspecialchars($child->description) ?>"><?= $child->name ?></a>
 		<?php $shown[] = $child->id; } ?>
 		</td>
 	</tr>
