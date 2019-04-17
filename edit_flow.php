@@ -46,7 +46,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Edit flow "?"',$flow->name); ?></legend>
 		<fieldset>
 			<legend><?= t('Name') ?></legend>
-			<input type="text" name="name" value="<?= $flow->name ?>"/>
+			<input type="text" name="name" value="<?= $flow->name ?>" autofocus="autofocus" />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Definition') ?></legend>
