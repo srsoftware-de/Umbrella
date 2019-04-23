@@ -2,8 +2,9 @@
 
 require_login('items');
 
+$key = param('key');
 $companies = request('company','json');
-$items = Item::load(['search'=>param('key'),'order'=>$order]); ?>
+$items = Item::load(['search'=>$key,'order'=>$order]); ?>
 <?php if (!empty($items)) { ?>
 <table>
 	<tr>
@@ -24,20 +25,20 @@ $items = Item::load(['search'=>param('key'),'order'=>$order]); ?>
 	</tr>
 	<?php foreach ($items as $item) { ?>
 	<tr>
-		<td><?= $item->code ?></td>
-		<td><?= $item->name ?></td>
-		<td><?= $item->tax ?> %</td>
+		<td><?= emphasize($item->code,$key) ?></td>
+		<td><?= emphasize($item->name,$key) ?></td>
+		<td><?= emphasize($item->tax,$key) ?> %</td>
 		<td rowspan="2">
 			<span class="right">
 				<a class="symbol" href="<?= $item->id?>/edit"></a>
 			</span>
-			<?= str_replace("\n",'<br/>',$item->description) ?>
+			<?= emphasize(str_replace("\n",'<br/>',$item->description),$key) ?>
 		</td>
 	</tr>
 	<tr>
 		<td></td>
 		<td><?= ($item->unit_price/100).' '.$companies[$item->company_id]['currency']?> /</td>
-		<td><?= $item->unit ?></td>
+		<td><?= emphasize($item->unit,$key) ?></td>
 	</tr>
 	<?php }?>
 </table>
