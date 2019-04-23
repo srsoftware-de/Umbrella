@@ -17,15 +17,15 @@ if ($key = param('key')){
 		<th><?= t('State')?></th>
 		<th><?= t('Actions')?></th>
 	</tr>
-	
+
 <?php foreach ($times as $id => $time){ ?>
 	<tr>
-		<td><a href="<?= $url.$id ?>/view"><?= $time->subject ?></a></td>
-		<td><a href="<?= $url.$id ?>/view"><?= $time->description ?></a></td>
-		<td><a href="<?= $url.$id ?>/view"><?= $time->start_time?date('Y-m-d H:i',$time->start_time):''; ?></a></td>
-		<td><a href="<?= $url.$id ?>/view"><?= $time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
-		<td><a href="<?= $url.$id ?>/view"><?= $time->end_time?round(($time->end_time-$time->start_time)/3600,2):'' ?></a></td>
-		<td><a href="<?= $url.$id ?>/edit"><?= t($time->state()) ?></a></td>
+		<td><a href="<?= $url.$id ?>/view"><?= emphasize($time->subject,$key) ?></a></td>
+		<td><a href="<?= $url.$id ?>/view"><?= emphasize($time->description,$key) ?></a></td>
+		<td><a href="<?= $url.$id ?>/view"><?= emphasize($time->start_time?date('Y-m-d H:i',$time->start_time):'',$key); ?></a></td>
+		<td><a href="<?= $url.$id ?>/view"><?= emphasize($time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>',$key); ?></a></td>
+		<td><a href="<?= $url.$id ?>/view"><?= emphasize($time->end_time?round(($time->end_time-$time->start_time)/3600,2):'',$key) ?></a></td>
+		<td><a href="<?= $url.$id ?>/edit"><?= emphasize(t($time->state()),$key) ?></a></td>
 		<td>
 			<?php if ($time->end_time) { ?>
 			<a class="symbol" title="<?= t('edit') ?>" href="<?= $url.$id ?>/edit"></a>
