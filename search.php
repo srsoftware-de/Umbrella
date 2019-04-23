@@ -15,10 +15,10 @@ if ($key = param('key')){
 	</tr>
 	<?php foreach ($items as $item) { ?>
 	<tr>
-		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= $item->id ?></a><td>
-		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= $item->code ?></a></td>
-		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= $item->name ?></a></td>
-		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= $item->location()->name ?></a></td>
+		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= emphasize($item->id,$key) ?></a><td>
+		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= emphasize($item->code,$key) ?></a></td>
+		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= emphasize($item->name,$key) ?></a></td>
+		<td><a href="<?= $base_url.$item->id.DS.'view'?>"><?= emphasize($item->location()->name,$key) ?></a></td>
 	</tr>
 	<?php } ?>
 </table>
