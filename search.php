@@ -4,8 +4,8 @@ require_login('contact');
 
 if ($key = param('key')){
 	$vcards = VCard::load(['key'=>$key]);
-	
-	if (!empty($vcards)){ 
+
+	if (!empty($vcards)){
 	$url=getUrl('contact');?>
 	<table>
 		<tr>
@@ -22,21 +22,21 @@ if ($key = param('key')){
 			$phones    = $vcard->phones();
 		?>
 		<tr>
-			<td><?= isset($vcard->FN) ? $vcard->FN :'' ?></td>
-			<td><?= $vcard->name(BEAUTY) ?></td>
+			<td><?= emphasize(isset($vcard->FN) ? $vcard->FN :'',$key) ?></td>
+			<td><?= emphasize($vcard->name(BEAUTY),$key) ?></td>
 			<td>
 			<?php while (!empty($addresses)) { ?>
-				<p><?= array_shift($addresses)->format(' / ') ?></p>
+				<p><?= emphasize(array_shift($addresses)->format(' / '),$key) ?></p>
 			<?php } ?>
 			</td>
 			<td>
 			<?php while (!empty($emails)) { ?>
-				<p><?= array_shift($emails) ?></p>
+				<p><?= emphasize(array_shift($emails),$key) ?></p>
 			<?php } ?>
 			</td>
 			<td>
 			<?php while(!empty($phones)) { ?>
-				<p><?= array_shift($phones) ?></p>
+				<p><?= emphasize(array_shift($phones),$key) ?></p>
 			<?php } ?>
 			</td>
 			<td>
