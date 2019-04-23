@@ -25,15 +25,15 @@ if ($key = param('key')){
 		$parent_id = $task->parent_task_id;
 		?>
 		<tr class="project<?= $task->project_id ?>">
-			<td class="<?= task_state($task->status)?>"><a href="<?= $url.$id ?>/view"><?= $task->name ?></a></td>
+			<td class="<?= task_state($task->status)?>"><a href="<?= $url.$id ?>/view"><?= emphasize($task->name,$key) ?></a></td>
 			<td>
 				<?php if ($parent_id !== null && isset($tasks[$parent_id])) { ?>
-				<a href="<?= $url.$parent_id ?>/view"><?= $tasks[$parent_id]->name ?></a>
+				<a href="<?= $url.$parent_id ?>/view"><?= emphasize($tasks[$parent_id]->name,$key) ?></a>
 				<?php } ?>
 			</td>
 			<td>
 				<span class="hover_h">
-				<a href="../project/<?= $task->project_id ?>/view"><?= $project['name'] ?></a>
+				<a href="../project/<?= $task->project_id ?>/view"><?= emphasize($project['name'],$key) ?></a>
 				</span>
 			</td>
 			<td><?= t(task_state($task->status)) ?></td>
