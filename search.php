@@ -21,7 +21,7 @@ include '../common_templates/messages.php'; ?>
 	if ($result){ ?>
 <fieldset class="<?= $service ?>">
 	<legend><?= t($data['name'])?></legend>
-	<?= str_replace($key, '<span class="hit">'.$key.'</span>', $result) ?>
+	<?= $result ?>
 </fieldset>
 <?php }
 }
