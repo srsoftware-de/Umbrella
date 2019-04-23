@@ -12,8 +12,8 @@ if ($key = param('key')){
 			</tr>
 		<?php foreach ($polls as $id => $poll) { ?>
 			<tr>
-				<td><a href="<?= getUrl('poll','view?id='.$id) ?>"><?= $poll->name ?></a></td>
-				<td class="poll"><?= markdown($poll->description) ?></td>
+				<td><a href="<?= getUrl('poll','view?id='.$id) ?>"><?= emphasize($poll->name,$key) ?></a></td>
+				<td class="poll"><?= emphasize(markdown($poll->description),$key) ?></td>
 			</tr>
 		<?php } ?>
 		</table>
