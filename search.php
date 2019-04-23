@@ -12,8 +12,8 @@ if ($key = param('key')){
 			</tr>
 		<?php foreach ($notes as $note) { ?>
 			<tr>
-				<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
-				<td class="note"><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
+				<td><a href="<?= $note->url() ?>"><?= emphasize($note->uri,$key) ?></a></td>
+				<td class="note"><?= emphasize($parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note),$key) ?></td>
 			</tr>
 		<?php } ?>
 		</table>
