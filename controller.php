@@ -143,7 +143,7 @@ class Channel extends UmbrellaObject{
 		}
 
 		$subject = t('? has invited you to a conversation',$user->login);
-		$message = t('Go to ? to join the conversation. Go to ? to see a list of your conversations.',[$url,getUrl('rtc')]);
+		$message = t('Go to ◊ to join the conversation. Go to ◊ to see a list of your conversations.',[$url,getUrl('rtc')]);
 		send_mail($user->email,$recievers,$subject,$message);
 		info('Invitation email was sent to ?.',implode(', ',$names));
 		return $this->patch(['invite_time'=>time()])->save();

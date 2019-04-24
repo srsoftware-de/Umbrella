@@ -25,7 +25,7 @@ include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add users to "?"',$channel->hash)?></legend>
+		<legend><?= t('Add users to "◊"',$channel->hash)?></legend>
 		<?php foreach ($users as $uid => $login){
 			if (in_array($uid, $channel->users)) continue; ?>
 			<label>
