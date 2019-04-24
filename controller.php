@@ -72,14 +72,14 @@
 
 			$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user);');
 			assert($query->execute([':service'=>$this->id.':'.$foreign_id,':user'=>$user->id]),t('Was not able to assign service id (?) with your user account!',$foreign_id));
-			info('Your account has been assigned with ? / id ?',[$this->id,$foreign_id]);
+			info('Your account has been assigned with ◊ / id ◊',[$this->id,$foreign_id]);
 		}
 
 		function deassign($foreign_id){
 			$db = get_or_create_db();
 			$query = $db->prepare('DELETE FROM service_ids_users WHERE service_id = :service;');
 			assert($query->execute([':service'=>$foreign_id]),t('Was not able to de-assign service id (?) from your user account!',$foreign_id));
-			info('? has been de-assigned.',$foreign_id);
+			info('◊ has been de-assigned.',$foreign_id);
 		}
 
 		function delete(){
@@ -336,13 +336,13 @@
 			$token = generateRandomString();
 			$args = [':uid'=>$this->id,':tok'=>$token,':exp'=>(time()+60*60*240)];
 			assert($query->execute($args),'Was not able to set token for user.'); // token valid for 10 days
-			$subject = t('? invited you to Umbrella',$user->login);
+			$subject = t('◊ invited you to Umbrella',$user->login);
 			$url = getUrl('user',$this->id.'/edit?token='.$token);
 			$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
-					t("Click the following link and set a password to join:\n?",$url)."\n".
+					t("Click the following link and set a password to join:\n◊",$url)."\n".
 					t('Note: this link can only be used once!');
 			send_mail($user->email, $this->email, $subject, $text);
-			info('Email has been sent to ?',$this->email);
+			info('Email has been sent to ◊',$this->email);
 		}
 
 		static function load($options = []){
@@ -442,7 +442,7 @@
 			$sql = 'INSERT INTO users ('.implode(', ', array_keys($args)).') VALUES (:'.implode(', :',array_keys($args)).' )';
 			$query = $db->prepare($sql);
 			assert ($query->execute($args),'Was not able to add user '.$this->login);
-			info('User ? has been added',$this->login);
+			info('User ◊ has been added',$this->login);
 			return true;
 		}
 

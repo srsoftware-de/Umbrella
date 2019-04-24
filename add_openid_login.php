@@ -34,7 +34,7 @@ if (!empty($login_services)) { ?>
 	<fieldset>
 		<legend><?= t('Login using OAuth 2 / OpenID Connect')?></legend>
 		<?php foreach ($login_services as $id => $data) {?>
-		<a class="button" href="add_openid_login?service=<?= $id ?>"><?= t('Connect with ? account',$id) ?></a><br/>
+		<a class="button" href="add_openid_login?service=<?= $id ?>"><?= t('Connect with ◊ account',$id) ?></a><br/>
 		<?php }?>
 	</fieldset>
 <?php }
