@@ -16,7 +16,7 @@ include '../common_templates/messages.php';
 
 ?>
 <fieldset>
-	<legend><?= t('Your last ? notes',$limit)?></legend>
+	<legend><?= t('Your last ◊ notes',$limit)?></legend>
 	<table class="notes">
 		<tr>
 			<th><a href="<?= getUrl('notes','?order=uri&limit=0')?>"><?= t('Use&nbsp;/ URI') ?></a></th>

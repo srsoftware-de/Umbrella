@@ -14,7 +14,7 @@ $translations = array(
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
-		'Log out ?'=>'? ausloggen',
+		'Log out ◊'=>'◊ ausloggen',
 		'Models' => 'Modelle',
 		'No'=>'Nein',
 		'note'=>'Notiz',
@@ -33,6 +33,6 @@ $translations = array(
 		'Users'=>'Benutzer',
 		'Yes'=>'Ja',
 		'Y-m-d H:i:s'=>'d.m.Y H:i:s',
-		'Your last ? notes'=>'Ihre letzten ? Notizen',
+		'Your last ◊ notes'=>'Ihre letzten ◊ Notizen',
 
 );
