@@ -25,7 +25,7 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add Terminal Instance to "?"',$process->name); ?></legend>
+	<legend><?= t('Add Terminal Instance to "◊"',$process->name); ?></legend>
 	<form method="POST">
 	<fieldset>
 	<legend><?= t('Type')?></legend>
@@ -42,7 +42,7 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 
 	<fieldset>
-		<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+		<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 		<textarea name="description"><?= param('description','') ?></textarea>
 	</fieldset>
 	<button type="submit"><?= t('Save') ?></button>

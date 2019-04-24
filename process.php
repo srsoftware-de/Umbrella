@@ -30,8 +30,8 @@ include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
-		<legend><?= t('Delete "?"',$process->name)?></legend>
-		<?= t('You are about to delete the model "?". Are you sure you want to proceed?',$process->name) ?>
+		<legend><?= t('Delete "◊"',$process->name)?></legend>
+		<?= t('You are about to delete the model "◊". Are you sure you want to proceed?',$process->name) ?>
 		<a class="button" href="?action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?"><?= t('No')?></a>
 	</fieldset>

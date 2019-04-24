@@ -60,8 +60,8 @@ include '../common_templates/messages.php';
 
 if ($action == 'delete'){?>
 	<fieldset>
-		<legend><?= t('Delete "?"',$flow->name)?></legend>
-		<?= t('You are about to delete the flow "?". Are you sure you want to proceed?',$flow->name) ?>
+		<legend><?= t('Delete "◊"',$flow->name)?></legend>
+		<?= t('You are about to delete the flow "◊". Are you sure you want to proceed?',$flow->name) ?>
 		<a class="button" href="?<?= $type?'type='.$type.'&':''?>action=delete&confirm=true"><?= t('Yes')?></a>
 		<a class="button" href="?<?= $type?'type='.$type:''?>"><?= t('No')?></a>
 	</fieldset>

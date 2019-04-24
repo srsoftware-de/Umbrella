@@ -29,14 +29,14 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Edit terminal "?"',$terminal->name)?>
+			<?= t('Edit terminal "◊"',$terminal->name)?>
 		</legend>
 		<fieldset>
 			<legend><?= t('Name') ?></legend>
 			<input type="text" name="name" value="<?= $terminal->name ?>" />
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= htmlspecialchars($terminal->description) ?></textarea>
 		</fieldset>
 		<?php if ($terminal->isDB()) { $project_terminals = Terminal::load(['project_id'=>$project['id']]);?>

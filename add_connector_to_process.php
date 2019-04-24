@@ -28,7 +28,7 @@
 	<form method="post">
 		<fieldset>
 			<legend>
-				<?= t('Add connector to process "?"',$process->name)?>
+				<?= t('Add connector to process "◊"',$process->name)?>
 			</legend>
 			<?= t('Connector name') ?>
 			<input type="text" name="name" value="<?= param('name',$process->name.':') ?>" autofocus="autofocus" />

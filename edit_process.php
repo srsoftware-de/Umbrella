@@ -28,14 +28,14 @@ include '../common_templates/messages.php'; ?>
 <form method="post">
 	<fieldset>
 		<legend>
-			<?= t('Edit process "?"',$process->name)?>
+			<?= t('Edit process "◊"',$process->name)?>
 		</legend>
 		<label>
 			<?= t('Name') ?>
 			<input type="text" name="name" value="<?= $process->name ?>" />
 		</label>
 		<label>
-			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $process->description ?></textarea>
 		</label>
 		<button type="submit">

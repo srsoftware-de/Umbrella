@@ -43,7 +43,7 @@ include '../common_templates/messages.php'; ?>
 
 <form method="post">
 	<fieldset>
-		<legend><?= t('Edit flow "?"',$flow->name); ?></legend>
+		<legend><?= t('Edit flow "◊"',$flow->name); ?></legend>
 		<fieldset>
 			<legend><?= t('Name') ?></legend>
 			<input type="text" name="name" value="<?= $flow->name ?>" autofocus="autofocus" />
@@ -53,7 +53,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="definition" value="<?= htmlentities($flow->definition) ?>" />
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $flow->description ?></textarea>
 		</fieldset>
 		<button type="submit">
