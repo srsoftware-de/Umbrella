@@ -98,7 +98,7 @@ include '../common_templates/messages.php';?>
 		<table>
 			<?php if (!empty($related_props)) { ?>
 			<tr>
-				<th><?= t('Properties of ?',$item->code)?></th>
+				<th><?= t('Properties of ◊',$item->code)?></th>
 				<th><?= t('Type of property') ?></th>
 				<th><?= t('Value') ?></th>
 				<th><?= t('Unit') ?></th>

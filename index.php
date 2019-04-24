@@ -37,7 +37,7 @@ include '../common_templates/messages.php';
 if ($companies){ ?>
 <fieldset>
 	<legend><?= t('Companies')?></legend>
-	<?= t('You are viewing the items of <b>?</b>.',$owner)?><br/>
+	<?= t('You are viewing the items of ◊.','<b>'.$owner.'</b>')?><br/>
 	<?= t('To view the stock of one of your companies, click on its name:')?>
 	<?php
 	foreach ($companies as $company){ ?>

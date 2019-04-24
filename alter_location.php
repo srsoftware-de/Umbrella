@@ -22,7 +22,7 @@ if ($item_id = param('id')){
 } else error('No item id supplied!');
 
 $locations = Location::load(['prefix'=>$prefix.':','order'=>'name']);
-	
+
 if ($location_id = param('location_id')){
 	$item->patch(['location_id'=>$location_id])->save();
 	redirect($base_url.$item_id.DS.'view');
@@ -34,7 +34,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Alter location of ?',$item->name) ?></legend>
+	<legend><?= t('Alter location of ◊',$item->name) ?></legend>
 	<a class="button" href="<?= $base_url.$prefix.DS.'add_location' ?>"><?= t('Add stock location') ?></a>
 	<form method="POST">
 		<select name="location_id">
@@ -42,7 +42,7 @@ include '../common_templates/messages.php'; ?>
 			<option value="<?= $location->id ?>" <?= $location->id == $item->location_id ? 'selected="selected"':''?>><?= $location->name ?></option>
 		<?php }?>
 		</select>
-		
+
 		<button type="submit"><?= t('Continue')?></button>
 	</form>
 </fieldset>
