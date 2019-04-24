@@ -33,7 +33,7 @@ include '../common_templates/messages.php';
 if ($allowed){ ?>
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add user to ?','<a href="view">'.$project->name.'</a>')?></legend>
+		<legend><?= t('Add user to ◊','<a href="view">'.$project->name.'</a>')?></legend>
 		<select name="new_user_id">
 			<option value="" selected="true"><?= t('== Select a user ==')?></option>
 			<?php foreach ($users as $id => $u){ if ($id == $user->id) continue; ?>

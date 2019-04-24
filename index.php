@@ -44,7 +44,7 @@ include '../common_templates/messages.php'; ?>
 			if ($uid == $user->id) { ?>
 			<?= $usr['data']['login'] ?><br/>
 			<?php } else { ?>
-			<a href="?user=<?= $uid ?>" title="<?= t('Click here to show only projects having ? as member.',$usr['data']['login'])?>"><?= $usr['data']['login'] ?></a><br/>
+			<a href="?user=<?= $uid ?>" title="<?= t('Click here to show only projects having ◊ as member.',$usr['data']['login'])?>"><?= $usr['data']['login'] ?></a><br/>
 		<?php }} ?>
 		</td>
 		<td>

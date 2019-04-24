@@ -190,11 +190,11 @@
 			if (param('notify') == 'on'){
 				$sender = $user->email;
 				$reciever = $new_user['email'];
-				$subject = t('? added you to a project',$user->login);
-				$text = t('You have been added to the project "?": ?',[$this->name,getUrl('project',$this->id.'/view')])."\n";
+				$subject = t('◊ added you to a project',$user->login);
+				$text = t('You have been added to the project "◊": ◊',[$this->name,getUrl('project',$this->id.'/view')])."\n";
 				$text .= t('This means you are now able to file bugs, add tasks to this projects and view the progress of this project.')."\n";
 				$text .= t('Navigate to the aforementioned linkt to login to the Umbrella Project Management Suite.');
-				if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ?',$reciever);
+				if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ◊',$reciever);
 			}
 		}
 
@@ -258,7 +258,7 @@
 				$url = getUrl('project',$this->id.'/view');
 				$hash = sha1($url);
 
-				request('bookmark','add',['url'=>$url,'comment'=>t('Project: ?',$this->name),'tags'=>$tags]);
+				request('bookmark','add',['url'=>$url,'comment'=>t('Project: ◊',$this->name),'tags'=>$tags]);
 
 				$users = Project::connected_users(['ids'=>$this->id]);
 
@@ -273,8 +273,8 @@
 
 		function send_note_notification(){
 			global $user;
-			$subject = t('? added a note.',$user->login);
-			$text = t("Open the following site to see the note on \"?\":\n\n?",[$this->name,getUrl('project',$this->id.'/view')]);
+			$subject = t('◊ added a note.',$user->login);
+			$text = t("Open the following site to see the note on \"◊\":\n\n◊",[$this->name,getUrl('project',$this->id.'/view')]);
 			$recievers = [];
 			foreach ($this->users as $u) {
 				if ($u['data']['email'] == $user->email) continue;

@@ -12,7 +12,7 @@ if ($project_id = param('id')){
 
 		if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
 
-		$title = t('Umprella: Project ?',$project->name);
+		$title = t('Umprella: Project ◊',$project->name);
 		$show_closed_tasks = param('closed') == 'show';
 
 		$parsedown = file_exists('../lib/parsedown/Parsedown.php');
@@ -84,7 +84,7 @@ if ($project){ ?>
 	</tr>
 	<?php if ($est_time) { ?>
 	<tr>
-		<th><?= t('Estimated time')?></th><td><?= t('? hours',$est_time) ?></td>
+		<th><?= t('Estimated time')?></th><td><?= t('◊ hours',$est_time) ?></td>
 	</tr>
 	<?php } ?>
 	<tr>

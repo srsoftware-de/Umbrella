@@ -15,8 +15,8 @@ if ($key = param('key')){
 			</tr>
 		<?php foreach ($projects as $id => $project){ ?>
 			<tr>
-				<td><a href="<?= $url.$id ?>/view"><?= $project->name ?></a></td>
-				<td><?= t(project_state($project->status)) ?></td>
+				<td><a href="<?= $url.$id ?>/view"><?= emphasize($project->name,$key) ?></a></td>
+				<td><?= emphasize(t(project_state($project->status)),$key) ?></td>
 				<td>
 				<?php foreach ($project->users as $uid => $perm) {?>
 				<?= $users[$uid]['login']?><br/>
@@ -30,7 +30,7 @@ if ($key = param('key')){
 				</td>
 			</tr>
 		<?php } ?>
-		
+
 		</table>
 		<?php }
 }

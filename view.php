@@ -34,7 +34,7 @@ if (param('note_added')) $project->send_note_notification();
 
 if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
 
-$title = t('Umprella: Project ?',$project->name);
+$title = t('Umprella: Project ◊',$project->name);
 $show_closed_tasks = param('closed') == 'show';
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
@@ -96,8 +96,8 @@ if ($project){
 	if ($show_confirm_question){ ?>
 <fieldset>
 
-	<legend><?= t('Confirm removal of "?" from project?',$project->users[$remove_user_id]['data']['login'])?></legend>
-	<?= t('User will no longer have access to this projects. Task assigned to "?" will be assigned to you. Are you sure?',$project->users[$remove_user_id]['data']['login'])?><br/>
+	<legend><?= t('Confirm removal of "◊" from project?',$project->users[$remove_user_id]['data']['login'])?></legend>
+	<?= t('User will no longer have access to this projects. Task assigned to "◊" will be assigned to you. Are you sure?',$project->users[$remove_user_id]['data']['login'])?><br/>
 	<a class="button" href="?remove_user=<?= $remove_user_id?>&confirm=yes"><?= t('Yes')?></a>
 	<a class="button" href="view"><?= t('No')?></a>
 </fieldset>
@@ -132,7 +132,7 @@ if ($project){
 	</tr>
 	<?php if ($est_time) { ?>
 	<tr>
-		<th><?= t('Estimated time')?></th><td><?= t('? hours',$est_time) ?></td>
+		<th><?= t('Estimated time')?></th><td><?= t('◊ hours',$est_time) ?></td>
 	</tr>
 	<?php } ?>
 	<?php if (isset($services['files'])){ ?>
