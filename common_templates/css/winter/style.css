@@ -97,6 +97,7 @@ fieldset.add.document {
 
 fieldset.options label,
 .add_positions label span,
+.poll_status label,
 .requirements label{
 	display: block;
 }
@@ -130,6 +131,10 @@ label.location::after {
 .poll.evaluate table tr:nth-child(n+2) th,
 .poll.evaluate table td{
 	text-align: right;
+}
+
+.poll .disabled{
+	text-decoration: line-through;
 }
 
 .company div > fieldset,
@@ -460,14 +465,27 @@ div.search:hover input{
 	.tasks.list tr>*:nth-child(2){
 		display: none;
 	}
+	table.document input{
+		max-width: 100px;
+	}
 }
 
 @media (max-width: 900px){
 	table.items tr>*:nth-child(2),
 	table.documents tr>*:nth-child(4),
+	table.document tr>*:nth-child(1),
+		
 	body.time tr>*:nth-child(6),
 	.tasks tr>*:nth-child(5){
 		display: none;
+	}
+	
+	table.document input{
+		max-width: 60px;
+	}
+	table.document .tax input,
+	table.document input.amount{
+		max-width: 25px;
 	}
 }
 
@@ -483,6 +501,7 @@ div.search:hover input{
 	table.items tr>*:nth-child(1),
 	body.time tr>*:nth-child(1),
 	.project-index tr>*:nth-child(4),
+	table.document tr>*:nth-child(2),
 	.tasks tr>*:nth-child(6){
 		display: none;
 	}

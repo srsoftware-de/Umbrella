@@ -10,8 +10,13 @@ a{
 	color: #888888;
 }
 
-.tasks .started>a{
+.completed>a,
+.started>a{
 	color: #53822c;
+}
+
+.canceled>a{
+	color: gray;
 }
 
 tr{

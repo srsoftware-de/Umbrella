@@ -9,9 +9,17 @@ a{
 .pending a{
 	color: #ffe062;
 }
-
-.started a{
+.completed>a,
+.started>a{
 	color: #0c0061;
+}
+
+.completed>a:after{
+	content: " ✓";
+}
+
+.canceled>a{
+	color: #414141;
 }
 
 a:hover{

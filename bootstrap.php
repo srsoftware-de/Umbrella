@@ -82,6 +82,20 @@ function dialog($question,$options = array('YES'=>'?confirm=yes','NO'=>'index'))
 	return $result.'</fieldset>';
 }
 
+function emphasize($text,$key){
+	$prefix = '<span class="hit">';
+	$postfix = '</span>';
+
+	$offset = strlen($prefix)+strlen($postfix);
+	$len = strlen($key);
+	$pos = stripos($text, $key);
+	while ($pos !== false){
+		$text = substr($text, 0,$pos).$prefix.substr($text,$pos,$len).$postfix.substr($text, $pos+$len);
+		$pos = stripos($text, $key, $pos+$len+$offset);
+	}
+	return $text;
+}
+
 function error($message,$args = null){
 	if ($message instanceof Exception) $message = $message->getMessage();
 	if ($message === null) return;
@@ -260,7 +274,7 @@ function redirect($url){
 function replace_text($text,$replacements = null){
 	if ($replacements !== null){
 		if (!is_array($replacements)) $replacements = array($replacements);
-		while ($rep = array_shift($replacements)) $text = preg_replace('/\?/', $rep, $text,1);
+		while ($rep = array_shift($replacements)) $text = preg_replace('/◊/', $rep, $text,1);
 	}
 	return $text;
 }
@@ -275,7 +289,7 @@ function request($service = null,$path,$data = [], $debug = false,$decode = ARRA
 	if ($data === null) $data = array();
 	if (!isset($data['token'])) $data['token'] = $_SESSION['token'];
 
-	if ($debug) echo t('Sending post data to "?" :',$url).'<br/>';
+	if ($debug) echo t('Sending post data to "◊" :',$url).'<br/>';
 
 	$ssl_options = array();
 	$ssl_options['verify_peer'] = false; // TODO: this is rather bad. we need to sort this out!!!

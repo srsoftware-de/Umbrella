@@ -9,6 +9,6 @@ if (isset($user)) { ?>
 	<button type="submit" class="symbol"></button>
 	</form>
 	</div>
-	<a class="button" href="<?= $services['user']['path'].'logout?returnTo='.location() ?>"><?= t('Log out ?',$user->login) ?></a>
+	<a class="button" href="<?= $services['user']['path'].'logout?returnTo='.location() ?>"><?= t('Log out ◊',$user->login) ?></a>
 <?php }?>
 </div>

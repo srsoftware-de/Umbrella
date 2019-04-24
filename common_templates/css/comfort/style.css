@@ -72,11 +72,6 @@ fieldset{
 	display: inherit;
 }
 
-.completed a{
-	text-decoration: line-through;
-}
-
-
 .button{
 	padding:2px;
 	margin:5px;
@@ -151,6 +146,15 @@ img{
 	padding: 15px;
 }
 
+.poll td.poll_status>*{
+	margin: 5px;
+	padding: 5px;
+}
+
+.poll td.poll_status>a{
+	display: inline-block;
+}
+
 .poll table{
 	border-spacing: 0;
 }
@@ -163,6 +167,10 @@ img{
 	border-style: solid;
 	border-width: 1px 0 0 0;
 	border-color: black;
+}
+
+.poll .disabled{
+	text-decoration: line-through;
 }
 
 img[src*="pos=right"] {
@@ -227,11 +235,6 @@ span.hover_h {
 label{
 	display: block;
 	position: relative;
-}
-
-label input[type=text]{
-	position: absolute;
-	right: 0;	
 }
 
 legend{

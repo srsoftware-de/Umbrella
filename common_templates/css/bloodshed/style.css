@@ -97,6 +97,7 @@ fieldset.add.document {
 
 fieldset.options label,
 .add_positions label span,
+.poll_status label,
 .requirements label{
 	display: block;
 }
@@ -130,6 +131,10 @@ label.location::after {
 .poll.evaluate table tr:nth-child(n+2) th,
 .poll.evaluate table td{
 	text-align: right;
+}
+
+.poll .disabled{
+	text-decoration: line-through;
 }
 
 .company div > fieldset,
