@@ -81,7 +81,7 @@ include '../common_templates/head.php'; ?>
 			<br/>
 			<?php } ?>
 			<?php if (!empty($task->child_time())){ ?>
-			<?= t('Sub-tasks: ? hours',$task->child_time())?>
+			<?= t('Sub-tasks: ◊ hours',$task->child_time())?>
 			<?php } ?>
 		</td>
 	</tr>

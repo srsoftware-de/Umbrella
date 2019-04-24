@@ -32,7 +32,7 @@ include '../common_templates/messages.php';
 
 if ($task){ ?>
 <fieldset>
-	<legend><?= t('This will remove the task "?". Are you sure?',$task->name)?></legend>
+	<legend><?= t('This will remove the task "◊". Are you sure?',$task->name)?></legend>
 	<a href="?confirm=yes<?= $target?('&redirect='.$target):''?>" class="button"><?= t('Yes')?></a>
 	<a href="view" class="button"><?= t('No')?></a>
 </fieldset>

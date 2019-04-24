@@ -255,8 +255,8 @@
 		public function send_note_notification($note_id = null){
 			global $user;
 			if (empty($note_id)) return;
-			$subject = t('? added a note.',$user->login);
-			$text = t("Open the following site to see the note on \"?\":\n\n?",[$this->name,getUrl('task',$this->id.'/view#bkmk'.$note_id)]);
+			$subject = t('◊ added a note.',$user->login);
+			$text = t("Open the following site to see the note on \"◊\":\n\n◊",[$this->name,getUrl('task',$this->id.'/view#bkmk'.$note_id)]);
 			$recipients = [];
 			foreach ($this->users() as $u){
 				if ($u['email'] != $user->email) $recipients[] = $u['email'];
@@ -311,8 +311,8 @@
 				$sender = $user->email;
 				foreach ($this->users() as $uid => $u){
 					if ($uid == $user->id) continue;
-					$subject = t('? edited one of your tasks',$user->login);
-					$text = t("The task \"?\" now has the following description:\n\n?\n\n",[$this->name,$this->description]).getUrl('task',$this->id.'/view');
+					$subject = t('◊ edited one of your tasks',$user->login);
+					$text = t("The task \"◊\" now has the following description:\n\n◊\n\n",[$this->name,$this->description]).getUrl('task',$this->id.'/view');
 					send_mail($sender, $u['email'], $subject, $text);
 
 					if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
@@ -326,18 +326,18 @@
 
 			if (empty($this->name)) throw new Exception('Task name must be set!');
 			if (!is_numeric($this->project_id)) throw new Exception('Task must reference existing project!');
-			if (!empty($this->est_time) && !is_numeric($this->est_time)) throw_exception('"?" is not a valid duration!',$this->est_time);
+			if (!empty($this->est_time) && !is_numeric($this->est_time)) throw_exception('"◊" is not a valid duration!',$this->est_time);
 
 			$start_stamp = null;
 			if (!empty($this->start_date)){
 				$start_stamp = strtotime($this->start_date);
-				if ($start_stamp === false) throw_exception('Start date (?) is not a valid date!',$this->start_date);
+				if ($start_stamp === false) throw_exception('Start date (◊) is not a valid date!',$this->start_date);
 				if ($start_stamp > time()) $this->status = TASK_STATUS_PENDING;
 			} else $this->start_date = null;
 
 			if (!empty($this->due_date)){
 				$due_stamp = strtotime($this->due_date);
-				if ($due_stamp === false) throw_exception('Due date (?) is not a valid date!', $this->due_date);
+				if ($due_stamp === false) throw_exception('Due date (◊) is not a valid date!', $this->due_date);
 				if ($start_stamp && $start_stamp > $due_stamp){
 					$this->start_date = $this->due_date;
 					info('Start date adjusted to match due date!');
@@ -387,7 +387,7 @@
 				$query->execute([':tid'=>$this->id]);
 				return $this;
 			}
-			if (!is_array($required_task_ids)) throw_exception('Required tasks should be a list, ? found!',$required_task_ids);
+			if (!is_array($required_task_ids)) throw_exception('Required tasks should be a list, ◊ found!',$required_task_ids);
 			$required_task_ids = array_keys($required_task_ids);
 
 			$qmarks = implode(',', array_fill(0, count($required_task_ids), '?'));
@@ -453,8 +453,8 @@
 				if ($notify && empty($rows)){
 					$sender = $user->email;
 					$reciever = $new_user['email'];
-					$subject = t('? assigned you to a task',$user->login);
-					$text = t('You have been assigned to the task "?": ',$this->name).getUrl('task',$this->id.'/view');
+					$subject = t('◊ assigned you to a task',$user->login);
+					$text = t('You have been assigned to the task "◊": ',$this->name).getUrl('task',$this->id.'/view');
 					if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
 					info('Notification email has been sent.');
 				}
@@ -567,7 +567,7 @@
 					if (trim($tag) != '') $tags[]=$tag;
 				}
 				$url = getUrl('task',$this->id.'/view');
-				request('bookmark','add',['url'=>$url,'comment'=>t('Task: ?',$this->name),'tags'=>$tags]);
+				request('bookmark','add',['url'=>$url,'comment'=>t('Task: ◊',$this->name),'tags'=>$tags]);
 				return sha1($url);
 			}
 			return false;

@@ -15,8 +15,8 @@ if (empty($task)){
 
 $problems = [];
 if (!empty($task->start_date) && time() > strtotime($task->start_date)){
-	$problems[] = t('The start date (?) of this task has already passed.',$task->start_date);
-	$problems[] = t('In order to set this task in "?" state, the <b>start date</b> has to be <b>removed</b>.',t('wait'));
+	$problems[] = t('The start date (◊) of this task has already passed.',$task->start_date);
+	$problems[] = t('In order to set this task in "◊" state, the <b>start date</b> has to be <b>removed</b>.',t('wait'));
 	$task->patch(['start_date'=>null]);
 }
 if (empty($problems) || param('confirm','no')=='yes'){

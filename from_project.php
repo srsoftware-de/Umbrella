@@ -45,7 +45,7 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Convert project "?" to task',$all_projects[$project_id]['name'])?></legend>
+	<legend><?= t('Convert project "◊" to task',$all_projects[$project_id]['name'])?></legend>
 	<p><?= t('This will convert the project to a task, which will then be added to the project selected below:')?></p>
 	<form method="POST">
 	<select name="target_project">

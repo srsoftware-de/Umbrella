@@ -32,7 +32,7 @@ if (!empty($users) && is_array($users)){
 	$added = false;
 	foreach ($users as $uid => $perm){
 		if (!array_key_exists($uid, $project_users)){
-			error('User with id ? is not part of the project!',$uid);
+			error('User with id ◊ is not part of the project!',$uid);
 			continue;
 		}
 		if ($perm == Task::PERMISSION_CREATOR) $perm = Task::PERMISSION_READ_WRITE; // if someone tries to assign creator permissions to a task: fall back to read/write
@@ -50,7 +50,7 @@ include '../common_templates/messages.php';
 if ($task->is_writable()){ ?>
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add user to task "?"','<a href="view">'.$task->name.'</a>') ?></legend>
+		<legend><?= t('Add user to task "◊"','<a href="view">'.$task->name.'</a>') ?></legend>
 		<table>
 			<tr>
 				<th><?= t('User')?></th>

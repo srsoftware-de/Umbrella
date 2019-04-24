@@ -26,7 +26,7 @@ if (post('name')){
 	if (!empty($user_permissions) && is_array($user_permissions)){
 		foreach ($user_permissions as $uid => $perm){
 			if (empty($project['users'][$uid])){
-				error('User with id ? is not member of the project!',$uid);
+				error('User with id ◊ is not member of the project!',$uid);
 				break;
 			}
 			if ($uid == $user->id) $perm = Task::PERMISSION_CREATOR;
@@ -64,18 +64,18 @@ include '../common_templates/messages.php'; ?>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
-		<legend><?= t('Add subtask to "?"','<a href="'.getUrl('task',$task->id.'/view').'">'.$task->name.'</a>') ?></legend>
+		<legend><?= t('Add subtask to "◊"','<a href="'.getUrl('task',$task->id.'/view').'">'.$task->name.'</a>') ?></legend>
 		<fieldset><legend><?= t('Name')?></legend>
 			<input type="text" name="name" value="<?= param('name') ?>" autofocus="true"/>
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= param('description'); ?></textarea>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Estimated time')?></legend>
 			<label>
-				<?= t('? hours','<input type="number" name="est_time" value="'.param('est_time').'" />')?>
+				<?= t('◊ hours','<input type="number" name="est_time" value="'.param('est_time').'" />')?>
 			</label>
 		</fieldset>
 		<fieldset>

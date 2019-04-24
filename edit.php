@@ -31,7 +31,7 @@ if ($name = post('name')){
 			$modifier = post('start_extension');
 			$modifier = empty($modifier) ? '' : ' '.$modifier;
 			$stamp = strtotime($start_date.$modifier);
-			if ($stamp === false) throw_exception('Start date (?) is not a valid date!',$start_date.$modifier);
+			if ($stamp === false) throw_exception('Start date (◊) is not a valid date!',$start_date.$modifier);
 			$task->patch(['start_date' => date('Y-m-d',$stamp)]);
 		} else $task->patch(['start_date' => null]);
 
@@ -39,7 +39,7 @@ if ($name = post('name')){
 			$modifier = post('due_extension');
 			$modifier = empty($modifier) ? '' : ' '.$modifier;
 			$stamp = strtotime($due_date.$modifier);
-			if ($stamp === false) throw_exception('Due date (?) is not a valid date!',$due_date.$modifier);
+			if ($stamp === false) throw_exception('Due date (◊) is not a valid date!',$due_date.$modifier);
 			$task->patch(['due_date' => date('Y-m-d',$stamp)]);
 		} else $task->patch(['due_date' => null]);
 
@@ -138,13 +138,13 @@ include '../common_templates/messages.php'; ?>
 
 		<?php }?>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="?">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $task->description ?></textarea>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Estimated time')?></legend>
 			<label>
-				<?= t('? hours','<input type="number" name="est_time" value="'.htmlspecialchars($task->est_time).'" />')?>
+				<?= t('◊ hours','<input type="number" name="est_time" value="'.htmlspecialchars($task->est_time).'" />')?>
 			</label>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
