@@ -24,12 +24,12 @@ include '../common_templates/messages.php';
 				<?php if (!$time->end_time) { ?>
 				<a title="<?= t('stop')?>" href="stop">stop</a>
 				<?php } ?>
-				<a title="<?= t('drop')?>" href="drop" class="symbol"></a> 
+				<a title="<?= t('drop')?>" href="drop" class="symbol"></a>
 			</span>
 			<h2>
 			<?= date('Y-m-d H:i',$time->start_time); ?>
 			<?php if ($time->end_time) { ?>
-			... <?= date('Y-m-d H:i',$time->end_time);?> (<?= t('? hours',round(($time->end_time-$time->start_time)/3600,2)) ?>)
+			... <?= date('Y-m-d H:i',$time->end_time);?> (<?= t('◊ hours',round(($time->end_time-$time->start_time)/3600,2)) ?>)
 			<?php } else { ?>
 			(<?= t('started'); ?>)
 			<?php } ?>
@@ -44,7 +44,7 @@ include '../common_templates/messages.php';
 			<?= t('State')?></th><td><?= t($time->state()); ?>
 			<?php if ($time->end_time) { ?>
 			<span class="change_state">&rarr;
-				<a href="update_state?state=open&returnTo=<?= location('*') ?>"><?= t('open')?></a> | 
+				<a href="update_state?state=open&returnTo=<?= location('*') ?>"><?= t('open')?></a> |
 				<a href="update_state?state=pending&returnTo=<?= location('*') ?>"><?= t('pending')?></a> |
 				<a href="update_state?state=complete&returnTo=<?= location('*') ?>"><?= t('completed')?></a>
 			</span>

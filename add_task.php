@@ -29,18 +29,18 @@ if ($selected !== null){
 	redirect($selected->id.'/view');
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend><?= t('Add Task "?" to Timetrack',$task['name']) ?></legend>
+	<fieldset><legend><?= t('Add Task "◊" to Timetrack',$task['name']) ?></legend>
 		<fieldset><legend><?= t('Open timetracks') ?></legend>
 			<select name="timetrack">
 				<?php foreach ($times as $id => $track){ ?>
 				<option value="<?= $id ?>"><?= $track->subject ?></option>
 				<?php } ?>
-				<option value="0"><?= t('Start new time track')?></option>				
+				<option value="0"><?= t('Start new time track')?></option>
 			</select>
 		</fieldset>
 		<input type="submit" />

@@ -208,7 +208,7 @@
 
 		function assign_task($task = null){
 			if (isset($this->tasks[$task['id']])){
-				info('The task "?" already was assigned to this timetrack.',$task['name']);
+				info('The task "◊" already was assigned to this timetrack.',$task['name']);
 			} else {
 				$new_description = (empty($this->description) ? '':$this->description."\n\n") . $task['description'];
 				$this->patch(['description'=>$new_description,'subject'=>$task['name']]);
