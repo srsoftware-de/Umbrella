@@ -21,19 +21,19 @@ $user_list = request('user','json');
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 ?>
 <fieldset>
 	<legend><?= t('current users')?></legend>
 	<ul>
-	<?php foreach ($company->users() as $uid) { ?>	
+	<?php foreach ($company->users() as $uid) { ?>
 		<li><?= $user_list[$uid]['login']?></li>
 	<?php } ?>
 	</ul>
 </fieldset>
 <form method="POST">
-	<fieldset><legend><?=  t('Add user to Project "?"',$company->name) ?></legend>
+	<fieldset><legend><?=  t('Add user to Project "◊"',$company->name) ?></legend>
 		<fieldset>
 			<select name="new_user">
 				<option value="" selected="selected">= <?= t('Select a user') ?> =</option>
@@ -42,7 +42,7 @@ include '../common_templates/messages.php';
 				<?php }?>
 			</select>
 			<label>
-			</label>	
+			</label>
 		</fieldset>
 		<input type="submit" />
 	</fieldset>

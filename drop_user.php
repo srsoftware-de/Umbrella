@@ -41,7 +41,7 @@ include '../common_templates/messages.php';
 
 <fieldset>
 	<legend><?= t('confirmation required') ?></legend>
-	<?= t('Are you sure you want to remove <b>?</b> from ??',[$user->login,$company->name]) ?><br/>
+	<?= t('Are you sure you want to remove ◊ from ◊?',['<b>'.$user->login.'</b>',$company->name]) ?><br/>
 	<a class="button" href="<?= location('id').'&confirm=yes'?>"><?= t('Yes')?></a>
 	<a class="button" href="<?= getUrl('company') ?>"><?= t('No')?></a>
 </fieldset>
