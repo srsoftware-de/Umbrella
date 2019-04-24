@@ -64,7 +64,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Poll "?"',$poll->name)?></legend>
+	<legend><?= t('Poll "◊"',$poll->name)?></legend>
 	<?= markdown($poll->description)?>
 	<form method="POST">
 		<fieldset>

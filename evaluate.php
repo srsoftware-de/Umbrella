@@ -81,7 +81,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Evaluation of "?"',$poll->name)?></legend>
+	<legend><?= t('Evaluation of "◊"',$poll->name)?></legend>
 	<a class="button" href="<?= getUrl('poll','options?id='.$poll->id) ?>"><?= t('Edit options')?></a>
 	<a class="button" href="<?= getUrl('poll','view?id='.$poll->id)?>" target="_blank"><?= t('Visit poll') ?></a>
 	<?php if ($vertical) { ?>

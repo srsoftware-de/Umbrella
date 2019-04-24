@@ -41,7 +41,7 @@ if (!empty($options)) {
 			$poll->save_selection($_POST);
 			info('Your selection has been saved.');
 		} else {
-			error('A user with name "?" has already submitted selections. Enter another name or confirm to overwrite existing selections!',empty($user)?$name:$user->login);
+			error('A user with name "◊" has already submitted selections. Enter another name or confirm to overwrite existing selections!',empty($user)?$name:$user->login);
 			info('This will only alter options where you set a weight!');
 		}
 	}
@@ -55,7 +55,7 @@ if (!empty($user)){
 } ?>
 
 <fieldset>
-	<legend><?= t('Poll "?"',$poll->name) ?></legend>
+	<legend><?= t('Poll "◊"',$poll->name) ?></legend>
 	<?= markdown($poll->description)?>
 	<form method="POST">
 		<fieldset>
