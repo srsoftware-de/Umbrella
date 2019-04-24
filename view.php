@@ -21,17 +21,17 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset class="bookmark">
-	<legend><?= t('Tag "?"',$tag->tag) ?></legend>
-	
+	<legend><?= t('Tag "◊"',$tag->tag) ?></legend>
+
 	<?php foreach ($tag->bookmarks() as $hash => $bookmark ) {?>
 	<fieldset>
 		<legend>
 			<a class="symbol" href="../<?= $hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
-			<a class="symbol" href="../<?= $hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>			
+			<a class="symbol" href="../<?= $hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url ?></a>
 		</legend>
 		<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
-		<div class="tags">		
+		<div class="tags">
 			<?php foreach ($bookmark->tags() as $tag){ ?>
 			<a class="button" href="../<?= $tag->tag ?>/view"><?= $tag->tag ?></a>
 			<?php } ?>
@@ -52,7 +52,7 @@ include '../common_templates/messages.php'; ?>
 			</form>
 		</fieldset>
 	</fieldset>
-	<?php } ?>	
+	<?php } ?>
 </fieldset>
 
 <?php include '../common_templates/closure.php'; ?>

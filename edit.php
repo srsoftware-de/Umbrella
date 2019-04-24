@@ -5,7 +5,7 @@ if ($url_hash = param('id')){
 	$bookmark = Bookmark::load(['url_hash'=>$url_hash]);
 	if ($url = param('url')) {
 		$bookmark->update(param('url'),param('tags_string'),param('comment'));
-		
+
 		if ($redirect = param('returnTo')){
 			redirect($redirect);
 		} else redirect(getUrl('bookmark',$tag.'/view'));
@@ -15,13 +15,13 @@ if ($url_hash = param('id')){
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
-include '../common_templates/messages.php'; 
+include '../common_templates/messages.php';
 
 if ($url_hash){ ?>
 
 <form method="POST">
 <fieldset>
-	<legend><?= t('Edit URL ?','"'.$bookmark->url.'"'); ?></legend>
+	<legend><?= t('Edit URL ◊','"'.$bookmark->url.'"'); ?></legend>
 	<label>
 		<?= t('New Url'); ?>
 		<input type="text" name="url" value="<?= $bookmark->url ?>" />

@@ -204,7 +204,7 @@
 			info('Your bookmark has been shared.');
 			if ($notify){
 				$recipient = request('user','json',['ids'=>$user_id]);
-				if (send_mail($user->email, $recipient['email'], t('? has shared a bookmark with you.',$user->login),t('You have been invited to have a look at ?. Visit ? to see all your bookmarks.',[$this->url,getUrl('bookmark')]))){
+				if (send_mail($user->email, $recipient['email'], t('◊ has shared a bookmark with you.',$user->login),t('You have been invited to have a look at ◊. Visit ◊ to see all your bookmarks.',[$this->url,getUrl('bookmark')]))){
 					info('Notification has been sent to user.');
 				}
 			}

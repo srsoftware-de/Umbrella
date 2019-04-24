@@ -24,7 +24,7 @@ include '../common_templates/messages.php'; ?>
 <form method="POST">
 <fieldset>
 	<legend><?= t('Confirmation required') ?></legend>
-	<?= t('Are you sure you want to delete "?" (?) ?',[$bookmark->comment()->comment,$bookmark->url]); ?><br/>
+	<?= t('Are you sure you want to delete "◊" (◊) ?',[$bookmark->comment()->comment,$bookmark->url]); ?><br/>
 	<button type="submit" name="confirm" value="false"><?= t('No')?></button>
 	<button type="submit" name="confirm" value="true"><?= t('Yes')?></button>
 </fieldset>
