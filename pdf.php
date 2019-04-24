@@ -129,11 +129,11 @@ class PDF extends FPDF{
 
 		$bank_account = str_replace(["\r\n","\n"], ", ", $this->document->bank_account);
 		$this->SetY(-15);
-		$this->Cell(0,5,t('Bank account: ?',$bank_account),NO_FRAME,NEWLINE,'L');
-		$this->Cell(0,5,t('Local court: ?',$this->document->court),NO_FRAME,NEWLINE,'L');
+		$this->Cell(0,5,t('Bank account: ◊',$bank_account),NO_FRAME,NEWLINE,'L');
+		$this->Cell(0,5,t('Local court: ◊',$this->document->court),NO_FRAME,NEWLINE,'L');
 
 		$this->SetY(-15);
-		$this->Cell(0,10,t('Page ?/?',[$this->PageNo(),'{nb}']),NO_FRAME,0,'R');
+		$this->Cell(0,10,t('Page ◊/◊',[$this->PageNo(),'{nb}']),NO_FRAME,0,'R');
 		$this->Ln();
 	}
 
@@ -304,7 +304,7 @@ class PDF extends FPDF{
 		$this->price_cell($sum);
 
 		foreach ($taxes as $percent => $tax){
-			$this->Cell(40+93+25+12,5,t('Tax ?%',$percent),NO_FRAME,RIGHT,'R');
+			$this->Cell(40+93+25+12,5,t('Tax ◊%',$percent),NO_FRAME,RIGHT,'R');
 			if ($debug) debug($percent.'% Ust: '.$tax);
 			$this->price_cell($tax);
 			$sum += $tax;

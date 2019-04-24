@@ -13,7 +13,7 @@ if ($doc_type_id = param('type_id')){
 	$pending_doc = Document::load(['type'=>$doc_type_id,'company_id'=>$company_id,'empty'=>true]);
 	if (!empty($pending_doc)){
 		$doc = reset($pending_doc);
-		error('There already is a(n) ? which has not been used:',t($doc->type()->name));
+		error('There already is a(n) ◊ which has not been used:',t($doc->type()->name));
 		redirect(getUrl('document',$doc->id.'/view'));
 	}
 }

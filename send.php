@@ -6,12 +6,12 @@
 
 	$reciever = post('reciever',$document->customer_email);
 	$sender = post('sender',$document->company()['email']);
-	$subject = post('subject',t('New '.$document->type->name.' from ?',$document->company()['name']));
+	$subject = post('subject',t('New '.$document->type->name.' from ◊',$document->company()['name']));
 	$text = post('text',$document->mail_text());
 
 	if (isset($_POST['reciever'])){
 		if ($pdf->send($sender,$reciever,$subject,$text)){
-			info('Your email to ? has been sent.',$document->customer_email);
+			info('Your email to ◊ has been sent.',$document->customer_email);
 			$document->update_mail_text($text);
 			if ($document->state == Document::STATE_NEW){
 				$document->patch(['state'=>Document::STATE_SENT]);
@@ -26,7 +26,7 @@
 	if ($document->customer_number == '') warn('No customer number set in document!');
 	if ($document->delivery_date() == '') warn('No delivery date set in document!');
 	if ($document->template_id == null) warn('No document template selected!');
-	
+
 	include '../common_templates/head.php';
 	include '../common_templates/main_menu.php';
 	include 'menu.php';
@@ -35,7 +35,7 @@
 ?>
 <form method="POST">
 <fieldset>
-	<legend><?= t('Send ? via mail',$document->number) ?></legend>
+	<legend><?= t('Send ◊ via mail',$document->number) ?></legend>
 	<fieldset>
 		<legend><?= t('Reciever')?></legend>
 		<input type="text" name="reciever" value="<?= $reciever ?>" />

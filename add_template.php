@@ -16,7 +16,7 @@ if ($filename = param('file')){
 	if (substr(strtoupper($filename),-strlen($extension)) != $extension) warn('File is not an ? file!',$extension);
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
@@ -30,9 +30,9 @@ include '../common_templates/messages.php'; ?>
 		<option value="<?= $company['id'] ?>"><?= $company['name']?></option>
 		<?php }?>
 	</select>
-	<input type="text" name="template[name]" value="<?= t('Template ?',date('Y-m-d H:i:s'));?>" />
+	<input type="text" name="template[name]" value="<?= t('Template ◊',date('Y-m-d H:i:s'));?>" />
 	<input type="text" name="template[file]" readonly="true" value="<?= param('file') ?>" />
-	<input type="submit" />	
+	<input type="submit" />
 </fieldset>
 </form>
 

@@ -6,7 +6,7 @@ $id = param('id');
 assert(is_numeric($id),'No valid document id passed to edit!');
 $document = Document::load(['ids'=>$id]);
 if (!$document) {
-	error('No document found or accessible for id ?',$id);
+	error('No document found or accessible for id ◊',$id);
 	redirect('..');
 }
 
@@ -136,7 +136,7 @@ if (isset($_POST['document'])){
 	if (!empty($new_document_data['date'])) $new_document_data['date'] = strtotime($new_document_data['date']);
 	$document->patch($new_document_data);
 	$document->save();
-	info('Your document ? has been saved.',$document->number);
+	info('Your document ◊ has been saved.',$document->number);
 
 	$companySettings = CompanySettings::load($document->company_id,$document->type_id);
 	$companySettings->updateFrom($document);
@@ -219,7 +219,7 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Create successor document') ?></legend>
 			<ul>
 				<?php foreach ($document->type()->successors() as $type){ ?>
-				<li><a href="step?type=<?= $type->id ?>"><?= t('Create ?',t($type->name))?></a></li>
+				<li><a href="step?type=<?= $type->id ?>"><?= t('Create ◊',t($type->name))?></a></li>
 				<?php }?>
 			</ul>
 		</fieldset>
@@ -319,7 +319,7 @@ include '../common_templates/messages.php'; ?>
 		<?php if (isset($services['files'])) { ?>
 		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>
 		<?php } ?>
-		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ?',$document->customer_email)?></a>
+		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ◊',$document->customer_email)?></a>
 	</fieldset>
 	<?php } else { ?>
 	<fieldset>
@@ -374,7 +374,7 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Create successor document') ?></legend>
 			<ul>
 				<?php foreach ($document->type()->successors() as $type){ ?>
-				<li><a href="step?type=<?= $type->id ?>"><?= t('Create ?',t($type->name))?></a></li>
+				<li><a href="step?type=<?= $type->id ?>"><?= t('Create ◊',t($type->name))?></a></li>
 				<?php }?>
 			</ul>
 		</fieldset>
@@ -558,7 +558,7 @@ include '../common_templates/messages.php'; ?>
 		<?php if (isset($services['files'])) { ?>
 		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>
 		<?php } ?>
-		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ?',$document->customer_email)?></a>
+		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ◊',$document->customer_email)?></a>
 	</fieldset>
 	<?php } ?>
 </form>
