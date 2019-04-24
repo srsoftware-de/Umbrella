@@ -9,16 +9,16 @@ if ($id = param('id')){
         	$item_data['unit_price'] *= 100;
         	$item->patch($item_data);
         	$item->save();
-        	
+
         	$tags_raw = explode(' ',param('tags'));
-        	
+
         	if (isset($services['bookmark'])){
         	        $tags = ['company_'.$item->company_id.'_items'];
         	        foreach ($tags_raw as $tag){
         	                if (trim($tag) == '') continue;
         	                $tags[] = $tag;
         	        }
-                
+
         	        $item_url = getUrl('items',$item->id.'/view');
         	        request('bookmark','add',['url'=>$item_url,'tags'=>$tags,'comment'=>$item->description]);
         	}
@@ -26,16 +26,16 @@ if ($id = param('id')){
 	}
 } else error('No item id passed to edit method!');
 
-$bookmark = isset($services['bookmark']) ? request('bookmark','json_get?id='.sha1(getUrl('items',$id.'/view'))) : null; 
+$bookmark = isset($services['bookmark']) ? request('bookmark','json_get?id='.sha1(getUrl('items',$id.'/view'))) : null;
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Edit item of ?',$item->company['name'])?></legend>
+		<legend><?= t('Edit item of ◊',$item->company['name'])?></legend>
 		<fieldset>
 			<legend><?= t('Item code')?></legend>
 			<input	type="text"	name="item[code]" value="<?= $item->code ?>"/>

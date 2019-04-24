@@ -27,7 +27,7 @@ include '../common_templates/messages.php'; ?>
 	$bookmark_service = isset($services['bookmark']) ? getUrl('bookmark') : null;
 	$item_base_url = $bookmark_service ? getUrl('items') : null;
 	?>
-	<legend><?= t('Items of ?',$company['name']) ?></legend>
+	<legend><?= t('Items of ◊',$company['name']) ?></legend>
 	<table class="items">
 		<tr>
 			<th><a href="<?= location('*').'?company='.$company_id.'&order=code'?>"><?= t('Code') ?></a></th>

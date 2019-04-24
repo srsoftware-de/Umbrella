@@ -31,14 +31,14 @@ if ($item_data = param('item')){
 	redirect('index?company='.$company_id);
 }
 
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <form method="POST">
 	<fieldset>
-		<legend><?= t('Add entry to items of ?',$company['name'])?></legend>
+		<legend><?= t('Add entry to items of ◊',$company['name'])?></legend>
 		<input	type="hidden"	name="item[company_id]"	value="<?= $company['id']?>" />
 		<fieldset>
 			<legend><?= t('Item code')?></legend>
@@ -68,7 +68,7 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Tags')?></legend>
 			<input	type="text"	name="tags" />
 		</fieldset>
-		
+
 		<button type="submit"><?= t('Save')?></button>
 	</fieldset>
 </form>
