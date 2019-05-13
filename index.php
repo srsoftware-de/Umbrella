@@ -36,13 +36,11 @@ if ($show_complete){ ?>
 <?php $sum = 0; foreach ($times as $id => $time){
 	if (!$show_complete && $time->state == TIME_STATUS_COMPLETE) continue;
 	$time_projects=[];
-	foreach ($time->tasks() as $task){
-		$time_projects[$task['project_id']] = $task['project']['name'];
-		if ($time->end_time){
-			$duration = $time->end_time-$time->start_time;
-			if (in_array($time->state(),['open','pending'])) $sum+=$duration;
-		}
-	} ?>
+	foreach ($time->tasks() as $task) $time_projects[$task['project_id']] = $task['project']['name'];
+	$duration = 0;
+	if ($time->end_time) $duration = $time->end_time-$time->start_time;
+	if (in_array($time->state(),['open','pending'])) $sum+=$duration;
+	?>
 	<tr class="project<?= implode(' project',array_keys($time_projects))?>">
 		<td>
 		<?php foreach ($time_projects as $pid => $name){?>
