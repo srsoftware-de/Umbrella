@@ -13,7 +13,7 @@ foreach ($notes as $nid => $note){ ?>
 		<legend><?= $users[$note->user_id]['login'] . ((isset($note->timestamp) && $note->timestamp>0) ? ' - '.date(t('Y-m-d H:i:s'),$note->timestamp) : '') ?></legend>
 		<?php if ($note->user_id == $user->id) {?>
 		<span class="right">
-			<a class="symbol" href="<?= getUrl('notes',$nid.'/view') ?>" title="<?= t('edit note')?>"></a>
+			<a class="symbol" href="<?= getUrl('notes',$nid.'/view') ?>" title="<?= t('edit note')?>"></a>
 			<a class="symbol" href="<?= getUrl('notes',$nid.'/delete') ?>" title="<?= t('delete note')?>"></a>
 		</span>
 		<?php }?>
