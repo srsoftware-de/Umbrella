@@ -142,17 +142,23 @@
 
 			$sql .= "\n COLLATE NOCASE GROUP BY items.id";
 
-			if (isset($options['order'])){
+			if (!empty($options['order'])){
 				switch ($options['order']){
 					case 'code':
-					case 'id':
 					case 'name':
 						$sql.= ' ORDER BY '.$options['order'].' DESC';
+						break;
+					case 'id':
+						if (empty($prefix)){
+							$sql.= ' ORDER BY '.$options['order'].' DESC';
+						} else $sql.= ' ORDER BY CAST(REPLACE(id,"'.$prefix.'","") AS INT) DESC';
 						break;
 					case 'location':
 						$sql.= ' ORDER BY location_id';
 						break;
 				}
+			} else {
+				if (!empty($prefix)) $sql.= ' ORDER BY CAST(REPLACE(id,"'.$prefix.'","") AS INT) ASC';
 			}
 
 			$db = get_or_create_db();
