@@ -290,7 +290,7 @@
 
 			// save
 			$db = get_or_create_db();
-			$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, est_time = :est, start_date = :start, due_date = :due, show_closed = :closed, no_index = :nidx WHERE id = :id;');
+			$query = $db->prepare('UPDATE tasks SET name = :name, project_id = :pid, parent_task_id = :parent, description = :desc, est_time = :est, start_date = :start, due_date = :due, show_closed = :closed, no_index = :nidx, status = :status WHERE id = :id;');
 			$args = [
 					':id'=>$this->id,
 					':name'=>$this->name,
@@ -302,6 +302,7 @@
 					':due'=>$this->due_date,
 					':closed'=>$this->show_closed,
 					':nidx'=>$this->no_index,
+					':status'=>$this->status
 			];
 			assert($query->execute($args),'Was not able to alter task entry in dtabase');
 			unset($this->dirty);
