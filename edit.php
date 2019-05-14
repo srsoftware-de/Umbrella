@@ -109,7 +109,7 @@ include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
-	<fieldset><legend><?= t('Edit "?"',$task->name) ?></legend>
+	<fieldset><legend><?= t('Edit "◊"',$task->name) ?></legend>
 		<fieldset>
 			<legend><?= t('Project')?></legend>
 			<select name="project_id">

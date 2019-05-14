@@ -77,7 +77,7 @@ include '../common_templates/head.php'; ?>
 		<th><?= t('Estimated time')?></th>
 		<td>
 			<?php if (!empty($task->est_time)){ ?>
-			<?= t('? hours',$task->est_time)?>
+			<?= t('◊ hours',$task->est_time)?>
 			<br/>
 			<?php } ?>
 			<?php if (!empty($task->child_time())){ ?>
