@@ -141,8 +141,8 @@ class Poll extends UmbrellaObjectWithId{
 	function add_option($data){
 		$fields = Poll::options_table();
 
-		$keys = [];
-		$args = [];
+		$keys = [ 'status' ];
+		$args = [ Poll::OPTION_ENABLED ];
 		foreach ($data as $field => $val){
 			if (array_key_exists($field, $fields)){
 				$keys[] = $field;
