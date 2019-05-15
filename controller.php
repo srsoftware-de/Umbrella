@@ -501,7 +501,7 @@
 		public function children(){
 			if (empty($this->children))	{
 				$db = get_or_create_db();
-				$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name ASC');
+				$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name COLLATE NOCASE ASC');
 				assert($query->execute([':id'=>$this->id]),'Was not able to query children of '.$this->name);
 				$rows = $query->fetchAll(INDEX_FETCH);
 				$children = [];
