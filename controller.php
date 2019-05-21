@@ -1,7 +1,17 @@
 <?php include '../bootstrap.php';
 
-	$title = 'Umbrella User Management';
 	const MODULE = 'User';
+	const DB_VERSION = 2;
+	$title = 'Umbrella User Management';
+
+	function db_version(){
+		$db = get_or_create_db();
+		$query = $db->prepare('SELECT value FROM settings WHERE key = "db_version"');
+		if (!$query->execute()) throw new Exception(_('Failed to query db_version!'));
+		$rows = $query->fetchAll(PDO::FETCH_COLUMN);
+		if (empty($rows)) return null;
+		return reset($rows);
+	}
 
 	function get_or_create_db(){
 		$table_filename = 'users.db';
@@ -16,6 +26,8 @@
 					'token_uses'=>Token::uses(),
 					'login_services'=>LoginService::table(),
 					'service_ids_users'=>LoginService::users(),
+					'messages'=>Message::table(),
+					'recipients'=>Message::recipients()
 			];
 
 			foreach ($tables as $table => $fields){
@@ -159,6 +171,140 @@
 			return [
 					'service_id'=>['VARCHAR'=>255,'NOT NULL','KEY'=>'PRIMARY'],
 					'user_id'=>['INT','NOT NULL']
+			];
+		}
+	}
+
+
+	class Message extends UmbrellaObjectWithId{
+		const DELIVER_INSTANTLY = 'DELIVER INSTANTLY';
+		const COLLECT_TILL__8  = 'SEND AT  8 AM';
+		const COLLECT_TILL_10 = 'SEND AT 10 AM';
+		const COLLECT_TILL_12 = 'SEND AT 12 PM';
+		const COLLECT_TILL_14 = 'SEND AT  2 PM';
+		const COLLECT_TILL_16 = 'SEND AT  4 PM';
+		const COLLECT_TILL_18 = 'SEND AT  6 PM';
+		const COLLECT_TILL_20 = 'SEND AT  8 PM';
+		const SENT = 'SENT';
+		const WAITING = 'WAITING';
+
+		static function table(){
+			return [
+				'id' => ['INTEGER','KEY'=>'PRIMARY'],
+				'author' => ['INT','NOT NULL'],
+				'timestamp' => ['INT','NOT NULL'],
+				'subject' => ['TEXT'],
+				'body' => ['TEXT'],
+			];
+		}
+
+		static function recipients(){
+			return [
+				'message_id' => ['INT'],
+				'user_id' => ['INT','NOT NULL'],
+				'state' => ['INT','NOT NULL','DEFAULT'=>0],
+				'PRIMARY KEY'=>['message_id','user_id']
+			];
+		}
+
+		function assginReciever($user_id,$state = Message::WAITING){
+			$sql = 'INSERT INTO recipients (message_id, user_id, state) VALUES (:mid, :uid, :state )';
+			$args = [':mid'=>$this->id,':uid'=>$user_id,':state'=>$state];
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) error("Was not able to assign message to reciever!");
+		}
+
+		function deliverTo(array $recievers){
+			global $user;
+			if (!$this->save()) error("Was not able to save new message!");
+			$instant_recievers = [];
+			if (no_error()){
+				foreach ($recievers as $reciever){
+					switch ($reciever->message_delivery){
+						case Message::DELIVER_INSTANTLY:
+							$instant_recievers[] = $reciever->email;
+							$this->assginReciever($reciever->id,Message::SENT);
+							break;
+						default:
+							$this->assginReciever($reciever->id,Message::WAITING);
+					}
+				}
+			}
+			if (!empty($instant_recievers)) send_mail($user->email, $instant_recievers, $this->subject, $this->body);
+		}
+
+		function load($options){
+			global $user;
+			$sql = 'SELECT * FROM recipients LEFT JOIN messages ON messages.id = recipients.message_id';
+			$where = [ 'user_id = :uid' ];
+			$args = [':uid' => $user->id];
+
+			if (!empty($options['since'])){
+				$where[] = 'timestamp > :since';
+				$args[':since'] = $options['since'];
+			}
+
+			if (!empty($where)) $sql .= ' WHERE ( '.implode(' ) AND ( ', $where).' )';
+
+			$sql .= ' ORDER BY id DESC';
+
+			if (!empty($options['limit'])){
+				$sql .= ' LIMIT :limit';
+				$args[':limit'] = $options['limit'];
+			}
+
+
+			$db = get_or_create_db();
+			$query = $db->prepare($sql);
+			if (!$query->execute($args)) error('Was not able to load messages!');
+
+
+			$rows = $query->fetchAll(INDEX_FETCH);
+
+			$users = [];
+
+			$messages = [];
+			foreach ($rows  as $id => $row){
+				$message = new Message();
+				$message->patch(['id'=>$id])->patch($row);
+				$author_id = $message->user_id;
+				if (empty($users[$author_id])) $users[$author_id] = User::load(['ids'=>$author_id]);
+				$message->patch(['from'=>$users[$author_id]]);
+				unset($message->dirty);
+				$messages[$id] = $message;
+			}
+			return $messages;
+		}
+
+		function save(){
+			$db = get_or_create_db();
+			$known_fields = array_keys(Message::table());
+
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO messages ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new message');
+
+			$this->id = $db->lastInsertId();
+
+			return true;
+		}
+
+
+	}
+
+	class Settings {
+		static function table(){
+			return [
+					'key'	=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+					'value'	=> ['VARCHAR'=>255,'NOT NULL'],
 			];
 		}
 	}
@@ -350,7 +496,7 @@
 
 			$fields = User::table();
 			if (empty($options['passwords']) || $options['passwords']!='load') unset($fields['pass']);
-			$sql = 'SELECT '.implode(', ', array_keys($fields)).' FROM users';
+			$sql = 'SELECT * FROM users';
 			$where = [];
 			$args = [];
 
@@ -373,7 +519,7 @@
 
 			$query = $db->prepare($sql);
 
-			assert($query->execute($args),'Was not able to load tasks!');
+			assert($query->execute($args),'Was not able to load users!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 
 			$users = [];
@@ -396,8 +542,6 @@
 			$query = $db->prepare('DELETE FROM service_ids_users WHERE user_id = :id');
 			assert($query->execute([':id'=>$this->id]));
 		}
-
-
 
 		function login(){
 			Token::getOrCreate($this);
@@ -452,7 +596,9 @@
 					'login' => ['VARCHAR'=>255,'NOT NULL'],
 					'pass' => ['VARCHAR'=>255, 'NOT NULL'],
 					'email' => ['VARCHAR'=>255],
-					'theme'=> ['VARCHAR'=>50]
+					'theme'=> ['VARCHAR'=>50],
+					'message_delivery'=>['VARCHAR'=>100,'DEFAULT'=>Message::DELIVER_INSTANTLY],
+					'last_logoff'=>['INT','DEFAULT'=>'NULL']
 			];
 		}
 
