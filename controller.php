@@ -258,12 +258,13 @@
 			$subject = t('◊ added a note.',$user->login);
 			$text = t("Open the following site to see the note on \"◊\":\n\n◊",[$this->name,getUrl('task',$this->id.'/view#bkmk'.$note_id)]);
 			$recipients = [];
-			foreach ($this->users() as $u){
-				if ($u['email'] != $user->email) $recipients[] = $u['email'];
+			foreach ($this->users() as $id => $u){
+				if ($u['email'] != $user->email) $recipients[] = $id;
 			}
-			send_mail($user->email, $recipients, $subject, $text);
+			request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>$recipients]);
 			info('Sent email notification to users of this task.');
 		}
+
 		public function description(){
 			if (file_exists('../lib/parsedown/Parsedown.php')){
 				include_once '../lib/parsedown/Parsedown.php';
@@ -309,14 +310,14 @@
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
 			if (param('silent','off') != 'on'){ // notify task users
-				$sender = $user->email;
-				foreach ($this->users() as $uid => $u){
-					if ($uid == $user->id) continue;
-					$subject = t('◊ edited one of your tasks',$user->login);
-					$text = t("The task \"◊\" now has the following description:\n\n◊\n\n",[$this->name,$this->description]).getUrl('task',$this->id.'/view');
-					send_mail($sender, $u['email'], $subject, $text);
+				$users = $this->users();
+				unset($users[$user->id]);
+				$subject = t('◊ edited one of your tasks',$user->login);
+				$text = t("The task \"◊\" now has the following description:\n\n◊\n\n",[$this->name,$this->description]).getUrl('task',$this->id.'/view');
+				request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>array_keys($users)]);
 
-					if ($hash) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
+				if ($hash) {
+					foreach ($this->users() as $uid => $u) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
 				}
 			}
 			return $this;
@@ -451,12 +452,10 @@
 				}
 
 				// notify if newly assigned
-				if ($notify && empty($rows)){
-					$sender = $user->email;
-					$reciever = $new_user['email'];
+				if ($notify && empty($rows) && ($user->email != $new_user['email'])) {
 					$subject = t('◊ assigned you to a task',$user->login);
 					$text = t('You have been assigned to the task "◊": ',$this->name).getUrl('task',$this->id.'/view');
-					if ($sender != $reciever) send_mail($sender, $reciever, $subject, $text);
+					request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>$new_user['id']]);
 					info('Notification email has been sent.');
 				}
 			}
