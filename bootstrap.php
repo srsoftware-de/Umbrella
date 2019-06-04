@@ -99,7 +99,8 @@ function emphasize($text,$key){
 function error($message,$args = null){
 	if ($message instanceof Exception) $message = $message->getMessage();
 	if ($message === null) return;
-	$_SESSION['errors'][crc32($message)] = t($message,$args);
+	$message = t($message,$args);
+	$_SESSION['errors'][crc32($message)] = $message;
 	return false;
 }
 
@@ -173,7 +174,8 @@ function html2plain($text){
 
 function info($message,$args = null){
 	if ($message === null) return;
-	$_SESSION['infos'][crc32($message)] = t($message,$args);
+	$message = t($message,$args);
+	$_SESSION['infos'][crc32($message)] = $message;
 }
 
 function init(){
@@ -196,6 +198,19 @@ function location($drop = []){
 	$get_string = empty($args)?'':'?'.http_build_query($args);
 	return $_SERVER['REQUEST_SCHEME'].'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).$_SERVER['REDIRECT_URL'].$get_string;
 }
+
+function markdown($text){
+	if (file_exists('lib/parsedown/Parsedown.php')){
+		include_once 'lib/parsedown/Parsedown.php';
+		return Parsedown::instance()->parse($text);
+	} else if (file_exists('../lib/parsedown/Parsedown.php')){
+		include_once '../lib/parsedown/Parsedown.php';
+		return Parsedown::instance()->parse($text);
+	} else{
+		return str_replace("\n", "<br/>", htmlentities($text));
+	}
+}
+
 
 function module_version(){
 	if (!defined('MODULE')) return '';
@@ -437,6 +452,11 @@ function task_state($state){
 	return 'unknown';
 }
 
+function test_mail($reciever,$subject, $data, $head){
+	debug(['action'=>'php::mail','reciever'=>$reciever,'subject'=>$subject,'data'=>$data,'head'=>$head]);
+	return true;
+}
+
 function throw_exception($text,$replacements){
 	throw new Exception(t($text,$replacements));
 }
@@ -464,7 +484,8 @@ function validateToken($service_name = null){
 
 function warn($message,$args = null){
 	if ($message === null) return;
-	$_SESSION['warnings'][crc32($message)] = t($message,$args);
+	$message = t($message,$args);
+	$_SESSION['warnings'][crc32($message)] = $message;
 }
 
 class UmbrellaObject{
