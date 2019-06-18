@@ -20,14 +20,18 @@ if (empty($phase->diagram())){
 }
 
 if ($name = param('name')){
+	$position = param('position',0);
 	$step = new Step();
 	try {
-		$step->patch(['phase_id'=>$phase_id,'name'=>$name,'description'=>param('description'),'source'=>param('source'),'destination'=>param('destination')])->save();
+		Step::shift_positions_from($phase_id,$position);
+		$step->patch(['phase_id'=>$phase_id,'name'=>$name,'description'=>param('description'),'source'=>param('source'),'destination'=>param('destination'),'position'=>$position])->save();
 		redirect(getUrl('model','diagram/'.$phase->diagram()->id));
 	} catch (Exception $e){
 		error($e);
 	}
 }
+
+$first = true;
 
 include '../common_templates/head.php';
 
@@ -43,19 +47,16 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 	<fieldset>
 		<legend><?= t('Source')?></legend>
-		<label>
-			<input type="radio" name="source" value="0" /><?= t('None') ?>
-		</label>
 		<?php foreach ($phase->diagram()->parties() as $party_id => $party) { ?>
 		<label>
-			<input type="radio" name="source" value="<?= $party_id ?>" /><?= $party->name ?>
+			<input type="radio" name="source" value="<?= $party_id ?>" <?= $first?'checked="checked"':'' ?>/><?= $party->name ?>
 		</label>
-		<?php } ?>
+		<?php $first = false; } ?>
 	</fieldset>
 	<fieldset>
 		<legend><?= t('Destination')?></legend>
 		<label>
-			<input type="radio" name="destination" value="0" /><?= t('None') ?>
+			<input type="radio" name="destination" value="0" checked="checked" /><?= t('None') ?>
 		</label>
 		<?php foreach ($phase->diagram()->parties() as $party_id => $party) { ?>
 		<label>

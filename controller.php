@@ -751,14 +751,18 @@ class Diagram extends UmbrellaObjectWithId{
 class Party extends UmbrellaObjectWithId{
 	static function fields(){
 		return [
-				'id'           => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
-				'diagram_id'   => ['INT','NOT NULL','REFERENCES diagrams(id)'],
-				'neighbour_id' => ['INT','DEFAULT NULL'],
-				'name'         => ['VARCHAR'=>255,'NOT NULL'],
-				'description'  => ['TEXT'],
+				'id'          => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
+				'diagram_id'  => ['INT','NOT NULL','REFERENCES diagrams(id)'],
+				'position'    => ['INT','DEFAULT 0'],
+				'name'        => ['VARCHAR'=>255,'NOT NULL'],
+				'description' => ['TEXT'],
 		];
 	}
 
+	function diagram(){
+		if (empty($this->diagram)) $this->diagram = Diagram::load(['ids'=>$this->diagram_id]);
+		return $this->diagram;
+	}
 
 	static function load($options = []){
 
@@ -783,7 +787,15 @@ class Party extends UmbrellaObjectWithId{
 			$args[]  = $options['diagram_id'];
 		}
 
+		if (isset($options['position'])){
+			$where[] = 'position = ?';
+			$args[] = $options['position'];
+			$single = true;
+		}
+
 		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+
+		$sql .= ' ORDER BY position';
 		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
@@ -828,6 +840,14 @@ class Party extends UmbrellaObjectWithId{
 		unset($this->dirty);
 
 		return $this;
+	}
+
+	static function shift_positions_from($diagram_id,$position){
+		$sql = 'UPDATE parties SET position = position + 1 WHERE diagram_id = :diag AND position >= :pos';
+		$args = [':diag'=>$diagram_id,':pos'=>$position];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update party positions!');
 	}
 
 	function update(){
@@ -1476,6 +1496,7 @@ class Step extends UmbrellaObjectWithId{
 		}
 		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
 
+		$sql .= ' ORDER BY position';
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
@@ -1495,6 +1516,11 @@ class Step extends UmbrellaObjectWithId{
 		}
 		if ($single) return null;
 		return $steps;
+	}
+
+	function phase(){
+		if (empty($this->phase)) $this->phase = Phase::load(['ids'=>$this->phase_id]);
+		return $this->phase;
 	}
 
 	function save(){
@@ -1520,6 +1546,14 @@ class Step extends UmbrellaObjectWithId{
 		unset($this->dirty);
 
 		return $this;
+	}
+
+	static function shift_positions_from($phase_id,$position){
+		$sql = 'UPDATE steps SET position = position + 1 WHERE phase_id = :phase AND position >= :pos';
+		$args = [':phase'=>$phase_id,':pos'=>$position];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update step positions!');
 	}
 
 	function update(){

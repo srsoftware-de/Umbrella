@@ -15,9 +15,11 @@ if (empty($diagram)){
 }
 
 if ($name = param('name')){
+	$position = param('position',0);
 	$party = new Party();
 	try {
-		$party->patch(['diagram_id'=>$diagram_id,'name'=>$name,'description'=>param('description')])->save();
+		Party::shift_positions_from($diagram_id,$position);
+		$party->patch(['diagram_id'=>$diagram_id,'name'=>$name,'description'=>param('description'),'position'=>$position])->save();
 		redirect(getUrl('model','diagram/'.$diagram_id));
 	} catch (Exception $e){
 		error($e);

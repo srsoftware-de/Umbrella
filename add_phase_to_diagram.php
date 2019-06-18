@@ -14,8 +14,6 @@ if (empty($diagram)){
 	redirect(getUrl('model'));
 }
 
-
-
 if ($name = param('name')){
 	$position = param('position',0);
 	$phase = new Phase();
