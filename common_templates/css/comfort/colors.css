@@ -46,6 +46,7 @@ legend{
 	color:black;
 }
 
+table.diagram .step,
 body > a.symbol {
 	background: white;
 }
@@ -65,4 +66,3 @@ body > a.symbol {
 .errors span{
 	background: orange;
 }
-
