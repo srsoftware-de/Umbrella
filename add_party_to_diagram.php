@@ -2,28 +2,27 @@
 
 require_login('model');
 
-$project_id = param('id');
-if (empty($project_id)){
-	error('No project id passed!');
+$diagram_id = param('id');
+if (empty($diagram_id)) {
+	error('No diagram id passed!');
 	redirect(getUrl('model'));
 }
 
-$project = request('project','json',['ids'=>$project_id]);
-if (empty($project)){
-	error('You are not allowed to access that project!');
+$diagram = Diagram::load(['ids'=>$diagram_id]);
+if (empty($diagram)){
+	error('You are not allowed to access that diagram!');
 	redirect(getUrl('model'));
 }
 
 if ($name = param('name')){
-	$model = new Process();
+	$party = new Party();
 	try {
-		$model->patch(['project_id'=>$project_id,'name'=>$name,'description'=>param('description'),'r'=>NULL])->save();
-		redirect(getUrl('model','model/'.$model->id));
+		$party->patch(['diagram_id'=>$diagram_id,'name'=>$name,'description'=>param('description')])->save();
+		redirect(getUrl('model','diagram/'.$diagram_id));
 	} catch (Exception $e){
 		error($e);
 	}
 }
-
 
 include '../common_templates/head.php';
 
@@ -31,7 +30,7 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add Model to ◊',$project['name']); ?></legend>
+<legend><?= t('Add party to ◊',$diagram->name); ?></legend>
 	<form method="POST">
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
@@ -45,4 +44,4 @@ include '../common_templates/messages.php'; ?>
 	</form>
 </fieldset>
 
-<?php include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php'; ?>

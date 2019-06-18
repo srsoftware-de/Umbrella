@@ -3,7 +3,7 @@
 require_login('model');
 
 $project_id = param('id');
-if (empty($project_id)){
+if (empty($project_id)) {
 	error('No project id passed!');
 	redirect(getUrl('model'));
 }
@@ -15,15 +15,14 @@ if (empty($project)){
 }
 
 if ($name = param('name')){
-	$model = new Process();
+	$diagram = new Diagram();
 	try {
-		$model->patch(['project_id'=>$project_id,'name'=>$name,'description'=>param('description'),'r'=>NULL])->save();
-		redirect(getUrl('model','model/'.$model->id));
+		$diagram->patch(['project_id'=>$project_id,'name'=>$name,'description'=>param('description')])->save();
+		redirect(getUrl('model','diagram/'.$diagram->id));
 	} catch (Exception $e){
 		error($e);
 	}
 }
-
 
 include '../common_templates/head.php';
 
@@ -31,7 +30,7 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add Model to ◊',$project['name']); ?></legend>
+<legend><?= t('Add Diagram to ◊',$project['name']); ?></legend>
 	<form method="POST">
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
@@ -45,4 +44,4 @@ include '../common_templates/messages.php'; ?>
 	</form>
 </fieldset>
 
-<?php include '../common_templates/closure.php';
+<?php include '../common_templates/closure.php'; ?>

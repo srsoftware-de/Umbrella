@@ -2,7 +2,17 @@
 
 const RAD = 0.01745329;
 const MODULE = 'Model';
+const DB_VERSION = 1;
 $title = t('Umbrella Model Management');
+
+function db_version(){
+	$db = get_or_create_db();
+	$query = $db->prepare('SELECT value FROM settings WHERE key = "db_version"');
+	if (!$query->execute()) throw new Exception(_('Failed to query db_version!'));
+	$rows = $query->fetchAll(PDO::FETCH_COLUMN);
+	if (empty($rows)) return null;
+	return reset($rows);
+}
 
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create model/db directory!');
@@ -21,7 +31,12 @@ function get_or_create_db(){
 				'process_connectors' => Process::connectors_table(),
 				'connector_places'   => Connector::place_table(),
 				'external_flows'     => Flow::external_table(),
-				'internal_flows'     => Flow::internal_table()
+				'internal_flows'     => Flow::internal_table(),
+
+				'diagrams'           => Diagram::fields(),
+				'parties'            => Party::fields(),
+				'phases'             => Phase::fields(),
+				'seps'               => Step::fields(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -49,16 +64,6 @@ if ($link){ ?><a xlink:href="<?= $link ?>"><?php } ?>
 </g>
 <?php if ($link){ ?></a><?php }
 }
-
-function markdown($text){
-	if (file_exists('../lib/parsedown/Parsedown.php')){
-		include_once '../lib/parsedown/Parsedown.php';
-		return Parsedown::instance()->parse($text);
-	} else {
-		return str_replace("\n", "<br/>", htmlentities($text));
-	}
-}
-
 
 class Connector extends UmbrellaObjectWithId{
 	static function fields(){
@@ -624,6 +629,353 @@ class Flow extends UmbrellaObjectWithId{
 	}
 }
 
+class Diagram extends UmbrellaObjectWithId{
+	static function fields(){
+		return [
+				'id'          => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
+				'project_id'  => ['INT','NOT NULL'],
+				'name'        => ['VARCHAR'=>255,'NOT NULL'],
+				'description' => ['TEXT'],
+		];
+	}
+
+	static function load($options = []){
+
+		$sql   = 'SELECT id,* FROM diagrams';
+		$where = [];
+		$args  = [];
+		$single = false;
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($options['project_id'])) {
+			$where[] = 'project_id = ?';
+			$args[]  = $options['project_id'];
+			if (!empty($options['name'])) $single = true; // if name and project id are set, process should be unique
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to read processes!');
+
+		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
+		$diagrams = [];
+
+		foreach ($rows as $id => $row){
+			$diagram = new Diagram();
+			$diagram->patch($row);
+			unset($diagram->dirty);
+
+			if ($single) return $diagram;
+			$diagrams[$id] = $diagram;
+		}
+		if ($single) return null;
+		return $diagrams;
+	}
+
+	function parties(){
+		if (empty($this->parties)) $this->parties = Party::load(['diagram_id'=>$this->id]);
+		return $this->parties;
+	}
+
+	function phases(){
+		if (empty($this->phases)) $this->phases = Phase::load(['diagram_id'=>$this->id]);
+		return $this->phases;
+	}
+
+	function project(){
+		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		return $this->project;
+	}
+
+	function save(){
+		if (!empty($this->id)) return $this->update();
+
+		$keys = [];
+		$args = [];
+		foreach ($this->dirty as $field){
+			if (array_key_exists($field, Diagram::fields())){
+				$keys[] = $field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'INSERT INTO diagrams ('.implode(', ',$keys).') VALUES (:'.implode(', :', $keys).' )';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		//debug(query_insert($sql, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new diagram!');
+
+		$this->patch(['id'=>$db->lastInsertId()]);
+		unset($this->dirty);
+
+		return $this;
+	}
+
+	function update(){
+		$keys = [];
+		$args = [':id'=>$this->id];
+		foreach ($this->dirty as $field){
+			if ($field == 'id') continue;
+			if (array_key_exists($field, Diagram::fields())){
+				$keys[] = $field.' = :'.$field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'UPDATE diagrams SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update diagram!');
+
+		unset($this->dirty);
+
+		return $this;
+	}
+}
+
+class Party extends UmbrellaObjectWithId{
+	static function fields(){
+		return [
+				'id'           => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
+				'diagram_id'   => ['INT','NOT NULL','REFERENCES diagrams(id)'],
+				'neighbour_id' => ['INT','DEFAULT NULL'],
+				'name'         => ['VARCHAR'=>255,'NOT NULL'],
+				'description'  => ['TEXT'],
+		];
+	}
+
+
+	static function load($options = []){
+
+		$sql   = 'SELECT id,* FROM parties';
+		$where = [];
+		$args  = [];
+		$single = false;
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($options['diagram_id'])) {
+			$where[] = 'diagram_id = ?';
+			$args[]  = $options['diagram_id'];
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to read parties!');
+
+		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
+		$parties = [];
+
+		foreach ($rows as $id => $row){
+			$party = new Party();
+			$party->patch($row);
+			unset($party->dirty);
+
+			if ($single) return $party;
+			$parties[$id] = $party;
+		}
+		if ($single) return null;
+		return $parties;
+	}
+
+	function save(){
+		if (!empty($this->id)) return $this->update();
+
+		$keys = [];
+		$args = [];
+		foreach ($this->dirty as $field){
+			if (array_key_exists($field, Party::fields())){
+				$keys[] = $field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'INSERT INTO parties ('.implode(', ',$keys).') VALUES (:'.implode(', :', $keys).' )';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		//debug(query_insert($sql, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new party!');
+
+		$this->patch(['id'=>$db->lastInsertId()]);
+		unset($this->dirty);
+
+		return $this;
+	}
+
+	function update(){
+		$keys = [];
+		$args = [':id'=>$this->id];
+		foreach ($this->dirty as $field){
+			if ($field == 'id') continue;
+			if (array_key_exists($field, Party::fields())){
+				$keys[] = $field.' = :'.$field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'UPDATE parties SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update party!');
+
+		unset($this->dirty);
+
+		return $this;
+	}
+}
+
+class Phase extends UmbrellaObjectWithId{
+	static function fields(){
+		return [
+				'id'            => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
+				'diagram_id'    => ['INT','NOT NULL','REFERENCES diagrams(id)'],
+				'position'      => ['INT','DEFAULT 0'],
+				'name'          => ['VARCHAR'=>255,'NOT NULL'],
+				'description'   => ['TEXT'],
+		];
+	}
+
+	function diagram(){
+		if (empty($this->diagram)) $this->diagram = Diagram::load(['ids'=>$this->diagram_id]);
+		return $this->diagram;
+	}
+
+	static function load($options = []){
+
+		$sql   = 'SELECT id,* FROM phases';
+		$where = [];
+		$args  = [];
+		$single = false;
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($options['diagram_id'])) {
+			$where[] = 'diagram_id = ?';
+			$args[]  = $options['diagram_id'];
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		$sql .= ' ORDER BY position';
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to read phases!');
+
+		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
+		$phases = [];
+
+		foreach ($rows as $id => $row){
+			$phase = new Phase();
+			$phase->patch($row);
+			unset($phase->dirty);
+
+			if ($single) return $phase;
+			$phases[$id] = $phase;
+		}
+		if ($single) return null;
+		return $phases;
+	}
+
+	function save(){
+		if (!empty($this->id)) return $this->update();
+
+		$keys = [];
+		$args = [];
+		foreach ($this->dirty as $field){
+			if (array_key_exists($field, Phase::fields())){
+				$keys[] = $field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'INSERT INTO phases ('.implode(', ',$keys).') VALUES (:'.implode(', :', $keys).' )';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		//debug(query_insert($sql, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new phase!');
+
+		$this->patch(['id'=>$db->lastInsertId()]);
+		unset($this->dirty);
+
+		return $this;
+	}
+
+	static function shift_positions_from($diagram_id,$position){
+		$sql = 'UPDATE phases SET position = position + 1 WHERE diagram_id = :diag AND position >= :pos';
+		$args = [':diag'=>$diagram_id,':pos'=>$position];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update phase positions!');
+	}
+
+	function steps(){
+		if (empty($this->steps)) $this->steps = Step::load(['phase_id'=>$this->id]);
+		return $this->steps;
+	}
+
+	function update(){
+		$keys = [];
+		$args = [':id'=>$this->id];
+		foreach ($this->dirty as $field){
+			if ($field == 'id') continue;
+			if (array_key_exists($field, Phase::fields())){
+				$keys[] = $field.' = :'.$field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'UPDATE phases SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update phase!');
+
+		unset($this->dirty);
+
+		return $this;
+	}
+}
+
 class Process extends UmbrellaObjectWithId{
 	static function connectors_table(){
 		return [
@@ -1070,6 +1422,122 @@ class Process extends UmbrellaObjectWithId{
 
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to update process!');
+
+		unset($this->dirty);
+
+		return $this;
+	}
+}
+
+class Settings {
+	static function table(){
+		return [
+				'key'	=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+				'value'	=> ['VARCHAR'=>255,'NOT NULL'],
+		];
+	}
+}
+
+class Step extends UmbrellaObjectWithId{
+	static function fields(){
+		return [
+				'id'            => ['INTEGER','NOT NULL','KEY'=>'PRIMARY'],
+				'phase_id'      => ['INT','NOT NULL','REFERENCES phases(id)'],
+				'position'      => ['INT','DEFAULT 0'],
+				'name'          => ['VARCHAR'=>255,'NOT NULL'],
+				'description'   => ['TEXT'],
+				'source'        => ['INT','DEFAULT NULL','REFERENCES parties(id)'],
+				'destination'   => ['INT','DEFAULT NULL','REFERENCES parties(id)'],
+				'loop'          => ['INT','DEFAULT NULL','REFERENCES steps(id)'],
+		];
+	}
+
+	static function load($options = []){
+
+		$sql   = 'SELECT id,* FROM steps';
+		$where = [];
+		$args  = [];
+		$single = false;
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($options['phase_id'])) {
+			$where[] = 'phase_id = ?';
+			$args[]  = $options['phase_id'];
+		}
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
+		if (!$query->execute($args)) throw new Exception('Was not able to read steps!');
+
+		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
+		$steps = [];
+
+		foreach ($rows as $id => $row){
+			$step = new Step();
+			$step->patch($row);
+			unset($step->dirty);
+
+			if ($single) return $step;
+			$steps[$id] = $step;
+		}
+		if ($single) return null;
+		return $steps;
+	}
+
+	function save(){
+		if (!empty($this->id)) return $this->update();
+
+		$keys = [];
+		$args = [];
+		foreach ($this->dirty as $field){
+			if (array_key_exists($field, Step::fields())){
+				$keys[] = $field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'INSERT INTO steps ('.implode(', ',$keys).') VALUES (:'.implode(', :', $keys).' )';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		//debug(query_insert($sql, $args),1);
+		if (!$query->execute($args)) throw new Exception('Was not able to store new step!');
+
+		$this->patch(['id'=>$db->lastInsertId()]);
+		unset($this->dirty);
+
+		return $this;
+	}
+
+	function update(){
+		$keys = [];
+		$args = [':id'=>$this->id];
+		foreach ($this->dirty as $field){
+			if ($field == 'id') continue;
+			if (array_key_exists($field, Step::fields())){
+				$keys[] = $field.' = :'.$field;
+				$args[':'.$field] = $this->{$field};
+			}
+		}
+
+		$sql = 'UPDATE steps SET '.implode(', ', $keys).' WHERE id = :id';
+		$db = get_or_create_db();
+
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update step!');
 
 		unset($this->dirty);
 
