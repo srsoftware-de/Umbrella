@@ -2,6 +2,14 @@ table.diagram h4{
 	text-align: center;
 }
 
+table.diagram h4 .symbol{
+	display: none;
+}
+
+table.diagram tr:hover h4 .symbol{
+	display: inline;
+}
+
 table.diagram .actions{
 	vertical-align: bottom;
 }
@@ -31,12 +39,14 @@ table.diagram .step{
 	text-align: center;
 }
 
+table.diagram .step a.symbol,
 table.diagram .step p{
 	display: none;
 }
 
+table.diagram .step:hover a.symbol,
 table.diagram .step:hover p{
-	display: inherit;
+	display: inline-block;
 }
 
 div.arrow{
@@ -50,4 +60,8 @@ div.arrow{
 .diagram table table tr:hover td{
 	background-color: white;
 	color: black;
+}
+
+:target{
+	border: 2px solid yellow !important;
 }

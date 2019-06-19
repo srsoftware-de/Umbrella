@@ -25,7 +25,7 @@ if ($name = param('name')){
 	try {
 		Step::shift_positions_from($phase_id,$position);
 		$step->patch(['phase_id'=>$phase_id,'name'=>$name,'description'=>param('description'),'source'=>param('source'),'destination'=>param('destination'),'position'=>$position])->save();
-		redirect(getUrl('model','diagram/'.$phase->diagram()->id));
+		redirect(getUrl('model','diagram/'.$phase->diagram()->id.'#step'.$step->id));
 	} catch (Exception $e){
 		error($e);
 	}
@@ -43,7 +43,7 @@ include '../common_templates/messages.php'; ?>
 	<form method="POST">
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
-		<input type="text" name="name" value="<?= param('name','') ?>" />
+		<input type="text" name="name" value="<?= param('name','') ?>" autofocus="autofocus" />
 	</fieldset>
 	<fieldset>
 		<legend><?= t('Source')?></legend>

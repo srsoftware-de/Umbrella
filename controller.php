@@ -935,6 +935,20 @@ class Phase extends UmbrellaObjectWithId{
 		return $phases;
 	}
 
+	function remove(){
+		$args = [':id'=>$this->id];
+		$db = get_or_create_db();
+
+		$sql = 'DELETE FROM steps WHERE phase_id = :id';
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to remove steps of phase!');
+
+		$sql = 'DELETE FROM phases WHERE id = :id';
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to remove phase!');
+
+	}
+
 	function save(){
 		if (!empty($this->id)) return $this->update();
 
@@ -1546,6 +1560,19 @@ class Step extends UmbrellaObjectWithId{
 		unset($this->dirty);
 
 		return $this;
+	}
+
+	function remove(){
+		$sql = 'DELETE FROM steps WHERE id = :id';
+		$args = [':id'=>$this->id];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to remove step!');
+
+		$sql = 'UPDATE steps SET position = position -1 WHERE phase_id = :phase AND position >= :pos';
+		$args = [':phase'=>$this->phase()->id,':pos'=>$this->position];
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to update step positions!');
 	}
 
 	static function shift_positions_from($phase_id,$position){

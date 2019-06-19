@@ -31,7 +31,7 @@ if (empty($diagram)){
 $name = param('name');
 if (!empty($name)){
 	$step->patch($_POST)->save();
-	redirect($base_url.'diagram/'.$diagram->id);
+	redirect($base_url.'diagram/'.$diagram->id.'#step'.$step_id);
 }
 
 include '../common_templates/head.php';

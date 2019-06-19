@@ -20,7 +20,7 @@ if ($name = param('name')){
 	try {
 		Phase::shift_positions_from($diagram_id,$position);
 		$phase->patch(['diagram_id'=>$diagram_id,'name'=>$name,'description'=>param('description'),'position'=>$position])->save();
-		redirect(getUrl('model','diagram/'.$diagram_id));
+		redirect(getUrl('model','diagram/'.$diagram_id.'#phase'.$phase->id));
 	} catch (Exception $e){
 		error($e);
 	}
