@@ -6,6 +6,7 @@ $translations = array(
 		'Add a new step to this phase'=>'Neuen Schritt zu dieser Phase hinzufügen',
 		'add connector'=>'Verbinder hinzufügen',
 		'Add connector to process "◊"'=>'Verbinder zu Prozess „◊“ hinzufügen',
+		'Add Diagram to ◊'=>'Diagramm zu „◊“ hinzufügen',
 		'Add flow'=>'Datenfluss hinzufügen',
 		'add inflow connector'=>'Zufluss-Verbinder hinzufügen',
 		'Add Model'=>'Modell hinzufügen',
