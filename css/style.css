@@ -1,0 +1,53 @@
+table.diagram h4{
+	text-align: center;
+}
+
+table.diagram .actions{
+	vertical-align: bottom;
+}
+
+table.diagram .actions .button{
+	position: relative;
+	top: 13px;
+	z-index: 10;
+}
+
+table.diagram .description .button{
+	position: relative;
+	top: -13px;
+}
+
+table.diagram .phase{
+	position: relative;
+}
+
+table.diagram .phase .button{
+	position: absolute;
+	top: 0;
+}
+
+table.diagram .step{
+	border: 1px solid gray;
+	text-align: center;
+}
+
+table.diagram .step p{
+	display: none;
+}
+
+table.diagram .step:hover p{
+	display: inherit;
+}
+
+div.arrow{
+	background: url(/common_templates/img/am.gif);
+}
+
+.diagram tr:hover td{
+	background: inherit;
+}
+
+.diagram table table tr:hover td{
+	background-color: white;
+	color: black;
+}

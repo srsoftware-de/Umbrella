@@ -40,15 +40,15 @@ if ($action == 'delete'){?>
 <table>
 	<tr>
 		<th><?= t('Diagram')?></th>
-		<td><h1><?= $diagram->name ?></h1></td>
+		<td><h1><?= htmlspecialchars($diagram->name) ?></h1></td>
 	</tr>
 	<tr>
 		<th><?= t('Project')?></th>
-		<td><a href="<?= getUrl('project',$project['id'].'/view')?>"><?= $project['name'] ?></a></td>
+		<td><a href="<?= getUrl('project',$project['id'].'/view')?>"><?= htmlspecialchars($project['name']) ?></a></td>
 	</tr>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td><?= $diagram->description ?></td>
+		<td><?= markdown($diagram->description) ?></td>
 	</tr>
 	<tr>
 		<th><?= t('Display')?></th>
@@ -58,9 +58,9 @@ if ($action == 'delete'){?>
 				<tr>
 					<td class="phase"><?= t('Phases')?><br/><br/></td>
 					<?php foreach ($diagram->parties() as $party_id => $party) { $party_count++; ?>
-					<th colspan="2" title="<?= $party->description ?>">
+					<th colspan="2" title="<?= htmlspecialchars($party->description) ?>">
 						<?php if ($party->position > 0) { ?><a class="symbol" href="<?= $base_url.'move_party_left/'.$party_id?>"></a><?php } ?>
-						<?= t($party->name)?>
+						<?= htmlspecialchars($party->name)?>
 					</th>
 					<?php } ?>
 					<td>
@@ -70,15 +70,15 @@ if ($action == 'delete'){?>
 
 				<?php foreach ($diagram->phases() as $phase_id => $phase) { ?>
 				<tr>
-					<td class="description" rowspan="<?= count($phase->steps()) +2 ?>">
+					<td class="phase" rowspan="<?= count($phase->steps()) +2 ?>">
 						<a class="button" href="<?= getUrl('model','add_phase_to_diagram/'.$diagram_id.'?position='.$phase->position) ?>" title="<?= t('Add a new phase to this diagram')?>"><?= t('add phase')?></a>
 						<p>
-						<?= $phase->description ?>	<a class="symbol" href="<?= $base_url.'edit_phase/'.$phase_id ?>"></a>
+						<?= markdown($phase->description) ?>	<a class="symbol" href="<?= $base_url.'edit_phase/'.$phase_id ?>"></a>
 						</p>
 					</td>
 				</tr>
 				<tr>
-					<td colspan="<?= $party_count*2 ?>"><h4><?= $phase->name ?></h4></td>
+					<td colspan="<?= $party_count*2 ?>"><h4><?= htmlspecialchars($phase->name) ?></h4></td>
 					<td class="actions">
 						<a class="button" href="<?= getUrl('model','add_step_to_phase/'.$phase_id.'?position=0') ?>" title="<?= t('Add a new step to this phase')?>"><?= t('add step')?></a>
 					</td>
@@ -102,18 +102,18 @@ if ($action == 'delete'){?>
 					if ($length>1){ ?>
 						<td colspan="<?= 2*$first+1 ?>"></td>
 						<td colspan="<?= 2*$length-2 ?>" class="step">
-							<?= $step->name ?> <a class="symbol" href="<?= $base_url.'edit_step/'.$step_id ?>"></a>
+							<?= htmlspecialchars($step->name) ?> <a class="symbol" href="<?= $base_url.'edit_step/'.$step_id ?>"></a>
 							<div class="arrow" style="text-align: <?= $left?'left':'right'?>">
 								<img src="/common_templates/img/a<?= $left?'l':'r'?>.gif"/>
 							</div>
-							<?= $step->description?>
+							<?= markdown($step->description) ?>
 						</td>
 						<td colspan="<?= 2*$post_length+1?>"></td>
 					<?php } else { // length == 1, i.e. "one column"
 						if ($first > 0){ // empty cols before?><td colspan="<?= 2*$first ?>"></td><?php } ?>
 						<td colspan="2" class="step">
-							<?= $step->name ?> <a class="symbol" href="<?= $base_url.'edit_step/'.$step_id ?>"></a>
-							<p><?= $step->description ?></p>
+							<?= htmlspecialchars($step->name) ?> <a class="symbol" href="<?= $base_url.'edit_step/'.$step_id ?>"></a>
+							<p><?= markdown($step->description) ?></p>
 						</td>
 						<?php if ($post_length > 0){ // empty cols after ?><td colspan="<?= 2*$post_length ?>"></td><?php } ?>
 					<?php } ?>
