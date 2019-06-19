@@ -68,10 +68,6 @@ fieldset{
 	vertical-align: top;
 }
 
-div.arrow{
-	background: url(/common_templates/img/am.gif);
-}
-
 .hover:hover .hidden{
 	display: inherit;
 }
@@ -319,32 +315,6 @@ table.vertical{
 	width: 100%;
 }
 
-table.diagram .step{
-	border: 1px solid gray;
-	text-align: center;
-}
-
-table.diagram .actions{
-	vertical-align: bottom;
-}
-
-table.diagram .description{
-	vertical-align: top;
-}
-
-table.diagram .actions .button{
-	position: relative;
-	top: 13px;
-}
-
-table.diagram .description .button{
-	position: relative;
-	top: -13px;
-}
-
-table.diagram h4{
-	text-align: center;
-}
 .document td label{
 	width: unset;
 }
