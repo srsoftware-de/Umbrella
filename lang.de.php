@@ -47,6 +47,7 @@ $translations = array(
 		'Drop connector "◊" ?'=>'Verbinder „◊“ löschen?',
 		'drop connector'=>'Verbinder löschen',
 		'edit'=>'bearbeiten',
+		'Edit diagram "◊"' => 'Diagramm „◊“ bearbeiten',
 		'Edit flow "◊"' => 'Datenfluss „◊“ bearbeiten',
 		'Edit phase "◊"' => 'Phase „◊“ bearbeiten',
 		'Edit process "◊"' => 'Prozess „◊“ bearbeiten',

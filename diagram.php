@@ -40,11 +40,20 @@ if ($action == 'delete'){?>
 <table>
 	<tr>
 		<th><?= t('Diagram')?></th>
-		<td><h1><?= htmlspecialchars($diagram->name) ?></h1></td>
+		<td>
+			<h1><?= htmlspecialchars($diagram->name) ?></h1>
+			<span class="hover_h symbol">
+				<a href="<?= $base_url.'edit_diagram/'.$diagram_id ?>" title="<?= t('Edit diagram')?>"></a>
+			</span>
+		</td>
 	</tr>
 	<tr>
 		<th><?= t('Project')?></th>
-		<td><a href="<?= getUrl('project',$project['id'].'/view')?>"><?= htmlspecialchars($project['name']) ?></a></td>
+		<td>
+			<a href="<?= getUrl('project',$project['id'].'/view')?>"><?= htmlspecialchars($project['name']) ?></a>
+			&nbsp;&nbsp;
+			<a href="<?= $base_url.'?project='.$project['id'] ?>"><span class="symbol"></span> <?= t('Models')?></a>
+		</td>
 	</tr>
 	<tr>
 		<th><?= t('Description')?></th>
