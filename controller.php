@@ -90,14 +90,15 @@ class Note extends UmbrellaObjectWithId{
 			switch ($module){
 				case 'files':
 					break; // do not call load for files
-				case 'model': // uris are of the form model:project:<project id> or model:<model id>
+				case 'model': // uris are of the form model:project:<project id> or model:<model id> or model:diagram:<diagram id>
+					if (strpos($id, 'diagram:')===0) break;
 					if (strpos($id, 'project:')===0){ // in the first case: request project
 						$parts = explode(':', $id);
 						$entities = request('project','json',['ids'=>array_pop($parts)]);
 						if (empty($entities)) return [];
 						break;
 					}
-
+					
 				// uri is of the form model:xyz, go to default section
 				default:
 					$entities = request($module,'json',['ids'=>$id]);
