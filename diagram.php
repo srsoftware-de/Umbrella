@@ -123,7 +123,7 @@ if ($action == 'delete'){?>
 							<div class="arrow" style="text-align: <?= $left?'left':'right'?>">
 								<img src="/common_templates/img/a<?= $left?'l':'r'?>.gif"/>
 							</div>
-							<?= markdown($step->description) ?>
+							<div class="content"><?= markdown($step->description) ?></div>
 						</td>
 						<td colspan="<?= 2*$post_length+1?>"></td>
 					<?php } else { // length == 1, i.e. "one column"
@@ -132,7 +132,7 @@ if ($action == 'delete'){?>
 							<?= htmlspecialchars($step->name) ?>
 							<a class="symbol" href="<?= $base_url.'edit_step/'.$step_id ?>"></a>
 							<a class="symbol" href="<?= $base_url.'delete_step/'.$step_id ?>"></a>
-							<p><?= markdown($step->description) ?></p>
+							<div class="content"><?= markdown($step->description) ?></div>
 						</td>
 						<?php if ($post_length > 0){ // empty cols after ?><td colspan="<?= 2*$post_length ?>"></td><?php } ?>
 					<?php } ?>

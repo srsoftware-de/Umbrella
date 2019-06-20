@@ -43,6 +43,7 @@ $translations = array(
 		'Description'=>'Beschreibung',
 		'Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>'=>'Beschreibung - <a target="_blank" href="◊">Markdown wird unterstützt ↗Spickzettel</a>',
 		'Diagram'=>'Diagramm',
+		'Diagrams'=>'Diagramme',
 		'Display'=>'Anzeige',
 		'Documents'=>'Dokumente',
 		'Drop connector "◊" ?'=>'Verbinder „◊“ löschen?',

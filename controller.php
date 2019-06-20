@@ -127,6 +127,12 @@ class Connector extends UmbrellaObjectWithId{
 			$args = array_merge($args, $ids);
 		}
 
+		if (!empty($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$where[] = '(name LIKE ?)';
+			$args[] = $key;
+		}
+
 		if (!empty($options['name'])) {
 			$where[] = 'name = ?';
 			$args[]  = $options['name'];
@@ -404,7 +410,7 @@ class Flow extends UmbrellaObjectWithId{
 	}
 
 	static function load($options = []){
-		$sql   = 'SELECT * FROM flows';
+		$sql   = 'SELECT id,* FROM flows';
 		$where = [];
 		$args  = [];
 		$single = false;
@@ -434,6 +440,11 @@ class Flow extends UmbrellaObjectWithId{
 			$args = array_merge($args, $ids);
 		}
 
+		if (!empty($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$where[] = '(name LIKE ? OR description LIKE ? OR definition LIKE ?)';
+			$args = array_merge($args, [$key,$key,$key]);
+		}
 
 		if (!empty($options['name'])) {
 			$where[] = 'name = ?';
@@ -655,6 +666,12 @@ class Diagram extends UmbrellaObjectWithId{
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$where[] = '(name LIKE ? OR description LIKE ? OR id IN (SELECT DISTINCT diagram_id FROM parties WHERE name LIKE ? OR description LIKE ?) OR id IN (SELECT DISTINCT diagram_id FROM phases LEFT JOIN steps ON steps.phase_id = phases.id WHERE phases.name LIKE ? OR phases.description LIKE ? OR steps.name LIKE ? OR steps.description LIKE ?))';
+			$args = array_merge($args, [$key,$key,$key,$key,$key,$key,$key,$key]);
 		}
 
 		if (!empty($options['project_id'])) {
@@ -1081,6 +1098,12 @@ class Process extends UmbrellaObjectWithId{
 			$qMarks = str_repeat('?,', count($ids)-1).'?';
 			$where[] = 'id IN ('.$qMarks.')';
 			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$where[] = '(name LIKE ? OR description LIKE ?)';
+			$args = array_merge($args, [$key,$key]);
 		}
 
 		if (!empty($options['models'])) $where[] = 'r IS NULL';
@@ -1692,6 +1715,12 @@ class Terminal extends UmbrellaObjectWithId{
 			$args = array_merge($args, $ids);
 		}
 
+		if (!empty($options['key'])){
+			$key = '%'.$options['key'].'%';
+			$where[] = '(name LIKE ? OR description LIKE ? OR id IN (SELECT terminal_id FROM fields WHERE name LIKE ? OR default_val LIKE ? OR type LIKE ? OR description LIKE ?))';
+			$args = array_merge($args, [$key,$key,$key,$key,$key,$key]);
+		}
+
 		if (!empty($options['name'])) {
 			$where[] = 'name = ?';
 			$args[]  = $options['name'];
@@ -1707,6 +1736,7 @@ class Terminal extends UmbrellaObjectWithId{
 
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows],1);
 		if (!$query->execute($args)) throw new Exception('Was not able to read terminals!');
 
 		$rows = $query->fetchAll(INDEX_FETCH);

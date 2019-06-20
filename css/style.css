@@ -39,13 +39,19 @@ table.diagram .step{
 	text-align: center;
 }
 
+table.diagram .step pre,
+table.diagram .step ol,
+table.diagram .step ul{
+	text-align: left;
+}
+
 table.diagram .step a.symbol,
-table.diagram .step p{
+table.diagram .step div.content{
 	display: none;
 }
 
 table.diagram .step:hover a.symbol,
-table.diagram .step:hover p{
+table.diagram .step:hover div.content{
 	display: inline-block;
 }
 

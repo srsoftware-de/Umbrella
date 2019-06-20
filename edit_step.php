@@ -44,7 +44,7 @@ include '../common_templates/messages.php'; ?>
 	<legend><?= t('Edit step "◊"',$step->name)?></legend>
 	<fieldset>
 		<legend><?= t('Name')?></legend>
-		<input type="text" name="name" value="<?= $step->name ?>" />
+		<input type="text" name="name" value="<?= $step->name ?>" autofocus="autofocus" />
 	</fieldset>
 	<fieldset>
 		<legend><?= t('Source')?></legend>
