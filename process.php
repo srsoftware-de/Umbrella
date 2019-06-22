@@ -10,6 +10,8 @@ if (empty($process_id)) {
 	redirect($base_url);
 }
 
+if (strpos($process_id, 'diagram:')===0) redirect($base_url.str_replace(':', '/', $process_id));
+
 $process = Process::load(['ids'=>$process_id]);
 $project = $process->project();
 if (empty($project)){

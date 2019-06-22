@@ -120,6 +120,7 @@ if ($action == 'delete'){?>
 							<?= htmlspecialchars($step->name) ?>
 							<a class="symbol" href="<?= $base_url.'edit_step/'.$step_id ?>"></a>
 							<a class="symbol" href="<?= $base_url.'delete_step/'.$step_id ?>"></a>
+							<a class="symbol" href="<?= $base_url.'step_up/'.$step_id ?>"></a>
 							<div class="arrow" style="text-align: <?= $left?'left':'right'?>">
 								<img src="/common_templates/img/a<?= $left?'l':'r'?>.gif"/>
 							</div>
@@ -151,6 +152,14 @@ if ($action == 'delete'){?>
 			</table>
 		</td>
 	</tr>
+	<?php if (isset($services['notes'])) {
+		$notes = request('notes','html',['uri'=>'model:diagram:'.$diagram->id],false,NO_CONVERSION);
+		if ($notes){ ?>
+	<tr>
+		<th><?= t('Notes')?></th>
+		<td><?= $notes ?></td>
+	</tr>
+	<?php }} ?>
 </table>
 
 <?php include '../common_templates/messages.php'; ?>

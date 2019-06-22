@@ -1555,6 +1555,17 @@ class Step extends UmbrellaObjectWithId{
 		return $steps;
 	}
 
+	function moveUp(){
+		$db = get_or_create_db();
+
+		$sql = 'UPDATE steps SET position = position +1 WHERE phase_id = :pid AND position = :pos';
+		$args = [':pid'=>$this->phase_id,':pos'=>$this->position -1];
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able top update position!');
+
+		$this->patch(['position'=>$this->position -1])->save();
+	}
+
 	function phase(){
 		if (empty($this->phase)) $this->phase = Phase::load(['ids'=>$this->phase_id]);
 		return $this->phase;
