@@ -12,15 +12,15 @@ if (access_granted($dir) && !in_array($dir,['company','project'])){
 	error('You are not allowed to add folders to "?"!',$dir);
 	redirect(getUrl('files','?path='.$dir));
 }
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST" enctype="multipart/form-data">
 	<fieldset>
-		<legend><?= t('Create new directory in "?"',$dir)?></legend>
+		<legend><?= t('Create new directory in "◊"',$dir)?></legend>
 		<fieldset>
-			<legend>Name</legend>		
+			<legend>Name</legend>
 			<input type="text" name="dirname" autofocus="true" />
 		</fieldset>
 		<input type="submit" />

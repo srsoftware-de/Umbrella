@@ -121,7 +121,7 @@
 	function add_file($file_data){
 		global $user;
 		$dir = param('dir');
-		if (in_array($dir, ['project','company'])) return t('You are not allowed to add files to "?"!',$dir);
+		if (in_array($dir, ['project','company'])) return t('You are not allowed to add files to "◊"!',$dir);
 		$filename = base_dir().DS.$dir.DS.$file_data['name'];
 		if (!$filename) return null;
 
@@ -141,12 +141,12 @@
 			$project_id = array_shift($dir_parts);
 			$project_user_ids = request('project','json',['ids'=>$project_id,'users'=>'only']);
 			$users = request('user','json',['ids'=>array_keys($project_user_ids)]);
-			$subject = t('? uploaded a file to your project',$user->login);
+			$subject = t('◊ uploaded a file to your project',$user->login);
 		} elseif ($base_folder == 'company'){
 			$company_id = array_shift($dir_parts);
 			$company = request('company','json',['ids'=>$company_id,'single'=>true,'users'=>true],1);
 			$users = request('user','json',['ids'=>$company['users']]);
-			$subject = t('? uploaded a file for your company',$user->login);
+			$subject = t('◊ uploaded a file for your company',$user->login);
 		}
 
 		if (!rename($file_data['tmp_name'], $filename)) return t('Was not able to move file to ?!',$directory);
@@ -154,7 +154,7 @@
 		if ($users && param('notify')){
 			$sender = $user->email;
 			$url = getUrl('files','?path='.$dir);
-			$text = t('The file "?" has been uploaded to ?.',[$file_data['name'],$url]);
+			$text = t('The file "◊" has been uploaded to ◊.',[$file_data['name'],$url]);
 			foreach ($users as $u){
 				$reciever = $u['email'];
 				if ($sender == $reciever) continue;
@@ -169,7 +169,7 @@
 			$out = [];
 			$return_code = 0;
 			exec('dia -e '.$target.' '.$filename,$out,$return_code);
-			if ($return_code === 0) info('Created file ?',$target);
+			if ($return_code === 0) info('Created file ◊',$target);
 
 		}
 		return ['name'=>$file_data['name'],'absolute'=>$filename,'dir'=>$dir];
@@ -250,10 +250,10 @@
 
 		$query = $db->prepare('INSERT INTO file_shares (file, user_id) VALUES (:file, :uid);');
 		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
-		info('File "?" has been shared.',$filename);
+		info('File "◊" has been shared.',$filename);
 
 		$url = getUrl('files','shared?path='.urldecode(dirname($filename)));
-		if ($send_mail == 'on')	send_mail($sender, $reciever, t('? shared a file with you',$user->login),t('You now have access to the file "?". Go to ? to download it.',[basename($filename),$url]));
+		if ($send_mail == 'on')	send_mail($sender, $reciever, t('◊ shared a file with you',$user->login),t('You now have access to the file "◊". Go to ◊ to download it.',[basename($filename),$url]));
 		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}
 
@@ -265,7 +265,7 @@
 		$query = $db->prepare('DELETE FROM file_shares WHERE file = :file AND user_id = :uid;');
 		debug($query);
 		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
-		info('File "?" has been unshared.',$filename);
+		info('File "◊" has been unshared.',$filename);
 		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}
 

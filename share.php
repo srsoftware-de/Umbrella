@@ -10,7 +10,7 @@ if (access_granted($filename)){
 
 	$shares = array_keys(get_shares($filename));
 } else {
-	error('You are not allowed to access "?".',$filename);
+	error('You are not allowed to access "◊".',$filename);
 }
 
 $users = load_connected_users();
@@ -23,13 +23,13 @@ include '../common_templates/messages.php';
 if (isset($shares)){ ?>
 
 <fieldset>
-	<legend><?= t('File shares of file ?',$filename)?></legend>
+	<legend><?= t('File shares of file ◊',$filename)?></legend>
 	<table>
 		<tr>
 			<th><?= t('User'); ?></th>
 			<th><?= t('Actions') ?></th>
 		</tr>
-		<?php foreach ($shares as $user_id) { ?>			
+		<?php foreach ($shares as $user_id) { ?>
 		<tr>
 			<td><?= $users[$user_id]['login']?></td>
 			<td>

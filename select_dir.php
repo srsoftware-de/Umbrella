@@ -11,20 +11,20 @@ $entries = list_entries($path);
 $parent = dirname($path);
 
 $message=param('message',t('Select a folder:'));
-include '../common_templates/head.php'; 
+include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <h2><?= $message ?></h2>
-<?php if ($path) { ?><h3><?= t('current folder: ?',$path) ?></h3><?php } ?>
+<?php if ($path) { ?><h3><?= t('current folder: ◊',$path) ?></h3><?php } ?>
 
 <table>
 	<tr>
 		<th><?= t('File / Directory') ?></th>
 		<th><?= t('Action') ?></th>
 	</tr>
-	<?php foreach ($entries['dirs'] as $alias => $dir){ 
+	<?php foreach ($entries['dirs'] as $alias => $dir){
 	?>
 	<tr>
 		<td>
@@ -37,7 +37,7 @@ include '../common_templates/messages.php'; ?>
 			<a href="<?= $target ?>?path=<?= urlencode($dir)?>"><?= t('select') ?></a>
 			<?php }?>
 		</td>
-		
+
 	</tr>
 	<?php }?>
 </table>
