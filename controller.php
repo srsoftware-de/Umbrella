@@ -1,5 +1,7 @@
 <?php include '../bootstrap.php';
 
+/** @var $dummy used in lopps */
+/** @var $title used in importing classes */
 const MODULE = 'Notes';
 $title = t('Umbrella Notes Management');
 
@@ -35,18 +37,12 @@ function get_or_create_db(){
 				} else $sql .= $props.", ";
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-			$query = $db->prepare($sql);
 			assert($db->query($sql),'Was not able to create '.$table.' table in companies.db!');
 		}
 	} else {
 		$db = new PDO('sqlite:db/notes.db');
 	}
 	return $db;
-}
-
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$parsedown  = Parsedown::instance();
 }
 
 class Note extends UmbrellaObjectWithId{
@@ -92,13 +88,13 @@ class Note extends UmbrellaObjectWithId{
 					break; // do not call load for files
 				case 'model': // uris are of the form model:project:<project id> or model:<model id> or model:diagram:<diagram id>
 					if (strpos($id, 'diagram:')===0) break;
+				case 'time':
 					if (strpos($id, 'project:')===0){ // in the first case: request project
 						$parts = explode(':', $id);
 						$entities = request('project','json',['ids'=>array_pop($parts)]);
 						if (empty($entities)) return [];
 						break;
 					}
-					
 				// uri is of the form model:xyz, go to default section
 				default:
 					$entities = request($module,'json',['ids'=>$id]);
@@ -166,7 +162,7 @@ class Note extends UmbrellaObjectWithId{
 
 			$accessible_uris = [];
 
-			foreach ($notes as $note_id => $note){
+			foreach ($notes as $note){
 				$uri_parts = explode(':', $note->uri);
 				$realm = array_shift($uri_parts);
 				$id = implode(':', $uri_parts);;
@@ -320,8 +316,17 @@ class Note extends UmbrellaObjectWithId{
 		$parts = explode(':', $this->uri,2);
 		$module = array_shift($parts);
 		$id = array_shift($parts);
-		if ($module == 'files') return getUrl($module,'?path='.$id.'&'.$param);
-		if ($module == 'poll') return getUrl($module,'view?id='.$id.'&'.$param);
+		//debug(['module'=>$module,'id'=>$id],1);
+		switch ($module){
+			case 'files':
+				return getUrl($module,'?path='.$id.'&'.$param);
+				break;
+			case 'poll':
+				return getUrl($module,'view?id='.$id.'&'.$param);
+				break;
+			case 'time':
+				if (strpos($id,'project:')===0) return getUrl($module,'?'.str_replace(':', '=', $id));
+		}
 		return getUrl($module,$id.'/view?'.$param);
 	}
 }
