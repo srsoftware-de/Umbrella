@@ -1,5 +1,7 @@
 <?php include 'controller.php';
 
+/** @var mixed $dummy used in loop */
+
 require_login('time');
 
 $options = ['order'=>param('order','state')];
@@ -15,7 +17,7 @@ header('Content-Disposition: attachment; filename="timetrack.csv";');
 <?php foreach ($times as $id => $time){
 	if (!$show_complete && $time->state == TIME_STATUS_COMPLETE) continue; ?>"<?php
 	$projects = [];
-	foreach ($time->tasks as $task_id => $task) $projects[$task['project']['name']]=true;
+	foreach ($time->tasks as $dummy => $task) $projects[$task['project']['name']]=true;
 	echo implode(', ', array_keys($projects));
 ?>";"<?= html2plain($time->subject) ?>";"<?= html2plain($time->description) ?>";"<?= $time->start_time?date('Y-m-d H:i',$time->start_time):''; ?>";"<?= $time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>'; ?>";"<?= $time->end_time?str_replace('.',',',round(($time->end_time-$time->start_time)/3600,2)):'' ?>";"<?= t($time->state()) ?>"
 <?php } ?>

@@ -17,8 +17,14 @@
 						 TIME_STATUS_COMPLETE => 'completed',
 						 TIME_STATUS_STARTED => 'started'
 						];
-	$TIME_PERMISSIONS = array(TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant');
+	/** @var mixed $dummy used loops */
+	/** @var mixed $parsedown used in importing classes */
+	/** @var mixed $services used in importing classes */
+	/** @var mixed $TIME_PERMISSIONS */
+	/** @var mixed $title used in importing classes */
+	/** @var mixed $user used in importing classes */
 
+	$TIME_PERMISSIONS = [TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant'];
 	$title = t('Umbrella Timetracking');
 
 	function get_or_create_db(){
@@ -59,7 +65,6 @@
 					} else $sql .= $props.", ";
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-				$query = $db->prepare($sql);
 				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
@@ -261,7 +266,7 @@
 			}
 
 			$query = $db->prepare('INSERT OR IGNORE INTO task_times (task_id, time_id) VALUES (:task, :time)');
-			foreach ($this->tasks as $task_id => $task) assert($query->execute(array(':task'=>$task_id,':time'=>$this->id)),'Was not able to assign task to timetrack.');
+			foreach ($this->tasks as $task_id => $dummy) assert($query->execute(array(':task'=>$task_id,':time'=>$this->id)),'Was not able to assign task to timetrack.');
 
 			return $this;
 		}

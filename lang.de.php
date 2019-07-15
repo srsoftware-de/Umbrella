@@ -1,4 +1,5 @@
 <?php
+/** @var mixed $translations used in importing classes */
 $translations = array(
 		'Actions' => 'Aktionen',
 		'Add Task "◊" to Timetrack'=>'Aufgabe "◊" zu Zeiterfassung hinzufügen',

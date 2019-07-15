@@ -1,5 +1,8 @@
 <?php include 'controller.php';
 
+global $parsedown; // imported from bootstrap via controller
+global $services; // imported from bootstrap via controller
+
 require_login('time');
 
 $options = ['order'=>param('order')];
@@ -68,12 +71,12 @@ if ($project_id){ ?>
 	<tr>
 		<td colspan="4"></td>
 		<td><?= t('Sum:') ?></td>
-		<td><?= round($sum/3600,2) ?></th>
+		<td><?= round($sum/3600,2) ?></td>
 		<td><?= t('open')?></td>
 		<td></td>
 	</tr>
 <?php } // if project_id ?>
-
-
 </table>
-<?php include '../common_templates/closure.php'; ?>
+<?php if (!empty($project_id) && isset($services['notes'])) echo request('notes','html',['uri'=>'time:project:'.$project_id],false,NO_CONVERSION);
+
+include '../common_templates/closure.php'; ?>
