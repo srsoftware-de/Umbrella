@@ -201,7 +201,7 @@
 				$rows = $query->fetchAll(INDEX_FETCH);
 				$required_tasks = [];
 
-				foreach ($rows as $id => $row){
+				foreach ($rows as $row){
 					$task = new Task();
 					$task->patch($row);
 					unset($task->dirty);

@@ -63,9 +63,8 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Task')?></th>
 		<td>
 			<h1><?= $task->name ?></h1>
-			<?php if ($task->is_writable()) { ?>
 			<span class="right">
-
+			<?php if ($task->is_writable()) { ?>
 				<a title="<?= t('edit')?>"         href="edit"		  class="symbol"></a>
 				<a title="<?= t('add subtask')?>"  href="add_subtask" class="symbol"> </a>
 				<a title="<?= t('add user')?>"     href="add_user"    class="symbol"></a>
@@ -75,11 +74,12 @@ include '../common_templates/messages.php'; ?>
 				<a title="<?= t('open')?>"         href="open"        class="<?= $task->status == TASK_STATUS_OPEN     ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('wait')?>"         href="wait"        class="<?= $task->status == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('delete')?>"       href="delete"      class="symbol"></a>
-				<a title="<?= t('export task') ?>" href="export"      class="symbol" ></a>
 				<a title="<?= t('convert to project'); ?>" href="convert" class="symbol"></a>
+				<?php } ?>
+				<a title="<?= t('export task') ?>" href="export"      class="symbol" ></a>
 				<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
-				<?php } ?>
+
 			</span>
 			<?php } ?>
 		</td>
