@@ -41,10 +41,11 @@ include '../common_templates/messages.php'; ?>
 		if ($task->no_index == 1) $hide[] = $task->id;
 		if (!empty($task->parent_task_id)) $hide[] = $task->parent_task_id; // if task is child of a parent task: hide that parent
 	}
-	foreach ($tasks as $id => $task):
-	if (!$show_closed && in_array($task->status,[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
-	if (in_array($id, $hide)) continue;
-	$project = $projects[$task->project_id];
+	foreach ($tasks as $id => $task){
+		if (!$show_closed && in_array($task->status,[TASK_STATUS_PENDING,TASK_STATUS_COMPLETE,TASK_STATUS_CANCELED])) continue;
+		if (in_array($id, $hide)) continue;
+		$project = $projects[$task->project_id];
+		if (in_array($project['status'], [PROJECT_STATUS_CANCELED,PROJECT_STATUS_COMPLETE])) continue;
 	?>
 	<tr class="project<?= $task->project_id ?>">
 		<td class="<?= task_state($task->status)?>"><a href="<?= $id ?>/view"><?= $task->name ?></a></td>
@@ -68,7 +69,7 @@ include '../common_templates/messages.php'; ?>
 			<a title="<?= t('start')?>  "  href="<?= $id ?>/start?redirect=../index"    class="<?= $task->status == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>
 		</td>
 	</tr>
-<?php endforeach; ?>
+<?php }; ?>
 
 </table>
 <?php
