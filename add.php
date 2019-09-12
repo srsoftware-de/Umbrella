@@ -52,12 +52,6 @@ include '../common_templates/messages.php'; ?>
 				<td></td>
 			</tr>
 			<tr>
-				<th><?= t('Enter name/description')?></th>
-				<td>
-					<input type="text" name="name"/></td>
-				<td></td>
-			</tr>
-			<tr>
 				<th><?= t('Select location of item')?></th>
 				<td>
 					<select name="location_id">
@@ -69,6 +63,12 @@ include '../common_templates/messages.php'; ?>
 				<td>
 					<a class="button" href="<?= $base_url.$prefix.DS.'add_location?return_to='.location('*'); ?>"><?= t('Add stock location')?></a>
 				</td>
+			</tr>
+			<tr>
+				<th><?= t('Enter name/description')?></th>
+				<td>
+					<input type="text" name="name"/></td>
+				<td></td>
 			</tr>
 		</table>
 		<button type="submit"><?= t('Add item')?></button>
