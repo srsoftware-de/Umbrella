@@ -108,8 +108,9 @@ if ($project){
 		<th><?= t('Project')?></th>
 		<td>
 			<span class="right symbol">
-				<a title="<?= t('complete')?>" href="complete?redirect=../index"></a>
-				<a title="<?= t('cancel')?>" href="cancel?redirect=../index"></a>
+				<?php if ($project->status != PROJECT_STATUS_COMPLETE ) { ?><a title="<?= t('complete')?>" href="complete?redirect=../index"></a><?php } ?>
+				<?php if ($project->status != PROJECT_STATUS_CANCELED ) { ?><a title="<?= t('cancel')?>" href="cancel?redirect=../index"></a><?php } ?>
+				<?php if (!in_array($project->status, [PROJECT_STATUS_OPEN,PROJECT_STATUS_PENDING]) ) { ?><a title="<?= t('open')?>" href="open?redirect=../index"></a><?php } ?>
 				<a title="<?= t('edit') ?>" href="edit"></a>
 				<a title="<?= t('add task')?>" href="../../task/add_to_project/<?= $project->id ?>"> </a>
 				<a title="<?= t('export project') ?>" href="export"></a>
@@ -118,7 +119,7 @@ if ($project){
 				<a title="<?= t('Transform to task')?>" href="<?= getUrl('task','from_project?id='.$project_id)?>"></a>
 
 			</span>
-			<h1><?= $project->name ?></h1>
+			<h1><?= $project->name ?></h1><?= ' ('.t(project_state($project->status)).')' ?>
 		</td>
 	</tr>
 	<?php if (!empty($project->company)) { ?>
