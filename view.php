@@ -11,6 +11,9 @@ if (!$document) {
 }
 
 $projects = request('project','json',['company_ids'=>$document->company_id]); // get all projects of the documents' company
+foreach ($projects as $id => $project){
+	if (in_array($project['status'], [PROJECT_STATUS_CANCELED,PROJECT_STATUS_COMPLETE])) unset($projects[$id]);
+}
 $tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
 
 if ($services['time']){
@@ -548,7 +551,7 @@ include '../common_templates/messages.php'; ?>
 			<a href="../templates?company=<?= $document->company_id ?>"><span class="symbol"></span><?= t('Manage templates') ?></a>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
-		<fieldset>
+		<fieldset class="tags">
 			<legend><?= t('Tags')?></legend>
 			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
 		</fieldset>

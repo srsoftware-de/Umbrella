@@ -231,9 +231,9 @@ class CompanyCustomerSettings extends UmbrellaObject{
 		$this->company_id = $company_id;
 		$this->document_type_id = $doc_type_id;
 		$this->customer_number = $cust_num;
-		$this->default_header = t('Please enter a new header.');
-		$this->default_footer = t('Please enter a new footer.');
-		$this->type_mail_text = t("Dear Ladies and Gentlemen,\n\nAttached to this mail you will find a new ? document. To open it, you need a pdf viewer.");
+		$this->default_header = t('Enter a new header, please.');
+		$this->default_footer = t('Enter a new footer, please.');
+		$this->type_mail_text = t("Dear Ladies and Gentlemen,\n\nAttached to this mail you will find a new ◊ document. To open it, you need a pdf viewer.");
 	}
 
 	function applyTo(Document $document){

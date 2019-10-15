@@ -7,7 +7,7 @@
 	$reciever = post('reciever',$document->customer_email);
 	$sender = post('sender',$document->company()['email']);
 	$subject = post('subject',t('New '.$document->type->name.' from ◊',$document->company()['name']));
-	$text = post('text',$document->mail_text());
+	$text = post('text',t($document->mail_text(),t($document->type->name)));
 
 	if (isset($_POST['reciever'])){
 		if ($pdf->send($sender,$reciever,$subject,$text)){
