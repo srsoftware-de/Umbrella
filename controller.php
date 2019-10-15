@@ -42,15 +42,6 @@ function get_or_create_db(){
 	return $db;
 }
 
-function markdown($text){
-	if (file_exists('../lib/parsedown/Parsedown.php')){
-		include_once '../lib/parsedown/Parsedown.php';
-		return Parsedown::instance()->parse($text);
-	} else {
-		return str_replace("\n", "<br/>", htmlentities($text));
-	}
-}
-
 function set_customer_number(&$vcard,$company){
 	$new_customer_number = $company['last_customer_number']+1;
 	$vcard->{'X-CUSTOMER-NUMBER'} = $company['customer_number_prefix'].$new_customer_number;

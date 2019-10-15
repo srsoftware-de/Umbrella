@@ -94,7 +94,7 @@ function updateDB($version){
 	if (no_error()){
 		$query = $db->prepare('REPLACE INTO settings (key, value) VALUES ("db_version", ?)');
 		if ($query->execute([$version])) {
-			info("Introduced db_version in settings table");
+			info("Set db_version in settings table");
 		} else error("0x008: Was not able insert db version into settings table!");
 	}
 
