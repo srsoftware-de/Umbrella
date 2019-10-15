@@ -151,7 +151,8 @@ table.time h2{
 .document .dates label{
 	display: block
 }
-.document .header{
+.document .header,
+.document .tags{
 	clear: both;
 }
 
