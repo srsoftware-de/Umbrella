@@ -528,10 +528,27 @@
 
 		public static function random_id(){
 			global $user;
+
+			$projects = request('project','json');
+			foreach ($projects as $id => $project) {
+				if (in_array($project['status'], [PROJECT_STATUS_CANCELED,PROJECT_STATUS_COMPLETE])) unset($projects[$id]);
+			}
+			$args = array_keys($projects);
+			$where = ['project_id IN ('.implode(',', array_fill(0, count($args), '?')).')'];
+
+			$where[] = 'user_id = ?';
+			$args[] = $user->id;
+
+			$where[] = 'status not in (?,?)';
+			$args[] = TASK_STATUS_CANCELED;
+			$args[] = TASK_STATUS_COMPLETE;
+
+			$where[] = 'no_index = 0';
+
 			$db = get_or_create_db();
-			$sql = 'SELECT id,status FROM tasks_users LEFT JOIN tasks ON id=task_id WHERE user_id = :uid AND status < '.TASK_STATUS_COMPLETE.' ORDER BY RANDOM() LIMIT 1';
+			$sql = 'SELECT id,status FROM tasks_users LEFT JOIN tasks ON id=task_id WHERE '.implode(' AND ',$where).' ORDER BY RANDOM() LIMIT 1';
 			$query = $db->prepare($sql);
-			assert($query->execute([':uid'=>$user->id]),'Was not able to read tasks table.');
+			assert($query->execute($args),'Was not able to read tasks table.');
 			$rows = $query->fetchAll(INDEX_FETCH);
 			$query->closeCursor();
 			return reset(array_keys($rows));
