@@ -1,6 +1,7 @@
 <?php
 $translations = array(
 		'Actions' => 'Aktionen',
+		'add task' => 'Aufgabe hinzufügen',
 		'Add Task "◊" to Timetrack'=>'Aufgabe "◊" zu Zeiterfassung hinzufügen',
 		'Are you sure?'=>'Sind Sie sicher?',
 		'Bookmarks'=>'Lesezeichen',

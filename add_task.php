@@ -43,7 +43,7 @@ include '../common_templates/messages.php'; ?>
 				<option value="0"><?= t('Start new time track')?></option>
 			</select>
 		</fieldset>
-		<input type="submit" />
+		<button type="submit"><?= t('add task');?></button>
 	</fieldset>
 </form>
 
