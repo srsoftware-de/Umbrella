@@ -1,5 +1,9 @@
 <?php include 'controller.php';
 
+global $parsedown;
+global $services;
+/** @var mixed $title imported from controller */
+
 require_login('time');
 
 $time_id = param('id');
@@ -7,7 +11,8 @@ if (!$time_id) error('No time id passed to view!');
 
 $time = Timetrack::load(['ids'=>$time_id]);
 $title = $time->subject.' - Umbrella';
-$documents = isset($services['document']) ? request('document','json',['times'=>$time_id]) : null;
+
+$documents = empty($services['document']) ? null : request('document','json',['times'=>$time_id]);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
