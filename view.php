@@ -11,8 +11,8 @@ if (!$document) {
 }
 
 $projects = request('project','json',['company_ids'=>$document->company_id]); // get all projects of the documents' company
-foreach ($projects as $id => $project){
-	if (in_array($project['status'], [PROJECT_STATUS_CANCELED,PROJECT_STATUS_COMPLETE])) unset($projects[$id]);
+foreach ($projects as $pid => $project){
+	if (in_array($project['status'], [PROJECT_STATUS_CANCELED,PROJECT_STATUS_COMPLETE])) unset($projects[$pid]);
 }
 $tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
 

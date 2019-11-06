@@ -47,6 +47,8 @@ if ($customer_contact_id = post('customer')){
 	redirect($document->id.'/view');
 }
 
+$selected_type_id = param('type_id',0);
+
 function customer_num($contact){
 	if (isset($contact->{'X-CUSTOMER-NUMBER'}) && !empty($contact->{'X-CUSTOMER-NUMBER'})) return ' ('.$contact->{'X-CUSTOMER-NUMBER'}.')';
 	return '';
@@ -71,7 +73,7 @@ include '../common_templates/messages.php'; ?>
 			<select name="customer">
 				<option value=""><?= t('== select a customer ==') ?></option>
 				<?php foreach ($contacts_sorted as $short => $contact) { ?>
-				<option value="<?= $contact->id ?>" <?= (post('customer')==$contact->id)?'selected="true"':''?>><?= $short.customer_num($contact) ?></option>
+				<option value="<?= $contact->id ?>" <?= (param('customer')==$contact->id)?'selected="selected"':''?>><?= $short.customer_num($contact) ?></option>
 				<?php }?>
 			</select>
 		</fieldset>
@@ -79,7 +81,7 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Document type') ?></legend>
 			<select name="type_id">
 			<?php foreach ($doc_types as $type_id => $doc_type){ ?>
-				<option value="<?= $type_id ?>"><?= t($doc_type->name)?></option>
+				<option value="<?= $type_id ?>" <?= $type_id == $selected_type_id ? 'selected="selected"':''?>><?= t($doc_type->name)?></option>
 			<?php } ?>
 			</select>
 		</fieldset>
