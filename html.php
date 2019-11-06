@@ -1,5 +1,7 @@
 <?php include 'controller.php';
 
+global $user; // imported
+
 require_login('notes');
 
 $uri = param('uri');
@@ -17,7 +19,7 @@ foreach ($notes as $nid => $note){ ?>
 			<a class="symbol" href="<?= getUrl('notes',$nid.'/delete') ?>" title="<?= t('delete note')?>"></a>
 		</span>
 		<?php }?>
-		<?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?>
+		<?= markdown($note->note) ?>
 	</fieldset>
 <?php } ?>
 
