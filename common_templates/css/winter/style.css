@@ -80,6 +80,7 @@ blockquote{
 .add_positions > ul > li{
 	max-height: 20px;
 	overflow: hidden;
+	padding-top: 20px;
 }
 
 .add_positions > ul > li:hover{

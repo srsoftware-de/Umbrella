@@ -22,17 +22,20 @@ const TASK_STATUS_CANCELED = 100;
 
 function address_from_vcard($vcard){
 	$result = '';
-	if (isset($vcard->FN)) $result .= $vcard->FN."\n";
-	if (isset($vcard->N)) $result .= trim($vcard->N->given.' '.$vcard->N->family) . "\n";
+	if (!empty($vcard->FN)) $result .= $vcard->FN."\n";
+	if (!empty($vcard->N)) {
+		$name = trim($vcard->N->given.' '.$vcard->N->family);
+		if (!empty($name)) $result .= $name."\n";
+	}
 	$address = $vcard->ADR;
 	if (is_array($address)) $address = reset($address);
-	if (!isset($address->post_box)) $result .= t('Postbox: ?',$address->post_box)."\n"; // Postfach
-	if (!empty($address->ext_addr)) $result .= $address->ext_addr."\n";				// Adresszusatz
-	if (!empty($address->street)) $result .=	$address->street."\n";				// Straße
+	if (!empty($address->post_box))  $result .= t('Postbox: ◊',$address->post_box)."\n"; // Postfach
+	if (!empty($address->ext_addr))  $result .= $address->ext_addr."\n";				// Adresszusatz
+	if (!empty($address->street))    $result .=	$address->street."\n";				// Straße
 	if (!empty($address->post_code)) $result .=	$address->post_code." ";				// Postleitzahl
-	if (!empty($address->locality)) $result .=	$address->locality."\n";				// Ort
-	if (!empty($address->region)) $result .=	$address->region." / ";				// Region
-	if (!empty($address->country)) $result .=	$address->country;				// Land
+	if (!empty($address->locality))  $result .=	$address->locality."\n";				// Ort
+	if (!empty($address->region))    $result .=	$address->region." / ";				// Region
+	if (!empty($address->country))   $result .=	$address->country;				// Land
 
 	return $result;
 }
