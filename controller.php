@@ -28,16 +28,6 @@ function get_or_create_db(){
 	return $db;
 }
 
-function markdown($text){
-	if (file_exists('../lib/parsedown/Parsedown.php')){
-		include_once '../lib/parsedown/Parsedown.php';
-		return Parsedown::instance()->parse($text);
-	} else {
-		return str_replace("\n", "<br/>", htmlentities($text));
-	}
-}
-
-
 class Poll extends UmbrellaObjectWithId{
 	const OPTION_DISABLED = 2;
 	const OPTION_ENABLED = 1;
