@@ -15,7 +15,7 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<h1><?= t('shared files: ?',$path?$path:' ')?></h1>
+<h1><?= t('shared files: ◊',$path?$path:' ')?></h1>
 <?php if ($path) $path = rtrim($path,DS).DS; ?>
 <table>
 	<tr>

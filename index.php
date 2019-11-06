@@ -25,7 +25,7 @@ include '../common_templates/messages.php'; ?>
 </script>
 
 <fieldset>
-	<legend><?= t('Files: ?',$path?$path:' ')?></legend>
+	<legend><?= t('Files: ◊',$path?$path:' ')?></legend>
 	<table>
 		<tr>
 			<th><?= t('File / Directory') ?></th>
