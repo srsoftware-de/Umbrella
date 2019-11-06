@@ -20,6 +20,10 @@ const TASK_STATUS_PENDING = 40;
 const TASK_STATUS_COMPLETE = 60;
 const TASK_STATUS_CANCELED = 100;
 
+/** @var mixed $user created by static method, but used globally */
+/** @var mixed $theme created by static method, but used globally */
+/** @var mixed $translations created by static method, but used globally */
+
 function address_from_vcard($vcard){
 	$result = '';
 	if (!empty($vcard->FN)) $result .= $vcard->FN."\n";
@@ -314,7 +318,7 @@ function request($service = null,$path,$data = [], $debug = false,$decode = ARRA
 
 	$options = [ 'ssl'=>$ssl_options];
 	$post_data = http_build_query($data);
-	if ($debug) echo t('Posting ?',print_r($data,true));
+	if ($debug) echo t('Posting ◊',print_r($data,true));
 	$http_options = array();
 	$http_options['method'] = 'POST';
 	$http_options['header'] = 'Content-type: application/x-www-form-urlencoded';
@@ -391,7 +395,7 @@ function save_file($filename,$file_contents,$mime){
 
 	$context = stream_context_create($options);
 
-	$response = file_get_contents($url,false,$context);
+	return file_get_contents($url,false,$context);
 }
 
 function send_mail($sender, $reciever, $subject, $text, $attachment = null){
@@ -431,7 +435,7 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 }
 
 function t($text,$replacements=null){
-	global $lang;
+	global $lang,$translations;
 	$lang_file ='lang.'.$lang.'.php';
 	if (file_exists($lang_file)){
 		include $lang_file;

@@ -53,14 +53,13 @@
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
 	<legend>Stärken und Schwächen</legend>
 	<p>Eine große Stärke von Umbrella ist, dass die PHP-Module <b>nicht</b> auf irgendwelchen großen Frameworks aufbauen und (fast) kein JavaScript verweden.</p>
-	<p>Dadurch ergeben sich folgende Vorteile:
-		<ul>
-			<li>Wenige Abhängigkeiten von fremden Programmbibliotheken</li>
-			<li>schlankerer, schneller Quellcode</li>
-			<li>kleinere Angriffsfläche für Code-Injections in Fremdpaketen</li>
-			<li>Umbrella funktioniert auch bei deaktiviertem Javascript</li>
-		</ul>
-	</p>
+	<p>Dadurch ergeben sich folgende Vorteile:</p>
+	<ul>
+		<li>Wenige Abhängigkeiten von fremden Programmbibliotheken</li>
+		<li>schlankerer, schneller Quellcode</li>
+		<li>kleinere Angriffsfläche für Code-Injections in Fremdpaketen</li>
+		<li>Umbrella funktioniert auch bei deaktiviertem Javascript</li>
+	</ul>
 	<p>Es gibt auch einige wenige Nachteile: Seiteninhalte werden nicht per Ajax nachgeladen, obwohl das gerade Mode ist.</p>
 </fieldset>
 
