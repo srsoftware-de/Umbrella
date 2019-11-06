@@ -16,6 +16,12 @@ foreach ($projects as $pid => $project){
 }
 $tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get all tasks of the projects
 
+if (isset($services['bookmark'])){
+	$hash = sha1(getUrl('document',$id.'/view'));
+	$bookmark = request('bookmark','json_get?id='.$hash);
+	if (!$bookmark) $default_tags = implode(' ', [$document->customer_short(),$document->number,t($document->type()->name)]);
+}
+
 if ($services['time']){
 	if (isset($document->company_id) && $document->company_id !== null){
 		$times = request('time','json',['task_ids'=>array_keys($tasks)]); // get all times for tasks of the project
@@ -63,6 +69,7 @@ if ($services['time']){
 				$position->save();
 			}
 			request('time','update_state',['PENDING'=>implode(',',array_keys($selected_times))]);
+			if ($bookmark) $bookmark['tags'][] = t('timetrack');
 		}
 	}
 }
@@ -82,6 +89,7 @@ if (isset($services['items'])){
 					'single_price'=>$item['unit_price'],
 					'tax'=>$item['tax']]);
 			$position->save();
+			if ($bookmark) $bookmark['tags'][] = t($item['code']);
 		}
 	}
 }
@@ -152,11 +160,6 @@ if (isset($_POST['document'])){
 
 $templates = Template::load($document->company_id);
 if (empty($templates)) warn('No templates have been provided for this company!');
-
-if (isset($services['bookmark'])){
-	$hash = sha1(getUrl('document',$id.'/view'));
-	$bookmark = request('bookmark','json_get?id='.$hash);
-}
 
 function show_time_estimates($tasks){ ?>
 	<ul>
@@ -553,7 +556,7 @@ include '../common_templates/messages.php'; ?>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset class="tags">
 			<legend><?= t('Tags')?></legend>
-			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : ''?>" />
+			<input type="text" name="tags" value="<?= $bookmark ? implode(' ', $bookmark['tags']) : $default_tags ?>" />
 		</fieldset>
 		<?php } ?>
 		<button type="submit"><?= t('Save')?></button>

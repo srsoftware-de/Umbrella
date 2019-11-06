@@ -19,7 +19,7 @@
 			}
 			redirect('view');
 		} else {
-			error('Was not able to send mail to ?',$document->customer_email);
+			error('Was not able to send mail to ◊',$document->customer_email);
 		}
 	}
 

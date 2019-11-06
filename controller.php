@@ -690,6 +690,7 @@ class Document extends UmbrellaObjectWithId{
 
 	public function mail_text(){
 		$company_settings = CompanyCustomerSettings::load($this->company,$this->type->id,$this->customer_number);
+		if (empty($company_settings->type_mail_text)) return (new CompanyCustomerSettings(NULL, NULL, NULL))->type_mail_text;
 		return $company_settings->type_mail_text;
 	}
 
@@ -758,7 +759,7 @@ class Document extends UmbrellaObjectWithId{
 			foreach ($raw_tags as $tag){
 				if (trim($tag) != '') $tags[]=$tag;
 			}
-			request('bookmark','add',['url'=>getUrl('document').$this->id.'/view','comment'=>t('Document ?',$this->number),'tags'=>$tags]);
+			request('bookmark','add',['url'=>getUrl('document').$this->id.'/view','comment'=>t('◊ / ◊ ◊',[$this->customer_short(),t($this->type()->name),$this->number]),'tags'=>$tags]);
 		}
 	}
 
