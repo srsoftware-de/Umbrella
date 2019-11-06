@@ -259,7 +259,8 @@ class CompanyCustomerSettings extends UmbrellaObject{
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM company_customer_settings WHERE company_id = :cid AND document_type_id = :dtid AND customer_number = :cust');
 		assert($query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id, ':cust'=>$this->customer_number]),'Was not able to count settings for company/customer!');
-		$count = reset($query->fetch(PDO::FETCH_ASSOC));
+		$rows = $query->fetch(PDO::FETCH_ASSOC);
+		$count = reset($rows);
 		if ($count == 0){ // new!
 			$known_fields = array_keys(CompanyCustomerSettings::table());
 			$fields = [];
@@ -515,6 +516,24 @@ class Document extends UmbrellaObjectWithId{
 		];
 	}
 
+	/**
+         * Returns the id of the last new document of a given type for a given company.
+         * A document is new, if it has not been sent or tagged as paid
+         */
+	static function last_new_id($company_id = null,$doc_type_id = null){
+		if ($doc_type_id == null) return null;
+		if ($company_id == null) return null;
+		$db = get_or_create_db();
+		$sql = 'SELECT id FROM documents WHERE company_id = :cid AND type_id = :tid ORDER BY id DESC LIMIT 1';
+		$query = $db->prepare($sql);
+		$args = [ ':cid' => $company_id, ':tid' => $doc_type_id ];
+		//debug(query_insert($query, $args));
+		if (!$query->execute($args)) throw new Exception('Was not able to execute "'.query_insert($sql, $args).'"!');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		foreach ($rows as $row) return $row['id'];
+		return null;
+	}
+
 	/*** instance functions ********/
 	function __construct(array $company = []){
 		if (isset($company['id'])) $this->company_id = $company['id'];
@@ -534,6 +553,15 @@ class Document extends UmbrellaObjectWithId{
 		$query = $db->prepare('INSERT INTO document_positions (document_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
 		$args = array(':id'=>$this->document_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
 		assert($query->execute($args),'Was not able to store new postion for document '.$this->document_id.'!');
+	}
+
+        /**
+          * returns true, if the document is the last new document of its type for its assigned company
+          */
+	function can_be_deleted(){
+		$last_id = Document::last_new_id($this->company_id,$this->type_id);
+		if ($this->id != $last_id) return false;
+		return $this->state == Document::STATE_NEW;
 	}
 
 	public function company($field = null){
@@ -558,6 +586,34 @@ class Document extends UmbrellaObjectWithId{
 		return date('Y-m-d',$this->date);
 	}
 
+        /**
+	  * deletes the assigned document thereby removing all its positions
+          */
+	public function delete(){
+		$positions = $this->positions();
+		//debug($this,true);
+		while (count($positions)>0){
+			$position = array_pop($positions);
+			$position->delete(DocumentPosition::UPDATE_REMAINING);
+		}
+		$db = get_or_create_db();
+		$db->beginTransaction();
+		// delete document entry
+		$sql = 'DELETE FROM documents WHERE id = :id';
+		$args = [':id' => $this->id];
+		$query = $db->prepare($sql);
+
+		if (! $query->execute($args)) throw new Exception('Was not able to delete document ◊',$this->id);
+
+		// decrease type counter
+		$sql = 'UPDATE company_settings SET type_number = type_number - 1 WHERE company_id = :cid AND document_type_id = :typ';
+		$args = [':cid' => $this->company_id,':typ' => $this->type_id];
+		$query = $db->prepare($sql);
+
+		if (! $query->execute($args)) throw new Exception('Was not able to delete document ◊',$this->id);
+		$db->commit();
+	}
+
 	public function delivery_date(){
 		if (!isset($this->delivery_date) || $this->delivery_date === null) return '';
 		return $this->delivery_date;
@@ -566,7 +622,7 @@ class Document extends UmbrellaObjectWithId{
 	function derive($next_type_id = null){
 		if ($next_type_id === null) $next_type_id = $this->type()->next_type_id;
 		if ($next_type_id === null) {
-			error('No successor type defined for documents of type ?',$this->type()->name);
+			error('No successor type defined for documents of type ◊',$this->type()->name);
 			redirect(getUrl('document'));
 		}
 

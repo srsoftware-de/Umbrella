@@ -561,7 +561,10 @@ include '../common_templates/messages.php'; ?>
 		<?php if (isset($services['files'])) { ?>
 		<a class="button" title="<?= t('Store PDF within umbrella file management.')?>" href="store"><?= t('Store PDF')?></a>
 		<?php } ?>
-		<a class="button" title="<?= t('Send as PDF to ?.',$document->customer_email)?>" href="send"><?= t('Send to ◊',$document->customer_email)?></a>
+		<a class="button" title="<?= t('Send as PDF to ◊.',$document->customer_email)?>" href="send"><?= t('Send to ◊',$document->customer_email)?></a>
+		<?php if ($document->can_be_deleted()) { ?>
+		<a class="button" title="<?= t('Delete this ◊',t($document->type()->name))?>" href="delete"><?= t('Delete')?></a>
+		<?php } ?>
 	</fieldset>
 	<?php } ?>
 </form>
