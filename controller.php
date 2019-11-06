@@ -151,7 +151,7 @@ class Channel extends UmbrellaObject{
 
 	function open(){
 		global $user;
-		$url = 'https://talky.io/'.$this->hash;
+		$url = 'https://meet.jit.si/'.$this->hash;
 		if (empty($this->invite_time) || $this->invite_time < (time()-1800)) $this->invite($this->users,$url);
 		redirect($url);
 	}
