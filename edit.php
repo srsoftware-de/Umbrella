@@ -27,7 +27,7 @@ include '../common_templates/messages.php';
 if ($allowed){ ?>
 <form method="POST">
 	<?php foreach ($u as $field => $value) {
-		if (in_array($field, ['dirty','id','last_logoff','message_delivery','new_pass','pass','theme'])) continue; ?>
+		if (in_array($field, ['dirty','id','last_logoff','message_delivery','new_pass','new_pass_repeat','pass','theme'])) continue; ?>
 	<fieldset>
 		<legend><?= t($field) ?></legend>
 		<input type="text" name="<?= $field ?>" value="<?= htmlspecialchars($value) ?>" />
