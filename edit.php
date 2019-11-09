@@ -6,7 +6,11 @@ if ($user_id = param('id')){
 	$allowed = ($user->id == 1 || $user->id == $user_id);
 	if ($allowed) {
 		$u = User::load(['ids'=>$user_id]);
-		if (!empty($_POST['login'])) $u->patch($_POST)->save();
+		if (!empty($_POST['login'])) {
+			if (!empty($_POST['new_pass']) && $_POST['new_pass'] != $_POST['new_pass_repeat']){
+				error('Passwords do not match!');
+			} else $u->patch($_POST)->save();
+		}
 	} else {
 		error('Currently, only admin can edit other users!');
 		redirect('../index');
@@ -51,7 +55,9 @@ if ($allowed){ ?>
 
 	<fieldset>
 		<legend><?= t('new password (leave empty to not change you password)')?></legend>
-		<input type="password" name="new_pass" autocomplete="new-password" />
+		<input type="password" name="new_pass" autocomplete="new-password" /><br/>
+		<?= t('Repeat password:')?><br/>
+		<input type="password" name="new_pass_repeat" autocomplete="new-password" />
 	</fieldset>
 	<fieldset>
 		<legend><?= t('theme'); ?></legend>
@@ -61,7 +67,7 @@ if ($allowed){ ?>
 		<?php } ?>
 		</select>
 	</fieldset>
-	<button type=submit"><?= t('Save') ?></button>
+	<button type="submit"><?= t('Save') ?></button>
 </form>
 <?php }
  include '../common_templates/closure.php'; ?>
