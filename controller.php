@@ -55,6 +55,10 @@
 	}
 
 	class Project extends UmbrellaObjectWithId{
+		function __construct(){
+			$this->patch(['status'=>PROJECT_STATUS_OPEN]);
+		}
+
 		static function connected_users($options = []){
 			global $user;
 			$sql = 'SELECT user_id,* FROM projects_users WHERE project_id IN (SELECT project_id FROM projects_users WHERE user_id = ?)';
@@ -243,6 +247,7 @@
 					}
 				}
 				$query = $db->prepare('INSERT INTO projects ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+				//debug(query_insert($query, $args),1);
 				assert($query->execute($args),'Was not able to insert new project');
 
 				$this->id = $db->lastInsertId();
