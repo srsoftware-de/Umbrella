@@ -40,12 +40,14 @@ include '../common_templates/messages.php'; ?>
 		<?php }?>
 		<td><?= t(project_state($project->status)) ?></td>
 		<td>
+		<div  class="users">
 		<?php foreach ($project->users as $uid => $usr) {
 			if ($uid == $user->id) { ?>
 			<?= $usr['data']['login'] ?><br/>
 			<?php } else { ?>
 			<a href="?user=<?= $uid ?>" title="<?= t('Click here to show only projects having ◊ as member.',$usr['data']['login'])?>"><?= $usr['data']['login'] ?></a><br/>
 		<?php }} ?>
+		</div>
 		</td>
 		<td>
 			<a title="<?= t('edit')?>"      href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
