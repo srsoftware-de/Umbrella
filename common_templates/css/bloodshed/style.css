@@ -80,6 +80,7 @@ blockquote{
 .add_positions > ul > li{
 	max-height: 20px;
 	overflow: hidden;
+	padding-top: 20px;
 }
 
 .add_positions > ul > li:hover{
@@ -151,7 +152,8 @@ table.time h2{
 .document .dates label{
 	display: block
 }
-.document .header{
+.document .header,
+.document .tags{
 	clear: both;
 }
 
@@ -457,6 +459,15 @@ div.search:hover input{
 
 .note td.code textarea {
 	min-height: 200px;
+}
+
+.project-index td .users{
+	max-height: 30px;
+	overflow: hidden;
+}
+
+.project-index tr:hover td .users{
+	max-height: none;
 }
 
 @media (max-width:1199px) {

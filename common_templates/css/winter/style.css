@@ -461,6 +461,15 @@ div.search:hover input{
 	min-height: 200px;
 }
 
+.project-index td .users{
+	max-height: 30px;
+	overflow: hidden;
+}
+
+.project-index tr:hover td .users{
+	max-height: none;
+}
+
 @media (max-width:1199px) {
 	table.documents tr>*:nth-child(5),
 	body.time tr>*:nth-child(3),
