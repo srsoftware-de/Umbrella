@@ -173,7 +173,7 @@ if ($project){
 	<tr>
 		<th><?= t('Users')?>
 		<?php if (isset($services['rtc'])) { ?>
-		<a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($project->users))) ?>"></a>
+		<a class="symbol" target="_blank" title="<?= t('Start conversation with all users of this project'); ?>" href="<?= getUrl('rtc','open?users='.implode(',',array_keys($project->users))) ?>"></a>
 		<?php } ?>
 		</th>
 		<td>
@@ -182,8 +182,8 @@ if ($project){
 				<li>
 					<?= $usr['data']['login'].' ('.t($PROJECT_PERMISSIONS[$usr['permission']]).')'; ?>
 					<?php if ($uid != $user->id) {
-						if (isset($services['rtc'])) { ?><a class="symbol" target="_blank" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php }
-						if ($current_user_is_owner) { ?><a class="symbol" title="<?= t('remove ? from project',$usr['data']['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
+						if (isset($services['rtc'])) { ?><a class="symbol" title="<?= t('Start conversation'); ?>" target="_blank" href="<?= getUrl('rtc','open?users='.$uid) ?>"></a><?php }
+						if ($current_user_is_owner) { ?><a class="symbol" title="<?= t('remove ◊ from project',$usr['data']['login']) ?>" href="?remove_user=<?= $uid ?>"></a><?php } ?>
 					<?php } // user matches?>
 				</li>
 			<?php } ?>
