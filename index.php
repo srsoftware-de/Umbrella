@@ -12,9 +12,12 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<?php if (!$show_closed){ ?>
-<a class="symbol" title="<?= t('show closed projects') ?>" href="?closed=show"></a>
-<?php }?>
+<fieldset class="project-index">
+	<legend><?= t('Projects')?>
+	<?php if (!$show_closed){ ?>
+	<a class="symbol" title="<?= t('show closed projects') ?>" href="?closed=show"></a>
+	<?php }?>
+</legend>
 <table class="project-index">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
@@ -59,4 +62,5 @@ include '../common_templates/messages.php'; ?>
 <?php } ?>
 
 </table>
+</fieldset>
 <?php include '../common_templates/closure.php'; ?>
