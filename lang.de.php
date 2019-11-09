@@ -1,7 +1,7 @@
 <?php
 
 $translations = array(
-		'? has invited you to a conversation'=>'? hat Sie zu einer Unterhaltung eingeladen',
+		'◊ has invited you to a conversation'=>'◊ hat Sie zu einer Unterhaltung eingeladen',
 		'Actions'=>'Aktionen',
 		'Add users to "◊"'=>'Nutzer zu „◊“ hinzufügen',
 		'Bookmarks' => 'Lesezeichen',
@@ -12,6 +12,7 @@ $translations = array(
 		'Files'=>'Dateien',
 		'Go to ◊ to join the conversation. Go to ◊ to see a list of your conversations.'=>'Gehe zu ◊ um an der Unterhaltung teilzunehmen. Auf ◊ findest du eine Liste deiner Unterhaltungen.',
 		'In order to communicate with other users, you will have to create more users first. Go to the user module.'=>'Um mitz anderen Nutzern zu kommunizieren, müssen erst weitere Benutzer angelegt werden. Gehen Sie zum „Benutzer“-Modul.',
+		'Invitation email was sent to ◊.'=>'Einladung wurde an ◊ vesendet',
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Log out ◊'=>'◊ ausloggen',
