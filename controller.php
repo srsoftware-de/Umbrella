@@ -135,7 +135,7 @@
 			//debug(query_insert($sql,$args));
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			//debug(query_insert($query,$args),1);
+//			debug(query_insert($query,$args),1);
 			assert($query->execute($args),'Was not able to request bookmark list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$bookmarks = [];
@@ -247,14 +247,19 @@
 			}
 
 			if (isset($options['search'])){
-				$where[] = 'comment LIKE ?';
-				$args[] = '%'.$options['search'].'%';
+				$search = $options['search'];
+				$search = explode(' ',$search);
+				foreach ($search as $key){
+					$where[] = 'comment LIKE ?';
+					$args[] = '%'.$key.'%';
+				}
 			}
 
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
+			//debug(query_insert($query,$args),1);
 			assert($query->execute($args),'Was not able to request comment list!');
 
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
