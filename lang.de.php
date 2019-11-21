@@ -114,6 +114,7 @@ $translations = array(
 		'Send mail' => 'Email absenden',
 		'Send ◊ via mail'=>'◊ per Mail versenden',
 		'Send to ◊'=>'An ◊ senden',
+		'Sent to ◊ via email'=>'Per Email an ◊ versendet',
 		'sent'=>'versendet',
 		'Show time'=>'Zeit anzeigen',
 		'Single price'=>'Einzelpreis (EUR)',

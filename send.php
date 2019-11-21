@@ -17,6 +17,9 @@
 				$document->patch(['state'=>Document::STATE_SENT]);
 				$document->save();
 			}
+			if (isset($services['notes'])){
+				request('notes','add',['uri'=>'document:'.$document->id,'token'=>$_SESSION['token'],'note'=>t('Sent to ◊ via email',$reciever)]);
+			}
 			redirect('view');
 		} else {
 			error('Was not able to send mail to ◊',$document->customer_email);
