@@ -523,11 +523,16 @@
 			$rows = $query->fetchAll(INDEX_FETCH);
 
 			$users = [];
+			$json_target = isset($options['target']) && $options['target']=='json';
 			foreach ($rows as $id => $row){
 				$user = new User();
 				$user->patch($row);
 				$user->id = $id;
 				unset($user->dirty);
+				if ($json_target) {
+					unset($user->pass);
+					unset($user->last_logoff);
+				}
 				if ($single) return $user;
 				$users[$user->id] = $user;
 			}
