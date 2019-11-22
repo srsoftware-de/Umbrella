@@ -422,7 +422,7 @@
 				case Task::PERMISSION_ASSIGNEE:
 					break;
 				default:
-					error('Invalid permission set for ?',$new_user['login']);
+					error('Invalid permission set for ◊',$new_user['login']);
 					return false;
 			}
 

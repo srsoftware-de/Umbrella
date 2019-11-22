@@ -61,9 +61,9 @@ expect(r.text == '')
 
 # key valid
 r = admin_session.get('http://localhost/task/search?key=task',allow_redirects=False)
-expect(r,'<a href="http://localhost/task/1/view">task one</a>')
-expect(r,'<a href="http://localhost/task/2/view">subtask one</a>')
-expect(r,'<a href="http://localhost/task/3/view">project-2-task</a>')
+expect(r,'<a href="http://localhost/task/1/view"><span class="hit">task</span> one</a>')
+expect(r,'<a href="http://localhost/task/2/view">sub<span class="hit">task</span> one</a>')
+expect(r,'<a href="http://localhost/task/3/view">project-2-<span class="hit">task</span></a>')
 
 # key valid
 r = admin_session.get('http://localhost/task/search?key=without',allow_redirects=False)

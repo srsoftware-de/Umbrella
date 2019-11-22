@@ -12,6 +12,7 @@ $translations = array(
 		'all'=>'alle',
 		'All members of this project are already assigned to this task.'=>'Es sind bereits alle Projekt-Nutzer an dieser Aufgabe beteiligt.',
 		'Always show closed sub-tasks'=>'Geschlossene Unteraufgaben immer anzeigen',
+		'Assign user to task'=>'Aufgabe dem Benutzer zuweisen',
 		'assignee'=>'verantwortlich',
 		'Bookmarks'=>'Lese&shy;zei&shy;chen',
 		'cancel'=>'abbrechen',
