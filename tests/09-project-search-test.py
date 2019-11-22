@@ -43,11 +43,11 @@ expect(r.text == '')
 
 # should find project 3
 r = admin_session.get('http://localhost/project/search?key=common',allow_redirects=False)
-expect('<td><a href="http://localhost/project/3/view">common-project</a></td>' in r.text)
+expect('<td><a href="http://localhost/project/3/view"><span class="hit">common</span>-project</a></td>' in r.text)
 
 # should find project 3
 r = user_session.get('http://localhost/project/search?key=common',allow_redirects=False)
-expect('<td><a href="http://localhost/project/3/view">common-project</a></td>' in r.text)
+expect('<td><a href="http://localhost/project/3/view"><span class="hit">common</span>-project</a></td>' in r.text)
 
 # should find project 1
 r = admin_session.get('http://localhost/project/search?key=owned',allow_redirects=False)
