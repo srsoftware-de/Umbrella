@@ -249,7 +249,7 @@
 
 		public function is_writable(){
 			global $user;
-			return in_array($this->users($user->id)['permissions'],[Task::PERMISSION_CREATOR,Task::PERMISSION_READ_WRITE]);
+			return in_array($this->users($user->id)['permissions'],[Task::PERMISSION_CREATOR,Task::PERMISSION_READ_WRITE,Task::PERMISSION_ASSIGNEE]);
 		}
 
 		public function send_note_notification($note_id = null){
