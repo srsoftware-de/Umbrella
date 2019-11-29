@@ -12,6 +12,7 @@ $translations = array(
 		'Add Model'=>'Modell hinzufügen',
 		'add model'=>'Modell hinzufügen',
 		'Add model to project:'=>'Modell zu Projekt hinzufügen:',
+		'Add Model to ◊'=>'Modell zu ◊ hinzufügen',
 		'add new child process'=>'neuen Unterprozess hinzufügen',
 		'add outflow connector'=>'Abfluss-Verbinder hinzufügen',
 		'add party'=>'Partei hinzufügen',

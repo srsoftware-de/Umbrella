@@ -25,7 +25,7 @@ include '../common_templates/messages.php';
 
 <?php
 foreach ($projects as $project){
-	if (isset($project['models'])){ ?>
+	if (isset($project['models']) || isset($project['diagrams'])){ ?>
 
 <fieldset>
 	<legend>
