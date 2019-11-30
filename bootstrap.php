@@ -26,7 +26,11 @@ const TASK_STATUS_CANCELED = 100;
 
 function address_from_vcard($vcard){
 	$result = '';
-	if (!empty($vcard->FN)) $result .= $vcard->FN."\n";
+	if (!empty($vcard->ORG)) {
+		$result .= $vcard->ORG."\n";
+	} elseif (!empty($vcard->FN)) {
+		$result .= $vcard->FN."\n";
+	}
 	if (!empty($vcard->N)) {
 		$name = trim($vcard->N->given.' '.$vcard->N->family);
 		if (!empty($name)) $result .= $name."\n";
