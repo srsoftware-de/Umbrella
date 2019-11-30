@@ -24,7 +24,7 @@ if (isset($services['bookmark'])){
 
 if ($services['time']){
 	if (isset($document->company_id) && $document->company_id !== null){
-		$times = request('time','json',['task_ids'=>array_keys($tasks)]); // get all times for tasks of the project
+		$times = request('time','json',['task_ids'=>array_keys($tasks),'order'=>'end_time']); // get all times for tasks of the project
 
 		$user_ids = [];
 		foreach ($times as $time_id => $time){
@@ -75,7 +75,7 @@ if ($services['time']){
 }
 
 if (isset($services['items'])){
-	$items = request('items','json',['company'=>$document->company_id]);
+	$items = request('items','json',['company'=>$document->company_id,'order'=>'code']);
 	if ($selected_items = post('items')){
 		foreach ($selected_items as $item_id => $dummy){
 			$item = $items[$item_id];
