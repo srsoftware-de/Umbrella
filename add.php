@@ -9,6 +9,7 @@ $company = null;
 if (($company_id = param('company')) && isset($companies[$company_id])) $company = $companies[$company_id];
 if ($company === null) redirect('.');
 
+// check, whether there is already an unused document of this type
 if ($doc_type_id = param('type_id')){
 	$pending_doc = Document::load(['type'=>$doc_type_id,'company_id'=>$company_id,'empty'=>true]);
 	if (!empty($pending_doc)){
@@ -18,11 +19,20 @@ if ($doc_type_id = param('type_id')){
 	}
 }
 
+// check if contacts available
 $contacts = request('contact','json',null,false,OBJECT_CONVERSION);
 if (empty($contacts)) warn('You can not select a customer because your contact list is empty. Create a contact in the contacts module first.');
-if ($customer_contact_id = post('customer')){
-	$customer_vcard  = $contacts->{$customer_contact_id};
 
+$customer_vcard  = null;
+// try to select customer contact
+if ($customer_contact_id = post('customer')){
+	foreach ($contacts as $contact) if ($contact->id == $customer_contact_id) {
+		$customer_vcard = $contact;
+		break;
+	}
+}
+
+if (!empty($customer_vcard)){
 	if (empty($customer_vcard->{'X-CUSTOMER-NUMBER'})) set_customer_number($customer_vcard,$company);
 
 	$_POST['customer'] = address_from_vcard($customer_vcard);
