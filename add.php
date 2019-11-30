@@ -17,6 +17,10 @@ include '../common_templates/messages.php'; ?>
 	<fieldset>
 		<legend><?= t('Create new contact') ?></legend>
 		<fieldset>
+			<legend><?= t('FN')?></legend>
+			<input type="text" name="FN" />
+		</fieldset>
+		<fieldset>
 			<legend><?= t('Name'); ?></legend>
 			<label><?= t('First Name') ?>
 				<input type="text" name="N[2]" <?= ($name = post('N'))?'value="'.$name['2'].'"':''?>/>
@@ -24,14 +28,15 @@ include '../common_templates/messages.php'; ?>
 			<label><?= t('Last Name') ?>
 				<input type="text" name="N[1]" <?= ($name = post('N'))?'value="'.$name['1'].'"':''?> />
 			</label>
-		</fieldset>
-		<fieldset>
-			<legend><?= t('(primary) Email') ?></legend>
-			<input type="text" name="EMAIL"<?= ($email = post('EMAIL'))?'value="'.$email.'"':''?>  />
+			<p class="infos"><span><?= t('You may fill the organization fields instead')?></span></p>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Organization') ?></legend>
 			<textarea name="ORG"><?= ($org = post('ORG'))?$org:'' ?></textarea>
+		</fieldset>
+		<fieldset>
+			<legend><?= t('(primary) Email') ?></legend>
+			<input type="text" name="EMAIL"<?= ($email = post('EMAIL'))?'value="'.$email.'"':''?>  />
 		</fieldset>
 		<fieldset>
 			<legend><?= t('(primary) Address') ?></legend>

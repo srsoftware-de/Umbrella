@@ -16,7 +16,7 @@ if ($key = param('key')){
 			<th><?= t('phones') ?></th>
 			<th><?= t('actions') ?></th>
 		</tr>
-		<?php foreach ($vcards as $id => $vcard){
+		<?php foreach ($vcards as $vcard){
 			$addresses = $vcard->addresses();
 			$emails    = $vcard->emails();
 			$phones    = $vcard->phones();
@@ -40,9 +40,9 @@ if ($key = param('key')){
 			<?php } ?>
 			</td>
 			<td>
-				<a class="symbol" title="<?= t('download') ?>" href="<?= $url.$id?>/download"></a>
-				<a class="symbol" title="<?= t('edit') ?>" href="<?= $url.$id ?>/edit"></a>
-				<a class="symbol" title="<?= t('assign with me') ?>" href="<?= $url.$id?>/assign_with_me"></a>
+				<a class="symbol" title="<?= t('download') ?>" href="<?= $url.$vcard->id?>/download"></a>
+				<a class="symbol" title="<?= t('edit') ?>" href="<?= $url.$vcard->id ?>/edit"></a>
+				<a class="symbol" title="<?= t('assign with me') ?>" href="<?= $url.$vcard->id?>/assign_with_me"></a>
 			</td>
 		</tr>
 		<?php } ?>

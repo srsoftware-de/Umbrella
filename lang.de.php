@@ -60,6 +60,7 @@ $translations = array(
 		'Timetrack'=>'Zeiterfassung',
 		'Umbrella Contact Management'=>'Umbrella Kontakt-Verwaltung',
 		'Users'=>'Benutzer',
+		'You may fill the organization fields instead'=>'Sie können alternativ auch eine Organisation angeben',
 		'X-BANK-ACCOUNT'=>'Bankverbindung',
 		'X-CUSTOMER-NUMBER'=>'Kundennummer',
 		'X-COURT'=>'Amtsgericht',
