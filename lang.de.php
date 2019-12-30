@@ -111,6 +111,7 @@ $translations = array(
 		'turn connector'=>'Verbinder umkehren',
 		'type'=>'Typ',
 		'Umbrella Model Management'=>'Umbrella Modellverwaltung',
+		'Use Shift+Mousewheel to alter size.'=>'Größe ändern mittels Umschalttaste+Mausrad.',
 		'Users'=>'Benutzer',
 		'Y-m-d H:i:s'=>'d.m.Y H:i:s',
 		'Yes'=>'Ja',

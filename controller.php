@@ -1418,7 +1418,7 @@ class Process extends UmbrellaObjectWithId{
 		if (!empty($this->r)){ // we try to display a process ?>
 			<g class="process" transform="translate(<?= empty($proces_place_id)?500:$this->x ?>,<?= empty($proces_place_id)?500:$this->y ?>)">
 				<circle class="process" cx="0" cy="0" r="<?= $this->r ?>" id="<?= $this->id ?>" <?= empty($proces_place_id)?'':'place_id="'.$proces_place_id.'"'?>>
-					<title><?= htmlspecialchars($this->description) ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title>
+					<title><?= htmlspecialchars($this->description) ?><?= "\n\n".t('Use Shift+Mousewheel to alter size.')?></title>
 				</circle>
 				<text x="0" y="0"><title><?= htmlspecialchars($this->description) ?><?= "\n".t('Use Shift+Mousewheel to alter size')?></title><?= $this->name ?></text><?php
 		}
