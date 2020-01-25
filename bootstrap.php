@@ -7,6 +7,7 @@ const DS = '/';
 const NO_CONVERSION = 1;
 const ARRAY_CONVERSION = 2;
 const OBJECT_CONVERSION = 3;
+const DOM_CONVERSION = 4;
 
 const PROJECT_STATUS_OPEN = 10;
 const PROJECT_STATUS_STARTED = 20;
@@ -340,6 +341,10 @@ function request($service = null,$path,$data = [], $debug = false,$decode = ARRA
 		case OBJECT_CONVERSION:
 			return json_decode($response);
 			break;
+		case DOM_CONVERSION:
+			$dom = new DOMDocument();
+			$dom->loadHTML($response);
+			return $dom;
 	}
 	return $response;
 }

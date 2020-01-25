@@ -107,6 +107,7 @@ fieldset{
 	border: 1px solid red;
 	border-radius: 5px;
 	background: white;
+	z-index: 10;
 }
 
 .canceled{
@@ -230,7 +231,7 @@ img[src$="width=25%"]{
 }
 
 span.hover_h {
-	float: right;
+	display: block;
 }
 
 label{
@@ -328,7 +329,8 @@ td input[type=checkbox]{
 }
 
 table.vertical span.right{
-	top: -25px;
+	position: fixed;
+	top: 25px;
 }
 
 img[src*="pos=right"] {

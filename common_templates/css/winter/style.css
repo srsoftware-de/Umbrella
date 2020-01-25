@@ -111,6 +111,10 @@ fieldset.options label,
 	text-decoration: line-through;
 }
 
+.tasks .navi a{
+	display: inline-table;
+}
+
 p a,
 .description a{
 	text-decoration: underline;
