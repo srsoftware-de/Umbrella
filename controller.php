@@ -97,9 +97,9 @@ class Item extends UmbrellaObjectWithId{
 			$args[] = $key;
 			$args[] = $key;
 		}
-		
+
 		if (!empty($where))$sql .= ' WHERE '.implode(' AND ',$where);
-		if (isset($options['order']) && array_key_exists($options['order'],static::table())) $sql .= ' ORDER BY '.$options['order'].' ASC';
+		if (isset($options['order']) && array_key_exists($options['order'],static::table())) $sql .= ' ORDER BY '.$options['order'].' COLLATE NOCASE ASC';
 		$query = $db->prepare($sql);
 
 		assert($query->execute($args),'Was not able to load items for the selected company.');
