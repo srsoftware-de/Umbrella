@@ -133,6 +133,15 @@
 				$args = array_merge($args, [$key,$key]);
 			}
 
+			if (array_key_exists('parent_task_id',$options)){
+				if ($options['parent_task_id'] === null){
+					$where[] = 'parent_task_id IS NULL';
+				} else {
+					$where[] = 'parent_task_id = ?';
+					$args[] = $options['parent_task_id'];
+				}
+			}
+
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 
 			if (!isset($options['order'])) $options['order'] = 'due_date';
@@ -159,6 +168,7 @@
 			}
 
 			$query = $db->prepare($sql);
+			//debug(query_insert($query, $args));
 			assert($query->execute($args),'Was not able to load tasks!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 

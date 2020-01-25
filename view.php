@@ -52,6 +52,22 @@ function display_children($task){
 	<?php
 }
 
+if (empty($task->parent())){
+	$siblings = Task::load(['project_ids'=>$task->project_id,'parent_task_id'=>null]);
+} else {
+	$siblings = $task->parent()->children();
+}
+$previous = null;
+$next = null;
+$last = null;
+
+foreach ($siblings as $sibling){
+	if ($sibling->status > 50) continue;
+	if ($last != null && $last->id == $task->id) $next = $sibling;
+	if ($sibling->id == $task->id) $previous = $last;
+	$last = $sibling;
+}
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
@@ -59,6 +75,28 @@ include '../common_templates/messages.php'; ?>
 
 <?php if ($task) { ?>
 <table class="vertical tasks">
+	<tr>
+		<th><?= t('Project')?></th>
+		<td>
+			<span class="project">
+				<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project('name')?></a>
+			</span>
+			&nbsp;&nbsp;&nbsp;&nbsp;
+			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" title="<?= t('show project files'); ?>" target="_blank"><span class="symbol"></span> <?= t('Files')?></a>
+
+
+		</td>
+	</tr>
+	<tr>
+		<th>
+			<?= t('Navigation')?>
+		</th>
+		<td class="navi">
+			<?= isset($previous) ? '<a href="'.getUrl('task',$previous->id.'/view').'" title="'.t('go to previous task').'"><span class="symbol"></span>&nbsp;'.$previous->name.'</a>':'' ?> |
+			<?= !empty($task->parent()) ? '<a href="'.getUrl('task',$task->parent()->id.'/view').'" title="'.t('go to next task').'"><span class="symbol"></span>&nbsp;'.$task->parent()->name.'</a>':'' ?> |
+			<?= isset($next) ? '<a href="'.getUrl('task',$next->id.'/view').'" title="'.t('go to next task').'">'.$next->name.'&nbsp;<span class="symbol"></span></a>':'' ?>
+		</td>
+	</tr>
 	<tr>
 		<th><?= t('Task')?></th>
 		<td>
@@ -75,31 +113,14 @@ include '../common_templates/messages.php'; ?>
 				<a title="<?= t('wait')?>"         href="wait"        class="<?= $task->status == TASK_STATUS_PENDING  ? 'hidden':'symbol'?>"></a>
 				<a title="<?= t('delete')?>"       href="delete"      class="symbol"></a>
 				<a title="<?= t('convert to project'); ?>" href="convert" class="symbol"></a>
-				<?php } ?>
+				<?php } // task writeable ?>
 				<a title="<?= t('export task') ?>" href="export"      class="symbol" ></a>
 				<?php if (isset($services['time'])) { ?>
 				<a class="symbol" title="<?= t('add to timetrack')?>" href="<?= getUrl('time','add_task?tid='.$task_id); ?>"></a>
-
+				<?php } ?>
 			</span>
-			<?php } ?>
 		</td>
 	</tr>
-	<tr>
-		<th><?= t('Project')?></th>
-		<td>
-			<span class="project">
-				<a href="<?= getUrl('project',$task->project_id.'/view'); ?>"><?= $task->project('name')?></a>
-			</span>
-			&nbsp;&nbsp;&nbsp;&nbsp;
-			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" title="<?= t('show project files'); ?>" target="_blank"><span class="symbol"></span> <?= t('Files')?></a>
-		</td>
-	</tr>
-	<?php if ($parent = $task->parent()) { ?>
-	<tr>
-		<th><?= t('Parent')?></th>
-		<td><a href="../<?= $parent->id ?>/view"><?= $parent->name; ?></a></td>
-	</tr>
-	<?php }?>
 	<?php if ($task->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
