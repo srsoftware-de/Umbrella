@@ -98,7 +98,7 @@ include '../common_templates/messages.php'; ?>
 				<tr>
 					<td><?= 1+$opt_id ?></td>
 					<td>
-						<input type="text" name="name" value="<?= param('name') ?>">
+						<input type="text" name="name" value="<?= param('name') ?>" autofocus="autofocus">
 					</td>
 					<td>
 						<textarea name="description"><?= trim(param('description'))?></textarea>
