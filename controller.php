@@ -11,7 +11,7 @@ function get_or_create_db(){
 
 		$tables = [
 				'polls'      => Poll::table(),
-				'options'    => Poll::options_table(),
+				'options'    => Option::table(),
 				'weights'    => Poll::weights_table(),
 				'selections' => Poll::selections_table(),
 		];
@@ -28,21 +28,12 @@ function get_or_create_db(){
 	return $db;
 }
 
-class Poll extends UmbrellaObjectWithId{
-	const OPTION_DISABLED = 2;
-	const OPTION_ENABLED = 1;
-	const OPTION_HIDDEN = 0;
+class Option extends UmbrellaObject{
+	const DISABLED = 2;
+	const ENABLED = 1;
+	const HIDDEN = 0;
 
-	static function table(){
-		return [
-				'id' => ['VARCHAR'=>255,'NOT NULL','PRIMARY KEY'],
-				'user_id' => ['INT','NOT NULL','REFERENCES user(id)'],
-				'name' => ['VARCHAR'=>255,'NOT NULL'],
-				'description' => ['TEXT']
-		];
-	}
-
-	static function options_table() {
+	static function table() {
 		return [
 				'id' => ['INT','NOT NULL'],
 				'poll_id'=>['VARCHAR'=>255,'NOT NULL','REFERENCES polls(id)'],
@@ -50,6 +41,110 @@ class Poll extends UmbrellaObjectWithId{
 				'description'=>['TEXT'],
 				'statsus'=>['INT','DEFAULT 0'],
 				'PRIMARY KEY'=>['id','poll_id']
+		];
+	}
+
+	static function load($options){
+		$sql = 'SELECT * FROM options';
+
+		$where = [];
+		$args = [];
+
+		if (!empty($options['poll_id'])){
+			$where = ['poll_id = ?'];
+			$args[] = $options['poll_id'];
+		}
+
+		$single = false;
+
+		if (!empty($options['ids'])){
+			$ids = $options['ids'];
+			if (!is_array($ids)) {
+				$single = true;
+				$ids = [$ids];
+			}
+			$qMarks = str_repeat('?,', count($ids)-1).'?';
+			$where[] = 'id IN ('.$qMarks.')';
+			$args = array_merge($args, $ids);
+		}
+
+		if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args)]);
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to read polls!');
+
+		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
+		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
+		$polls = [];
+
+		foreach ($rows as $id => $row){
+			$poll = new Option();
+			$poll->patch($row);
+			$poll->patch(['id'=>$id]);
+			unset($poll->dirty);
+
+			if ($single) return $poll;
+			$polls[$id] = $poll;
+		}
+		if ($single) return null;
+		return $polls;
+	}
+
+	function save() {
+		$poll = Poll::load(['ids'=>$this->poll_id]);
+
+		foreach ($this as $field => $val) {
+			if (is_array($val)) continue;
+			$this->{$field} = trim($val);
+		}
+
+		debug(['poll'=>$poll,'option'=>$this]);
+
+		if (!empty($this->id)) return $this->update();
+
+
+		$fields = Option::table();
+
+		$keys = [ 'status' ];
+		$args = [ ':status'=>Option::ENABLED ];
+		foreach ($this as $field => $val){
+			if (array_key_exists($field, $fields)){
+				$keys[] = $field;
+				$args[':'.$field] = $val;
+			}
+		}
+
+		$keys[] = 'id';
+		$args[':id'] = 1+count($poll->options());
+
+		$sql = 'INSERT INTO options ('.implode(', ', $keys).') VALUES (:'.implode(', :',$keys).' )';
+		$query = get_or_create_db()->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to add option to poll!');
+		unset($this->dirty);
+
+		return $this;
+	}
+
+	function update(){
+		$db = get_or_create_db();
+		$sql = 'UPDATE options SET name = :name, description = :desc WHERE poll_id = :pid AND id = :id';
+		$args = [':name'=>$this->name,':desc'=>$this->description,':pid'=>$this->poll_id,':id'=>$this->id];
+		$query = $db->prepare($sql);
+
+		if (!$query->execute($args)) throw new Exception('Was not able to update poll option!');
+		unset($this->dirty);
+		return $this;
+	}
+}
+
+class Poll extends UmbrellaObjectWithId{
+	static function table(){
+		return [
+				'id' => ['VARCHAR'=>255,'NOT NULL','PRIMARY KEY'],
+				'user_id' => ['INT','NOT NULL','REFERENCES user(id)'],
+				'name' => ['VARCHAR'=>255,'NOT NULL'],
+				'description' => ['TEXT']
 		];
 	}
 
@@ -128,27 +223,6 @@ class Poll extends UmbrellaObjectWithId{
 		return $polls;
 	}
 	/**** end of static functions ******/
-	function add_option($data){
-		$fields = Poll::options_table();
-
-		$keys = [ 'status' ];
-		$args = [ Poll::OPTION_ENABLED ];
-		foreach ($data as $field => $val){
-			if (array_key_exists($field, $fields)){
-				$keys[] = $field;
-				$args[':'.$field] = $val;
-			}
-		}
-
-		$keys[] = 'id';
-		$keys[] = 'poll_id';
-
-		$args[':id'] = 1+count($this->options());
-		$args[':poll_id']=$this->id;
-		$sql = 'INSERT INTO options ('.implode(', ', $keys).') VALUES (:'.implode(', :',$keys).' )';
-		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able to add option to poll!');
-	}
-
 	function add_weight($data){
 		$fields = Poll::weights_table();
 
@@ -168,7 +242,7 @@ class Poll extends UmbrellaObjectWithId{
 		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able to add weight to poll!');
 	}
 
-	function set_option_status($id,$status = Poll::OPTION_ENABLED){
+	function set_option_status($id,$status = Option::ENABLED){
 		$sql = 'UPDATE options SET status = :status WHERE id = :id AND poll_id = :pid';
 		$args = [':id'=>$id,':pid'=>$this->id,':status'=>$status];
 		if (!get_or_create_db()->prepare($sql)->execute($args)) throw new Exception('Was not able alter option status!');
@@ -183,20 +257,14 @@ class Poll extends UmbrellaObjectWithId{
 	}
 
 	function options(){
-		if (empty($this->options)){
-			$sql = 'SELECT * FROM options WHERE poll_id = :pid';
-			$args = [':pid'=>$this->id];
-			$query = get_or_create_db()->prepare($sql);
-			if (!$query->execute($args)) throw new Exception('Was not able to read poll options from database!');
-			$this->options = $query->fetchAll(INDEX_FETCH);
-		}
+		if (empty($this->options)) $this->options = Option::load(['poll_id'=>$this->id]);
 		return $this->options;
 	}
 
 	function remove_option($id){
 		$db = get_or_create_db();
 		$db->beginTransaction();
-	
+
 		$args = [':id'=>$id,':pid'=>$this->id];
 
 		$sql = 'DELETE FROM options WHERE poll_id = :pid AND id = :id';
@@ -213,9 +281,17 @@ class Poll extends UmbrellaObjectWithId{
 
 		$sql = 'UPDATE selections SET option_id = option_id -1 WHERE option_id > :id AND poll_id = :pid';
 		$query = $db->prepare($sql);
-		$query->execute($args);		
+		$query->execute($args);
 
-		$db->commit();		
+		$db->commit();
+	}
+
+	function remove_votes_of($user){
+		$sql = 'DELETE FROM selections WHERE poll_id = :pid AND user = :user';
+		$args = [':pid'=>$this->id,':user'=>$user];
+		$db = get_or_create_db();
+		$query = $db->prepare($sql);
+		if (!$query->execute($args)) throw new Exception('Was not able to remove votes of '.$user);
 	}
 
 	function remove_weight($w){
@@ -269,6 +345,17 @@ class Poll extends UmbrellaObjectWithId{
 			$selections[$user][$option_id] = $weight;
 		}
 		return $selections;
+	}
+
+	function update(){
+		$db = get_or_create_db();
+		$sql = 'UPDATE polls SET name = :name, description = :desc WHERE id = :id';
+		$args = [':name'=>$this->name,':desc'=>$this->description,':id'=>$this->id];
+		$query = $db->prepare($sql);
+
+		if (!$query->execute($args)) throw new Exception('Was not able to update poll!');
+		unset($this->dirty);
+		return $this;
 	}
 
 	function weights(){

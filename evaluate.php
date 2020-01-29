@@ -2,21 +2,30 @@
 
 require_login('poll');
 
+$base_url = getUrl('poll');
+
 $poll_id = param('id');
 if (empty($poll_id)) {
 	error('No poll id provided!');
-	redirect(getUrl('poll'));
+	redirect($base_url);
 }
 
 $poll = Poll::load(['ids'=>$poll_id]);
 if (empty($poll)){
 	error('You are not allowed to modify this poll!');
-	redirect(getUrl('poll'));
+	redirect($base_url);
 }
 
 $users = request('user','json');
 
 $options    = $poll->options();
+
+$remove_votes = param('remove_votes');
+if ($remove_votes && param('confirm')=='yes') {
+	$poll->remove_votes_of($remove_votes);
+	redirect($base_url.'evaluate?id='.$poll_id);
+}
+
 $selections = $poll->selections();
 
 $sums = [];
@@ -73,12 +82,21 @@ ksort($sums);
 // 		)
 // )
 
+
 $vertical = count($options) < count($selections);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
+
+<?php if ($remove_votes) { ?>
+<fieldset>
+	<legend><?= t('Really remove votes of "◊"?',is_numeric($remove_votes)?$users[$remove_votes]['login']:$remove_votes); ?></legend>
+	<a class="button" href="<?= $base_url.'evaluate?id='.$poll_id.'&remove_votes='.$remove_votes.'&confirm=yes'?>"><?= t('yes')?></a>
+	<a class="button" href="<?= $base_url.'evaluate?id='.$poll_id?>"><?= t('no')?></a>
+</fieldset>
+<?php }?>
 
 <fieldset>
 	<legend><?= t('Evaluation of "◊"',$poll->name)?></legend>
@@ -90,13 +108,13 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('User')?> / <?= t('Options')?></th>
 			<?php foreach ($sums as $sum => $option_list){
 				foreach ($option_list as $option_id){ ?>
-			<th><?= $options[$option_id]['name']?></th><?php
+			<th><?= $options[$option_id]->name ?></th><?php
 				} // foreach $option_lost as $option_id
 			} // foreach $sums as $ums => $option_list ?>
 		</tr>
-		<?php foreach ($selections as $uśer_id => $user_selections) { ?>
+		<?php foreach ($selections as $user_id => $user_selections) { ?>
 		<tr>
-			<td><?= is_numeric($uśer_id)?'<a target="_blank" href="'.getUrl('user',$uśer_id.'/view').'">'.$users[$uśer_id]['login'].'</a>':$uśer_id ?></td>
+			<td><?= is_numeric($user_id)?'<a target="_blank" href="'.getUrl('user',$user_id.'/view').'">'.$users[$user_id]['login'].'</a>':$user_id ?></td>
 			<?php foreach ($sums as $sum => $option_list){
 				foreach ($option_list as $option_id){ ?>
 			<td><?= $user_selections[$option_id] ?></td><?php
@@ -117,22 +135,22 @@ include '../common_templates/messages.php'; ?>
 		<tr>
 			<th><?= t('Options')?> / <?= t('User')?></th>
 			<?php foreach ($selections as $uśer_id => $user_selections) { ?>
-			<th><?= is_numeric($uśer_id)?'<a target="_blank" href="'.getUrl('user',$uśer_id.'/view').'">'.$users[$uśer_id]['login'].'</a>':$uśer_id ?></th>
+			<th><?= is_numeric($uśer_id)?'<a target="_blank" href="'.getUrl('user',$uśer_id.'/view').'">'.$users[$uśer_id]['login'].'</a>':$uśer_id ?> <a class="symbol" href="<?= $base_url ?>evaluate?id=<?= $poll_id ?>&remove_votes=<?= $uśer_id ?>"></a></th>
 			<?php } ?>
 			<th><?= t('Average:')?></th>
 		</tr>
 		<?php foreach ($sums as $sum => $option_list) { ?>
 		<?php foreach ($option_list as $option_id) {
 			$class = null;
-			switch ($options[$option_id]['status']){
-				case Poll::OPTION_HIDDEN:
+			switch ($options[$option_id]->status){
+				case Option::HIDDEN:
 					$class = 'hidden'; break;
-				case Poll::OPTION_DISABLED:
+				case Option::DISABLED:
 					$class = 'disabled'; break;
 			}
 		?>
 		<tr<?= $class?' class="'.$class.'"':''?>>
-			<th><?= $options[$option_id]['name']?></th>
+			<th><?= $options[$option_id]->name ?></th>
 			<?php foreach ($selections as $user_selections) { ?>
 			<td><?= $user_selections[$option_id]?></td>
 			<?php } // foreach selections as user_id => user_selections ?>

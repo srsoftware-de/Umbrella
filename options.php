@@ -22,19 +22,19 @@ if (!empty($option_id)) {
 
 $option_id = param('disable_option');
 if (!empty($option_id)){
-	$poll->set_option_status($option_id,Poll::OPTION_DISABLED);
+	$poll->set_option_status($option_id,Option::DISABLED);
 	redirect(getUrl('poll','options?id='.$poll->id));
 }
 
 $option_id = param('enable_option');
 if (!empty($option_id)){
-	$poll->set_option_status($option_id,Poll::OPTION_ENABLED);
+	$poll->set_option_status($option_id,Option::ENABLED);
 	redirect(getUrl('poll','options?id='.$poll->id));
 }
 
 $option_id = param('hide_option');
 if (!empty($option_id)){
-	$poll->set_option_status($option_id,Poll::OPTION_HIDDEN);
+	$poll->set_option_status($option_id,Option::HIDDEN);
 	redirect(getUrl('poll','options?id='.$poll->id));
 }
 
@@ -46,7 +46,8 @@ if ($remove_weight !== null) {
 
 $name = param('name');
 if (!empty($name)) {
-	$poll->add_option($_POST);
+	$option = new Option();
+	$option->patch($_POST)->patch(['poll_id'=>$poll_id,'status'=>Option::ENABLED])->save();
 	redirect(getUrl('poll','options?id='.$poll->id));
 }
 
@@ -64,7 +65,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Poll "◊"',$poll->name)?></legend>
+	<legend><?= t('Poll "◊"',$poll->name)?> <span class="symbol"><a href="<?= $base_url.'edit?id='.$poll_id ?>"></a></span></legend>
 	<?= markdown($poll->description)?>
 	<form method="POST">
 		<fieldset>
@@ -79,19 +80,20 @@ include '../common_templates/messages.php'; ?>
 				<?php foreach ($poll->options() as $opt_id => $option) { ?>
 				<tr>
 					<td><?= $opt_id ?></td>
-					<td><?= $option['name']?></td>
-					<td><?= markdown($option['description'])?></td>
+					<td><?= $option->name?></td>
+					<td><?= markdown($option->description)?></td>
 					<td class="poll_status">
 						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&remove_option='.$opt_id ?>"><?= t('remove') ?></a>
-						<?php if ($option['status'] != Poll::OPTION_ENABLED) { ?>
+						<?php if ($option->status != Option::ENABLED) { ?>
 						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&enable_option='.$opt_id ?>"><?= t('enable')?></a>
 						<?php }
-						if ($option['status'] != Poll::OPTION_DISABLED) { ?>
+						if ($option->status != Option::DISABLED) { ?>
 						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&disable_option='.$opt_id ?>"><?= t('disable')?></a>
 						<?php }
-						if ($option['status'] != Poll::OPTION_HIDDEN) { ?>
+						if ($option->status != Option::HIDDEN) { ?>
 						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&hide_option='.$opt_id ?>"><?= t('hide')?></a>
 						<?php } ?>
+						<a class="button" href="<?= $base_url.'edit_option?poll='.$poll->id.'&option='.$opt_id ?>"><?= t('edit')?></a>
 					</td>
 				</tr>
 				<?php } ?>

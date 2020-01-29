@@ -89,18 +89,18 @@ if (!empty($user)){
 				</tr>
 				<?php foreach ($poll->options() as $oid => $option) {
 					$classes = ['hover'];
-					switch ($option['status']){
-						case Poll::OPTION_DISABLED:
+					switch ($option->status){
+						case Option::DISABLED:
 							$classes[] = 'disabled'; break;
-						case Poll::OPTION_HIDDEN:
+						case Option::HIDDEN:
 							$classes[] = 'hidden'; break;
 					}
 				?>
 				<tr class="<?= implode(' ', $classes)?>">
 					<td>
-						<?= $option['name'] ?>
+						<?= $option->name ?>
 						<span class="hidden">
-							<?= markdown($option['description'])?>
+							<?= markdown($option->description)?>
 						</span>
 					</td>
 					<?php foreach ($poll->weights() as $weight => $meta) {
