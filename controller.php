@@ -96,6 +96,12 @@
 				$args = array_merge($args, $ids);
 			}
 
+			if (isset($options['key'])){
+				$key = '%'.$options['key'].'%';
+				$where[] = 'id LIKE ? OR content LIKE ?';
+				$args = array_merge($args, [$key,$key]);
+			}
+
 			if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
 
 			$sql .= ' ORDER BY version ASC, id ASC'; // this, together with INDEX_FETCH assures that only the last version is loaded
