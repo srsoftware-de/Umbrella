@@ -42,4 +42,5 @@ include '../common_templates/messages.php'; ?>
 </fieldset>
 <?php } ?>
 
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'wiki:'.$id],false,NO_CONVERSION); ?>
 <?php include '../common_templates/closure.php'; ?>

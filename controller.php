@@ -50,25 +50,25 @@
 		return $db;
 	}
 
-	class Page extends UmbrellaObjectWithId{
+	class Page extends UmbrellaObject{
 		const READ  = 0b01;
 		const WRITE = 0b10;
 
 		static function table(){
 			return [
-				'id'				=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+				'id'				=> ['VARCHAR'=>255,'NOT NULL'],
 				'version'			=> ['INT','NOT NULL'],
 				'content'			=> ['TEXT','NOT NULL'],
-				'UNIQUE'			=> ['id','version'],
+				'PRIMARY KEY'		=> ['id','version'],
 			];
 		}
 
 		static function user_table(){
 			return [
-					'page_id'			=> ['VARCHAR'=>255,'NOT NULL'],
-					'user_id'			=> ['INT','NOT NULL'],
-					'permissions'		=> ['INT','NOT NULL'],
-					'PRIMARY KEY'		=> ['page_id','user_id'],
+				'page_id'			=> ['VARCHAR'=>255,'NOT NULL'],
+				'user_id'			=> ['INT','NOT NULL'],
+				'permissions'		=> ['INT','NOT NULL'],
+				'PRIMARY KEY'		=> ['page_id','user_id'],
 			];
 		}
 
@@ -98,7 +98,7 @@
 
 			if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
 
-			$sql .= ' ORDER BY id ASC';
+			$sql .= ' ORDER BY version ASC, id ASC'; // this, together with INDEX_FETCH assures that only the last version is loaded
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
@@ -107,6 +107,7 @@
 
 			$result = [];
 			$rows = $query->fetchAll(INDEX_FETCH);
+			//debug(['rows'=>$rows,'single'=>$single,'query'=>query_insert($query, $args)]);
 			foreach ($rows as $id => $row){
 				$page = new Page();
 				$page->patch($row)->patch(['id'=>$id]);
@@ -138,6 +139,8 @@
 				return null;
 			}
 			$db->commit();
+
+			// TODO: update bookmarks and notes
 			return $new_name.'/view';
 		}
 
@@ -145,7 +148,7 @@
 			global $user;
 
 			$sql = 'INSERT INTO pages (id, version, content) VALUES (:id, 1, :content )';
-			$args = [':id'=>$this->id,':content'=>$this->content];
+			$args = [':id'=>$this->id,':content'=>Page::convertMediaWiki($this->content)];
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			if (!$query->execute($args)) throw new Exception('Was not able to store new page!');
@@ -163,14 +166,32 @@
 			request('bookmark','add',['url'=>$url,'comment'=>$this->id,'tags'=>$tags]);
 		}
 
+		static function convertMediaWiki($content){
+			$content = preg_replace('/\[\[([^\]]*)\]\]/', '[$1](../$1/view)', $content); // replace mediawiki-style links
+
+			// replace mediawiki-style headings
+			$content = preg_replace('/====(.*)====/', '#### $1', $content);
+			$content = preg_replace('/===(.*)===/', '### $1', $content);
+			$content = preg_replace('/==(.*)==/', '## $1', $content);
+			$content = preg_replace('/=(.*)=/', '# $1', $content);
+
+			// replace mediawiki-style lists:
+			$content = preg_replace('/^\s*\*\*/m', '    *', $content);
+
+			//debug($content,1);
+			return $content;
+		}
+
 		function update($new_content){
 			global $user;
 
-			$sql = 'UPDATE pages SET content = :c, version = version+1 WHERE id = :i ';
-			$args = [':i'=>$this->id,':c'=>$new_content];
+			$new_content = Page::convertMediaWiki($new_content);
+			$sql = 'INSERT INTO pages (id, version, content) VALUES (:id, :vers, :content )';
+			$args = [':id'=>$this->id,':content'=>$new_content,':vers'=>$this->version+1];
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
+			//debug(query_insert($query, $args),1);
 			if (!$query->execute($args)) throw new Exception('Was not able to update page!');
 			return $this->id.'/view';
 		}

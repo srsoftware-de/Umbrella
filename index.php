@@ -16,7 +16,7 @@ include '../common_templates/messages.php'; ?>
 		</span>
 	</legend>
 	<?php foreach ($pages as $page){ ?>
-		<a class="button" href="<?= $page->id ?>/view"><?= $page->id ?></a>
+		<a class="button" href="<?= $page->id ?>/view"><?= $page->id ?></a><br/>
 	<?php }?>
 </fieldset>
 

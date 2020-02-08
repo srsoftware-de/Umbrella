@@ -16,7 +16,7 @@ if (isset($title) && isset($content)){
 		if (!empty($tags)) $page->setTags($tags);
 	}
 
-	redirect(getUrl('wiki'));
+	redirect(getUrl('wiki',$page->id.'/view'));
 }
 
 include '../common_templates/head.php';
