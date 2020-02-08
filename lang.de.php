@@ -2,6 +2,7 @@
 
 $translations = array(
 		'Add page'=>'Seite hinzufügen',
+		'Add user(s) to "◊"'=>'Benutzer zu „◊“ hinzufügen',
 		'Bookmarks' => 'Lesezeichen',
 		'Company'=>'Firma',
 		'Contacts'=>'Kontakte',
@@ -14,10 +15,14 @@ $translations = array(
 		'Log out ◊'=>'◊ ausloggen',
 		'MARKDOWN_HELP'=>'https://www.markdownguide.org/cheat-sheet',
 		'Models' => 'Modelle',
+		'None'=>'keine',
 		'Notes'=>'Notizen',
 		'Page "◊" does not exist, but you can add it:'=>'Es gibt keine Seite „◊“. Du kannst diese anlegen:',
 		'Pages'=>'Seiten',
-		'Project'=>'Projekt',
+		'Polls'=>'Umfragen',
+		'Projects'=>'Projekte',
+		'Read'=>'Lesen',
+		'Read+Write'=>'Lesen+Schreiben',
 		'Stock'=>'Inventar',
 		'submit'=>'absenden',
 		'Tasks'=>'Aufgaben',
@@ -25,4 +30,5 @@ $translations = array(
 		'Title'=>'Titel',
 		'Umbrella: Stock Management'=>'Umbrella: Inventarverwaltung',
 		'Users'=>'Benutzer',
+		'You are not allowed to edit this page!'=>'Du bist nicht berechtigt, diese Seite zu bearbeiten',
 );

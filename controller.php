@@ -72,12 +72,29 @@
 			];
 		}
 
-		function grant_access($user_id, $permissions){
+		function grant_access($user_rights){
 			$db = get_or_create_db();
-			$sql = 'INSERT INTO page_users (page_id, user_id, permissions) VALUES (:id, :usr, :perm)';
-			$args = [':id'=>$this->id,':usr'=>$user_id,':perm'=>$permissions];
+			$db->beginTransaction();
+			$sql = 'DELETE FROM page_users WHERE page_id = :pid';
 			$query = $db->prepare($sql);
-			if (!$query->execute($args)) throw new Exception('Was not able to grant permissions for page!');
+			$args = [':pid'=>$this->id];
+			if (!$query->execute($args)) {
+				$db->rollBack();
+				throw new Exception('Was not able to grant permissions for page!');
+			}
+
+			$sql = 'INSERT INTO page_users (page_id, user_id, permissions) VALUES (:pid, :usr, :perm)';
+			$query = $db->prepare($sql);
+			foreach ($user_rights as $user_id => $perm){
+				if ($perm == 0) continue;
+				$args[':usr']  = $user_id;
+				$args[':perm'] = $perm;
+				if (!$query->execute($args)) {
+					$db->rollBack();
+					throw new Exception('Was not able to grant permissions for page!');
+				}
+			}
+			$db->commit();
 		}
 
 		function load($options = []){
@@ -159,7 +176,7 @@
 			$query = $db->prepare($sql);
 			if (!$query->execute($args)) throw new Exception('Was not able to store new page!');
 
-			$this->grant_access($user->id,Page::READ | Page::WRITE);
+			$this->grant_access([$user->id => (Page::READ | Page::WRITE)]);
 		}
 
 		function setTags($raw_tags){
@@ -200,6 +217,28 @@
 			//debug(query_insert($query, $args),1);
 			if (!$query->execute($args)) throw new Exception('Was not able to update page!');
 			return $this->id.'/view';
+		}
+
+		function users(){
+			if (!isset($this->users)){
+				$db = get_or_create_db();
+				$sql = 'SELECT * FROM page_users WHERE page_id = :id';
+				$args = [':id'=>$this->id];
+
+				$query = $db->prepare($sql);
+				//debug(query_insert($query, $args));
+				if (!$query->execute($args)) throw new Exception('Could not load users of page');
+				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+				$this->users = [];
+				foreach ($rows as $row) $this->users[$row['user_id']] = $row['permissions'];
+
+				$users = request('user','json',['ids'=>array_keys($this->users)]);
+				foreach ($users as $user_id => $user){
+					$user['perms'] = $this->users[$user_id];
+					$this->users[$user_id] = $user;
+				}
+			}
+			return $this->users;
 		}
 	}
 

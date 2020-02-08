@@ -10,6 +10,15 @@ if (empty($id)){
 }
 
 $page = Page::load(['ids'=>$id]);
+if (empty($page)) {
+	error('Page "◊" does not exist, but you can add it:',$id);
+	redirect($wiki.'add_page?title='.$id);
+}
+
+if (!($page->permissions & Page::WRITE)){
+	error('You are not allowed to edit this page!');
+	redirect('view');
+}
 
 $new_title = param('new_title',$id);
 $content = param('content',$page->content);
