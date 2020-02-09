@@ -12,6 +12,7 @@ $translations = array(
 		'Files'=>'Dateien',
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
+		'Latest&nbsp;version'=>'Neuste&nbsp;Version',
 		'Log out ◊'=>'◊ ausloggen',
 		'MARKDOWN_HELP'=>'https://www.markdownguide.org/cheat-sheet',
 		'Models' => 'Modelle',

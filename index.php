@@ -3,7 +3,7 @@
 require_login('wiki');
 
 $pages = Page::load();
-
+$wiki = getUrl('wiki');
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
@@ -16,7 +16,7 @@ include '../common_templates/messages.php'; ?>
 		</span>
 	</legend>
 	<?php foreach ($pages as $page){ ?>
-		<a class="button" href="<?= $page->id ?>/view"><?= $page->id ?></a><br/>
+		<a class="button" href="<?= $wiki.$page->id ?>/view"><?= $page->id ?></a><br/>
 	<?php }?>
 </fieldset>
 

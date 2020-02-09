@@ -118,6 +118,11 @@
 				$where[] = 'id LIKE ? OR content LIKE ?';
 				$args = array_merge($args, [$key,$key]);
 			}
+			
+			if (isset($options['version'])){
+				$where[] = 'version = ?';
+				$args[] = $options['version'];
+			}
 
 			if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
 

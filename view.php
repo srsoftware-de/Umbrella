@@ -9,11 +9,16 @@ if (empty($id)){
 	redirect($wiki);
 }
 
-$page = Page::load(['ids'=>$id]);
+$filter = ['ids'=>$id];
+if ($version = param('version')) $filter['version'] = $version;
+
+$page = Page::load($filter);
 if (empty($page)) {
 	error('Page "◊" does not exist, but you can add it:',$id);
 	redirect($wiki.'add_page?title='.$id);
 }
+
+$title = $page->id . ' - '.$title;
 
 if (isset($services['bookmark'])) $bookmark = request('bookmark','json_get?id='.sha1(location('*')));
 
@@ -46,7 +51,15 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<tr>
-		<th><?= t('Version ◊',$page->version)?></th>
+		<th>
+			<?php if ($version) { ?>
+			<a href="view"><?= t('Latest&nbsp;version')?></a><br/>
+			<?php } ?>
+			<?= t('Version&nbsp;◊',$page->version)?>
+			<?php $v = $page->version; while ($v > 1){ $v--; ?>
+			<br/><a href="<?= $wiki.$id.'/view?version='.$v ?>"><?= t('Version&nbsp;◊',$v)?></a>
+			<?php } ?>
+		</th>
 		<td><?= markdown($page->content)?></td>
 	</tr>
 	<?php if ($bookmark && !empty($bookmark['tags'])) { ?>
