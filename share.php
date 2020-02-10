@@ -15,7 +15,11 @@ if (empty($page)) {
 	redirect($wiki.'add_page?title='.$id);
 }
 
-if (!($page->permissions & Page::WRITE)){
+$users = $page->users();
+$writeable = false;
+if (!empty($users[$user->id])) $writeable = $users[$user->id]['perms'] & Page::WRITE;
+
+if (!$writeable){
 	error('You are not allowed to edit this page!');
 	redirect('view');
 }
@@ -43,6 +47,12 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Read')?></th>
 			<th><?= t('Read+Write')?></th>
 			<th><?= t('Users')?></th>
+		</tr>
+		<tr>
+			<td><input type="radio" name="user_rights[0]" value="0" <?= empty($page->users[0]) ? 'checked="checked" ':"" ?>/></td>
+			<td><input type="radio" name="user_rights[0]" value="<?= Page::READ ?>"  <?= $page->users[0]['perms']==Page::READ ? 'checked="checked" ':"" ?>/></td>
+			<td></td>
+			<td><?= t('Guests') ?></td>
 		</tr>
 	<?php foreach($users as $user) { $id = $user['id']?>
 		<tr>

@@ -1,6 +1,8 @@
 <?php include 'controller.php';
 
-require_login('wiki');
+// discover, if user is logged in
+$user = empty($_SESSION['token']) ? null : getLocallyFromToken();
+if ($user === null) validateToken('wiki');
 
 $id = param('id');
 $wiki = getUrl('wiki');
@@ -18,6 +20,21 @@ if (empty($page)) {
 	redirect($wiki.'add_page?title='.$id);
 }
 
+$users = $page->users();
+$readable =  false;
+$writeable = false;
+if (!empty($users[$user->id])){
+	$readable  = $users[$user->id]['perms'] & Page::READ;
+ 	$writeable = $users[$user->id]['perms'] & Page::WRITE;
+}
+if (isset($users[0]) && $users[0]=Page::READ) $readable = true;
+
+if (!$readable){
+	error('You are not allowed to access this page!');
+	redirect($wiki);
+}
+
+
 $title = $page->id . ' - '.$title;
 
 if (isset($services['bookmark'])) $bookmark = request('bookmark','json_get?id='.sha1(location('*')));
@@ -33,7 +50,7 @@ include '../common_templates/messages.php'; ?>
 		<th><?= t('Page')?></th>
 		<td>
 			<span class="right symbol">
-			<?php if ($page->permissions & Page::WRITE) { ?>
+			<?php if ($writeable) { ?>
 				<a href="edit" title="<?= t('edit')?>"></a>
 				<a href="share"></a>
 			<?php } ?>
@@ -45,9 +62,14 @@ include '../common_templates/messages.php'; ?>
 	<tr>
 		<th><?= t('Users')?></th>
 		<td>
-		<?php foreach ($page->users() as $user) { ?>
-			<a class="button" href="<?= $usrl.$user['id'].'/view'?>"><?= $user['login']?></a>
-		<?php } ?>
+		<?php $guest = false; foreach ($page->users() as $uid => $user) {
+			if (is_array($user)) { ?>
+				<a class="button" href="<?= $usrl.$user['id'].'/view'?>"><?= $user['login']?></a>
+			<?php } else if (!$guest){
+				echo t('Guests');
+				$guest = true;
+			} // if user == 0
+		} // foreach user ?>
 		</td>
 	</tr>
 	<tr>

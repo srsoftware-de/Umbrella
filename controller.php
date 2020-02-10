@@ -101,9 +101,15 @@
 			global $user;
 
 			$single = false;
-			$sql = 'SELECT * FROM pages LEFT JOIN page_users ON pages.id = page_id';
-			$where = ['user_id = ?'];
-			$args = [$user->id];
+			$sql = 'SELECT * FROM pages';
+			$where = [];//['user_id = ?'];
+			$args = [];//[$user->id];
+
+			if (isset($options['user_id'])){
+				$sql .= ' LEFT JOIN page_users ON pages.id = page_id';
+				$where[] = 'user_id = ?';
+				$args[] = $options['user_id'];
+			}
 
 			if (isset($options['ids'])){
 				$ids = $options['ids'];
@@ -118,7 +124,7 @@
 				$where[] = 'id LIKE ? OR content LIKE ?';
 				$args = array_merge($args, [$key,$key]);
 			}
-			
+
 			if (isset($options['version'])){
 				$where[] = 'version = ?';
 				$args[] = $options['version'];

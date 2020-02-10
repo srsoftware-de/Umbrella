@@ -2,7 +2,7 @@
 
 require_login('wiki');
 
-$pages = Page::load();
+$pages = Page::load(['user_id'=>$user->id]);
 $wiki = getUrl('wiki');
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

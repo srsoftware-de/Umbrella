@@ -15,7 +15,11 @@ if (empty($page)) {
 	redirect($wiki.'add_page?title='.$id);
 }
 
-if (!($page->permissions & Page::WRITE)){
+$users = $page->users();
+$writeable = false;
+if (!empty($users[$user->id])) $writeable = $users[$user->id]['perms'] & Page::WRITE;
+
+if (!$writeable){
 	error('You are not allowed to edit this page!');
 	redirect('view');
 }

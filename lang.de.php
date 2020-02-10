@@ -31,5 +31,6 @@ $translations = array(
 		'Title'=>'Titel',
 		'Umbrella: Stock Management'=>'Umbrella: Inventarverwaltung',
 		'Users'=>'Benutzer',
+		'You are not allowed to access this page!'=>'Du bist nicht berechtigt, diese Seite anzuzeigen',
 		'You are not allowed to edit this page!'=>'Du bist nicht berechtigt, diese Seite zu bearbeiten',
 );
