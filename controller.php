@@ -107,7 +107,8 @@
 
 			if (isset($options['user_id'])){
 				$sql .= ' LEFT JOIN page_users ON pages.id = page_id';
-				$where[] = 'user_id = ?';
+				$where[] = 'user_id = ? OR user_id = 0';
+				$where[] = 'permissions > 0';
 				$args[] = $options['user_id'];
 			}
 
