@@ -33,6 +33,7 @@ $translations = array(
 		'Polls'=>'Umfragen',
 		'Projects'=>'Projekte',
 		'Save'=>'Speichern',
+		'Search for "◊"'=>'Nach „◊“ suchen',
 		'Select file with links'=>'Datei mit Hyperlinks auswählen',
 		'select user'=>'Nutzer auswählen',
 		'share'=>'teilen',

@@ -21,7 +21,7 @@ include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset class="bookmark">
-	<legend><?= t('Tag "◊"',$tag->tag) ?></legend>
+	<legend><?= t('Tag "◊"',$tag->tag) ?> - <a href="<?= getUrl('user','search?key='.$tag->tag)?>"><?= t('Search for "◊"',$tag->tag)?></a></legend>
 
 	<?php foreach ($tag->bookmarks() as $hash => $bookmark ) {?>
 	<fieldset>
