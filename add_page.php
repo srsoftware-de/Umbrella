@@ -5,7 +5,7 @@ require_login('wiki');
 $title = param('title');
 $content = param('content');
 
-if (isset($title) && isset($content)){
+if (!empty($title) && !empty($content)){
 	$page = new Page();
 	$page->patch(['id'=>$title,'content'=>$content])->save();
 
