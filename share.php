@@ -5,8 +5,10 @@ require_login('files');
 $filename = param('file');
 
 if (access_granted($filename)){
-	if ($user_id_and_email = param('user_id_and_email')) share_file($filename,$user_id_and_email,post('send_mail'));
-	if ($unshare_user = param('unshare'))unshare_file($filename,$unshare_user);
+	$user_id_and_email = param('user_id_and_email');
+	$unshare_user = param('unshare');
+	if ($user_id_and_email !== null) share_file($filename,$user_id_and_email,post('send_mail'));
+	if ($unshare_user !== null) unshare_file($filename,$unshare_user);
 
 	$shares = array_keys(get_shares($filename));
 } else {
@@ -31,7 +33,7 @@ if (isset($shares)){ ?>
 		</tr>
 		<?php foreach ($shares as $user_id) { ?>
 		<tr>
-			<td><?= $users[$user_id]['login']?></td>
+			<td><?= $user_id == 0 ? t('Guest') : $users[$user_id]['login']?></td>
 			<td>
 				<a class="symbol" title="<?= t('cancel sharing') ?>" href="<?= location() ?>&unshare=<?= $user_id ?>"></a>
 			</td>
@@ -44,6 +46,7 @@ if (isset($shares)){ ?>
 		<legend><?= t('add user')?></legend>
 		<select name="user_id_and_email">
 		<option value=""><?= t('select user')?></option>
+		<option value="0"><?= t('Guest'); ?></option>
 		<?php foreach ($users as $uid => $some_user) {
 			if ($uid == $user->id) continue;
 			if (in_array($uid, $shares)) continue;

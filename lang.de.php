@@ -28,6 +28,7 @@ $translations = array(
 		'Files'=>'Dateien',
 		'Files: ◊'=>'Dateien: ◊',
 		'File shares of file ◊'=>'Freigaben für Datei ◊',
+		'Guest'=>'Gäste',
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'Log out ◊'=>'◊ ausloggen',

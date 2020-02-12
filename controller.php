@@ -30,6 +30,7 @@
 
 	function user_dir(){
 		global $user;
+		if (empty($user)) return 'guest';
 		return 'user'.DS.$user->id;
 	}
 
@@ -67,7 +68,7 @@
 				break;
 		}
 
-		$shared_files = shared_files_list();
+		$shared_files = shared_files_list($relative_path);
 		foreach ($shared_files as $entry) {
 			if ($entry['file'] == $relative_path) return true;
 		}
@@ -206,7 +207,7 @@
 		$db = get_or_create_db();
 
 		$sql = 'SELECT file FROM file_shares WHERE user_id = :uid';
-		$args = [':uid'=>$user->id];
+		$args = [':uid'=>empty($user)?0:$user->id];
 		if ($filename !== null){
 			$sql .= ' AND file = :file';
 			$args[':file'] = $filename;
