@@ -151,6 +151,7 @@ class Note extends UmbrellaObjectWithId{
 			$project_ids = [];
 			$stock_items = [];
 			$task_ids = [];
+			$wiki_ids = [];
 
 			$companies = request('company','json');
 			$accessible_company_ids = empty($companies) ? [] : array_keys($companies);
@@ -184,6 +185,9 @@ class Note extends UmbrellaObjectWithId{
 						break;
 					case 'task':
 						$task_ids[$id]=true;
+						break;
+					case 'wiki':
+						$wiki_ids[$id]=true;
 						break;
 					default:
 						debug(['realm'=>$realm,implode(':', $uri_parts)]);
@@ -253,6 +257,11 @@ class Note extends UmbrellaObjectWithId{
 			if (!empty($task_ids)){
 				$tasks = request('task','json',['ids'=>array_keys($task_ids)]);
 				foreach ($tasks as $tid => $dummy) $accessible_uris[] = 'task:'.$tid;
+			}
+
+			if (!empty($wiki_ids)){
+				$pages = request('wiki','json',['ids'=>array_keys($wiki_ids)]);
+				foreach ($pages as $pid => $dummy) $accessible_uris[] = 'wiki:'.$pid;
 			}
 
 			foreach ($notes as $id => $note){
