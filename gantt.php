@@ -17,24 +17,23 @@ if ($pid = param('id')){
 		$task['start'] = $start;
 		$due   = hour($task['due_date']);
 		$task['due'] = $due;
-		
+
 		if ($start && ($min === null || $start < $min)) $min = $start;
 		if ($start && ($max === null || $start > $max)) $max = $start;
 		if ($due && ($min === null || $due < $min)) $min = $due;
 		if ($due && ($max === null || $due > $max)) $max = $due;
-		
+
 		$count++;
-		
+
 		$plotted[$tid] = $task;
 		//debug($task,1);
-	} 
+	}
 } else {
 	error('No project id set!');
 }
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 
 ?>
@@ -66,10 +65,10 @@ include '../common_templates/messages.php';
 					?><rect x="<?= $task['due']-$task['est_time']-$min ?>" y="<?= $y?>" width="<?= 3*$task['est_time'] ?>" height="30" class="duration" /><?php
 				}
 			} else {
-			} 
+			}
 		}
 		?><text id="tx_<?= $y ?>" x="5" y="<?= $y+20 ?>"><?= $task['name']?></text><?php
-				
+
 		$y+=40;
 	} ?>
 </svg>

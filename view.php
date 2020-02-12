@@ -89,7 +89,6 @@ foreach ($tasks as $task) $est_time += $task['est_time'];
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 
 if ($project){

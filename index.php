@@ -9,7 +9,6 @@ $user_filter = param('user');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset class="project-index">
@@ -17,6 +16,8 @@ include '../common_templates/messages.php'; ?>
 	<?php if (!$show_closed){ ?>
 	<a class="symbol" title="<?= t('show closed projects') ?>" href="?closed=show"></a>
 	<?php }?>
+	<a class="symbol" title="<?= t('add new project') ?>" href="<?= param('id')?'../':''?>add"></a>
+	<a class="symbol" title="<?= t('import project') ?>" href="import"></a>
 </legend>
 <table class="project-index">
 	<tr>
