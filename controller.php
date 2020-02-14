@@ -228,7 +228,7 @@
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args),1);
 			if (!$query->execute($args)) throw new Exception('Was not able to update page!');
-			return $this->id.'/view';
+			return $this->id.'/share';
 		}
 
 		function users(){

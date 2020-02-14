@@ -18,6 +18,7 @@ $translations = array(
 		'Models' => 'Modelle',
 		'None'=>'keine',
 		'Notes'=>'Notizen',
+		'Page'=>'Seite',
 		'Page "◊" does not exist, but you can add it:'=>'Es gibt keine Seite „◊“. Du kannst diese anlegen:',
 		'Pages'=>'Seiten',
 		'Polls'=>'Umfragen',

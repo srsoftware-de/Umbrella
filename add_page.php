@@ -16,7 +16,7 @@ if (!empty($title) && !empty($content)){
 		if (!empty($tags)) $page->setTags($tags);
 	}
 
-	redirect(getUrl('wiki',$page->id.'/view'));
+	redirect(getUrl('wiki',$page->id.'/share'));
 }
 
 include '../common_templates/head.php';
