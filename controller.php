@@ -177,14 +177,14 @@
 
 
 	class Message extends UmbrellaObjectWithId{
-		const DELIVER_INSTANTLY = 'DELIVER INSTANTLY';
-		const COLLECT_TILL__8  = 'SEND AT  8 AM';
-		const COLLECT_TILL_10 = 'SEND AT 10 AM';
-		const COLLECT_TILL_12 = 'SEND AT 12 PM';
-		const COLLECT_TILL_14 = 'SEND AT  2 PM';
-		const COLLECT_TILL_16 = 'SEND AT  4 PM';
-		const COLLECT_TILL_18 = 'SEND AT  6 PM';
-		const COLLECT_TILL_20 = 'SEND AT  8 PM';
+		const DELIVER_INSTANTLY = '0';
+		const SEND_AT_8  = 1;
+		const SEND_AT_10 = 2;
+		const SEND_AT_12 = 4;
+		const SEND_AT_14 = 8;
+		const SEND_AT_16 = 16;
+		const SEND_AT_18 = 32;
+		const SEND_AT_20 = 64;
 		const SENT = 'SENT';
 		const WAITING = 'WAITING';
 

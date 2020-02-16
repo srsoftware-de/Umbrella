@@ -5,6 +5,9 @@ $user = User::require_login();
 if ($user_id = param('id')){
 	$allowed = ($user->id == 1 || $user->id == $user_id);
 	if ($allowed) {
+		$md = 0;
+		foreach (array_keys(param('delivery')) as $flag) $md += $flag;
+		$_POST['message_delivery'] = $md;
 		$u = User::load(['ids'=>$user_id]);
 		if (!empty($_POST['login'])) {
 			if (!empty($_POST['new_pass']) && $_POST['new_pass'] != $_POST['new_pass_repeat']){
@@ -37,20 +40,35 @@ if ($allowed){ ?>
 
 	<fieldset>
 		<legend><?= t('Notificatin settings')?></legend>
-		<select name="message_delivery">
-			<?php foreach ([
-					Message::DELIVER_INSTANTLY,
-					Message::COLLECT_TILL__8,
-					Message::COLLECT_TILL_10,
-					Message::COLLECT_TILL_12,
-					Message::COLLECT_TILL_14,
-					Message::COLLECT_TILL_16,
-					Message::COLLECT_TILL_18,
-					Message::COLLECT_TILL_20
-			] as $option) { ?>
-			<option value="<?= $option ?>" <?= $u->message_delivery == $option ? 'selected="selected"':'' ?>><?= t($option)?></option>
-			<?php } ?>
-		</select>
+		<label>
+			<input type="checkbox" name="delivery[<?= Message::SEND_AT_8 ?>]" />
+			<?= t('SEND AT  8 AM')?>
+		</label><br/>
+		<label>
+			<input type="checkbox" name="delivery[<?= Message::SEND_AT_10 ?>]" />
+			<?= t('SEND AT 10 AM')?>
+		</label><br/>
+		<label>
+			<input type="checkbox" name="delivery[<?= Message::SEND_AT_12 ?>]" />
+			<?= t('SEND AT 12 PM')?>
+		</label><br/>
+		<label>
+			<input type="checkbox" name="delivery[<?= Message::SEND_AT_14 ?>]" />
+			<?= t('SEND AT  2 PM')?>
+		</label><br/>
+		<label>
+			<input type="checkbox" name="delivery[<?= Message::SEND_AT_16 ?>]" />
+			<?= t('SEND AT  4 PM')?>
+		</label><br/>
+		<label>
+			<input type="checkbox" name="delivery[<?= Message::SEND_AT_18 ?>]" />
+			<?= t('SEND AT  6 PM')?>
+		</label><br/>
+		<label>
+			<input type="checkbox" name="delivery[<?= Message::SEND_AT_20 ?>]" />
+			<?= t('SEND AT  8 PM')?>
+		</label><br/>
+		<?= t('If no time is selected, messages will be delivered instantly.')?>
 	</fieldset>
 
 	<fieldset>
