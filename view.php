@@ -18,7 +18,9 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php';
 ?>
-<h1><?= $u->login ?></h1>
+<fieldset>
+
+<legend><?= t('Basic data') ?></legend>
 <table class="vertical">
 	<tr>
 		<th><?= t('Username');?></th><td><?= $u->login;?></td>

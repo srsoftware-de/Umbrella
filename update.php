@@ -14,7 +14,7 @@ if (no_error()) {
 	$last_db_version = db_version();
 	if ($last_db_version === null) updateDB(DB_VERSION); // new installations create a database with the newest sheme, so there is no need to update.
 
-	while (no_error() && $last_db_version < DB_VERSION){ // oder installations need to update
+	while (no_error() && $last_db_version < DB_VERSION){ // older installations need to update
 		$last_db_version++;
 		updateDB($last_db_version);
 	}

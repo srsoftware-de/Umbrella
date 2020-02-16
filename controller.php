@@ -487,6 +487,7 @@
 			$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
 					t("Click the following link and set a password to join:\n◊",$url)."\n".
 					t('Note: this link can only be used once!');
+					t('This link is only valid for 10 days!');
 			send_mail($user->email, $this->email, $subject, $text);
 			info('Email has been sent to ◊',$this->email);
 		}
