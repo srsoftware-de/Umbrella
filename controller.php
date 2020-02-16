@@ -207,9 +207,19 @@
 			];
 		}
 
-		static function delivery(){
+		static function delivery($time){
 			$messages = Message::load(['state'=>Message::WAITING,'order'=>'user_id ASC']);
-			debug($messages);
+//			debug($messages);
+			$collection = []; // map from user ids to collected message
+			$users = User::load();
+			foreach ($messages as $message){
+				$recipient = $users[$message->user_id];
+				if (($recipient->message_delivery & $time) != $time) continue; // current time not within user's selection
+				//debug(['msg'=>$message,'recipient'=>$recipient,'time'=>$time]);
+				$msg = isset($collection[$recipient->id]) ? $collection[$recipient->id]."\n" : '';
+				$collection[$recipient->id] = $msg . gmdate("Y-m-d H:i", $message->timestamp).' / '.$message->subject.":\n".$message->body."\n";
+			}
+			// TODO: deliver collected mails
 		}
 
 		function assginReciever($user_id,$state = Message::WAITING){

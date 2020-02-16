@@ -2,6 +2,12 @@
 
 $user = User::require_login();
 
+$time = param('time');
+if (!empty($time)){
+	Message::delivery($time);
+	die();
+}
+
 $subject = post('subject'); // text
 if (empty($subject)) error('No subject passed to notify!');
 
@@ -17,6 +23,5 @@ if (no_error()) {
 
 	$message = new Message();
 	$message->patch(['author'=>$user->id,'timestamp'=>time(),'subject'=>$subject,'body'=>$body])->assignTo($users);
-
+	Message::delivery(Message::DELIVER_INSTANTLY);
 }
-Message::delivery();
