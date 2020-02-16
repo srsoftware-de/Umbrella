@@ -16,5 +16,7 @@ if (no_error()) {
 	$users = User::load(['ids'=>$recipients]);
 
 	$message = new Message();
-	$message->patch(['author'=>$user->id,'timestamp'=>time(),'subject'=>$subject,'body'=>$body])->deliverTo($users);
+	$message->patch(['author'=>$user->id,'timestamp'=>time(),'subject'=>$subject,'body'=>$body])->assignTo($users);
+
 }
+Message::delivery();

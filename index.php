@@ -15,9 +15,10 @@ if ($service_data  = param('login_service')){
 }
 if ($login_service_name = param('delete_login_service')) LoginService::load($login_service_name)->delete();
 $limit = param('limit');
-if (empty($limit)){
-	$messages = Message::load(['since'=>$user->last_logoff]);
-} else $messages = Message::load(['limit'=>$limit]);
+$options = ['since'=>$user->last_logoff];
+if (!empty($limit)) $options = ['limit'=>$limit];
+$options['user_id'] = $user-id;
+$messages = Message::load($options);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';

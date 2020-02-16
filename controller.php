@@ -207,6 +207,11 @@
 			];
 		}
 
+		static function delivery(){
+			$messages = Message::load(['state'=>Message::WAITING,'order'=>'user_id ASC']);
+			debug($messages);
+		}
+
 		function assginReciever($user_id,$state = Message::WAITING){
 			$sql = 'INSERT INTO recipients (message_id, user_id, state) VALUES (:mid, :uid, :state )';
 			$args = [':mid'=>$this->id,':uid'=>$user_id,':state'=>$state];
@@ -215,39 +220,42 @@
 			if (!$query->execute($args)) error("Was not able to assign message to reciever!");
 		}
 
-		function deliverTo(array $recievers){
+		function assignTo(array $recievers){
 			global $user;
 			if (!$this->save()) error("Was not able to save new message!");
-			$instant_recievers = [];
 			if (no_error()){
-				foreach ($recievers as $reciever){
-					switch ($reciever->message_delivery){
-						case Message::DELIVER_INSTANTLY:
-							$instant_recievers[] = $reciever->email;
-							$this->assginReciever($reciever->id,Message::SENT);
-							break;
-						default:
-							$this->assginReciever($reciever->id,Message::WAITING);
-					}
-				}
+				foreach ($recievers as $reciever) $this->assginReciever($reciever->id,Message::WAITING);
 			}
-			if (!empty($instant_recievers)) send_mail($user->email, $instant_recievers, $this->subject, $this->body);
 		}
 
 		function load($options){
 			global $user;
+
 			$sql = 'SELECT * FROM recipients LEFT JOIN messages ON messages.id = recipients.message_id';
-			$where = [ 'user_id = :uid' ];
-			$args = [':uid' => $user->id];
+
+			if (!empty($options['user_id'])){
+				$where = [ 'user_id = :uid' ];
+				$args = [':uid' => $options['user_id']];
+			}
 
 			if (!empty($options['since'])){
 				$where[] = 'timestamp > :since';
 				$args[':since'] = $options['since'];
 			}
 
+			if (!empty($options['state'])){
+				$where[] = 'state = :state';
+				$args[':state'] = $options['state'];
+			}
+
 			if (!empty($where)) $sql .= ' WHERE ( '.implode(' ) AND ( ', $where).' )';
 
-			$sql .= ' ORDER BY id DESC';
+			$order = '';
+			if (!empty($options['order'])){
+				$order .= $options['order'].', ';
+			}
+
+			$sql .= ' ORDER BY '.$order.'id DESC';
 
 			if (!empty($options['limit'])){
 				$sql .= ' LIMIT :limit';
@@ -257,10 +265,11 @@
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
+			//debug(query_insert($query, $args));
 			if (!$query->execute($args)) error('Was not able to load messages!');
 
 
-			$rows = $query->fetchAll(INDEX_FETCH);
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 
 			$users = [];
 
@@ -290,6 +299,7 @@
 				}
 			}
 			$query = $db->prepare('INSERT INTO messages ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			debug(query_insert($query, $args));
 			assert($query->execute($args),'Was not able to insert new message');
 
 			$this->id = $db->lastInsertId();
