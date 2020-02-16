@@ -268,7 +268,7 @@
 			foreach ($rows  as $id => $row){
 				$message = new Message();
 				$message->patch(['id'=>$id])->patch($row);
-				$author_id = $message->user_id;
+				$author_id = $message->author;
 				if (empty($users[$author_id])) $users[$author_id] = User::load(['ids'=>$author_id]);
 				$message->patch(['from'=>$users[$author_id]]);
 				unset($message->dirty);
