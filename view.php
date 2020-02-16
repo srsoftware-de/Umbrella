@@ -30,4 +30,23 @@ include '../common_templates/messages.php';
 		<th><?= t('Theme') ?></th><td><?= $u->theme; ?></td>
 	</tr>
 </table>
+</fieldset>
+
+<fieldset>
+	<legend><?= t('Foreign logins')?></legend>
+	<table>
+		<tr>
+			<th><?= t('Service')?></th>
+			<th><?= t('Domain')?></th>
+			<th><?= t('Credentials')?></th>
+		</tr>
+		<?php foreach ($foreign_services as $fs) { ?>
+		<tr>
+			<td><a target="_blank" href="https://<?=  $fs->domain ?>/login?umbrella_token=<?= $_SESSION['token']  ?>"><?= $fs->domain ?></a></td>
+			<td><?= $fs->domain ?></td>
+			<td><?= empty($fs->credentials) ? add_button($fs) : credentials($fs); ?></td>
+		</tr>
+		<?php } // foreach foreign service $fs?>
+	</table>
+</fieldset>
 <?php include '../common_templates/closure.php'; ?>

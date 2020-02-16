@@ -87,6 +87,30 @@ function update2(){
 	}
 }
 
+function update3(){
+	global $db;
+
+	if (no_error()){
+		$sql = 'CREATE TABLE foreign_services (';
+		foreach (ForeignService::table() as $field => $props) $sql .= field_description($field, $props);
+		$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+		$query = $db->prepare($sql);
+		if ($query->execute()){
+			info("Created foreign services table.");
+		} else error("0x006: Was not able to create foreign services table: ◊",$sql);
+	}
+
+	if (no_error()){
+		$sql = 'CREATE TABLE foreign_logins (';
+		foreach (ForeignService::login_table() as $field => $props) $sql .= field_description($field, $props);
+		$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
+		$query = $db->prepare($sql);
+		if ($query->execute()){
+			info("Created foreign logins table.");
+		} else error("0x007: Was not able to create foreign logins table: ◊",$sql);
+	}
+}
+
 function updateDB($version){
 	global $db;
 	info('Attempting to update to db verison ◊.',$version);
@@ -94,6 +118,7 @@ function updateDB($version){
 	switch ($version){
 		case 1: update1(); break;
 		case 2: update2(); break;
+		case 3: update3(); break;
 	}
 
 	if (no_error()){

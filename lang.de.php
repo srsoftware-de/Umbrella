@@ -24,6 +24,7 @@ $translations = [
 	'edit your account'=>'dein Konto bearbeiten',
 	'Email has been sent to ◊'=>'Email an ◊ wurde gesendet.',
 	'Files'=>'Dateien',
+	'Foreign logins'=>'Fremd-Logins',
 	'From' =>'Von',
 	'◊ has been de-assigned.'=>'Verbindung mit ◊ wurde aufgehoben.',
 	'Invoices'=>'Rechnungen',

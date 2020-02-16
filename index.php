@@ -23,6 +23,12 @@ include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
+
+<fieldset>
+	<legend>Nextcloud-Login</legend>
+	<a class="button" href="https://cloud.keawe.de/login?umbrella_token=<?= $_SESSION['token']?>">Cloud</a>
+</fieldset>
+
 <fieldset>
 	<legend>
 		<?= empty($limit)?t('Messages since last logoff'):t('Last ◊ messages',$limit)?>

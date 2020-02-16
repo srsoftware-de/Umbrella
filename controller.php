@@ -1,7 +1,7 @@
 <?php include '../bootstrap.php';
 
 	const MODULE = 'User';
-	const DB_VERSION = 2;
+	const DB_VERSION = 3;
 	$title = 'Umbrella User Management';
 
 	function db_version(){
@@ -27,7 +27,9 @@
 					'login_services'=>LoginService::table(),
 					'service_ids_users'=>LoginService::users(),
 					'messages'=>Message::table(),
-					'recipients'=>Message::recipients()
+					'recipients'=>Message::recipients(),
+					'foreign_services'=>ForeignService::table(),
+					'foreign_logins'=>ForeignService::login_table()
 			];
 
 			foreach ($tables as $table => $fields){
@@ -175,6 +177,148 @@
 		}
 	}
 
+	class ForeignService extends UmbrellaObject{
+		static function table(){
+			return [
+					'domain' => ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+					'name' => ['TEXT','NOT NULL'],
+			];
+		}
+
+		static function login_table(){
+			return [
+					'user_id' => ['INT','NOT NULL'],
+					'domain' => ['VARCHAR'=>255,'NOT NULL'],
+					'name' => ['VARCHAR'=>255,'NOT NULL'],
+					'key' => ['VARCHAR'=>255,'NOT NULL'],
+					'val'=> ['VARCHAR'=>255,'NOT NULL']
+			];
+		}
+
+		function detectFields(){
+			$url = 'http://'.$this->domain;
+			$dom = request(null,$url,null,false,DOM_CONVERSION);
+			$titles = $dom->getElementsByTagName('title');
+			$title = null;
+			foreach ($titles as $title) $title = trim($title->nodeValue);
+
+			switch ($title){
+				case 'Nextcloud':
+					$this->credentials = [
+						'Username'=>[
+							'key'=>'form input#user',
+							'val'=>'set user'
+						],
+						'Password'=>[
+							'key'=>'form input#password',
+							'val'=>'set password'
+						]];
+			}
+		}
+
+		function json_credentials(){
+			$result = [ 'inputs'=> [],'submit'=>'input#submit'];
+			foreach ($this->credentials as $c) $result['inputs'][] = $c;
+			return json_encode($result);
+
+		}
+
+		function load($options){
+			$db = get_or_create_db();
+			//debug(['options'=>$options]);
+			$sql = 'SELECT * FROM foreign_services';
+			$where = [];
+			$args = [];
+			$single = false;
+			if (isset($options['domain'])){
+				$single = true;
+				$where[] = 'domain = :domain';
+				$args[':domain'] = $options['domain'];
+			}
+
+			if (!empty($where))$sql .= ' WHERE '.implode(' AND ', $where);
+			$query = $db->prepare($sql);
+			assert($query->execute($args));
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$results = [];
+			foreach ($rows as $row){
+				$fs = new ForeignService();
+				$fs->patch($row);
+				if ($single){
+
+					if (isset($options['user_id']))	$fs->loadCredentials($db,$options['user_id']);
+					return $fs;
+				}
+				$results[] = $fs;
+			}
+			if ($single) return null;
+			if (isset($options['user_id'])){
+				foreach ($results as $fs) $fs->loadCredentials($db,$options['user_id']);
+			}
+			return $results;
+		}
+
+		function loadCredentials($db,$user_id){
+			$sql = 'SELECT * FROM foreign_logins WHERE user_id = :uid AND domain = :dom';
+			$args = [':dom'=>$this->domain,':uid'=>$user_id];
+			$query = $db->prepare($sql);
+			assert($query->execute($args),query_insert('Was not able to request login credentials for :uid / :dom', $args));
+
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$credentials = [];
+			foreach ($rows as $row) $credentials[$row['name']] = ['key'=>$row['key'],'val'=>$row['val']];
+			$this->patch(['credentials'=>$credentials]);
+
+			unset($this->dirty);
+		}
+
+		function save(){
+			$db = get_or_create_db();
+			$known_fields = array_keys(ForeignService::table());
+
+			$fields = [];
+			$args = [];
+			foreach ($known_fields as $f){
+				if (isset($this->{$f})){
+					$fields[]=$f;
+					$args[':'.$f] = $this->{$f};
+				}
+			}
+			$query = $db->prepare('INSERT INTO foreign_services ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
+			assert($query->execute($args),'Was not able to insert new service');
+
+			$this->id = $db->lastInsertId();
+
+			return true;
+		}
+
+		function save_credentials($user){
+			//debug(['service'=>$this,'user'=>$user]);
+			$db = get_or_create_db();
+			$args = [':dom'=>$this->domain,':uid'=>$user->id];
+
+			$db->beginTransaction();
+			$sql = 'DELETE FROM foreign_logins WHERE domain = :dom AND user_id = :uid AND key = :key';
+			$query = $db->prepare($sql);
+			foreach ($this->credentials as $name => $c){
+				$args[':key']=$c['key'];
+				//debug(query_insert($query, $args));
+				$query->execute($args);
+			}
+
+			$sql = 'INSERT INTO foreign_logins (domain, user_id, name, key, val) VALUES (:dom, :uid, :name, :key, :val )';
+			$query = $db->prepare($sql);
+			foreach ($this->credentials as $name => $c){
+				$args[':name']=$name;
+				$args[':key']=$c['key'];
+				$args[':val']=$c['val'];
+				//debug(query_insert($query, $args));
+				$query->execute($args);
+			}
+			$db->commit();
+
+		}
+	}
 
 	class Message extends UmbrellaObjectWithId{
 		const DELIVER_INSTANTLY = 'DELIVER INSTANTLY';
