@@ -599,6 +599,7 @@
 
 		function login(){
 			Token::getOrCreate($this);
+			header('Token: '.$_SESSION['token']);
 			$redirect = param('returnTo');
 			if (!$redirect && $this->id == 1) $redirect='index';
 			if (!$redirect)	$redirect = getUrl('task');

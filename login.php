@@ -9,6 +9,7 @@ if ($username = post('username')){ // defined in bootstrap.php
 			if ($u->correct($pass)) $u->login();
 			break;
 		}
+		http_response_code(401);
 		sleep(10);
 		error('The provided username/password combination is not valid!');
 	} else error('No password given!');
@@ -39,7 +40,7 @@ if (!empty($login_services)) { ?>
 <fieldset class="openid">
 	<legend><?= t('Login using OAuth 2 / OpenID Connect')?></legend>
 	<?php foreach ($login_services as $name => $data) {?>
-	<a class="button" title="<?= t('Log in using ? account.',$name)?>" href="openid_login?service=<?= $name.($redirect?'&returnTo='.urlencode($redirect):'') ?>"><?= $name ?></a>
+	<a class="button" title="<?= t('Log in using ◊ account.',$name)?>" href="openid_login?service=<?= $name.($redirect?'&returnTo='.urlencode($redirect):'') ?>"><?= $name ?></a>
 	<?php }?>
 </fieldset>
 <?php } ?>
