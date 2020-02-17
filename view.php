@@ -15,7 +15,6 @@ if ($user_id = param('id')){
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 ?>
 <fieldset>
@@ -32,4 +31,5 @@ include '../common_templates/messages.php';
 		<th><?= t('Theme') ?></th><td><?= $u->theme; ?></td>
 	</tr>
 </table>
+</fieldset>
 <?php include '../common_templates/closure.php'; ?>

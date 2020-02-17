@@ -22,8 +22,18 @@ $messages = Message::load($options);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
+<fieldset>
+	<legend>
+	<?= $user->login ?>
+	<span>
+		<?php if (isset($user->id)) { ?>
+		<a class="symbol" title="<?= t('edit your account')?>" href="<?= $base . $user->id ?>/edit"></a>
+		<?php } ?>
+		<a class="symbol" title="<?= t('add user')?>" href="<?= $base ?>add"></a>
+		<a class="symbol" title="<?= t('connect with other account')?>" href="<?= $base ?>add_openid_login"></a>
+	</span>
+</legend>
 <fieldset>
 	<legend>
 		<?= empty($limit)?t('Messages since last logoff'):t('Last ◊ messages',$limit)?>
@@ -176,6 +186,8 @@ if (isset($services['contact'])){
 	</table>
 	</form>
 </fieldset>
-<?php } // user id == 1
+<?php } // user id == 1 ?>
 
-include '../common_templates/closure.php'; ?>
+</fieldset>
+
+<?php include '../common_templates/closure.php'; ?>

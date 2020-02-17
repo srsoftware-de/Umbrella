@@ -177,14 +177,16 @@
 
 
 	class Message extends UmbrellaObjectWithId{
-		const DELIVER_INSTANTLY = '0';
-		const SEND_AT_8  = 1;
-		const SEND_AT_10 = 2;
-		const SEND_AT_12 = 4;
-		const SEND_AT_14 = 8;
-		const SEND_AT_16 = 16;
-		const SEND_AT_18 = 32;
-		const SEND_AT_20 = 64;
+
+		const SEND_INSTANTLY =    0;
+		const SEND_AT_8      =    1;
+		const SEND_AT_10     =    2;
+		const SEND_AT_12     =    4;
+		const SEND_AT_14     =    8;
+		const SEND_AT_16     =   16;
+		const SEND_AT_18     =   32;
+		const SEND_AT_20     =   64;
+		const SEND_NOT       = 2048;
 		const SENT = 'SENT';
 		const WAITING = 'WAITING';
 
@@ -207,19 +209,45 @@
 			];
 		}
 
-		static function delivery($time){
+		static function delivery($time = Message::SEND_INSTANTLY){
 			$messages = Message::load(['state'=>Message::WAITING,'order'=>'user_id ASC']);
-//			debug($messages);
+			$processed_messages = [];
 			$collection = []; // map from user ids to collected message
 			$users = User::load();
+
+			// aggregate messages
 			foreach ($messages as $message){
 				$recipient = $users[$message->user_id];
-				if (($recipient->message_delivery & $time) != $time) continue; // current time not within user's selection
-				//debug(['msg'=>$message,'recipient'=>$recipient,'time'=>$time]);
-				$msg = isset($collection[$recipient->id]) ? $collection[$recipient->id]."\n" : '';
-				$collection[$recipient->id] = $msg . gmdate("Y-m-d H:i", $message->timestamp).' / '.$message->subject.":\n".$message->body."\n";
+
+				$deliver = false;
+				$instant = $time == Message::SEND_INSTANTLY;
+				if ($recipient->message_delivery == Message::SEND_INSTANTLY) $deliver = true;
+				if ($time != Message::SEND_INSTANTLY && ($time & $recipient->message_delivery) == $time) $deliver = true;
+				if ($recipient->message_delivery == Message::SEND_NOT) $deliver = false;
+				if (empty($recipient->email)) $deliver = false;
+
+				if (!$deliver) continue;
+
+				$msg = isset($collection[$recipient->id]) ? $collection[$recipient->id]['message']."\n" : '';
+				$collection[$recipient->id] = [
+						'to' => $recipient->email,
+						'from' => empty($message->from->email) ? $message->from->login : $message->from->email,
+						'subject' => $instant ? $message->subject : t('collected messages'),
+						'message'=> ($instant ? '' : $msg . gmdate("Y-m-d H:i", $message->timestamp).' / '.$message->subject.":\n").$message->body."\n" ,
+				];
+				$processed_messages[] = $message;
 			}
-			// TODO: deliver collected mails
+
+			// dliver messages
+			foreach ($collection as $recipient_id => $entry) send_mail($entry['from'], $entry['to'], $entry['subject'], $entry['message']);
+
+			// update delivered messages: set state to SENT
+			$db = get_or_create_db();
+			$query = $db->prepare('UPDATE recipients SET state = :state WHERE message_id = :mid AND user_id = :uid');
+			foreach ($processed_messages as $message){
+				$args = [':mid'=>$message->message_id,':uid'=>$message->user_id,':state'=>Message::SENT];
+				$query->execute($args);
+			}
 		}
 
 		function assginReciever($user_id,$state = Message::WAITING){
@@ -309,7 +337,7 @@
 				}
 			}
 			$query = $db->prepare('INSERT INTO messages ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
-			debug(query_insert($query, $args));
+			//debug(query_insert($query, $args));
 			assert($query->execute($args),'Was not able to insert new message');
 
 			$this->id = $db->lastInsertId();
@@ -623,7 +651,7 @@
 					'pass' => ['VARCHAR'=>255, 'NOT NULL'],
 					'email' => ['VARCHAR'=>255],
 					'theme'=> ['VARCHAR'=>50],
-					'message_delivery'=>['VARCHAR'=>100,'DEFAULT'=>Message::DELIVER_INSTANTLY],
+					'message_delivery'=>['VARCHAR'=>100,'DEFAULT'=>Message::SEND_INSTANTLY],
 					'last_logoff'=>['INT','DEFAULT'=>'NULL']
 			];
 		}

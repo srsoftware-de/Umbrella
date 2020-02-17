@@ -10,7 +10,6 @@ if (!$key){
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <h2><?= t('Your search provided the following results:') ?></h2>

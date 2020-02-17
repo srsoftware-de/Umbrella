@@ -11,7 +11,6 @@ if ($login = post('login')){ // defined in bootstrap.php
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST">
 	<fieldset><legend><?= t('Create new user') ?></legend>
