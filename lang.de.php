@@ -55,6 +55,7 @@ $translations = array(
 		'participant'=>'Mitglied',
 		'Polls'=>'Umfragen',
 		'Project'=>'Projekt',
+		'Project "◊"'=>'Projekt „◊“',
 		'Project: ◊'=>'Projekt: ◊',
 		'Projects'=>'Projekte',
 		'Related'=>'Kontext',
