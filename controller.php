@@ -296,6 +296,18 @@ class Note extends UmbrellaObjectWithId{
 		$this->note = $note;
 	}
 
+	function notify(){
+		global $user;
+		$recipients = param('recipients');
+		if (empty($recipients)) return;
+		$recipients = explode(',', $recipients);
+		$context = param('context');
+		$body = $this->url() . " :\n\n" . $this->note;
+		$subject = t(empty($context)?'◊ added a note':'◊ added a note to "◊"',[$user->login,$context]);
+		$message = ['recipients'=>$recipients,'subject'=>$subject,'body'=>$body];
+		request('user','notify',$message);
+	}
+
 	function save(){
 		global $user;
 		$db = get_or_create_db();
@@ -319,9 +331,10 @@ class Note extends UmbrellaObjectWithId{
 			assert($query->execute($args),'Was not able to save note!');
 			$this->id = $db->lastInsertId();
 		}
+		return $this;
 	}
 
-	function url($param = ''){
+	function url(){
 		$parts = explode(':', $this->uri,2);
 		$module = array_shift($parts);
 		$id = array_shift($parts);
@@ -336,6 +349,6 @@ class Note extends UmbrellaObjectWithId{
 			case 'time':
 				if (strpos($id,'project:')===0) return getUrl($module,'?'.str_replace(':', '=', $id));
 		}
-		return getUrl($module,$id.'/view?'.$param);
+		return getUrl($module,$id.'/view');
 	}
 }

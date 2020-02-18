@@ -5,6 +5,8 @@ global $user; // imported
 require_login('notes');
 
 $uri = param('uri');
+$context = param('context','');
+$user_ids = param('users',[]);
 $form = param('form',true);
 assert($uri !== null,'Called notes/json without uri');
 $notes = Note::load(['uri'=>$uri,'limit'=>0,'order'=>'id']);
@@ -26,6 +28,8 @@ foreach ($notes as $nid => $note){ ?>
 <?php if ($form) { ?>
 	<form action="<?= getUrl('notes','add') ?>" method="POST">
 		<input type="hidden" name="uri" value="<?= $uri ?>" />
+		<input type="hidden" name="context" value="<?= $context ?>" />
+		<input type="hidden" name="recipients" value="<?= implode(',', $user_ids) ?>" />
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
 		<fieldset class="add note">
 			<legend><?= t('add note - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
