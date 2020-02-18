@@ -262,19 +262,6 @@
 			return in_array($this->users($user->id)['permissions'],[Task::PERMISSION_CREATOR,Task::PERMISSION_READ_WRITE,Task::PERMISSION_ASSIGNEE]);
 		}
 
-		public function send_note_notification($note_id = null){
-			global $user;
-			if (empty($note_id)) return;
-			$subject = t('◊ added a note.',$user->login);
-			$text = t("Open the following site to see the note on \"◊\":\n\n◊",[$this->name,getUrl('task',$this->id.'/view#bkmk'.$note_id)]);
-			$recipients = [];
-			foreach ($this->users() as $id => $u){
-				if ($u['email'] != $user->email) $recipients[] = $id;
-			}
-			request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>$recipients]);
-			info('Sent email notification to users of this task.');
-		}
-
 		public function description(){
 			if (file_exists('../lib/parsedown/Parsedown.php')){
 				include_once '../lib/parsedown/Parsedown.php';

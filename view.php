@@ -16,7 +16,6 @@ if (empty($task)){
 
 $title = $task->name.' - Umbrella';
 $show_closed_children = $task->show_closed == 1 || param('closed') == 'show';
-if ($note_id = param('note_added')) $task->send_note_notification($note_id);
 $bookmark = false;
 if (isset($services['bookmark'])){
 	$hash = sha1(location('*'));
@@ -219,6 +218,6 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 </table>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id],false,NO_CONVERSION);
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id,'context'=>t('Task: ◊',$task->name),'users'=>array_keys($task->users())]);
 } // if task
 include '../common_templates/closure.php'; ?>
