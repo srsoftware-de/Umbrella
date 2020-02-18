@@ -343,11 +343,13 @@ class Note extends UmbrellaObjectWithId{
 			case 'files':
 				return getUrl($module,'?path='.$id.'&'.$param);
 				break;
+			case 'model':
+			case 'time':
+				if (strpos($id,'project:')===0) return getUrl($module,'?'.str_replace(':', '=', $id));
+				break;
 			case 'poll':
 				return getUrl($module,'view?id='.$id.'&'.$param);
 				break;
-			case 'time':
-				if (strpos($id,'project:')===0) return getUrl($module,'?'.str_replace(':', '=', $id));
 		}
 		return getUrl($module,$id.'/view');
 	}
