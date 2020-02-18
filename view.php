@@ -97,5 +97,5 @@ include '../common_templates/messages.php'; ?>
 	<?php } ?>
 </table>
 
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'wiki:'.$page->id,'context'=>t('Page: ◊',$page->id),'users'=>array_keys($users)],false,NO_CONVERSION); ?>
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'wiki:'.$page->id,'context'=>t('Page "◊"',$page->id),'users'=>array_keys($users)],false,NO_CONVERSION); ?>
 <?php include '../common_templates/closure.php'; ?>
