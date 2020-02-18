@@ -12,10 +12,7 @@ if (!empty($content)){
 	$subject = post('subject');
 	if (empty($subject)) error('No subject set');
 
-	if (no_error()) {
-		$response = request('user','notify',['subject'=>$subject,'body'=>$content,'recipients'=>array_keys($receivers)],true,NO_CONVERSION);
-		debug(['response'=>$response],1);
-	}
+	if (no_error()) request('user','notify',['subject'=>$subject,'body'=>$content,'recipients'=>array_keys($receivers)]);
 }
 
 

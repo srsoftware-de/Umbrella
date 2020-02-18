@@ -228,10 +228,11 @@
 
 				if (!$deliver) continue;
 
+				$author = $users[$message->author];
 				$msg = isset($collection[$recipient->id]) ? $collection[$recipient->id]['message']."\n" : '';
 				$collection[$recipient->id] = [
 						'to' => $recipient->email,
-						'from' => empty($message->from->email) ? $message->from->login : $message->from->email,
+						'from' => empty($author->email) ? $author->login : $author->email,
 						'subject' => $instant ? $message->subject : t('collected messages'),
 						'message'=> ($instant ? '' : $msg . gmdate("Y-m-d H:i", $message->timestamp).' / '.$message->subject.":\n").$message->body."\n" ,
 				];
@@ -268,7 +269,6 @@
 
 		function load($options){
 			global $user;
-
 			$sql = 'SELECT * FROM recipients LEFT JOIN messages ON messages.id = recipients.message_id';
 
 			if (!empty($options['user_id'])){
@@ -284,6 +284,11 @@
 			if (!empty($options['state'])){
 				$where[] = 'state = :state';
 				$args[':state'] = $options['state'];
+			}
+
+			if (!empty($options['last_id'])){
+				$where[] = 'message_id > :last_id';
+				$args[':last_id'] = $options['last_id'];
 			}
 
 			if (!empty($where)) $sql .= ' WHERE ( '.implode(' ) AND ( ', $where).' )';
@@ -306,20 +311,14 @@
 			//debug(query_insert($query, $args));
 			if (!$query->execute($args)) error('Was not able to load messages!');
 
-
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 
-			$users = [];
-
 			$messages = [];
-			foreach ($rows  as $id => $row){
+			foreach ($rows  as $row){
 				$message = new Message();
-				$message->patch(['id'=>$id])->patch($row);
-				$author_id = $message->author;
-				if (empty($users[$author_id])) $users[$author_id] = User::load(['ids'=>$author_id]);
-				$message->patch(['from'=>$users[$author_id]]);
+				$message->patch($row);
 				unset($message->dirty);
-				$messages[$id] = $message;
+				$messages[] = $message;
 			}
 			return $messages;
 		}
@@ -580,6 +579,8 @@
 				unset($user->dirty);
 				if ($json_target) {
 					unset($user->pass);
+					unset($user->theme);
+					unset($user->message_delivery);
 					unset($user->last_logoff);
 				}
 				if ($single) return $user;

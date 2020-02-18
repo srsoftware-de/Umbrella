@@ -17,8 +17,9 @@ if ($login_service_name = param('delete_login_service')) LoginService::load($log
 $limit = param('limit');
 $options = ['since'=>$user->last_logoff];
 if (!empty($limit)) $options = ['limit'=>$limit];
-$options['user_id'] = $user-id;
+$options['user_id'] = $user->id;
 $messages = Message::load($options);
+$users = User::load();
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
@@ -49,7 +50,7 @@ include '../common_templates/messages.php'; ?>
 		<?php foreach ($messages as $message){ ?>
 		<tr>
 			<td><?= date('Y-m-d / H:i:s',$message->timestamp) ?></td>
-			<td><?= $message->from->login ?></td>
+			<td><?= $users[$message->author]->login ?></td>
 			<td><?= $message->subject ?></td>
 			<td><?= markdown($message->body) ?></td>
 			<td>
