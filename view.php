@@ -2,14 +2,17 @@
 
 require_login('stock');
 
+$users = [ $user->id ];
+
 if ($item_id = param('id')){
 	$parts = explode(':', $item_id);
 	$realm = $parts[0];
 	$realm_id = $parts[1];
 	switch ($realm){
 		case 'company':
-			$company = request($realm,'json',['ids'=>$realm_id]);
+			$company = request($realm,'json',['ids'=>$realm_id,'users'=>true]);
 			assert(!empty($company),t('You are not allowed to access items of this ?',$realm));
+			$users = $company['users'];
 			break;
 		case 'user':
 			assert($realm_id == $user->id,t('You are not allowed to access items of this ?',$realm));
@@ -90,6 +93,6 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 	<?php } // not empty?>
 <?php } // files service detected ?>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'stock:'.$item->id],false,NO_CONVERSION);
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'stock:'.$item->id,'context'=>$item->name,'users'=>$users],false,NO_CONVERSION);
 
 include '../common_templates/closure.php'; ?>
