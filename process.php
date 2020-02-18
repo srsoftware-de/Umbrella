@@ -148,14 +148,12 @@ if ($action == 'delete'){?>
 		</td>
 	</tr>
 	<?php }
-	if (isset($services['notes'])) {
-		$notes = request('notes','html',['uri'=>'model:'.$process->id],false,NO_CONVERSION);
-		if ($notes){ ?>
+	if (isset($services['notes'])) { ?>
 	<tr>
 		<th><?= t('Notes')?></th>
-		<td><?= $notes ?></td>
+		<td><?= request('notes','html',['uri'=>'model:'.$process->id,'context'=>t('Process: "◊"',$process->name),'users'=>array_keys($project['users'])],false,NO_CONVERSION) ?></td>
 	</tr>
-	<?php }} ?>
+	<?php } ?>
 </table>
 <?php include '../common_templates/messages.php'; ?>
 <?php include '../common_templates/closure.php';

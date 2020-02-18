@@ -152,14 +152,12 @@ if ($action == 'delete'){?>
 			</table>
 		</td>
 	</tr>
-	<?php if (isset($services['notes'])) {
-		$notes = request('notes','html',['uri'=>'model:diagram:'.$diagram->id],false,NO_CONVERSION);
-		if ($notes){ ?>
+	<?php if (isset($services['notes'])) { ?>
 	<tr>
 		<th><?= t('Notes')?></th>
-		<td><?= $notes ?></td>
+		<td><?= request('notes','html',['uri'=>'model:diagram:'.$diagram->id,'context'=>t('Diagram "◊"',$diagram->name),'users'=>array_keys($project['users'])],false,NO_CONVERSION) ?></td>
 	</tr>
-	<?php }} ?>
+	<?php } ?>
 </table>
 
 <?php include '../common_templates/messages.php'; ?>

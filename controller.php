@@ -713,7 +713,7 @@ class Diagram extends UmbrellaObjectWithId{
 	}
 
 	function project(){
-		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true]);
 		return $this->project;
 	}
 
@@ -1244,7 +1244,7 @@ class Process extends UmbrellaObjectWithId{
 	}
 
 	function project(){
-		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true]);
 		return $this->project;
 	}
 

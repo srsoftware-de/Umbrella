@@ -2,7 +2,7 @@
 
 require_login('model');
 
-$projects = request('project','json');
+$projects = request('project','json',['users'=>true]);
 if (empty($projects)) warn('Models must be assigned to projects. You have not created any projects, yet.');
 
 $options = [];
@@ -43,7 +43,7 @@ foreach ($projects as $project){
 <?php foreach ($project['diagrams'] as $diagram) { ?>
 	<a class="button" href="<?= getUrl('model','diagram/'.$diagram->id) ?>"><?= $diagram->name ?></a>
 <?php }?>
-<?= (isset($services['notes']) && $project_id) ? request('notes','html',['uri'=>'model:project:'.$project_id],false,NO_CONVERSION) : '' ?>
+<?= (isset($services['notes']) && $project_id) ? request('notes','html',['uri'=>'model:project:'.$project_id,'context'=>t('Models of "◊"',$project['name']),'users'=>array_keys($project['users'])],false,NO_CONVERSION) : '' ?>
 </fieldset>
 <?php }
 } ?>
