@@ -153,13 +153,11 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 </fieldset>
 
-<?php if (isset($services['notes'])) {
-	$notes = request('notes','html',['uri'=>'poll:'.$poll->id],false,NO_CONVERSION);
-	if ($notes){ ?>
+<?php if (isset($services['notes'])) { ?>
 	<fieldset>
 		<legend><?= t('Notes')?></legend>
-		<?= $notes ?>
+		<?= request('notes','html',['uri'=>'poll:'.$poll->id,'context'=>t('Poll "◊"',$poll->name),'users'=>array_keys($poll->selections())],false,NO_CONVERSION) ?>
 	</fieldset>
-<?php }}
+<?php }
 
 include '../common_templates/closure.php';
