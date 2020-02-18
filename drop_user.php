@@ -34,7 +34,6 @@ $user = request('user','json',['ids'=>$user_id],false,OBJECT_CONVERSION);
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 
 ?>
