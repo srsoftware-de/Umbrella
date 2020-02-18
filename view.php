@@ -218,6 +218,6 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<?php } ?>
 </table>
-<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id,'context'=>t('Task: ◊',$task->name),'users'=>array_keys($task->users())]);
+<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task_id,'context'=>t('Task: ◊',$task->name),'users'=>array_keys($task->users())],false,NO_CONVERSION);
 } // if task
 include '../common_templates/closure.php'; ?>
