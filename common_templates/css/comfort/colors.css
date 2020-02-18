@@ -6,6 +6,11 @@ a{
 	color: #0f3a09;
 }
 
+code{
+	background: #cccccc;
+	border-color: #0f3a09;
+}
+
 .pending a{
 	color: #ffe062;
 }

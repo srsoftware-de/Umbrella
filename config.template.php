@@ -16,5 +16,6 @@ $services['notes']	    = ['name'=>'Notes', 	'path'=>'https://umbrella.keawe.de/n
 $services['model']      = ['name'=>'Models',	'path'=>'https://umbrella.keawe.de/model/'];
 $services['poll']       = ['name'=>'Polls',     'path'=>'https://umbrella.keawe.de/poll/'];
 $services['stock']      = ['name'=>'Stock',     'path'=>'https://umbrella.keawe.de/stock/'];
+$services['wiki']       = ['name'=>'Wiki',      'path'=>'https://umbrella.keawe.de/wiki/'];
 $lang = 'de';
 ?>

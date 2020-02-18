@@ -149,6 +149,7 @@ function generateRandomString(){
 }
 
 function getLocallyFromToken(){
+	global $theme;
 	$db = get_or_create_db();
 	$db->query('CREATE TABLE IF NOT EXISTS tokens (token VARCHAR(255) NOT NULL PRIMARY KEY, expiration INT NOT NULL, user_data TEXT NOT NULL);');
 
@@ -165,7 +166,7 @@ function getLocallyFromToken(){
 			$user = json_decode($row['user_data']); // read user data
 		} else $query->execute([':token'=>$row['token']]); // drop expired token
 	}
-
+	if ($user != null && !empty($user->theme)) $theme = $user->theme;
 	return $user;
 }
 
@@ -173,7 +174,7 @@ function getUrl($service_name,$path=''){
 	global $services;
 	assert($service_name !== null,'No service handed to getUrl!');
 	assert(isset($services[$service_name]['path']),'No '.$service_name.' service configured!');
-	return $services[$service_name]['path'].$path;
+	return $services[$service_name]['path'].str_replace(" ", "%20", $path);
 }
 
 function html2plain($text){

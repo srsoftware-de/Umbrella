@@ -73,3 +73,8 @@ form.invoice textarea {
 tr:hover td{
 	background-color: #edf9f9;
 }
+
+code {
+	background-color: black;
+	color: lime;
+}

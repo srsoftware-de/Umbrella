@@ -13,6 +13,11 @@ body{
 a{
 	text-decoration: none;
 }
+code {
+	display: inline-block;
+	padding: 5px;
+	margin: 5px 0;
+}
 textarea {
 	min-width: 25%;
 	min-height: 40px;
@@ -58,7 +63,7 @@ blockquote{
 }
 
 .hover:hover .hidden{
-	display: inherit;
+	display: inherit !important;
 }
 
 .emphasized{
