@@ -303,7 +303,7 @@ class Note extends UmbrellaObjectWithId{
 		$recipients = explode(',', $recipients);
 		$context = param('context');
 		$body = $this->url() . " :\n\n" . $this->note;
-		$subject = t(empty($context)?'◊ added a note':'◊ added a note to "◊"',[$user->login,$context]);
+		$subject = t(empty($context)?'◊ added a note':'◊ added a note to ◊',[$user->login,$context]);
 		$message = ['recipients'=>$recipients,'subject'=>$subject,'body'=>$body];
 		request('user','notify',$message);
 	}

@@ -2,7 +2,7 @@
 
 $translations = array(
 		'◊ added a note'=>'◊ hat eine Notiz hinzugefügt',
-		'◊ added a note to "◊"'=>'◊ hat eine Notiz zu „◊“ hinzugefügt',
+		'◊ added a note to ◊'=>'◊ hat eine Notiz zu ◊ hinzugefügt',
 		'add note'=>'Notiz hinzufügen',
 		'add note - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>'=>'Notiz hinzufügen - <a target="_blank" href="◊">Markdown wird unterstützt ↗Spickzettel</a>',
 		'Are you sure?'=>'Sind Sie sicher?',
