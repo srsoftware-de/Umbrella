@@ -30,7 +30,12 @@ $users = request('user','json');
 
 $user_rights = post('user_rights');
 if (!empty($user_rights)){
-	$page->grant_access($user_rights);
+	$user_ids = $page->grant_access($user_rights);
+	$subject = t('◊ shared a wiki page with you',$user->login);
+	$path = str_replace(" ", "%20", $page->id).'/view';
+	$text = t('The page ◊ has been edited and/or shared with you:','['.$page->id.']('.getUrl('wiki',$path).')')." \n\n".$page->content;
+	$message = ['subject'=>$subject,'body'=>$text,'recipients'=>$user_ids];
+	request('user','notify',$message);
 	redirect(getUrl('wiki',$id.'/view'));
 }
 

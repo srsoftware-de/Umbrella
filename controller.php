@@ -83,10 +83,12 @@
 				throw new Exception('Was not able to grant permissions for page!');
 			}
 
+			$users_ids = [];
 			$sql = 'INSERT INTO page_users (page_id, user_id, permissions) VALUES (:pid, :usr, :perm)';
 			$query = $db->prepare($sql);
 			foreach ($user_rights as $user_id => $perm){
 				if ($perm == 0) continue;
+				$user_ids[] = $user_id;
 				$args[':usr']  = $user_id;
 				$args[':perm'] = $perm;
 				if (!$query->execute($args)) {
@@ -95,6 +97,7 @@
 				}
 			}
 			$db->commit();
+			return $user_ids;
 		}
 
 		function load($options = []){
