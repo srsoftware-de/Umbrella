@@ -54,7 +54,7 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Users')?></th>
 		</tr>
 		<tr>
-			<td><input type="radio" name="user_rights[0]" value="0" <?= empty($page->users[0]) ? 'checked="checked" ':"" ?>/></td>
+			<td><input type="radio" name="user_rights[0]" value="0" <?= empty($page->users[0]) ? 'checked="checked" ':"" ?> autofocus="autofocus" /></td>
 			<td><input type="radio" name="user_rights[0]" value="<?= Page::READ ?>"  <?= $page->users[0]['perms']==Page::READ ? 'checked="checked" ':"" ?>/></td>
 			<td></td>
 			<td><?= t('Guests') ?></td>

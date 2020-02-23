@@ -1,7 +1,7 @@
 <?php
 
 $translations = array(
-		'◊ shared a wiki page with you'=>'◊ hat teilt eine Wiki-Seite mit dir',
+		'◊ shared a wiki page with you'=>'◊ teilt eine Wiki-Seite mit dir',
 		'Add page'=>'Seite hinzufügen',
 		'Add user(s) to "◊"'=>'Benutzer zu „◊“ hinzufügen',
 		'Bookmarks' => 'Lesezeichen',
