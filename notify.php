@@ -21,6 +21,11 @@ for delivery of aggregated messages, this file should be enabled via cron:
 0 20 * * * wget https://<domain>/user/notify?time=64
 /*==================================================================================*/
 
+
+// here is how to call this from php code:
+// $message = ['recipients'=>$recipients,'subject'=>$subject,'body'=>$body];
+// request('user','notify',$message);
+
 // process aggregated messages at specific time, does not require user login
 $time = param('time');
 if (!empty($time)){

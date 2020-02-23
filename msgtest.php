@@ -28,7 +28,7 @@ You are <?= $user->login ?>
 		Subject
 	</label>
 	<label>
-		<input type="text" name="content" />
+		<textarea name="content"></textarea>
 		Content
 	</label>
 	<?php foreach ($users as $user) { ?>

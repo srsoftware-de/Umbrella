@@ -239,7 +239,7 @@
 				$processed_messages[] = $message;
 			}
 
-			// dliver messages
+			// deliver messages
 			foreach ($collection as $recipient_id => $entry) send_mail($entry['from'], $entry['to'], $entry['subject'], $entry['message']);
 
 			// update delivered messages: set state to SENT
