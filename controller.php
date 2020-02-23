@@ -155,12 +155,8 @@
 		if ($users && param('notify')){
 			$sender = $user->email;
 			$url = getUrl('files','?path='.$dir);
-			$text = t('The file "◊" has been uploaded to ◊.',[$file_data['name'],$url]);
-			foreach ($users as $u){
-				$reciever = $u['email'];
-				if ($sender == $reciever) continue;
-				send_mail($sender, $reciever, $subject, $text);
-			}
+			$message = ['recipients'=>array_keys($users),'subject'=>$subject,'body'=>t('The file "◊" has been uploaded to ◊.',[$file_data['name'],$url])];
+			request('user','notify',$message);
 			info('Notifications were sent.');
 		}
 
@@ -237,13 +233,8 @@
 		return $result;
 	}
 
-	function share_file($filename = null,$user_id_and_email = null,$send_mail = null){
+	function share_file($filename = null,$user_id = null,$send_mail = null){
 		global $user;
-
-		$parts = explode('|', $user_id_and_email,2);
-		$user_id = $parts[0];
-		$reciever = $parts[1];
-		$sender = $user->email;
 
 		assert(is_string($filename),'No filename given!');
 		assert(is_numeric($user_id),'No user selected!');
@@ -254,7 +245,15 @@
 		info('File "◊" has been shared.',$filename);
 
 		$url = getUrl('files','shared?path='.urldecode(dirname($filename)));
-		if ($send_mail == 'on')	send_mail($sender, $reciever, t('◊ shared a file with you',$user->login),t('You now have access to the file "◊". Go to ◊ to download it.',[basename($filename),$url]));
+		if ($send_mail == 'on') {
+			$message =[
+					'recipients'=>[$user_id],
+					'subject'=>t('◊ shared a file with you',$user->login),
+					'body'=>t('You now have access to the file "◊". Go to ◊ to download it.',[basename($filename),$url])
+			];
+			request('user','notify',$message);
+		}
+
 		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}
 

@@ -5,9 +5,9 @@ require_login('files');
 $filename = param('file');
 
 if (access_granted($filename)){
-	$user_id_and_email = param('user_id_and_email');
+	$user_id = param('user_id');
 	$unshare_user = param('unshare');
-	if ($user_id_and_email !== null) share_file($filename,$user_id_and_email,post('send_mail'));
+	if ($user_id !== null) share_file($filename,$user_id,post('send_mail'));
 	if ($unshare_user !== null) unshare_file($filename,$unshare_user);
 
 	$shares = array_keys(get_shares($filename));
@@ -44,14 +44,14 @@ if (isset($shares)){ ?>
 	<form method="POST">
 	<fieldset>
 		<legend><?= t('add user')?></legend>
-		<select name="user_id_and_email">
+		<select name="user_id">
 		<option value=""><?= t('select user')?></option>
 		<option value="0"><?= t('Guest'); ?></option>
 		<?php foreach ($users as $uid => $some_user) {
 			if ($uid == $user->id) continue;
 			if (in_array($uid, $shares)) continue;
 			?>
-		<option value="<?= $uid.'|'.$some_user['email']?>"><?= $some_user['login'] ?></option>
+		<option value="<?= $uid ?>"><?= $some_user['login'] ?></option>
 		<?php } ?>
 		</select>
 		<p>
