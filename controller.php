@@ -240,7 +240,7 @@
 			}
 
 			// deliver messages
-			foreach ($collection as $recipient_id => $entry) send_mail($entry['from'], $entry['to'], $entry['subject'], $entry['message']);
+			foreach ($collection as $entry) send_mail($entry['from'], $entry['to'], $entry['subject'], $entry['message']);
 
 			// update delivered messages: set state to SENT
 			$db = get_or_create_db();
@@ -260,7 +260,6 @@
 		}
 
 		function assignTo(array $recievers){
-			global $user;
 			if (!$this->save()) error("Was not able to save new message!");
 			if (no_error()){
 				foreach ($recievers as $reciever) $this->assginReciever($reciever->id,Message::WAITING);
@@ -268,7 +267,6 @@
 		}
 
 		function load($options){
-			global $user;
 			$sql = 'SELECT * FROM recipients LEFT JOIN messages ON messages.id = recipients.message_id';
 
 			if (!empty($options['user_id'])){
