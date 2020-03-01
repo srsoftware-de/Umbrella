@@ -306,10 +306,10 @@
 			unset($this->dirty);
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
-			if (param('silent','off') != 'on'){ // notify task users
+			if (param('silent','off') != 'on'){ // [notify] task users
 				$users = $this->users();
 				unset($users[$user->id]);
-				$subject = t('◊ edited one of your tasks',$user->login);
+				$subject = t('◊ edited one of your tasks',$user->login).' [p:'.$this->project_id.'][t:'.$this->id.']';
 				$text = t("The task \"◊\" now has the following description:\n\n◊\n\n",[$this->name,$this->description]).getUrl('task',$this->id.'/view');
 				request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>array_keys($users)]);
 
@@ -450,7 +450,7 @@
 
 				// notify if newly assigned
 				if ($notify && empty($rows) && ($user->email != $new_user['email'])) {
-					$subject = t('◊ assigned you to a task',$user->login);
+					$subject = t('◊ assigned you to a task',$user->login).' [p:'.$this->project_id.'][t:'.$this->id.']';
 					$text = t('You have been assigned to the task "◊": ',$this->name).getUrl('task',$this->id.'/view');
 					request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>$new_user['id']]);
 					info('Notification email has been sent.');
