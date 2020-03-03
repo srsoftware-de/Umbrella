@@ -13,7 +13,6 @@ $parent = dirname($path);
 $message=param('message',t('Select a folder:'));
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <h2><?= $message ?></h2>

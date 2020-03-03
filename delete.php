@@ -20,7 +20,6 @@ if (access_granted($rel_file)){
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 
 if ($file) echo dialog(t('Are you sure, you want to delete "◊"?',$rel_file),array(t('YES')=>'?file='.urlencode($rel_file).'&confirm=yes',t('NO')=>'index'));

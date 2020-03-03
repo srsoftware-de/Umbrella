@@ -14,6 +14,5 @@ if (access_granted($filename)){
 error('You are not allowed to access ◊',$filename);
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 include '../common_templates/closure.php';

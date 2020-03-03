@@ -16,7 +16,6 @@ if (in_array($rel_file,['company','project','user/'.$user->id])){
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 
 if ($rel_file){?>

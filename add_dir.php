@@ -14,7 +14,6 @@ if (access_granted($dir) && !in_array($dir,['company','project'])){
 }
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 <form method="POST" enctype="multipart/form-data">
 	<fieldset>

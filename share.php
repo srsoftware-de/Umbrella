@@ -19,7 +19,6 @@ $users = load_connected_users();
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php';
 
 if (isset($shares)){ ?>

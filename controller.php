@@ -11,6 +11,8 @@
 	static $projects = null;
 	static $companies = null;
 
+	$query = param('path') ? '?dir='.param('path') : '';
+
 	function get_or_create_db(){
 		if (!file_exists('db')) assert(mkdir('db'),'Failed to create files'.DS.'db directory!');
 		assert(is_writable('db'),'Directory files'.DS.'db not writable!');
@@ -137,12 +139,15 @@
 		$dir_parts = explode(DS, $dir);
 		$base_folder = array_shift($dir_parts);
 
+		$meta = [];
+
 		$users = false;
 		if ($base_folder == 'project'){
 			$project_id = array_shift($dir_parts);
-			$project_user_ids = request('project','json',['ids'=>$project_id,'users'=>'only']);
-			$users = request('user','json',['ids'=>array_keys($project_user_ids)]);
-			$subject = t('◊ uploaded a file to your project',$user->login);
+			$meta['project_id'] = $project_id;
+			$project = request('project','json',['ids'=>$project_id,'users'=>true]);
+			$users = request('user','json',['ids'=>array_keys($project['users'])]);
+			$subject = t('◊ uploaded a file to "◊"',[$user->login,$project['name']]);
 		} elseif ($base_folder == 'company'){
 			$company_id = array_shift($dir_parts);
 			$company = request('company','json',['ids'=>$company_id,'single'=>true,'users'=>true],1);
@@ -155,7 +160,8 @@
 		if ($users && param('notify')){
 			$sender = $user->email;
 			$url = getUrl('files','?path='.$dir);
-			$message = ['recipients'=>array_keys($users),'subject'=>$subject,'body'=>t('The file "◊" has been uploaded to ◊.',[$file_data['name'],$url])];
+			$body = t('The file "◊" has been uploaded to ◊.',[$file_data['name'],$url]);
+			$message = ['recipients'=>array_keys($users),'subject'=>$subject,'body'=>$body,'meta'=>$meta];
 			request('user','notify',$message);
 			info('Notifications were sent.');
 		}

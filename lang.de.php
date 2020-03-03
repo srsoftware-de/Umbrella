@@ -68,5 +68,5 @@ $translations = array(
 		'You are not allowed to rename "◊"!' => 'Sie sind nicht berechtigt „◊“ umzubenennen!',
 		'You now have access to the file "◊". Go to ◊ to download it.'=>'Du hast nun Zugriff auf die Datei „◊“. Gehe zu ◊ um die Datei herunterzuladen.',
 		'◊ uploaded a file for your company'=>'◊ hat Ihrer Firma eine Datei hinzugefügt',
-		'◊ uploaded a file to your project'=>'◊ hat Ihrem Projekt eine Datei hinzugefügt',
+		'◊ uploaded a file to "◊"'=>'◊ hat eine Datei zu „◊“ hinzugefügt',
 );
