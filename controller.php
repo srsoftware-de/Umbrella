@@ -1,7 +1,8 @@
 <?php include '../bootstrap.php';
 
 	const MODULE = 'User';
-	const DB_VERSION = 2;
+	const DB_VERSION = 3;
+	const JSON = 'TEXT';
 	$title = 'Umbrella User Management';
 
 	function db_version(){
@@ -197,6 +198,7 @@
 				'timestamp' => ['INT','NOT NULL'],
 				'subject' => ['TEXT'],
 				'body' => ['TEXT'],
+				'meta' => [JSON],
 			];
 		}
 

@@ -87,6 +87,18 @@ function update2(){
 	}
 }
 
+function update3(){
+	global $db;
+
+	if (no_error()){
+		$sql = 'ALTER TABLE messages ADD COLUMN meta TEXT';
+		$query = $db->prepare($sql);
+		if ($query->execute()){
+			info('Added meta column.');
+		} else error("0x006: Was not able to add meta column: ◊",$sql);
+	}
+}
+
 function updateDB($version){
 	global $db;
 	info('Attempting to update to db verison ◊.',$version);
@@ -94,6 +106,7 @@ function updateDB($version){
 	switch ($version){
 		case 1: update1(); break;
 		case 2: update2(); break;
+		case 3: update3(); break;
 	}
 
 	if (no_error()){

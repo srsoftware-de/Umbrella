@@ -45,11 +45,13 @@ if (empty($body)) error('No message body passed to notify!');
 $recipients = post('recipients'); // user id(s)
 if (empty($recipients)) error('No recipient(s) passed to notify!');
 
+$meta = post('meta',null);
+if ($meta !== null) $meta = json_encode($meta);
 if (no_error()) {
 	if (!is_array($recipients)) $recipients = [ $recipients ];
 	$users = User::load(['ids'=>$recipients]);
 
 	$message = new Message();
-	$message->patch(['author'=>$user->id,'timestamp'=>time(),'subject'=>$subject,'body'=>$body])->assignTo($users);
+	$message->patch(['author'=>$user->id,'timestamp'=>time(),'subject'=>$subject,'body'=>$body,'meta'=>$meta])->assignTo($users);
 	Message::delivery();
 }
