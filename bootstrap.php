@@ -409,7 +409,7 @@ function save_file($filename,$file_contents,$mime){
 	return file_get_contents($url,false,$context);
 }
 
-function send_mail($sender, $reciever, $subject, $text, $attachment = null){
+function send_mail($sender, $reciever, $subject, $text, $attachment = null, $extra_headers = []){
 	if (!is_array($reciever)) $reciever = [$reciever];
 	if ($attachment){
 		$filename = $attachment['name'];
@@ -422,6 +422,12 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null){
 		$header = "From: ".$sender." <".$sender.">\r\n";
 		$header .= "Reply-To: ".$sender."\r\n";
 		$header .= "MIME-Version: 1.0\r\n";
+		if (!empty($extra_headers) && is_array($extra_headers)){
+			foreach ($extra_headers as $k => $v){
+				$header .= $k.': '.$v."\r\n";
+			}
+		}
+
 		$header .= "Content-Type: multipart/mixed; boundary=\"".$uid."\"\r\n\r\n";
 
 		// message & attachment
