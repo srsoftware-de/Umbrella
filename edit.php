@@ -7,14 +7,16 @@ if (empty($project_id)){
 	error('No project id passed!');
 	redirect(getUrl('project'));
 }
-$project = Project::load(['ids'=>$project_id]);
+$project = Project::load(['ids'=>$project_id,'users'=>true]);
 if (empty($project)){
 	error('You are not member of this project!');
 	redirect(getUrl('project'));
 }
 
+$silent = param('silent',false);
+
 if (post('name')){
-	$project->patch($_POST)->save();
+	$project->patch($_POST)->save($silent);
 	redirect(param('redirect',getUrl('project',$project_id.'/view')));
 }
 
@@ -50,6 +52,12 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
 			<textarea name="description"><?= $project->description ?></textarea>
+		</fieldset>
+		<fieldset class="options">
+			<legend><?= t('Options')?></legend>
+			<label class="silent_box">
+				<input type="checkbox" name="silent" /> <?= t("Don't notify users") ?>
+			</label>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset>

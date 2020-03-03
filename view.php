@@ -192,7 +192,7 @@ if ($project){
 	<?php } ?>
 </table>
 <?= isset($services['bookmark']) ? request('bookmark','html',['hash'=>sha1(location('*'))],false,NO_CONVERSION) : '' ?>
-<?= isset($services['notes'])    ? request('notes','html',['uri'=>'project:'.$project_id,'context'=>t('Project "◊"',$project->name),'users'=>array_keys($project->users)],false,NO_CONVERSION)  : '' ?>
+<?= isset($services['notes']) ? request('notes','html',['uri'=>'project:'.$project_id,'context'=>t('Project "◊"',$project->name),'users'=>array_keys($project->users)],false,NO_CONVERSION) : '' ?>
 <?php }
 
 include '../common_templates/closure.php'; ?>

@@ -192,13 +192,14 @@
 			$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
 			assert($query->execute(array(':pid'=>$this->id,':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign project to user!');
 			if (param('notify') == 'on'){
-				$sender = $user->email;
-				$reciever = $new_user['email'];
-				$subject = t('◊ added you to a project',$user->login);
+				$reciever = $new_user['id'];
+				$subject = t('◊ added you to a project',$user->login).' [p:'.$this->id.']';
 				$text = t('You have been added to the project "◊": ◊',[$this->name,getUrl('project',$this->id.'/view')])."\n";
 				$text .= t('This means you are now able to file bugs, add tasks to this projects and view the progress of this project.')."\n";
 				$text .= t('Navigate to the aforementioned linkt to login to the Umbrella Project Management Suite.');
-				if (send_mail($sender, $reciever, $subject, $text)) info('Notification email has been sent to ◊',$reciever);
+				$meta = ['project_id'=>$this->id];
+				request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>[$reciever],'meta'=>$meta]);
+				info('Notification email has been sent to ◊',$new_user['login']);
 			}
 		}
 
@@ -215,7 +216,7 @@
 			unset($this->users[$user_id]);
 		}
 
-		public function save(){
+		public function save($silent = false){
 			global $services,$user;
 			$db = get_or_create_db();
 			$known_fields = array_keys(Project::table());
@@ -236,6 +237,14 @@
 					$args[':id'] = $this->id;
 					$query = $db->prepare($sql);
 					assert($query->execute($args),'Was no able to update project in database!');
+				}
+
+				if (!$silent){
+					$subject = t('◊ updated project "◊"',[$user->login,$this->name]).' [p:'.$this->id.']';
+					$body = t("The new description of ◊ is now:\n◊",[$this->name,$this->description]);
+					$meta = ['project_id'=>$this->id];
+					request('user','notify',['subject'=>$subject,'body'=>$body,'recipients'=>array_keys($this->users),'meta'=>$meta],true,NO_CONVERSION);
+					info('Users have been notified');
 				}
 			} else {
 				$fields = [];
