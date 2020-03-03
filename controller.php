@@ -304,7 +304,19 @@ class Note extends UmbrellaObjectWithId{
 		$context = param('context');
 		$body = $this->url() . " :\n\n" . $this->note;
 		$subject = t(empty($context)?'◊ added a note':'◊ added a note to ◊',[$user->login,$context]);
-		$message = ['recipients'=>$recipients,'subject'=>$subject,'body'=>$body];
+		$parts = explode(':', $this->uri,2);
+		$module = array_shift($parts);
+		$id = array_shift($parts);
+		$meta = [];
+		switch ($module){
+			case 'task':
+				$task = request('task','json',['ids'=>$id],true,OBJECT_CONVERSION);
+				if (isset($task->project_id)) $meta['project_id'] = $task->project_id;
+				break;
+		}
+		$meta[$module.'_id'] = $id;
+
+		$message = ['recipients'=>$recipients,'subject'=>$subject,'body'=>$body,'meta'=>$meta];
 		request('user','notify',$message);
 	}
 
