@@ -311,7 +311,11 @@
 				unset($users[$user->id]);
 				$subject = t('◊ edited one of your tasks',$user->login).' [p:'.$this->project_id.'][t:'.$this->id.']';
 				$text = t("The task \"◊\" now has the following description:\n\n◊\n\n",[$this->name,$this->description]).getUrl('task',$this->id.'/view');
-				request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>array_keys($users)]);
+				$meta = [
+						'project_id'=>$this->project_id,
+						'task_id'=>$this->id,
+				];
+				request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>array_keys($users),'meta'=>$meta]);
 
 				if ($hash) {
 					foreach ($this->users() as $uid => $u) request('bookmark','index',['share_user_id'=>$uid,'share_url_hash'=>$hash,'notify'=>false]);
@@ -452,7 +456,11 @@
 				if ($notify && empty($rows) && ($user->email != $new_user['email'])) {
 					$subject = t('◊ assigned you to a task',$user->login).' [p:'.$this->project_id.'][t:'.$this->id.']';
 					$text = t('You have been assigned to the task "◊": ',$this->name).getUrl('task',$this->id.'/view');
-					request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>$new_user['id']]);
+					$meta = [
+							'project_id'=>$this->project_id,
+							'task_id'=>$this->id,
+					];
+					request('user','notify',['subject'=>$subject,'body'=>$text,'recipients'=>$new_user['id'],'meta'=>$meta]);
 					info('Notification email has been sent.');
 				}
 			}

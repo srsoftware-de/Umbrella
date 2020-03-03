@@ -21,7 +21,6 @@ if (empty($project)){
 
 if (post('name')){
 	$user_permissions = post('users');
-	debug(['POST'=>$_POST,'user_permissions'=>$user_permissions]);
 	$users = [];
 	if (!empty($user_permissions) && is_array($user_permissions)){
 		foreach ($user_permissions as $uid => $perm){
@@ -36,7 +35,6 @@ if (post('name')){
 			$users[$uid] = $u;
 		}
 	}
-	debug($users);
 	if (!empty($users)){
 		$new_task = new Task();
 		$new_task->patch($_POST)->patch(['users'=>$users,'project_id'=>$task->project_id,'parent_task_id'=>$task_id]);
