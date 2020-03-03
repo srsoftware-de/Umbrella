@@ -1,7 +1,7 @@
 <?php include '../bootstrap.php';
 
 	const MODULE = 'User';
-	const DB_VERSION = 3;
+	const DB_VERSION = 4;
 	const JSON = 'TEXT';
 	$title = 'Umbrella User Management';
 
@@ -575,6 +575,7 @@
 			foreach ($rows as $id => $row){
 				$user = new User();
 				$user->patch($row);
+				if (!empty($user->settings)) $user->settings = json_decode($user->settings,true);
 				$user->id = $id;
 				unset($user->dirty);
 				if ($json_target) {
@@ -636,7 +637,9 @@
 			$args = [];
 			foreach (User::table() as $key => $definition){
 				if (!isset($this->{$key})) continue;
-				$args[$key] = $this->{$key};
+				$val = $this->{$key};
+				if ($key == 'settings') $val = json_encode($val);
+				$args[$key] = $val;
 			}
 
 			$sql = 'INSERT INTO users ('.implode(', ', array_keys($args)).') VALUES (:'.implode(', :',array_keys($args)).' )';
@@ -654,7 +657,8 @@
 					'email' => ['VARCHAR'=>255],
 					'theme'=> ['VARCHAR'=>50],
 					'message_delivery'=>['VARCHAR'=>100,'DEFAULT'=>Message::SEND_INSTANTLY],
-					'last_logoff'=>['INT','DEFAULT'=>'NULL']
+					'last_logoff'=>['INT','DEFAULT'=>'NULL'],
+					'settings'=>[JSON],
 			];
 		}
 
@@ -670,7 +674,9 @@
 			$args = [];
 			foreach (array_keys(User::table()) as $key){
 				if ($key == 'id' || !in_array($key, $this->dirty)) continue;
-				$args[':'.$key] = $this->{$key};
+				$val = $this->{$key};
+				if ($key == 'settings') $val = json_encode($val);
+				$args[':'.$key] = $val;
 				$sql .= $key.' = :'.$key.', ';
 			}
 			if (empty($args)) {

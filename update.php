@@ -99,6 +99,18 @@ function update3(){
 	}
 }
 
+function update4(){
+	global $db;
+
+	if (no_error()){
+		$sql = 'ALTER TABLE users ADD COLUMN settings TEXT';
+		$query = $db->prepare($sql);
+		if ($query->execute()){
+			info('Added settings column.');
+		} else error("0x007: Was not able to add settings column: ◊",$sql);
+	}
+}
+
 function updateDB($version){
 	global $db;
 	info('Attempting to update to db verison ◊.',$version);
@@ -107,6 +119,7 @@ function updateDB($version){
 		case 1: update1(); break;
 		case 2: update2(); break;
 		case 3: update3(); break;
+		case 4: update4(); break;
 	}
 
 	if (no_error()){
