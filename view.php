@@ -42,8 +42,6 @@ if (file_exists('../lib/parsedown/Parsedown.php')){
 	$project->description = Parsedown::instance()->parse($project->description);
 } else $project->description = str_replace("\n", "<br/>", $project->description);
 
-
-
 function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 	global $show_closed_tasks,$project_id;
 	$first = true;
@@ -82,6 +80,7 @@ function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 	if (!$first){
 		?></ul><?php
 	}
+	return !$first;
 }
 
 $est_time = 0;
@@ -160,9 +159,8 @@ if ($project){
 			<a href="gantt"><?= t('Gantt chart')?></a>
 		</th>
 		<td class="tasks">
-			<?php if ($tasks) {
-				display_tasks($tasks, null);
-			} else { ?>
+			<?php if ($tasks) $tasks = display_tasks($tasks, null);
+			if (!$tasks){ ?>
 			<a class="symbol" href="<?= getUrl('task','add_to_project/'.$project->id) ?>"></a>
 			<a href="<?= getUrl('task','add_to_project/'.$project->id) ?>"><?= t('add task') ?></a>
 			<?php } ?>
