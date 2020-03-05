@@ -23,8 +23,10 @@ for delivery of aggregated messages, this file should be enabled via cron:
 
 
 // here is how to call this from php code:
-// $message = ['recipients'=>$recipients,'subject'=>$subject,'body'=>$body];
+// $message = ['recipients'=>$recipients,'subject'=>$subject,'body'=>$body,'meta'=>$meta];
 // request('user','notify',$message);
+// $recipients is an array of user ids
+// $meta is an array of metadata, like
 
 // process aggregated messages at specific time, does not require user login
 $time = param('time');

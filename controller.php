@@ -566,7 +566,7 @@
 
 			$query = $db->prepare($sql);
 
-			if($query->execute($args)) throw new Exception('Was not able to load users!');
+			if(!$query->execute($args)) throw new Exception('Was not able to load users!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 
 			$users = [];
