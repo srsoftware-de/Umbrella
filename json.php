@@ -10,7 +10,10 @@ if ($messages) {
 	die(json_encode($messages));
 }
 
-$data = User::load(['ids'=>param('ids',param('id')),'target'=>'json']);
+$options = ['target'=>'json'];
+if ($ids = param('ids',param('id'))) $options['ids'] = $ids;
+if (param('related') == true) $options['related'] = true; // only list users the current user shares a project or company with
+$data = User::load($options);
 if (empty($data)) {
 	http_response_code(400);
 	die(t('No such user'));

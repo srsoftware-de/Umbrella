@@ -548,6 +548,14 @@
 			$args = [];
 
 			$single = false;
+
+			if (isset($options['related']) && $options['related'] == true){
+				$project_related_users = request('project','json',['users'=>'only']);
+				$company_related_users = request('company','json',['users'=>'only']);
+				$related_user_ids = array_merge(array_keys($project_related_users),$company_related_users);
+				$options['ids'] = $related_user_ids;
+			}
+
 			if (isset($options['ids'])){
 				$ids = $options['ids'];
 				if (!is_array($ids) && $ids = [$ids]) $single = true;
