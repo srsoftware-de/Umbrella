@@ -9,8 +9,8 @@ if (empty($poll_id)) {
 }
 
 $poll = Poll::load(['ids'=>$poll_id]);
-if (empty($poll)){
-	error('You are not allowed to modify this poll!');
+if (empty($poll->users($user->id)) || (($poll->users($user->id) & Poll::EDIT) == 0)){
+	error('You are not allowed to modify poll ◊!',$poll_id);
 	redirect(getUrl('poll'));
 }
 

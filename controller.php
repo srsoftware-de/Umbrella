@@ -1,7 +1,17 @@
 <?php include '../bootstrap.php';
 
 const MODULE = 'Poll';
+const DB_VERSION = 1;
 $title = t('Umbrella Poll Management');
+
+function db_version(){
+	$db = get_or_create_db();
+	$query = $db->prepare('SELECT value FROM settings WHERE key = "db_version"');
+	if (!$query->execute()) throw new Exception(_('Failed to query db_version!'));
+	$rows = $query->fetchAll(PDO::FETCH_COLUMN);
+	if (empty($rows)) return null;
+	return reset($rows);
+}
 
 function get_or_create_db(){
 	if (!file_exists('db')) assert(mkdir('db'),'Failed to create poll/db directory!');
@@ -14,6 +24,7 @@ function get_or_create_db(){
 				'options'    => Option::table(),
 				'weights'    => Poll::weights_table(),
 				'selections' => Poll::selections_table(),
+				'shares'     => Poll::shares_table(),
 		];
 
 		foreach ($tables as $table => $fields){
@@ -139,12 +150,25 @@ class Option extends UmbrellaObject{
 }
 
 class Poll extends UmbrellaObjectWithId{
+	const PARTICIPATE = 0;
+	const EVALUATE = 1;
+	const EDIT = 2;
+
 	static function table(){
 		return [
 				'id' => ['VARCHAR'=>255,'NOT NULL','PRIMARY KEY'],
 				'user_id' => ['INT','NOT NULL','REFERENCES user(id)'],
 				'name' => ['VARCHAR'=>255,'NOT NULL'],
 				'description' => ['TEXT']
+		];
+	}
+
+	static function shares_table(){
+		return [
+			'poll_id'=>['VARCHAR'=>255,'NOT NULL','REFERENCES polls(id)'],
+			'user_id' => ['INT','NOT NULL','REFERENCES user(id)'],
+			'permission' => ['INT'],
+			'PRIMARY KEY'=>['poll_id','user_id'],
 		];
 	}
 
@@ -168,16 +192,10 @@ class Poll extends UmbrellaObjectWithId{
 	}
 	/**** end of table functions ******/
 	static function load($options){
-		global $user;
 		$sql = 'SELECT * FROM polls';
 
 		$where = [];
 		$args = [];
-
-		if (empty($options['open'])){
-			$where = ['user_id = ?'];
-			$args = [$user->id];
-		}
 
 		$single = false;
 
@@ -207,16 +225,17 @@ class Poll extends UmbrellaObjectWithId{
 		$query = $db->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to read polls!');
 
-		$rows = $query->fetchAll($single?PDO::FETCH_ASSOC:INDEX_FETCH);
-		//debug(['options'=>$options,'query'=>query_insert($sql, $args),'rows'=>$rows]);
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		//debug(['options'=>$options,'query'=>query_insert($query, $args),'rows'=>$rows]);
 		$polls = [];
 
-		foreach ($rows as $id => $row){
+		foreach ($rows as $row){
 			$poll = new Poll();
 			$poll->patch($row);
 			unset($poll->dirty);
 
 			if ($single) return $poll;
+			$id = $row['id'];
 			$polls[$id] = $poll;
 		}
 		if ($single) return null;
@@ -347,15 +366,47 @@ class Poll extends UmbrellaObjectWithId{
 		return $selections;
 	}
 
+	function share($permissions){
+		if (!is_array($permissions)) throw new Error('Invalid parameter passed to Poll->share('.print_r($permissions,true).')');
+		$sql = 'REPLACE INTO shares (poll_id, user_id, permission) VALUES (:pid, :uid, :perm )';
+		$args = [':pid'=>$this->id];
+		$query = get_or_create_db()->prepare($sql);
+		foreach ($permissions as $user_id => $permission){
+			$args[':uid'] = $user_id;
+			$args[':perm']= $permission;
+			if (!$query->execute($args)) throw new Exception('Was not able to update shares of '+$this->name);
+		}
+	}
+
 	function update(){
-		$db = get_or_create_db();
 		$sql = 'UPDATE polls SET name = :name, description = :desc WHERE id = :id';
 		$args = [':name'=>$this->name,':desc'=>$this->description,':id'=>$this->id];
-		$query = $db->prepare($sql);
+		$query = get_or_create_db()->prepare($sql);
 
 		if (!$query->execute($args)) throw new Exception('Was not able to update poll!');
 		unset($this->dirty);
 		return $this;
+	}
+
+	function users($id = null){
+		if (empty($this->users)){
+			$sql = 'SELECT * FROM shares WHERE poll_id = :pid';
+			$args = [':pid'=>$this->id];
+			$query = get_or_create_db()->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to read shares of poll!');
+			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			$this->users = [];
+			foreach ($rows as $row) {
+				$user_id = $row['user_id'];
+				$this->users[$user_id] = $row['permission'];
+			}
+			$this->users[$this->user_id] = Poll::EDIT; // owner is always allowed to edit
+		}
+		if (!empty($id)) {
+			if (array_key_exists($id, $this->users)) return $this->users[$id];
+			return Poll::PARTICIPATE;
+		}
+		return $this->users;
 	}
 
 	function weights(){
@@ -367,5 +418,14 @@ class Poll extends UmbrellaObjectWithId{
 			$this->weights = $query->fetchAll(INDEX_FETCH);
 		}
 		return $this->weights;
+	}
+}
+
+class Settings {
+	static function table(){
+		return [
+				'key'	=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+				'value'	=> ['VARCHAR'=>255,'NOT NULL'],
+		];
 	}
 }

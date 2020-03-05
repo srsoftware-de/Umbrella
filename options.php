@@ -9,8 +9,8 @@ if (empty($poll_id)) {
 }
 
 $poll = Poll::load(['ids'=>$poll_id]);
-if (empty($poll)){
-	error('You are not allowed to modify this poll!');
+if (empty($poll->users($user->id)) || (($poll->users($user->id) & Poll::EDIT) == 0)){
+	error('You are not allowed to modify poll ◊!',$poll_id);
 	redirect(getUrl('poll'));
 }
 
@@ -64,7 +64,13 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Poll "◊"',$poll->name)?> <span class="symbol"><a href="<?= $base_url.$poll_id.'/edit' ?>"></a></span></legend>
+	<legend>
+		<?= t('Poll "◊"',$poll->name)?>
+		<span class="symbol">
+			<a href="<?= $base_url.$poll_id.'/edit'?>" title="<?= t('Edit')?>"></a>
+			<a href="<?= $base_url.$poll_id.'/share' ?>" title="<?= t('Share')?>"></a>
+			<a href="<?= $base_url.$poll_id.'/evaluate' ?>" title="<?= t('Evaluate')?>"></a>
+		</span></legend>
 	<?= markdown($poll->description)?>
 	<form method="POST">
 		<fieldset>
@@ -109,6 +115,11 @@ include '../common_templates/messages.php'; ?>
 					</td>
 				</tr>
 			</table>
+			<div class="infos">
+				<span>
+				<?= t('Enter options for the poll here.<br/>To vote for an appointment date, you could use day names for example.') ?>
+				</span>
+			</div>
 		</fieldset>
 	</form>
 
@@ -140,6 +151,25 @@ include '../common_templates/messages.php'; ?>
 					</td>
 				</tr>
 			</table>
+			<div class="infos">
+				<span>
+					<?= t('You may select the values user can assignt to each option, for example:') ?>
+					<table>
+						<tr>
+							<td>-1</td>
+							<td><?= t('bad')?><td>
+						</tr>
+						<tr>
+							<td>0</td>
+							<td><?= t('neutral')?><td>
+						</tr>
+						<tr>
+							<td>1	</td>
+							<td><?= t('good')?><td>
+						</tr>
+					</table>
+				</span>
+			</div>
 		</fieldset>
 	</form>
 	<fieldset>

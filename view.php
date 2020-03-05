@@ -10,7 +10,7 @@ if (empty($poll_id)) {
 	redirect(getUrl('poll'));
 }
 
-$poll = Poll::load(['ids'=>$poll_id,'open'=>true]);
+$poll = Poll::load(['ids'=>$poll_id]);
 if (empty($poll)){
 	error('You are not allowed to view this poll!');
 	redirect(getUrl('poll'));
