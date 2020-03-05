@@ -136,7 +136,7 @@
 
 			if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
 
-			$sql .= ' ORDER BY version ASC, id ASC'; // this, together with INDEX_FETCH assures that only the last version is loaded
+			$sql .= ' ORDER BY version ASC, id COLLATE NOCASE ASC'; // this, together with INDEX_FETCH assures that only the last version is loaded
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
