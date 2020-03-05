@@ -26,7 +26,7 @@ if (!$writeable){
 
 $page->users();
 
-$users = request('user','json');
+$users = request('user','json',['related'=>'true']);
 
 $user_rights = post('user_rights');
 if (!empty($user_rights)){
