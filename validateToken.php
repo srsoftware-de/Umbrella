@@ -1,11 +1,10 @@
 <?php include 'controller.php';
 
-assert(isset($_POST['token']),'No token set!');
+if (empty($_POST['token'])) throw new Exception('No token set!');
 $token = trim($_POST['token']);
 
-assert($token != '','Token must not be empty!');
+if (empty($token)) throw new Exception('Token must not be empty!');
 $domain = isset($_POST['domain']) ? $_POST['domain'] :  null;
-$db = get_or_create_db();
 
 $token = Token::load($token);
 if (empty($token)) {

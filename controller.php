@@ -16,8 +16,8 @@
 
 	function get_or_create_db(){
 		$table_filename = 'users.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create user/db directory!');
-		assert(is_writable('db'),'Directory user/db not writable!');
+		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create user/db directory!');
+		if (!is_writable('db')) throw new Exception('Directory user/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -47,7 +47,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in user/controller.php!');
+									if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
@@ -57,8 +57,7 @@
 					} else $sql .= $props.", ";
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-				$query = $db->prepare($sql);
-				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 
 			User::createAdmin();
@@ -84,14 +83,14 @@
 			$db = get_or_create_db();
 
 			$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user);');
-			assert($query->execute([':service'=>$this->id.':'.$foreign_id,':user'=>$user->id]),t('Was not able to assign service id (?) with your user account!',$foreign_id));
+			if (!$query->execute([':service'=>$this->id.':'.$foreign_id,':user'=>$user->id])) throw new Exception(t('Was not able to assign service id (?) with your user account!',$foreign_id));
 			info('Your account has been assigned with ◊ / id ◊',[$this->id,$foreign_id]);
 		}
 
 		function deassign($foreign_id){
 			$db = get_or_create_db();
 			$query = $db->prepare('DELETE FROM service_ids_users WHERE service_id = :service;');
-			assert($query->execute([':service'=>$foreign_id]),t('Was not able to de-assign service id (?) from your user account!',$foreign_id));
+			if (!$query->execute([':service'=>$foreign_id])) throw new Exception(t('Was not able to de-assign service id (?) from your user account!',$foreign_id));
 			info('◊ has been de-assigned.',$foreign_id);
 		}
 
@@ -112,7 +111,7 @@
 				$args[':name'] = $name;
 			}
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to read login services list.');
+			if (!$query->execute($args)) throw new Exception('Was not able to read login services list.');
 			$rows = $query->fetchAll(INDEX_FETCH);
 			$services = [];
 			foreach ($rows as $id => $row){
@@ -337,7 +336,7 @@
 			}
 			$query = $db->prepare('INSERT INTO messages ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 			//debug(query_insert($query, $args));
-			assert($query->execute($args),'Was not able to insert new message');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new message');
 
 			$this->id = $db->lastInsertId();
 
@@ -360,7 +359,7 @@
 		function destroy(){
 			$db = get_or_create_db();
 			$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
-			assert($query->execute([':token'=>$this->token]),'Was not able to execute DELETE statement.');
+			if (!$query->execute([':token'=>$this->token])) throw new Exception('Was not able to execute DELETE statement.');
 		}
 
 		static function expired(){
@@ -388,17 +387,17 @@
 		}
 
 		static function getOrCreate($user = null){
-			assert(!empty($user->id),'Parameter "user" null or empty!');
+			if(empty($user->id)) throw new Exception('Parameter "user" null or empty!');
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT * FROM tokens WHERE user_id = :userid');
-			assert($query->execute([':userid'=>$user->id]),'Was not able to execute SELECT statement.');
+			if(!$query->execute([':userid'=>$user->id])) throw new Exception('Was not able to execute SELECT statement.');
 			$results = $query->fetchAll(PDO::FETCH_ASSOC);
 			$token = null;
 			foreach ($results as $row) $token = $row['token'];
 			if ($token === null) $token = generateRandomString();
 			$expiration = time()+3600; // now + one hour
 			$query = $db->prepare('INSERT OR REPLACE INTO tokens (user_id, token, expiration) VALUES (:uid, :token, :expiration);');
-			assert($query->execute([':uid'=>$user->id,':token'=>$token,':expiration'=>$expiration]),'Was not able to update token expiration date!');
+			if(!$query->execute([':uid'=>$user->id,':token'=>$token,':expiration'=>$expiration])) throw new Exception('Was not able to update token expiration date!');
 			$_SESSION['token'] = $token;
 			return $token;
 		}
@@ -418,7 +417,7 @@
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where).' ';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to request token table.');
+			if(!$query->execute($args)) throw new Exception('Was not able to request token table.');
 			$rows = $query->fetchAll(INDEX_FETCH);
 
 			$tokens = [];
@@ -494,7 +493,7 @@
 				$sql = 'SELECT * FROM service_ids_users WHERE user_id = :id';
 				$args = [':id'=>$user->id];
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was not able to read list of assigned logins.');
+				if(!$query->execute($args)) throw new Exception('Was not able to read list of assigned logins.');
 				$rows = $query->fetchAll(INDEX_FETCH);
 				$this->assigned_logins = array_keys($rows);
 			}
@@ -514,7 +513,7 @@
 		function exists(){
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
-			assert($query->execute([':login'=>$this->login]),'Was not able to check existance of user!');
+			if($query->execute([':login'=>$this->login])) throw new Exception('Was not able to check existance of user!');
 			$results = $query->fetchAll(PDO::FETCH_ASSOC);
 			if (empty($results)) return false;
 			return $results[0]['count'] > 0;
@@ -528,7 +527,7 @@
 			$query = $db->prepare('INSERT INTO tokens (user_id, token, expiration) VALUES (:uid, :tok, :exp)');
 			$token = generateRandomString();
 			$args = [':uid'=>$this->id,':tok'=>$token,':exp'=>(time()+60*60*240)];
-			assert($query->execute($args),'Was not able to set token for user.'); // token valid for 10 days
+			if($query->execute($args)) throw new Exception('Was not able to set token for user.'); // token valid for 10 days
 			$subject = t('◊ invited you to Umbrella',$user->login);
 			$url = getUrl('user',$this->id.'/edit?token='.$token);
 			$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
@@ -567,7 +566,7 @@
 
 			$query = $db->prepare($sql);
 
-			assert($query->execute($args),'Was not able to load users!');
+			if($query->execute($args)) throw new Exception('Was not able to load users!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 
 			$users = [];
@@ -594,9 +593,9 @@
 		function lock(){
 			$db = get_or_create_db();
 			$query = $db->prepare('UPDATE users SET pass="" WHERE id = :id');
-			assert($query->execute([':id'=>$this->id]));
+			if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to lock user account!');
 			$query = $db->prepare('DELETE FROM service_ids_users WHERE user_id = :id');
-			assert($query->execute([':id'=>$this->id]));
+			if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to lock user account');
 		}
 
 		function login(){
@@ -644,7 +643,7 @@
 
 			$sql = 'INSERT INTO users ('.implode(', ', array_keys($args)).') VALUES (:'.implode(', :',array_keys($args)).' )';
 			$query = $db->prepare($sql);
-			assert ($query->execute($args),'Was not able to add user '.$this->login);
+			if (!$query->execute($args)) throw new Exception('Was not able to add user '.$this->login);
 			info('User ◊ has been added',$this->login);
 			return true;
 		}
@@ -687,7 +686,7 @@
 			$sql=rtrim($sql,', ').' WHERE id = :id';
 			$args[':id'] = $this->id;
 			$query = $db->prepare($sql);
-			assert ($query->execute($args),'Was not able to update user '.$this->login);
+			if (!$query->execute($args)) throw new Exception('Was not able to update user '.$this->login);
 			info('User data has been updated.');
 			warn('If you changed your theme, you will have to log off an in again.');
 			return $this;
