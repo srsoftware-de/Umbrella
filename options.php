@@ -61,11 +61,10 @@ $base_url = getUrl('poll');
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Poll "◊"',$poll->name)?> <span class="symbol"><a href="<?= $base_url.'edit?id='.$poll_id ?>"></a></span></legend>
+	<legend><?= t('Poll "◊"',$poll->name)?> <span class="symbol"><a href="<?= $base_url.$poll_id.'/edit' ?>"></a></span></legend>
 	<?= markdown($poll->description)?>
 	<form method="POST">
 		<fieldset>
@@ -83,17 +82,17 @@ include '../common_templates/messages.php'; ?>
 					<td><?= $option->name?></td>
 					<td><?= markdown($option->description)?></td>
 					<td class="poll_status">
-						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&remove_option='.$opt_id ?>"><?= t('remove') ?></a>
+						<a class="button" href="<?= $base_url.$poll->id.'/options?remove_option='.$opt_id ?>"><?= t('remove') ?></a>
 						<?php if ($option->status != Option::ENABLED) { ?>
-						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&enable_option='.$opt_id ?>"><?= t('enable')?></a>
+						<a class="button" href="<?= $base_url.$poll->id.'/options?enable_option='.$opt_id ?>"><?= t('enable')?></a>
 						<?php }
 						if ($option->status != Option::DISABLED) { ?>
-						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&disable_option='.$opt_id ?>"><?= t('disable')?></a>
+						<a class="button" href="<?= $base_url.$poll->id.'/options?disable_option='.$opt_id ?>"><?= t('disable')?></a>
 						<?php }
 						if ($option->status != Option::HIDDEN) { ?>
-						<a class="button" href="<?= $base_url.'options?id='.$poll->id.'&hide_option='.$opt_id ?>"><?= t('hide')?></a>
+						<a class="button" href="<?= $base_url.$poll->id.'/options?hide_option='.$opt_id ?>"><?= t('hide')?></a>
 						<?php } ?>
-						<a class="button" href="<?= $base_url.'edit_option?poll='.$poll->id.'&option='.$opt_id ?>"><?= t('edit')?></a>
+						<a class="button" href="<?= $base_url.$poll->id.'/edit_option?option='.$opt_id ?>"><?= t('edit')?></a>
 					</td>
 				</tr>
 				<?php } ?>
@@ -126,7 +125,7 @@ include '../common_templates/messages.php'; ?>
 				<tr>
 					<td><?= $weight ?></td>
 					<td><?= markdown($meta['description'])?></td>
-					<td><a class="button" href="<?= getUrl('poll','options?id='.$poll->id.'&remove_weight='.$weight)?>"><?= t('remove') ?></a></td>
+					<td><a class="button" href="<?= $base_url.$poll->id.'/options?remove_weight='.$weight ?>"><?= t('remove') ?></a></td>
 				</tr>
 				<?php } ?>
 				<tr>
@@ -147,9 +146,9 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Sharable link')?></legend>
 		<?= t('You can send this link to other users which you want to invite to this poll.')?>
 		<p>
-			<a target="_blank" href="<?= getUrl('poll','view?id='.$poll->id)?>"><?= getUrl('poll','view?id='.$poll->id)?></a>
+			<a target="_blank" href="<?= $base_url.$poll->id.'/view' ?>"><?= $base_url.$poll->id.'/view' ?></a>
 		</p>
-		<a class="button" href="<?= getUrl('poll','evaluate?id='.$poll->id)?>"><?= t('Evaluation')?></a>
+		<a class="button" href="<?= $base_url.$poll->id.'/evaluate' ?>"><?= t('Evaluation')?></a>
 	</fieldset>
 </fieldset>
 

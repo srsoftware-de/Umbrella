@@ -49,13 +49,17 @@ if (!empty($options)) {
 
 include '../common_templates/head.php';
 
-if (!empty($user)){
-	include '../common_templates/main_menu.php';
-	include 'menu.php';
-} ?>
+if (!empty($user)) include '../common_templates/main_menu.php'; ?>
 
 <fieldset>
-	<legend><?= t('Poll "◊"',$poll->name) ?></legend>
+	<legend>
+		<?= t('Poll "◊"',$poll->name) ?>
+		<?php if (!empty($user)) { ?>
+		<span class="symbol">
+			<a href="<?= getUrl('poll','add') ?>"></a>
+		</span>
+		<?php } ?>
+	</legend>
 	<?= markdown($poll->description)?>
 	<form method="POST">
 		<fieldset>

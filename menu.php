@@ -1,1 +1,0 @@
-<a class="symbol" href="<?= getUrl('poll','add') ?>"></a>

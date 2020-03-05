@@ -16,12 +16,11 @@ if (empty($poll)){
 
 if (!empty(post('name'))){
 	$poll->patch($_POST)->save();
-	redirect(getUrl('poll','options?id='.$poll_id));
+	redirect(getUrl('poll',$poll_id.'/options'));
 }
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>

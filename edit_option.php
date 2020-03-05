@@ -2,7 +2,7 @@
 
 require_login('poll');
 
-$poll_id = param('poll');
+$poll_id = param('id');
 if (empty($poll_id)) {
 	error('No poll id provided!');
 	redirect(getUrl('poll'));
@@ -36,7 +36,6 @@ if (!empty($name)){
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
-include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
