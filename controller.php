@@ -72,7 +72,10 @@
 		}
 
 		function grant_access($user_rights){
+			global $user;
 			$db = get_or_create_db();
+
+			$old_users = $this->users();
 			$db->beginTransaction();
 			$sql = 'DELETE FROM page_users WHERE page_id = :pid';
 			$query = $db->prepare($sql);
@@ -82,12 +85,12 @@
 				throw new Exception('Was not able to grant permissions for page!');
 			}
 
-			$users_ids = [];
+			$added_user_ids = [];
 			$sql = 'INSERT INTO page_users (page_id, user_id, permissions) VALUES (:pid, :usr, :perm)';
 			$query = $db->prepare($sql);
 			foreach ($user_rights as $user_id => $perm){
 				if ($perm == 0) continue;
-				$user_ids[] = $user_id;
+				if (!array_key_exists($user_id, $old_users)) $added_user_ids[] = $user_id;
 				$args[':usr']  = $user_id;
 				$args[':perm'] = $perm;
 				if (!$query->execute($args)) {
@@ -96,7 +99,15 @@
 				}
 			}
 			$db->commit();
-			return $user_ids;
+
+			if (param('notify') == 'on'){
+				$subject = t('◊ shared a wiki page with you',$user->login);
+				$path = str_replace(" ", "%20", $this->id).'/view';
+				$text = t('The page ◊ has been shared with you:','['.$this->id.']('.getUrl('wiki',$path).')')." \n\n".$this->content;
+				$message = ['subject'=>$subject,'body'=>$text,'recipients'=>$added_user_ids];
+				request('user','notify',$message);
+				info('User(s) have been notified.');
+			}
 		}
 
 		function load($options = []){
