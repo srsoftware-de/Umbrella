@@ -5,8 +5,8 @@
 
 	function get_or_create_db(){
 		$table_filename = 'wiki.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create '.strtolower(MODULE).'/db directory!');
-		assert(is_writable('db'),'Directory '.strtolower(MODULE).'/db not writable!');
+		if (!file_exists('db')) if (!mkdir('db')) throw new Exception('Failed to create '.strtolower(MODULE).'/db directory!');
+		if (!is_writable('db')) throw new Exception('Directory '.strtolower(MODULE).'/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -31,7 +31,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
+									if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
@@ -41,8 +41,7 @@
 					} else $sql .= $props.", ";
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-				$query = $db->prepare($sql);
-				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.' ("'.$sql.'") !');
+				if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.' ("'.$sql.'") !');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
