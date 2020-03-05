@@ -3,7 +3,7 @@
 $translations = array(
 		'add new company'=>'Neue Firma hinzufügen',
 		'add company'=>'Firma hinzufügen',
-		'Add user to Project "◊"'=>'Nutzer zu Projekt „◊“ hinzufügen',
+		'Add user to Company "◊"'=>'Nutzer zu Firma „◊“ hinzufügen',
 		'address'=>'Adresse',
 		'add user'=>'Nutzer hinzufügen',
 		'Are you sure you want to remove ◊ from ◊?'=>'Sind Sie sicher, dass Sie ◊ aus der Firma ◊ abziehen wollen?',
@@ -31,6 +31,7 @@ $translations = array(
 		'Log out ◊'=>'◊ ausloggen',
 		'Models' => 'Modelle',
 		'name'=>'Firmenname',
+		'new users'=>'Neue Nutzer',
 		'No'=>'Nein',
 		'Notes'=>'Notizen',
 		'phone'=>'Telefon',
