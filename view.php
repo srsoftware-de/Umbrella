@@ -142,11 +142,17 @@ if (!empty($user)) include '../common_templates/main_menu.php'; ?>
 		<?php if (!$confirmed){ ?>
 		<fieldset>
 			<legend><?= t('Confirmation required') ?></legend>
-			<?= t('Are you sure you want to overwrite the choices of ◊?',empty($user)?$name:$user->login)?>
-			<label>
-				<input type="checkbox" name="confirm" />
-				<?= t('Yes, I am sure.')?>
-			</label>
+			<div class="errors">
+				<span>
+					<p>
+					<?= t('Are you sure you want to overwrite the choices of ◊?',empty($user)?$name:$user->login)?>
+					</p>
+					<label>
+						<input type="checkbox" name="confirm" />
+						<?= t('Yes, I am sure.')?>
+					</label>
+				</span>
+			</div>
 		</fieldset>
 		<?php }?>
 		<button type="submit"><?= t('Submit')?></button>

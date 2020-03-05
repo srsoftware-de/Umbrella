@@ -7,8 +7,8 @@ if ($key = param('key')){
 	if (!empty($polls)){ ?>
 		<table class="polls">
 			<tr>
-				<th><?= t('name') ?></th>
-				<th><?= t('description') ?></th>
+				<th><?= t('Name') ?></th>
+				<th><?= t('Description') ?></th>
 			</tr>
 		<?php foreach ($polls as $id => $poll) { ?>
 			<tr>
