@@ -32,7 +32,7 @@ if ($content != $page->content) $redirect = $page->update($content);
 if ($new_title != $page->id) $redirect = $page->rename($new_title);
 
 if (isset($services['bookmark'])){
-	$hash = sha1($wiki.$id.'/view');
+	$hash = sha1(str_replace('/edit', '/view', location('*')));
 	$bookmark = request('bookmark','json_get?id='.$hash);
 	$tags = param('tags');
 	if (!empty($tags)) $page->setTags($tags);
