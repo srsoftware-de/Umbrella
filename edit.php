@@ -62,8 +62,24 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Tags')?></legend>
 			<input type="text" name="tags" value="<?= $bookmark ? htmlspecialchars(implode(' ', $bookmark['tags'])) : ''?>" />
 		</fieldset>
+		<fieldset>
+		<legend><?= t('Users')?></legend>
+		<?php $guest = false; foreach ($page->users() as $uid => $user) {
+			if (is_array($user)) { ?>
+				<a class="button" href="<?= $usrl.$user['id'].'/view'?>"><?= $user['login']?></a>
+			<?php } else if (!$guest){
+				echo t('Guests');
+				$guest = true;
+			} // if user == 0
+		} // foreach user ?>
+		<p>
+		<label>
+			<input type="checkbox" name="notify" checked="checked" />
+			<?= t('Notify users')?>
+		</label>
+		</p>
+		</fieldset>
 		<?php } ?>
-
 		<button type="submit"><?= t('submit')?></button>
 	</form>
 </fieldset>

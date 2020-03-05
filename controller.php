@@ -178,6 +178,16 @@
 			$db->commit();
 
 			// TODO: update bookmarks and notes
+
+			$subject = t('The page "◊" has been renamed to "◊".',[$this->id,$new_name]);
+			info($subject.' '.t('<a href="share">Click here</a> to share it with other users.'));
+			if (param('notify') == 'on'){
+				$recipients = array_keys($this->users());
+				$body = t('Content of ◊:',getUrl('wiki',$new_name.'/view'))."\n\n".$this->content;
+				request('user','notify',['recipients'=>$recipients,'subject'=>$subject,'body'=>$body]);
+				info('User(s) have been notified.');
+			}
+
 			return $new_name.'/view';
 		}
 
@@ -220,8 +230,6 @@
 		}
 
 		function update($new_content){
-			global $user;
-
 			$new_content = Page::convertMediaWiki($new_content);
 			$sql = 'INSERT INTO pages (id, version, content) VALUES (:id, :vers, :content )';
 			$args = [':id'=>$this->id,':content'=>$new_content,':vers'=>$this->version+1];
@@ -230,7 +238,15 @@
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args),1);
 			if (!$query->execute($args)) throw new Exception('Was not able to update page!');
-			return $this->id.'/share';
+			$subject = t('The page "◊" has been updated.',$this->id);
+			info($subject.' '.t('<a href="share">Click here</a> to share it with other users.'));
+			if (param('notify') == 'on'){
+				$recipients = array_keys($this->users());
+				$body = t('New content of ◊:',getUrl('wiki',$this->id.'/view'))."\n\n".$new_content;
+				request('user','notify',['recipients'=>$recipients,'subject'=>$subject,'body'=>$body]);
+				info('User(s) have been notified.');
+			}
+			return $this->id.'/view';
 		}
 
 		function users(){
