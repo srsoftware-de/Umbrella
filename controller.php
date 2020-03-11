@@ -9,8 +9,8 @@
 
 	function get_or_create_db(){
 		$table_filename = 'projects.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create project/db directory!');
-		assert(is_writable('db'),'Directory project/db not writable!');
+		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create project/db directory!');
+		if (!is_writable('db')) throw new Exception('Directory project/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -35,7 +35,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in project/controller.php!');
+									if (!$prop_v === 'PRIMARY') throw new Exception('Non-primary keys not implemented in project/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
@@ -46,7 +46,7 @@
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 				$query = $db->prepare($sql);
-				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				if (!$query->execute()) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
@@ -75,7 +75,7 @@
 			$sql .= ' GROUP BY user_id';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to read connected users.');
+			if (!$query->execute($args)) throw new Exception('Was not able to read connected users.');
 			return $query->fetchAll(INDEX_FETCH);
 		}
 
@@ -132,7 +132,7 @@
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to load projects!');
+			if (!$query->execute($args)) throw new Exception('Was not able to load projects!');
 			$projects = [];
 			$rows = $query->fetchAll(INDEX_FETCH);
 			foreach ($rows as $pid => $row){
@@ -145,7 +145,7 @@
 			if (isset($options['users']) && $options['users']==true){
 				$sql = 'SELECT * FROM projects_users WHERE project_id IN ('.$qMarks.')';
 				$query = $db->prepare($sql);
-				assert($query->execute(array_keys($projects)),'Was not able to load project users!');
+				if (!$query->execute(array_keys($projects))) throw new Exception('Was not able to load project users!');
 				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 
 				$uids = [];
@@ -190,12 +190,12 @@
 
 		function addUser($new_user,$permission = PROJECT_PERMISSION_PARTICIPANT){
 			global $user;
-			assert(is_numeric($this->id),'project id must be numeric, is '.$project->id);
-			assert(is_array($new_user),'$new_user must be user object, is '.$new_user);
-			assert(is_numeric($permission),'permission must be numeric, is '.$permission);
+			if(!is_numeric($this->id)) throw new Exception('project id must be numeric, is '.$project->id);
+			if(!is_array($new_user)) throw new Exception('$new_user must be user object, is '.$new_user);
+			if(!is_numeric($permission)) throw new Exception('permission must be numeric, is '.$permission);
 			$db = get_or_create_db();
 			$query = $db->prepare('INSERT INTO projects_users (project_id, user_id, permissions) VALUES (:pid, :uid, :perm);');
-			assert($query->execute(array(':pid'=>$this->id,':uid'=>$new_user['id'], ':perm'=>$permission)),'Was not able to assign project to user!');
+			if (!$query->execute(array(':pid'=>$this->id,':uid'=>$new_user['id'], ':perm'=>$permission))) throw new Exception('Was not able to assign project to user!');
 			if (param('notify') == 'on'){
 				$reciever = $new_user['id'];
 				$subject = t('◊ added you to a project',$user->login).' [p:'.$this->id.']';
@@ -215,7 +215,7 @@
 			request('task','withdraw_user',['project_id'=>$this->id,'user_id'=>$user_id]);
 
 			$query = $db->prepare('DELETE FROM projects_users WHERE project_id = :pid AND user_id = :uid');
-			assert($query->execute([':pid'=>$this->id,':uid'=>$user_id]),'Was not able to remove user from project!');
+			if (!$query->execute([':pid'=>$this->id,':uid'=>$user_id])) throw new Exception('Was not able to remove user from project!');
 
 			info('User has been removed from project.');
 			unset($this->users[$user_id]);
@@ -241,7 +241,7 @@
 					$sql = rtrim($sql,',').' WHERE id = :id';
 					$args[':id'] = $this->id;
 					$query = $db->prepare($sql);
-					assert($query->execute($args),'Was no able to update project in database!');
+					if (!$query->execute($args)) throw new Exception('Was no able to update project in database!');
 				}
 
 				if (!$silent){
@@ -262,7 +262,7 @@
 				}
 				$query = $db->prepare('INSERT INTO projects ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
 				//debug(query_insert($query, $args),1);
-				assert($query->execute($args),'Was not able to insert new project');
+				if (!$query->execute($args)) throw new Exception('Was not able to insert new project');
 
 				$this->id = $db->lastInsertId();
 			}
