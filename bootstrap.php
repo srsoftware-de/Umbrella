@@ -411,6 +411,12 @@ function save_file($filename,$file_contents,$mime){
 
 function send_mail($sender, $reciever, $subject, $text, $attachment = null, $extra_headers = []){
 	if (!is_array($reciever)) $reciever = [$reciever];
+
+	$header = "From: ".$sender." <".$sender.">";
+	if (!empty($extra_headers) && is_array($extra_headers)){
+		foreach ($extra_headers as $k => $v) $header .= "\r\n".$k.': '.$v;
+	}
+
 	if ($attachment){
 		$filename = $attachment['name'];
 
@@ -419,8 +425,7 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null, $ext
 		$uid = md5(uniqid(time()));
 
 		// header
-		$header = "From: ".$sender." <".$sender.">\r\n";
-		$header .= "Reply-To: ".$sender."\r\n";
+		$header .= "\r\nReply-To: ".$sender."\r\n";
 		$header .= "MIME-Version: 1.0\r\n";
 		if (!empty($extra_headers) && is_array($extra_headers)){
 			foreach ($extra_headers as $k => $v){
@@ -441,14 +446,19 @@ function send_mail($sender, $reciever, $subject, $text, $attachment = null, $ext
 		$nmessage .= "Content-Disposition: attachment; filename=\"".$filename."\"\r\n\r\n";
 		$nmessage .= $content."\r\n\r\n";
 		$nmessage .= "--".$uid."--";
-	} else {
-		$header = "From: ".$sender;
-		$nmessage = $text;
-	}
+	} else $nmessage = $text;
 
 	$good = true;
 	foreach ($reciever as $rec) $good = $good & mail($rec, $subject, $nmessage, $header);
 	return $good;
+}
+
+function send_mail_debug($sender, $receiver, $subject, $text, $attachment = null, $extra_headers = []){
+	$msg = ['from'=>$sender,'to'=>$receiver,'subject'=>$subject];
+	//$msg['text']=$text;
+	if (!empty($attachment)) $msg['attach'] = $attachment;
+	if (!empty($extra_headers)) $msg['extra-headers'] = $extra_headers;
+	debug(['send mail'=>$msg]);
 }
 
 function t($text,$replacements=null){
