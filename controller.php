@@ -13,8 +13,8 @@
 
 	function get_or_create_db(){
 		$table_filename = 'stock.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create '.strtolower(MODULE).'/db directory!');
-		assert(is_writable('db'),'Directory '.strtolower(MODULE).'/db not writable!');
+		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create '.strtolower(MODULE).'/db directory!');
+		if (!is_writable('db')) throw new Exception('Directory '.strtolower(MODULE).'/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -41,7 +41,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
+									if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
@@ -52,7 +52,7 @@
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 				$query = $db->prepare($sql);
-				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.' ("'.$sql.'") !');
+				if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.' ("'.$sql.'") !');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
@@ -74,7 +74,7 @@
 			$sql = 'SELECT id,code FROM items WHERE id LIKE :prefix';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			assert($query->execute([':prefix'=>$prefix.'%']),'Was not able to read item ids from database.');
+			if (!$query->execute([':prefix'=>$prefix.'%'])) throw new Exception('Was not able to read item ids from database.');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			if (empty($rows)) return $prefix.'1';
 			$row = array_pop($rows);
@@ -130,7 +130,7 @@
 				$where[] = 'id IN ('.$qmarks.')';
 				$args = array_merge($args,$ids);
 			} else {
-				assert(isset($options['prefix']),'No Item Id Prefix set!');
+				if (!isset($options['prefix'])) throw new Exception('No Item Id Prefix set!');
 
 				$prefix = $options['prefix'];
 
@@ -164,7 +164,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args),1);
-			assert($query->execute($args),'Was not able to request item type list!');
+			if (!$query->execute($args)) throw new Exception('Was not able to request item type list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$items = [];
 
@@ -184,7 +184,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			$args = [':key'=>$prefix.'%'];
-			assert($query->execute($args),'Was not able to read item codes');
+			if (!$query->execute($args)) throw new Exception('Was not able to read item codes');
 			return $query->fetchAll();
 		}
 
@@ -203,10 +203,10 @@
 			$args = [':id'=>$this->id,':code'=>$this->code,':name'=>$this->name,':loc'=>$this->location()->id];
 
 			$query = $db->prepare('INSERT OR IGNORE INTO items (id, code, name, location_id) VALUES (:id, :code, :name, :loc );');
-			assert($query->execute($args),'Was not able to insert new entry into items table');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new entry into items table');
 
 			$query = $db->prepare('UPDATE OR IGNORE items SET code = :code, name = :name, location_id = :loc WHERE id = :id ');
-			assert($query->execute($args),'Was not able to update entry in item_types table');
+			if (!$query->execute($args)) throw new Exception('Was not able to update entry in item_types table');
 
 			unset($this->dirty);
 			return $this;
@@ -236,7 +236,7 @@
 				$where[] = 'item_id = ?';
 				$args[] = $options['item_id'];
 			} else {
-				assert(isset($options['prefix']),'No Item Code Prefix set!');
+				if (!isset($options['prefix'])) throw new Exception('No Item Code Prefix set!');
 				if (isset($options['prefix'])){
 					$where[] = 'item_id LIKE ?';
 					$args[] = $options['prefix'].'%';
@@ -256,7 +256,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args),1);
-			assert($query->execute($args),'Was not able to request item property list!');
+			if (!$query->execute($args)) throw new Exception('Was not able to request item property list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$props = [];
 
@@ -275,7 +275,7 @@
 			$db = get_or_create_db();
 			$args = [':item_id'=>$this->item_id,':prop_id'=>$this->property->id];
 			$query = $db->prepare('DELETE FROM item_props WHERE item_id = :item_id AND prop_id = :prop_id');
-			assert($query->execute($args),'Was not able delete property from database');
+			if (!$query->execute($args)) throw new Exception('Was not able delete property from database');
 		}
 
 		function name(){
@@ -292,10 +292,10 @@
 			$args = [':item_id'=>$this->item_id,':prop_id'=>$this->property->id,':value'=>$this->value];
 
 			$query = $db->prepare('INSERT OR IGNORE INTO item_props (item_id, prop_id, value) VALUES (:item_id, :prop_id, :value);');
-			assert($query->execute($args),'Was not able to store property in database');
+			if (!$query->execute($args)) throw new Exception('Was not able to store property in database');
 
 			$query = $db->prepare('UPDATE item_props SET value = :value WHERE item_id = :item_id AND prop_id = :prop_id');
-			assert($query->execute($args),'Was not able to store property in database');
+			if (!$query->execute($args)) throw new Exception('Was not able to store property in database');
 			unset($this->dirty);
 			return $this;
 		}
@@ -335,7 +335,7 @@
 				$where[] = 'id IN ('.$qmarks.')';
 				$args = array_merge($args,$ids);
 			} else {
-				assert(isset($options['prefix']),'No Item Code Prefix set!');
+				if (!isset($options['prefix'])) throw new Exception('No Item Code Prefix set!');
 				if (isset($options['prefix'])){
 					$where[] = 'id LIKE ?';
 					$args[] = $options['prefix'].'%';
@@ -354,7 +354,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args),1);
-			assert($query->execute($args),'Was not able to request locations list!');
+			if (!$query->execute($args)) throw new Exception('Was not able to request locations list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$locations = [];
 
@@ -392,7 +392,7 @@
 
 			} else throw new Exception('Can not save location: Neither new_id nor id set!');
 
-			assert($query->execute($args),'Was not able to store location in database');
+			if (!$query->execute($args)) throw new Exception('Was not able to store location in database');
 			unset($this->dirty);
 			return $this;
 		}
@@ -425,7 +425,7 @@
 			array_pop($parts);
 			$args = [':code'=>$item->code,':prefix'=>implode(':', $parts).':%'];
 			//debug(query_insert($query, $args),1);
-			assert($query->execute($args),'Was not able to request related properties for '.$item_code);
+			if (!$query->execute($args)) throw new Exception('Was not able to request related properties for '.$item_code);
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$props = [];
 			foreach ($rows as $row){
@@ -478,7 +478,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args),1);
-			assert($query->execute($args),'Was not able to request property list!');
+			if (!$query->execute($args)) throw new Exception('Was not able to request property list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$properties = [];
 
@@ -507,13 +507,13 @@
 					}
 					$sql = rtrim($sql,',').' WHERE id = :id';
 					$query = $db->prepare($sql);
-					assert($query->execute($args),'Was no able to update property in database!');
+					if (!$query->execute($args)) throw new Exception('Was no able to update property in database!');
 				}
 			} else {
 				$sql = 'INSERT INTO properties (name, type, unit) VALUES (:name, :type, :unit);';
 				$args = [':name'=>$this->name, ':type'=>$this->type, ':unit'=>$this->unit];
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was not able to save note!');
+				if (!$query->execute($args)) throw new Exception('Was not able to save note!');
 				$this->id = $db->lastInsertId();
 				unset($this->dirty);
 			}

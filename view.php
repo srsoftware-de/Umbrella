@@ -11,11 +11,11 @@ if ($item_id = param('id')){
 	switch ($realm){
 		case 'company':
 			$company = request($realm,'json',['ids'=>$realm_id,'users'=>true]);
-			assert(!empty($company),t('You are not allowed to access items of this ?',$realm));
+			if (empty($company)) throw new Exception(t('You are not allowed to access items of this ?',$realm));
 			$users = $company['users'];
 			break;
 		case 'user':
-			assert($realm_id == $user->id,t('You are not allowed to access items of this ?',$realm));
+			if ($realm_id != $user->id) throw new Exception(t('You are not allowed to access items of this ?',$realm));
 			break;
 	}
 	$item = Item::load(['ids'=>$item_id]);
