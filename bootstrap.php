@@ -132,7 +132,7 @@ function field_description($field,$props){
 						case $prop_k==='DEFAULT':
 							$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 						case $prop_k==='KEY':
-							assert($prop_v === 'PRIMARY','Non-primary keys not implemented in document/controller.php!');
+							if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in document/controller.php!');
 							$sql.= 'PRIMARY KEY '; break;
 						default:
 							$sql .= $prop_v.' ';
@@ -155,7 +155,7 @@ function getLocallyFromToken(){
 
 	$query = $db->prepare('SELECT * FROM tokens WHERE token = :token;');
 	$params = array(':token' => $_SESSION['token']);
-	assert($query->execute($params),'Was not able to request token table.');
+	if (!$query->execute($params)) throw new Exception('Was not able to request token table.');
 	$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 	$time = time();
 	$user = null;
@@ -172,8 +172,8 @@ function getLocallyFromToken(){
 
 function getUrl($service_name,$path=''){
 	global $services;
-	assert($service_name !== null,'No service handed to getUrl!');
-	assert(isset($services[$service_name]['path']),'No '.$service_name.' service configured!');
+	if ($service_name == null) throw new Exception('No service handed to getUrl!');
+	if (!isset($services[$service_name]['path'])) throw new Exception('No '.$service_name.' service configured!');
 	return $services[$service_name]['path'].str_replace(" ", "%20", $path);
 }
 
@@ -357,8 +357,8 @@ function request($service = null,$path,$data = [], $debug = false,$decode = ARRA
 function require_login($service_name = null){
 	global $user,$theme;
 	if ($revoke = param('revoke')) die(revoke_token($revoke));
-	assert($service_name !== null,'require_login called without a service name!');
-	if (!isset($_SESSION['token']) || $_SESSION['token'] === null) redirect(getUrl('user','login?returnTo='.urlencode(location())));
+	if (empty($service_name)) throw new Exception('require_login called without a service name!');
+	if (empty($_SESSION['token'])) redirect(getUrl('user','login?returnTo='.urlencode(location())));
 	$user = getLocallyFromToken();
 
 	if ($user === null) validateToken($service_name);
@@ -369,7 +369,7 @@ function require_login($service_name = null){
 function revoke_token($token){
 	$db = get_or_create_db();
 	$query = $db->prepare('DELETE FROM tokens WHERE token = :token');
-	assert($query->execute(array(':token'=>$token)),'Was not able to execute DELETE statement.');
+	if (!$query->execute([':token'=>$token])) throw new Exception('Was not able to execute DELETE statement.');
 	unset($_SESSION['token']);
 }
 
@@ -509,7 +509,7 @@ function validateToken($service_name = null){
 		$db = get_or_create_db();
 		$params = [':token'=>$token->token,':user_data'=>$user_data,':exp'=>$token->expiration];
 		$query = $db->prepare('INSERT OR IGNORE INTO tokens (token, user_data, expiration) VALUES (:token, :user_data, :exp);');
-		assert($query->execute($params),'Was not able to store token in database.');
+		if (!$query->execute($params)) throw new Exception('Was not able to store token in database.');
 	} else {
 		$user = null;
 		revoke_token($token);
