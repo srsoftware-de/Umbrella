@@ -15,8 +15,8 @@ function db_version(){
 }
 
 function get_or_create_db(){
-	if (!file_exists('db')) assert(mkdir('db'),'Failed to create model/db directory!');
-	assert(is_writable('db'),'Directory model/db not writable!');
+	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create model/db directory!');
+	if (!is_writable('db')) throw new Exception('Directory model/db not writable!');
 	if (!file_exists('db/models.db')){
 		$db = new PDO('sqlite:db/models.db');
 
@@ -43,7 +43,7 @@ function get_or_create_db(){
 			$sql = 'CREATE TABLE '.$table.' ( ';
 			foreach ($fields as $field => $props) $sql .= field_description($field, $props);
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-			assert($db->query($sql),'Was not able to create '.$table.' table in models.db!');
+			if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in models.db!');
 		}
 	} else {
 		$db = new PDO('sqlite:db/models.db');
