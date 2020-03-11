@@ -177,7 +177,7 @@
 
 
 	class Message extends UmbrellaObjectWithId{
-
+		const GENERAL        =    0;
 		const SEND_INSTANTLY =    0;
 		const SEND_AT_8      =    1;
 		const SEND_AT_10     =    2;
@@ -210,38 +210,91 @@
 			];
 		}
 
-		static function delivery($time = Message::SEND_INSTANTLY){
+		static function deliver($hour = null){
 			$messages = Message::load(['state'=>Message::WAITING,'order'=>'user_id ASC']);
-			$processed_messages = [];
-			$collection = []; // map from user ids to collected message
+			$processed_messages = []; // array[message]
+			$collection = []; // array[receiver][project]
 			$users = User::load();
+			$project_ids = [];
 
 			// aggregate messages
 			foreach ($messages as $message){
-				$recipient = $users[$message->user_id];
-
-				$deliver = false;
-				$instant = $time == Message::SEND_INSTANTLY;
-				if ($recipient->message_delivery == Message::SEND_INSTANTLY) $deliver = true;
-				if ($time != Message::SEND_INSTANTLY && ($time & $recipient->message_delivery) == $time) $deliver = true;
-				if ($recipient->message_delivery == Message::SEND_NOT) $deliver = false;
-				if (empty($recipient->email)) $deliver = false;
-
-				if (!$deliver) continue;
-
 				$author = $users[$message->author];
-				$msg = isset($collection[$recipient->id]) ? $collection[$recipient->id]['message']."\n" : '';
-				$collection[$recipient->id] = [
-						'to' => $recipient->email,
-						'from' => empty($author->email) ? $author->login : $author->email,
-						'subject' => $instant ? $message->subject : t('collected messages'),
-						'message'=> ($instant ? '' : $msg . gmdate("Y-m-d H:i", $message->timestamp).' / '.$message->subject.":\n").$message->body."\n" ,
-				];
+				$from = empty($author->email) ? $author->login : $author->email;
+				$recipient = $users[$message->user_id];
+				if (empty($recipient->email)) continue; // don't send messages when recipient has no mail address
+
+				$meta = empty($message->meta) ? null : json_decode($message->meta); // check if message has metadata, unpack, if so
+				$related_project_id = empty($meta->project_id) ? Message::GENERAL : $meta->project_id; // determine the project this message belongs to
+
+				//debug(['message'=>$message,'related project'=>$related_project_id,'recipient'=>$recipient]);
+
+				$delivery_setting = Message::SEND_INSTANTLY; // default setting, if no default is set in user database
+				if (isset($recipient->settings['notifications']['default'])) $delivery_setting = $recipient->settings['notifications']['default']; // default setting from user data base
+				if (isset($recipient->settings['notifications']['project'][$related_project_id])) $delivery_setting = $recipient->settings['notifications']['project'][$related_project_id]; // user specific setting for project
+
+				if ($delivery_setting == Message::SEND_INSTANTLY){ // if the user wishes messages for the related project to be delivered instantly: do so.
+					$extra_headers = $related_project_id != 0 ? ['X-Project-Id'=>$related_project_id] : null;
+					send_mail($from, $recipient->email, $message->subject, $message->body, null, $extra_headers);
+					$processed_messages[] = $message;
+					continue;
+				}
+
+
+				// if the message is not to be delivered instantly: only deliver at matching times
+				$deliver = false;
+				switch ($hour){
+					case 8:
+						if ($delivery_setting & Message::SEND_AT_8) $deliver = true;
+						break;
+					case 10:
+						if ($delivery_setting & Message::SEND_AT_10) $deliver = true;
+						break;
+					case 12:
+						if ($delivery_setting & Message::SEND_AT_12) $deliver = true;
+						break;
+					case 14:
+						if ($delivery_setting & Message::SEND_AT_14) $deliver = true;
+						break;
+					case 16:
+						if ($delivery_setting & Message::SEND_AT_16) $deliver = true;
+						break;
+					case 18:
+						if ($delivery_setting & Message::SEND_AT_18) $deliver = true;
+						break;
+					case 20:
+						if ($delivery_setting & Message::SEND_AT_20) $deliver = true;
+						break;
+				}
+				if (!$deliver) continue; // message is not due
+				if (!isset($collection[$recipient->id])) $collection[$recipient->id] = []; // array[project]  -- create new collection for recipient
+				if (!isset($collection[$recipient->id][$related_project_id])) $collection[$recipient->id][$related_project_id] = t('Collected messages:'); // create new project message for recipient
+				$collection[$recipient->id][$related_project_id] .= "\n\n# " . gmdate("Y-m-d H:i", $message->timestamp).' / '.$message->subject . "\n".$message->body; // extend project message of recipient
+				$project_ids[$related_project_id] = true; // remember project id, we need to load projects later
 				$processed_messages[] = $message;
 			}
 
-			// deliver messages
-			foreach ($collection as $entry) send_mail($entry['from'], $entry['to'], $entry['subject'], $entry['message']);
+			$admin = $users[1];
+			unset($project_ids[0]); // zero is used for common messages not related to a project
+
+			$projects = [];
+			if (!empty($project_ids)){
+				$token = Token::getOrCreate($admin,false); // create token for admin user
+				$projects = request('project','json',['ids'=>array_keys($project_ids),'token'=>$token]); // request projects using token
+				Token::load($token)->revoke()->destroy(); // revoke token so it can not be abused
+			}
+
+			// walk through collection of mails for each user and project, deliver
+			foreach ($collection as $recipient_id => $user_projects){
+				foreach ($user_projects as $project_id => $text){
+
+					$to = $users[$recipient_id]->email;
+					$sub = $project_id == 0 ? t('collected messages') : t('collected messages for „◊“',$projects[$project_id]['name']);
+					$extra_headers = $project_id != 0 ? ['X-Project-Id'=>$project_id] : null;
+
+					send_mail($admin->email, $to, $sub, $text, null, $extra_headers);
+				}
+			}
 
 			// update delivered messages: set state to SENT
 			$db = get_or_create_db();
@@ -250,6 +303,7 @@
 				$args = [':mid'=>$message->message_id,':uid'=>$message->user_id,':state'=>Message::SENT];
 				$query->execute($args);
 			}
+			die();
 		}
 
 		function assginReciever($user_id,$state = Message::WAITING){
@@ -386,7 +440,7 @@
 			foreach ($expired_tokens as $token) $token->revoke()->destroy();
 		}
 
-		static function getOrCreate($user = null){
+		static function getOrCreate($user = null,$add_to_session = true){
 			if(empty($user->id)) throw new Exception('Parameter "user" null or empty!');
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT * FROM tokens WHERE user_id = :userid');
@@ -398,7 +452,7 @@
 			$expiration = time()+3600; // now + one hour
 			$query = $db->prepare('INSERT OR REPLACE INTO tokens (user_id, token, expiration) VALUES (:uid, :token, :expiration);');
 			if(!$query->execute([':uid'=>$user->id,':token'=>$token,':expiration'=>$expiration])) throw new Exception('Was not able to update token expiration date!');
-			$_SESSION['token'] = $token;
+			if ($add_to_session) $_SESSION['token'] = $token;
 			return $token;
 		}
 

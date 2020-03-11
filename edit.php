@@ -63,71 +63,7 @@ include '../common_templates/messages.php';
 if ($allowed){ ?>
 <form method="POST">
 	<?php foreach ($u as $field => $value) {
-		if (in_array($field, ['dirty','id','last_logoff','message_delivery','new_pass','new_pass_repeat','pass','theme'])) continue; ?>
-	<fieldset>
-		<legend><?= t($field) ?></legend>
-		<input type="text" name="<?= $field ?>" value="<?= htmlspecialchars($value) ?>" />
-	</fieldset>
-
-	<?php } ?>
-
-	<fieldset>
-		<legend><?= t('Notificatin settings')?></legend>
-		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_INSTANTLY ?>]" <?= $user->message_delivery == Message::SEND_INSTANTLY ? 'checked="checked"':''?> />
-			<?= t("Send instantly")?>
-		</label><br/>		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_AT_8 ?>]" <?= $user->message_delivery & Message::SEND_AT_8 ? 'checked="checked"':''?> />
-			<?= t('Send at 8 AM')?>
-		</label><br/>
-		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_AT_10 ?>]"<?= $user->message_delivery & Message::SEND_AT_10 ? 'checked="checked"':''?>  />
-			<?= t('Send at 10 AM')?>
-		</label><br/>
-		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_AT_12 ?>]" <?= $user->message_delivery & Message::SEND_AT_12 ? 'checked="checked"':''?> />
-			<?= t('Send at 12 PM')?>
-		</label><br/>
-		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_AT_14 ?>]" <?= $user->message_delivery & Message::SEND_AT_14 ? 'checked="checked"':''?> />
-			<?= t('Send at 2 PM')?>
-		</label><br/>
-		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_AT_16 ?>]" <?= $user->message_delivery & Message::SEND_AT_16 ? 'checked="checked"':''?> />
-			<?= t('Send at 4 PM')?>
-		</label><br/>
-		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_AT_18 ?>]" <?= $user->message_delivery & Message::SEND_AT_18 ? 'checked="checked"':''?> />
-			<?= t('Send at 6 PM')?>
-		</label><br/>
-		<label>
-			<input type="checkbox" name="delivery[<?= Message::SEND_AT_20 ?>]" <?= $user->message_delivery & Message::SEND_AT_20 ? 'checked="checked"':''?> />
-			<?= t('Send at 8 PM')?>
-		</label><br/>
-		<?= t('If no time is selected, messages will not be sent via mail.')?>
-	</fieldset>
-
-	<fieldset>
-		<legend><?= t('new password (leave empty to not change you password)')?></legend>
-		<input type="password" name="new_pass" autocomplete="new-password" /><br/>
-		<?= t('Repeat password:')?><br/>
-		<input type="password" name="new_pass_repeat" autocomplete="new-password" />
-	</fieldset>
-	<fieldset>
-		<legend><?= t('theme'); ?></legend>
-		<select name="theme">
-		<?php foreach ($themes as $thm) { ?>
-			<option value="<?= $thm ?>" <?= $u->theme == $thm?'selected="true"':''?>><?= $thm ?></option>
-		<?php } ?>
-		</select>
-	</fieldset>
-	<button type="submit"><?= t('Save') ?></button>
-</form>
-
-<?php if ($user->id == 2) { ?>
-<form method="POST">
-	<?php foreach ($u as $field => $value) {
-		if (in_array($field, ['dirty','id','last_logoff','message_delivery','new_pass','new_pass_repeat','pass','theme'])) continue; ?>
+		if (in_array($field, ['dirty','id','last_logoff','message_delivery','new_pass','new_pass_repeat','pass','theme','settings'])) continue; ?>
 	<fieldset>
 		<legend><?= t($field) ?></legend>
 		<input type="text" name="<?= $field ?>" value="<?= htmlspecialchars($value) ?>" />
@@ -172,7 +108,7 @@ if ($allowed){ ?>
 				if ($project['status'] >= PROJECT_STATUS_COMPLETE) continue; ?>
 			<tr>
 				<td><?= $project['name'] ?></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_INSTANTLY ?>]" <?= $user->settings['notifications']['project'][$project['id']] == Message::SEND_INSTANTLY ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_INSTANTLY ?>]" <?= $user->settings['notifications']['project'][$project['id']] === Message::SEND_INSTANTLY ? 'checked="checked"':''?> /></td>
 				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_8 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_8 ? 'checked="checked"':''?> /></td>
 				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_10 ?>]"<?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_10 ? 'checked="checked"':''?>  /></td>
 				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_12 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_12 ? 'checked="checked"':''?> /></td>
@@ -212,7 +148,6 @@ if ($allowed){ ?>
 	</fieldset>
 	<button type="submit"><?= t('Save') ?></button>
 </form>
-<?php } ?>
 
 <?php }
  include '../common_templates/closure.php'; ?>
