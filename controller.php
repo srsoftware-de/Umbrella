@@ -83,8 +83,13 @@
 			global $user;
 			$sql = 'SELECT id,* FROM projects';
 
-			$where = ['id IN (SELECT project_id FROM projects_users WHERE user_id = ?)'];
-			$args = [$user->id];
+			if ($user->id == 1){ // admin has no restrictions
+				$where = [];
+				$args = [];
+			} else {
+				$where = ['id IN (SELECT project_id FROM projects_users WHERE user_id = ?)'];
+				$args = [$user->id];
+			}
 
 			$single = false;
 			if (isset($options['ids'])){
