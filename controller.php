@@ -4,8 +4,8 @@ const MODULE = 'Company';
 $title = 'Umbrella Company Management';
 
 function get_or_create_db(){
-	if (!file_exists('db')) assert(mkdir('db'),'Failed to create company/db directory!');
-	assert(is_writable('db'),'Directory company/db not writable!');
+	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create company/db directory!');
+	if (!is_writable('db')) throw new Exception('Directory company/db not writable!');
 	if (!file_exists('db/companies.db')){
 		$db = new PDO('sqlite:db/companies.db');
 		$sql = 'CREATE TABLE companies ( ';
@@ -19,7 +19,7 @@ function get_or_create_db(){
 						case $prop_k==='DEFAULT':
 							$sql.= 'DEFAULT '.($prop_v===null?'NULL':'"'.$prop_v.'"').' '; break;
 						case $prop_k==='KEY':
-							assert($prop_v === 'PRIMARY','Non-primary keys not implemented in company/controller.php!');
+							if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in company/controller.php!');
 							$sql.= 'PRIMARY KEY '; break;
 						default:
 							$sql .= $prop_v.' ';
@@ -30,8 +30,8 @@ function get_or_create_db(){
 		}
 		$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 		$query = $db->prepare($sql);
-		assert($db->query($sql),'Was not able to create companies table in companies.db!');
-		assert($db->query('CREATE TABLE companies_users (company_id INT NOT NULL, user_id INT NOT NULL)'),'Was not able to create table companies_users.');
+		if (!$db->query($sql)) throw new Exception('Was not able to create companies table in companies.db!');
+		if (!$db->query('CREATE TABLE companies_users (company_id INT NOT NULL, user_id INT NOT NULL)')) throw new Exception('Was not able to create table companies_users.');
 	} else {
 		$db = new PDO('sqlite:db/companies.db');
 	}
@@ -41,7 +41,7 @@ function get_or_create_db(){
 
 class Company extends UmbrellaObjectWithId{
 	function __construct($name = null){
-		assert($name !== null,'Company name must not be empty');
+		if ($name == null) throw new Exception('Company name must not be empty');
 		$this->name = $name;
 	}
 
@@ -78,7 +78,7 @@ class Company extends UmbrellaObjectWithId{
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update company in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update company in database!');
 				redirect('../index');
 			}
 		} else {
@@ -92,11 +92,11 @@ class Company extends UmbrellaObjectWithId{
 				}
 			}
 			$query = $db->prepare('INSERT INTO companies ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )');
-			assert($query->execute($args),'Was not able to insert new company');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new company');
 
 			$this->id = $db->lastInsertId();
 			$query = $db->prepare('INSERT INTO companies_users (company_id, user_id) VALUES (:cid, :uid);');
-			assert($query->execute([':cid'=>$this->id, ':uid'=>$user->id]),'Was no able to assign you to the new company!');
+			if (!$query->execute([':cid'=>$this->id, ':uid'=>$user->id])) throw new Exception('Was no able to assign you to the new company!');
 			redirect('index');
 		}
 	}
@@ -126,7 +126,7 @@ class Company extends UmbrellaObjectWithId{
 
 		$sql .= ' GROUP BY user_id';
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load companies!');
+		if (!$query->execute($args)) throw new Exception('Was not able to load companies!');
 		return (array_keys($query->fetchAll(INDEX_FETCH)));
 	}
 
@@ -154,7 +154,7 @@ class Company extends UmbrellaObjectWithId{
 
 		array_unshift($args,$user->id);
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load companies!');
+		if (!$query->execute($args)) throw new Exception('Was not able to load companies!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$companies = [];
 		$load_users = isset($options['users']) && $options['users'] == true;
@@ -173,24 +173,24 @@ class Company extends UmbrellaObjectWithId{
 		if (!isset($this->users)){
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT user_id FROM companies_users WHERE company_id = :id');
-			assert($query->execute([':id'=>$this->id]),'Was not able to load list of associated users!');
+			if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to load list of associated users!');
 			$this->users = array_keys($query->fetchAll(INDEX_FETCH));
 		}
 		return $this->users;
 	}
 
 	public function drop_user($user_id = null){
-		assert($user_id !== null,'Trying to drop "null" user from company! Aborting');
+		if ($user_id == null) throw new Exception('Trying to drop "null" user from company! Aborting');
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM companies_users WHERE company_id = :cid AND user_id = :uid');
-		assert($query->execute([':cid'=>$this->id,':uid'=>$user_id]),'Was not able to remove assignment in database!');
+		if (!$query->execute([':cid'=>$this->id,':uid'=>$user_id])) throw new Exception('Was not able to remove assignment in database!');
 	}
 
 	public function add_user($user_id = null){
-		assert($user_id !== null,'Trying to assign "null" as user to company! Aborting');
+		if ($user_id == null) throw new Exception('Trying to assign "null" as user to company! Aborting');
 		$db = get_or_create_db();
 		$query = $db->prepare('INSERT INTO companies_users (company_id, user_id) VALUES (:cid, :uid)');
-		assert($query->execute([':cid'=>$this->id,':uid'=>$user_id]),'Was not able to assign user in database!');
+		if (!$query->execute([':cid'=>$this->id,':uid'=>$user_id])) throw new Exception('Was not able to assign user in database!');
 	}
 }
 
