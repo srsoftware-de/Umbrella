@@ -14,8 +14,8 @@
 	$query = param('path') ? '?dir='.param('path') : '';
 
 	function get_or_create_db(){
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create files'.DS.'db directory!');
-		assert(is_writable('db'),'Directory files'.DS.'db not writable!');
+		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create files'.DS.'db directory!');
+		if (!is_writable('db')) throw new Exception('Directory files'.DS.'db not writable!');
 		if (!file_exists('db'.DS.'files.db')){
 			$db = new PDO('sqlite:db'.DS.'files.db');
 			$db->query('CREATE TABLE file_shares (file VARCHAR(2048) NOT NULL, user_id INT NOT NULL, PRIMARY KEY(file, user_id));');
@@ -180,9 +180,9 @@
 
 	function delete_file($filename){
 		if (is_dir($filename)){
-			assert(rmdir($filename),t('Was not able to remove directory ?',basename($filename)));
+			if (!rmdir($filename)) throw new Exception(t('Was not able to remove directory ?',basename($filename)));
 		} else {
-			assert(unlink($filename),t('Was not able to physically unlink file "?"',basename($filename)));
+			if (!unlink($filename)) throw new Exception(t('Was not able to physically unlink file "?"',basename($filename)));
 		}
 	}
 
@@ -199,7 +199,7 @@
 		$db = get_or_create_db();
 
 		$query = $db->prepare('SELECT user_id,file FROM file_shares WHERE file = :file');
-		assert($query->execute([':file'=>$filename]),'Was no able to query file list.');
+		if (!$query->execute([':file'=>$filename])) throw new Exception('Was no able to query file list.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		return $rows;
 	}
@@ -215,7 +215,7 @@
 			$args[':file'] = $filename;
 		}
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was no able to query file list.');
+		if (!$query->execute($args)) throw new Exception('Was no able to query file list.');
 		return $query->fetchAll(PDO::FETCH_ASSOC);
 	}
 
@@ -242,12 +242,12 @@
 	function share_file($filename = null,$user_id = null,$send_mail = null){
 		global $user;
 
-		assert(is_string($filename),'No filename given!');
-		assert(is_numeric($user_id),'No user selected!');
+		if (!is_string($filename)) throw new Exception('No filename given!');
+		if (!is_numeric($user_id)) throw new Exception('No user selected!');
 		$db = get_or_create_db();
 
 		$query = $db->prepare('INSERT INTO file_shares (file, user_id) VALUES (:file, :uid);');
-		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
+		if (!$query->execute([':file'=>$filename,':uid'=>$user_id])) throw new Exception('Was not able to save file setting.');
 		info('File "◊" has been shared.',$filename);
 
 		$url = getUrl('files','shared?path='.urldecode(dirname($filename)));
@@ -264,13 +264,13 @@
 	}
 
 	function unshare_file($filename = null,$user_id = null){
-		assert(is_string($filename),'No filename given!');
-		assert(is_numeric($user_id),'No user selected!');
+		if (!is_string($filename)) throw new Exception('No filename given!');
+		if (!is_numeric($user_id)) throw new Exception('No user selected!');
 		$db = get_or_create_db();
 
 		$query = $db->prepare('DELETE FROM file_shares WHERE file = :file AND user_id = :uid;');
 		debug($query);
-		assert($query->execute([':file'=>$filename,':uid'=>$user_id]),'Was not able to save file setting.');
+		if (!$query->execute([':file'=>$filename,':uid'=>$user_id])) throw new Exception('Was not able to save file setting.');
 		info('File "◊" has been unshared.',$filename);
 		redirect(getUrl('files','share?file='.urlencode($filename)));
 	}
