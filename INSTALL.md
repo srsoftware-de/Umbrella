@@ -16,11 +16,6 @@ Für einige Module benutzen DOMDocuemnt (funktionieren aber auch ohne), es wird 
 
 Falls du möchtest, dass im File-Modul aus *.dia*-Dateien automatisch Bilder generiert werden, musst du das Programm „dia“ installieren. Dies ist jedoch optional und hat keinen Einfluss auf andere Funktionen.
  
-### PHP7
-
-In php7 wurde die Behandlung von sogenannten *Assertions* (Zusicherungen) grundlegend verändert. Damit die Software korrekt funktioniert, ist es notwendig in der php.ini-Datei (/etc/php/7.0/apache2/php.ini) den Wert von zend.assertions von -1 auf 0 oder 1 zu setzen.
-In zukünftigen Versionen wird dieses Verhalten angepasst werden.
-
 ## Installation mehrerer Services auf dem gleichen Webserver
 
 Bei dieser Standardinstallation werden die Basis-Scripte und mehrere Module installiert.
