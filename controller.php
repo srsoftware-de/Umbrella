@@ -8,8 +8,8 @@
 
 	function get_or_create_db(){
 		$table_filename = 'tags.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create '.strtolower(MODULE).'/db directory!');
-		assert(is_writable('db'),'Directory '.strtolower(MODULE).'/db not writable!');
+		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create '.strtolower(MODULE).'/db directory!');
+		if (!is_writable('db')) throw new Exception('Directory '.strtolower(MODULE).'/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -36,7 +36,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
+									if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in '.strtolower(MODULE).'/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
@@ -47,7 +47,7 @@
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 				$query = $db->prepare($sql);
-				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				if (!$query->execute()) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
@@ -136,7 +136,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 //			debug(query_insert($query,$args),1);
-			assert($query->execute($args),'Was not able to request bookmark list!');
+			if (!$query->execute($args)) throw new Exception('Was not able to request bookmark list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$bookmarks = [];
 			foreach ($rows as $row){
@@ -188,7 +188,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare('INSERT OR IGNORE INTO urls (hash, url, timestamp) VALUES (:hash, :url, :time );');
 			$args = [':hash'=>$this->url_hash,':url'=>$this->url,':time'=>time()];
-			assert($query->execute($args),'Was not able to store url in database');
+			if (!$query->execute($args)) throw new Exception('Was not able to store url in database');
 			unset($this->dirty);
 			return $this;
 		}
@@ -260,7 +260,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 			//debug(query_insert($query,$args),1);
-			assert($query->execute($args),'Was not able to request comment list!');
+			if (!$query->execute($args)) throw new Exception('Was not able to request comment list!');
 
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$comments = [];
@@ -287,14 +287,14 @@
 		}
 
 		function save(){
-			assert($this->comment !== null && $this->comment != '',t('Comment must not be empty'));
+			if (empty($this->comment)) throw new Exception(t('Comment must not be empty'));
 
 			$this->patch(['comment_hash'=>sha1($this->comment)]);
 
 			$db = get_or_create_db();
 			$query = $db->prepare('INSERT OR IGNORE INTO comments (hash, comment) VALUES (:hash, :comment );');
 			$args = [':hash'=>$this->comment_hash,':comment'=>$this->comment];
-			assert($query->execute($args));
+			if (!$query->execute($args)) throw new Exception('Was not able to save comment!');
 			unset($this->dirty);
 			return $this;
 		}
@@ -347,7 +347,7 @@
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
 
-			assert($query->execute($args),'Was not able to request tag list!');
+			if (!$query->execute($args)) throw new Exception('Was not able to request tag list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$tags = [];
 
