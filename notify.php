@@ -53,7 +53,7 @@ $recipients = post('recipients'); // array of user ids
 if (empty($recipients)) error('No recipient(s) passed!');
 
 $meta = post('meta'); // json string
-if ($meta !== null) $meta = json_decode($meta);
+if ($meta !== null) $meta = json_encode($meta);
 
 if (no_error()){
 	if (!is_array($recipients)) $recipients = [ $recipients ];

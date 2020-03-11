@@ -227,8 +227,6 @@
 				$meta = empty($message->meta) ? null : json_decode($message->meta); // check if message has metadata, unpack, if so
 				$related_project_id = empty($meta->project_id) ? Message::GENERAL : $meta->project_id; // determine the project this message belongs to
 
-				//debug(['message'=>$message,'related project'=>$related_project_id,'recipient'=>$recipient]);
-
 				$delivery_setting = Message::SEND_INSTANTLY; // default setting, if no default is set in user database
 				if (isset($recipient->settings['notifications']['default'])) $delivery_setting = $recipient->settings['notifications']['default']; // default setting from user data base
 				if (isset($recipient->settings['notifications']['project'][$related_project_id])) $delivery_setting = $recipient->settings['notifications']['project'][$related_project_id]; // user specific setting for project
