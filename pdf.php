@@ -11,9 +11,9 @@ const NO_FRAME=0; // default 0, set this to 1 to enable debugging frames
 require_login('document');
 
 $id = param('id');
-assert(is_numeric($id),'No valid document id passed to edit!');
+if (!is_numeric($id)) throw new Exception('No valid document id passed to edit!');
 $document = Document::load(['ids'=>$id]);
-assert($document !== null,'No document found or accessible for id = '.$id);
+if ($document == null) throw new Exception('No document found or accessible for id = '.$id);
 
 require('lib/fpdf181/fpdf.php');
 
@@ -173,7 +173,7 @@ class PDF extends FPDF{
 		$filename = $this->document->number.' - '.date('c').'.pdf';
 		save_file($dir.'/'.$filename,$file_contents,'application/pdf');
 		$list = request('files','index',['format'=>'json','path'=>$dir]);
-		assert(array_key_exists($filename, $list['files']),'Something went wrong with the file upload!');
+		if (!array_key_exists($filename, $list['files'])) throw new Exception('Something went wrong with the file upload!');
 		redirect(getUrl('files','index?path='.urlencode($dir)));
 	}
 

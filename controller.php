@@ -15,8 +15,8 @@ function db_version(){
 
 function get_or_create_db(){
 	$table_filename = 'documents.db';
-	if (!file_exists('db')) assert(mkdir('db'),'Failed to create document/db directory!');
-	assert(is_writable('db'),'Directory document/db not writable!');
+	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create document/db directory!');
+	if (!is_writable('db')) throw new Exception('Directory document/db not writable!');
 	if (!file_exists('db/'.$table_filename)){
 		$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -34,7 +34,7 @@ function get_or_create_db(){
 			$sql = 'CREATE TABLE '.$table.' ( ';
 			foreach ($fields as $field => $props) $sql .= field_description($field,$props);
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-			assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
+			if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 		}
 	} else {
 		$db = new PDO('sqlite:db/'.$table_filename);
@@ -64,7 +64,7 @@ class CustomerPrice extends UmbrellaObject{
 		$sql = 'SELECT item_code,* FROM customer_prices WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ';
 		$args = [':comp'=>$company_id, ':cust'=>$customer_number, ':item' => $item_code];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load customer prices.');
+		if (!$query->execute($args)) throw new Exception('Was not able to load customer prices.');
 		if ($row = $query->fetch(INDEX_FETCH)){
 			$customerPrice = new CustomerPrice();
 			$customerPrice->patch($row);
@@ -78,7 +78,7 @@ class CustomerPrice extends UmbrellaObject{
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM customer_prices WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ');
 		$args = [':comp'=>$this->company_id, ':cust'=>$this->customer_number, ':item' => $this->item_code];
-		assert($query->execute($args),'Was not able to count customer_prices!');
+		if (!$query->execute($args)) throw new Exception('Was not able to count customer_prices!');
 		$count = reset($query->fetch(PDO::FETCH_ASSOC));
 		$query->closeCursor();
 		if ($count == 0){ // new!
@@ -93,13 +93,13 @@ class CustomerPrice extends UmbrellaObject{
 			}
 			$sql = 'INSERT INTO customer_prices ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new row into customer_prices: '.$query->errorInfo()[2]);
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new row into customer_prices: '.$query->errorInfo()[2]);
 		} else {
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE customer_prices SET single_price = :price WHERE company_id = :comp AND customer_number = :cust AND item_code = :item ';
 				$args[':price'] = $this->single_price;
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update customer_prices in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update customer_prices in database!');
 				$this->dirty = [];
 			}
 		}
@@ -130,7 +130,7 @@ class DocumentPosition extends UmbrellaObject{
 		$db = get_or_create_db();
 
 		$query = $db->prepare('SELECT max(pos) AS pos FROM document_positions WHERE document_id = :iid');
-		assert($query->execute([':iid'=>$document->id]),'Was not able to read document position table');
+		if (!$query->execute([':iid'=>$document->id])) throw new Exception('Was not able to read document position table');
 		$rows = $query->fetch(PDO::FETCH_ASSOC);
 		$this->pos = reset($rows) +1;
 		$this->document = $document;
@@ -150,7 +150,7 @@ class DocumentPosition extends UmbrellaObject{
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM document_positions WHERE document_id = :iid AND pos = :pos ');
 		$args = [':iid'=>$this->document->id,':pos'=>$this->pos];
-		assert($query->execute($args),'Was not able to read from document positions table!');
+		if (!$query->execute($args)) throw new Exception('Was not able to read from document positions table!');
 		$count = reset($query->fetch(PDO::FETCH_ASSOC));
 		$query->closeCursor();
 		if ($count == 0){ // new!
@@ -168,7 +168,7 @@ class DocumentPosition extends UmbrellaObject{
 			/*debug($query);
 			debug($args);
 			debug(query_insert($query,$args),1);*/
-			assert($query->execute($args),'Was not able to insert new row into document_positions');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new row into document_positions');
 		} else {
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE document_positions SET';
@@ -180,7 +180,7 @@ class DocumentPosition extends UmbrellaObject{
 				$this->dirty = [];
 				$sql = rtrim($sql,',').' WHERE document_id = :iid AND pos = :pos';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update document_positions in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update document_positions in database!');
 
 				$customer_price = CustomerPrice::load($this->document->company_id, $this->document->customer_number, $this->item_code);
 				if (!$customer_price) $customer_price = new CustomerPrice();
@@ -196,7 +196,7 @@ class DocumentPosition extends UmbrellaObject{
 		$sql = 'SELECT pos,* FROM document_positions WHERE document_id = :iid ORDER BY pos';
 		$args = [':iid'=>$document->id];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load invoie positions.');
+		if (!$query->execute($args)) throw new Exception('Was not able to load invoie positions.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$result = [];
 		foreach ($rows as $pos => $row){
@@ -212,18 +212,17 @@ class DocumentPosition extends UmbrellaObject{
 		global $services;
 		$db = get_or_create_db();
 		$query = $db->prepare('DELETE FROM document_positions WHERE document_id = :iid AND pos = :pos');
-		assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]),'Was not able to remove entry from document positions table!');
+		if (!$query->execute([':iid'=>$this->document_id,':pos'=>$this->pos])) throw new Exception('Was not able to remove entry from document positions table!');
 
 		if ($update_remaining){
 			$query = $db->prepare('UPDATE document_positions SET pos = pos-1 WHERE document_id = :iid AND pos > :pos');
-			assert($query->execute([':iid'=>$this->document_id,':pos'=>$this->pos]));
+			if (!$query->execute([':iid'=>$this->document_id,':pos'=>$this->pos])) throw new Exception('Was not able to update remaining document positions!');
 			if (isset($this->time_id) && $this->time_id !== null && isset($services['time'])){
 				request('time','update_state',['id'=>$this->time_id,'state'=>'open']);
 			}
 		}
 		return $this;
 	}
-
 }
 
 class CompanyCustomerSettings extends UmbrellaObject{
@@ -247,7 +246,7 @@ class CompanyCustomerSettings extends UmbrellaObject{
 		$sql = 'SELECT * FROM company_customer_settings WHERE company_id = :cid and document_type_id = :tid AND customer_number = :num';
 		$args = [':cid'=>$company_id, ':tid'=>$doc_type_id, ':num' => $customer_number];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load settings for the selected company/customer.');
+		if (!$query->execute($args)) throw new Exception('Was not able to load settings for the selected company/customer.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$customerSettings = new CompanyCustomerSettings($company_id,$doc_type_id,$customer_number);
 		foreach ($rows as $row) $customerSettings->patch($row);
@@ -258,7 +257,7 @@ class CompanyCustomerSettings extends UmbrellaObject{
 	function save(){
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM company_customer_settings WHERE company_id = :cid AND document_type_id = :dtid AND customer_number = :cust');
-		assert($query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id, ':cust'=>$this->customer_number]),'Was not able to count settings for company/customer!');
+		if (!$query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id, ':cust'=>$this->customer_number])) throw new Exception('Was not able to count settings for company/customer!');
 		$rows = $query->fetch(PDO::FETCH_ASSOC);
 		$count = reset($rows);
 		if ($count == 0){ // new!
@@ -273,7 +272,7 @@ class CompanyCustomerSettings extends UmbrellaObject{
 			}
 			$sql = 'INSERT INTO company_customer_settings ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new row into company_customer_settings');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new row into company_customer_settings');
 		} else {
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE company_customer_settings SET';
@@ -284,7 +283,7 @@ class CompanyCustomerSettings extends UmbrellaObject{
 				}
 				$sql = rtrim($sql,',').' WHERE company_id = :cid AND document_type_id = :dtid AND customer_number = :cust';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update company_customer_settings in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update company_customer_settings in database!');
 			}
 		}
 	}
@@ -329,7 +328,7 @@ class CompanySettings extends UmbrellaObject{
 		$sql = 'SELECT * FROM company_settings WHERE company_id = :cid and document_type_id = :tid';
 		$args = [':cid'=>$company_id, ':tid'=>$doc_type_id];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load settings for the selected company.');
+		if (!$query->execute($args)) throw new Exception('Was not able to load settings for the selected company.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($rows as $row) $companySettings->patch($row);
 		$companySettings->dirty = [];
@@ -358,7 +357,7 @@ class CompanySettings extends UmbrellaObject{
 	public function save(){
 		$db = get_or_create_db();
 		$query = $db->prepare('SELECT count(*) AS count FROM company_settings WHERE company_id = :cid AND document_type_id = :dtid');
-		assert($query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id]),'Was not able to count settings for company!');
+		if (!$query->execute([':cid'=>$this->company_id,':dtid'=>$this->document_type_id])) throw new Exception('Was not able to count settings for company!');
 		$rows = $query->fetch(PDO::FETCH_ASSOC);
 		$count = reset($rows);
 		if ($count == 0){ // new!
@@ -373,7 +372,7 @@ class CompanySettings extends UmbrellaObject{
 			}
 			$sql = 'INSERT INTO company_settings ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new row into company_settings');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new row into company_settings');
 		} else {
 			if (!empty($this->dirty)){
 				$sql = 'UPDATE company_settings SET';
@@ -384,7 +383,7 @@ class CompanySettings extends UmbrellaObject{
 				}
 				$sql = rtrim($sql,',').' WHERE company_id = :cid AND document_type_id = :dtid';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update company_settings in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update company_settings in database!');
 			}
 		}
 	}
@@ -477,7 +476,7 @@ class Document extends UmbrellaObjectWithId{
 		}
 		$sql .= 'id DESC';
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to load documents!');
+		if (!$query->execute($args)) throw new Exception('Was not able to load documents!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$documents = [];
 		foreach ($rows as $row){
@@ -546,13 +545,13 @@ class Document extends UmbrellaObjectWithId{
 		$db = get_or_create_db();
 
 		$query = $db->prepare('SELECT MAX(pos) FROM document_positions WHERE document_id = :id');
-		assert($query->execute(array(':id'=>$this->document_id)),'Was not able to get last document position!');
+		if (!$query->execute(array(':id'=>$this->document_id))) throw new Exception('Was not able to get last document position!');
 		$row = $query->fetch(PDO::FETCH_COLUMN);
 		$pos = ($row === null)?1:$row+1;
 
 		$query = $db->prepare('INSERT INTO document_positions (document_id, pos, item_code, amount, unit, title, description, single_price, tax) VALUES (:id, :pos, :code, :amt, :unit, :ttl, :desc, :price, :tax)');
 		$args = array(':id'=>$this->document_id,':pos'=>$pos,':code'=>$code,':amt'=>$amount,':unit'=>$unit,':ttl'=>$title,':desc'=>$description,':price'=>$price,':tax'=>$tax);
-		assert($query->execute($args),'Was not able to store new postion for document '.$this->document_id.'!');
+		if (!$query->execute($args)) throw new Exception('Was not able to store new postion for document '.$this->document_id.'!');
 	}
 
         /**
@@ -712,7 +711,7 @@ class Document extends UmbrellaObjectWithId{
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update document in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update document in database!');
 				if (in_array('state',$this->dirty) && isset($services['time'])){
 					$time_ids = [];
 					foreach ($this->positions() as $position){
@@ -749,7 +748,7 @@ class Document extends UmbrellaObjectWithId{
 			}
 			$sql = 'INSERT INTO documents ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new document');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new document');
 			$this->id = $db->lastInsertId();
 		}
 
@@ -829,7 +828,7 @@ class DocumentType extends UmbrellaObjectWithId{
 		}
 
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read document types.');
+		if (!$query->execute($args)) throw new Exception('Was not able to read document types.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($rows as $row) {
 			$doc_type = new DocumentType();
@@ -861,7 +860,7 @@ class DocumentType extends UmbrellaObjectWithId{
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update document type in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update document type in database!');
 			}
 		} else {
 			$known_fields = array_keys(DocumentType::table());
@@ -875,7 +874,7 @@ class DocumentType extends UmbrellaObjectWithId{
 			}
 			$sql = 'INSERT INTO document_types ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new document type');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new document type');
 			$this->id = $db->lastInsertId();
 		}
 	}
@@ -920,7 +919,7 @@ class Template extends UmbrellaObjectWithId{
 		$sql = 'SELECT * FROM templates WHERE company_id = :cid';
 		$args = [':cid'=>$company_id];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to read templates for the selected company.');
+		if (!$query->execute($args)) throw new Exception('Was not able to read templates for the selected company.');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		foreach ($rows as $row) {
 			$template = new Template();
@@ -951,7 +950,7 @@ class Template extends UmbrellaObjectWithId{
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update template in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update template in database!');
 			}
 		} else {
 			$known_fields = array_keys(Template::table());
@@ -965,7 +964,7 @@ class Template extends UmbrellaObjectWithId{
 			}
 			$sql = 'INSERT INTO templates ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new template');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new template');
 			$this->id = $db->lastInsertId();
 		}
 	}
