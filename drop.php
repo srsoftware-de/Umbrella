@@ -3,7 +3,7 @@
 require_login('time');
 
 $time_id = param('id');
-assert(is_numeric($time_id),'No valid time id passed to drop!');
+if (!is_numeric($time_id)) throw new Exception('No valid time id passed to drop!');
 
 $time = Timetrack::load(['ids'=>$time_id]);
 

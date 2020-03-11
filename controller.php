@@ -17,7 +17,7 @@
 						 TIME_STATUS_COMPLETE => 'completed',
 						 TIME_STATUS_STARTED => 'started'
 						];
-	/** @var mixed $dummy used loops */
+	/** @var mixed $dummy used in loops */
 	/** @var mixed $parsedown used in importing classes */
 	/** @var mixed $services used in importing classes */
 	/** @var mixed $TIME_PERMISSIONS */
@@ -29,8 +29,8 @@
 
 	function get_or_create_db(){
 		$table_filename = 'times.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create time/db directory!');
-		assert(is_writable('db'),'Directory time/db not writable!');
+		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create time/db directory!');
+		if (!is_writable('db')) throw new Exception('Directory time/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -55,7 +55,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in time/controller.php!');
+									if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in time/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
@@ -65,7 +65,7 @@
 					} else $sql .= $props.", ";
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-				assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
@@ -160,7 +160,7 @@
 			//debug(query_insert($sql, $args),1);
 			$query = $db->prepare($sql);
 			//debug($query,1);
-			assert($query->execute($args),'Was not able to load times!');
+			if (!$query->execute($args)) throw new Exception('Was not able to load times!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 
 			$all_times = [];
@@ -225,9 +225,9 @@
 		function delete(){
 			$db = get_or_create_db();
 			$query = $db->prepare('DELETE FROM times WHERE id = :tid');
-			assert($query->execute(array(':tid'=>$this->id)),'Was not able to drop time entry!');
+			if (!$query->execute([':tid'=>$this->id])) throw new Exception('Was not able to drop time entry!');
 			$query = $db->prepare('DELETE FROM task_times WHERE time_id = :tid');
-			assert($query->execute(array(':tid'=>$this->id)),'Was not able to drop task_time entry!');
+			if (!$query->execute([':tid'=>$this->id])) throw new Exception('Was not able to drop task_time entry!');
 			unset($this->id);
 		}
 
@@ -245,7 +245,7 @@
 					$sql = rtrim($sql,',').' WHERE id = :id';
 					$query = $db->prepare($sql);
 					//debug(query_insert($query, $args),1);
-					assert($query->execute($args),'Was no able to update time in database!');
+					if (!$query->execute($args)) throw new Exception('Was no able to update time in database!');
 					$this->dirty = [];
 				}
 			} else {
@@ -261,12 +261,12 @@
 				$sql = 'INSERT INTO times ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 				$query = $db->prepare($sql);
 				//debug(query_insert($query, $args),1);
-				assert($query->execute($args),'Was not able to insert new timetrack');
+				if (!$query->execute($args)) throw new Exception('Was not able to insert new timetrack');
 				$this->id = $db->lastInsertId();
 			}
 
 			$query = $db->prepare('INSERT OR IGNORE INTO task_times (task_id, time_id) VALUES (:task, :time)');
-			foreach ($this->tasks as $task_id => $dummy) assert($query->execute(array(':task'=>$task_id,':time'=>$this->id)),'Was not able to assign task to timetrack.');
+			foreach ($this->tasks as $task_id => $dummy) if (!$query->execute([':task'=>$task_id,':time'=>$this->id])) throw new Exception('Was not able to assign task to timetrack.');
 
 			return $this;
 		}
@@ -295,16 +295,16 @@
 				$args = [':tid'=>$this->id];
 				$db = get_or_create_db();
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was not able to load task ids!');
+				if (!$query->execute($args)) throw new Exception('Was not able to load task ids!');
 				$this->tasks = $query->fetchAll(INDEX_FETCH);
 			}
 			return array_keys($this->tasks);
 		}
 
 		function update($subject = null,$description = null,$start = null,$end = null,$state = TIME_STATUS_OPEN){
-			assert($subject !== null,'Subject must not be null!');
+			if ($subject == null) throw new Exception('Subject must not be null!');
 			$start_time = strtotime($start);
-			assert($start_time !== false,'Invalid start time passed to time.update!');
+			if ($start_time == false) throw new Exception('Invalid start time passed to time.update!');
 
 			$end_time = strtotime($end);
 			if (!$end_time) $end_time = null;
