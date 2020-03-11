@@ -6,8 +6,8 @@ const MODULE = 'Notes';
 $title = t('Umbrella Notes Management');
 
 function get_or_create_db(){
-	if (!file_exists('db')) assert(mkdir('db'),'Failed to create notes/db directory!');
-	assert(is_writable('db'),'Directory notes/db not writable!');
+	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create notes/db directory!');
+	if (!is_writable('db')) throw new Exception('Directory notes/db not writable!');
 	if (!file_exists('db/notes.db')){
 		$db = new PDO('sqlite:db/notes.db');
 
@@ -27,7 +27,7 @@ function get_or_create_db(){
 							case $prop_k==='DEFAULT':
 								$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 							case $prop_k==='KEY':
-								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in invoice/controller.php!');
+								if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in invoice/controller.php!');
 								$sql.= 'PRIMARY KEY '; break;
 							default:
 								$sql .= $prop_v.' ';
@@ -37,7 +37,7 @@ function get_or_create_db(){
 				} else $sql .= $props.", ";
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
-			assert($db->query($sql),'Was not able to create '.$table.' table in companies.db!');
+			if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in companies.db!');
 		}
 	} else {
 		$db = new PDO('sqlite:db/notes.db');
@@ -129,7 +129,7 @@ class Note extends UmbrellaObjectWithId{
 		}
 		$query = $db->prepare($sql);
 		//debug(query_insert($sql, $args));
-		assert($query->execute($args),'Was not able to load notes');
+		if (!$query->execute($args)) throw new Exception('Was not able to load notes');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$notes = [];
 		foreach ($rows as $id => $row){
@@ -334,13 +334,13 @@ class Note extends UmbrellaObjectWithId{
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update note in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update note in database!');
 			}
 		} else {
 			$sql = 'INSERT INTO notes (user_id, uri, note, timestamp) VALUES (:uid, :uri, :note, :time);';
 			$args = [':uid'=>$user->id, ':uri'=>$this->uri, ':note'=>$this->note, ':time'=>time()];
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to save note!');
+			if (!$query->execute($args)) throw new Exception('Was not able to save note!');
 			$this->id = $db->lastInsertId();
 		}
 		return $this;

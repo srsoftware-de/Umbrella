@@ -8,7 +8,7 @@ $uri = param('uri');
 $context = param('context','');
 $user_ids = param('users',[]);
 $form = param('form',true);
-assert($uri !== null,'Called notes/json without uri');
+if ($uri == null) throw new Exception('Called notes/json without uri');
 $notes = Note::load(['uri'=>$uri,'limit'=>0,'order'=>'id']);
 $users = request('user','json');
 
