@@ -4,7 +4,7 @@ require_login('contact');
 
 $id = param('id');
 $vcard = VCard::load(['ids'=>$id]);
-assert($vcard !== null,'Was not able to lod this vcard from the database');
+if ($vcard == null) throw new Exception('Was not able to lod this vcard from the database');
 
 if (param('TEL')) {
 	$vcard->patch($_POST,true);

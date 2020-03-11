@@ -11,10 +11,8 @@ const MODULE = 'Contact';
 $title = t('Umbrella Contact Management');
 
 function get_or_create_db(){
-	if (!file_exists('db')){
-		assert(mkdir('db'),'Failed to create contact/db directory!');
-	}
-	assert(is_writable('db'),'Directory contact/db not writable!');
+	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create contact/db directory!');
+	if (!is_writable('db')) throw new Exception('Directory contact/db not writable!');
 	if (!file_exists('db/contacts.db')){
 		$db = new PDO('sqlite:db/contacts.db');
 		$db->query('CREATE TABLE contacts (id INTEGER PRIMARY KEY, DATA TEXT);');
@@ -272,7 +270,7 @@ class VCard{
 		}
 
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to query contacts for you!');
+		if (!$query->execute($args)) throw new Exception('Was not able to query contacts for you!');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$cards = [];
 		foreach ($rows as $id => $columns){
@@ -298,9 +296,9 @@ class VCard{
 		global $user;
 		$db = get_or_create_db();
 		$query = $db->prepare('UPDATE contacts_users SET assigned = 0 WHERE user_id = :uid');
-		assert($query->execute(array(':uid'=>$user->id)),'Was not able to un-assign contacts with user');
+		if (!$query->execute([':uid'=>$user->id])) throw new Exception('Was not able to un-assign contacts with user');
 		$query = $db->prepare('UPDATE contacts_users SET assigned = 1 WHERE contact_id = :cid AND user_id = :uid');
-		assert($query->execute(array(':cid'=>$this->id,':uid'=>$user->id)),'Was not able to assign contact with user');
+		if (!$query->execute([':cid'=>$this->id,':uid'=>$user->id])) throw new Exception('Was not able to assign contact with user');
 	}
 
 	static function compare($vc1,$vc2){
@@ -438,13 +436,13 @@ class VCard{
 		$db = get_or_create_db();
 		if (is_int($this->id)){
 			$query  = $db->prepare('UPDATE contacts SET data=:data WHERE id = :id');
-			assert($query->execute(array(':id'=>$this->id, ':data'=>$this->format())),'Was not able to update contact!');
+			if (!$query->execute([':id'=>$this->id, ':data'=>$this->format()])) throw new Exception('Was not able to update contact!');
 		} else {
 			$query = $db->prepare('INSERT INTO contacts (data) VALUES (:data)');
-			assert($query->execute(array(':data'=>$this->format())),'Was not able to create new contact!');
+			if (!$query->execute([':data'=>$this->format()])) throw new Exception('Was not able to create new contact!');
 			$this->id = $db->lastInsertId();
 			$query =$db->prepare('INSERT INTO contacts_users (contact_id, user_id) VALUES (:cid, :uid)');
-			assert($query->execute(array(':cid'=>$this->id,':uid'=>$user->id)),'Was not able to assign new contact to user');
+			if (!$query->execute([':cid'=>$this->id,':uid'=>$user->id])) throw new Exception('Was not able to assign new contact to user');
 		}
 	}
 }
