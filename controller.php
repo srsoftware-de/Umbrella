@@ -5,8 +5,8 @@ $title = 'Umbrella Real Time Chat';
 
 function get_or_create_db(){
 	$table_filename = 'rtc.db';
-	if (!file_exists('db')) assert(mkdir('db'),'Failed to create rtp/db directory!');
-	assert(is_writable('db'),'Directory rtc/db not writable!');
+	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create rtp/db directory!');
+	if (!is_writable('db')) throw new Exception('Directory rtc/db not writable!');
 	if (!file_exists('db/'.$table_filename)){
 		$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -30,7 +30,7 @@ function get_or_create_db(){
 							case $prop_k==='DEFAULT':
 								$sql.= 'DEFAULT '.($prop_v === null)?'NULL ':('"'.$prop_v.'" '); break;
 							case $prop_k==='KEY':
-								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in bookmark/controller.php!');
+								if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in bookmark/controller.php!');
 								$sql.= 'PRIMARY KEY '; break;
 							default:
 								$sql .= $prop_v.' ';
@@ -41,7 +41,7 @@ function get_or_create_db(){
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 			$query = $db->prepare($sql);
-			assert($db->query($sql),'Was not able to create '.$table.' table in '.$table_filename.'!');
+			if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 		}
 	} else {
 		$db = new PDO('sqlite:db/'.$table_filename);
@@ -109,7 +109,7 @@ class Channel extends UmbrellaObject{
 		$db = get_or_create_db();
 		$query = $db->prepare($sql);
 		//debug(query_insert($query,$args),1);
-		assert($query->execute($args),'Was not able to request channel list!');
+		if (!$query->execute($args)) throw new Exception('Was not able to request channel list!');
 		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 		$channels = [];
 		foreach ($rows as $row){
@@ -176,7 +176,7 @@ class Channel extends UmbrellaObject{
 		}
 		$args = [':hash'=>$this->hash,':users'=>$users,':invite_time'=>$this->invite_time];
 		$query = $db->prepare($sql);
-		assert($query->execute($args),'Was not able to store channel in database');
+		if (!$query->execute($args)) throw new Exception('Was not able to store channel in database');
 
 		unset($this->dirty);
 		return $this;
@@ -188,7 +188,7 @@ class Channel extends UmbrellaObject{
 			$sql = 'SELECT user_id FROM channels_users WHERE channel_id = :cid';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-			assert($query->execute([':cid'=>$this->id]),'Was not able to request channel user list!');
+			if (!$query->execute([':cid'=>$this->id])) throw new Exception('Was not able to request channel user list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			foreach ($rows as $row) $this->users[] = $row['user_id'];
 		}
