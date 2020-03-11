@@ -6,8 +6,8 @@
 
 	function get_or_create_db(){
 		$table_filename = 'tasks.db';
-		if (!file_exists('db')) assert(mkdir('db'),'Failed to create task/db directory!');
-		assert(is_writable('db'),'Directory task/db not writable!');
+		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create task/db directory!');
+		if (!is_writable('db')) throw new Exception('Directory task/db not writable!');
 		if (!file_exists('db/'.$table_filename)){
 			$db = new PDO('sqlite:db/'.$table_filename);
 
@@ -33,7 +33,7 @@
 								case $prop_k==='DEFAULT':
 									$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 								case $prop_k==='KEY':
-									assert($prop_v === 'PRIMARY','Non-primary keys not implemented in task/controller.php!');
+									if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in task/controller.php!');
 									$sql.= 'PRIMARY KEY '; break;
 								default:
 									$sql .= $prop_v.' ';
@@ -44,7 +44,7 @@
 				}
 				$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 				$query = $db->prepare($sql);
-				assert($query->execute(),'Was not able to create '.$table.' table in '.$table_filename.'!');
+				if (!$query->execute()) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
 			$db = new PDO('sqlite:db/'.$table_filename);
@@ -169,7 +169,7 @@
 
 			$query = $db->prepare($sql);
 			//debug(query_insert($query, $args));
-			assert($query->execute($args),'Was not able to load tasks!');
+			if (!$query->execute($args)) throw new Exception('Was not able to load tasks!');
 			$rows = $query->fetchAll(INDEX_FETCH);
 
 			$tasks = [];
@@ -186,10 +186,10 @@
 		/* end of static functions */
 
 		public function assign_user($user_id){
-			assert(!empty($this->id),'invalid task id passed!');
+			if (empty($this->id)) throw new Exception('invalid task id passed!');
 			$db = get_or_create_db();
 			$query = $db->prepare('REPLACE INTO tasks_users (task_id, user_id, permissions) VALUES (:tid, :uid, :perm)');
-			assert($query->execute([':tid'=>$this->id,':uid'=>$user_id,':perm'=>Task::PERMISSION_ASSIGNEE]),'Was not able to remove user from task.');
+			if (!$query->execute([':tid'=>$this->id,':uid'=>$user_id,':perm'=>Task::PERMISSION_ASSIGNEE])) throw new Exception('Was not able to remove user from task.');
 		}
 
 		public function parent($field = null){
@@ -206,7 +206,7 @@
 			if (empty($this->requirements)){
 				$db = get_or_create_db();
 				$query = $db->prepare('SELECT id,* FROM tasks WHERE id IN (SELECT required_task_id FROM task_dependencies WHERE task_id = :id) ORDER BY status,name');
-				assert($query->execute([':id'=>$this->id]),'Was not able to query requirements of '.$this->name);
+				if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to query requirements of '.$this->name);
 
 				$rows = $query->fetchAll(INDEX_FETCH);
 				$required_tasks = [];
@@ -242,7 +242,7 @@
 
 				$project = $this->project();
 				$query = $db->prepare('SELECT * FROM tasks_users WHERE task_id = :id');
-				assert($query->execute([':id'=>$this->id]));
+				if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to read users for task');
 				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 				$users = [];
 				foreach ($rows as $row){
@@ -302,7 +302,7 @@
 					':nidx'=>$this->no_index,
 					':status'=>$this->status
 			];
-			assert($query->execute($args),'Was not able to alter task entry in dtabase');
+			if (!$query->execute($args)) throw new Exception('Was not able to alter task entry in dtabase');
 			unset($this->dirty);
 			$hash = isset($services['bookmark']) ? $this->setTags($this->name,$this->id) : false;
 
@@ -367,7 +367,7 @@
 					':nidx'=>$this->no_index,
 			];
 			//if ($this->name=="task five")debug(['task'=>$this,'args'=>$args,'query'=>query_insert($query, $args)],1);
-			assert($query->execute($args),'Was not able to create new task entry in database');
+			if (!$query->execute($args)) throw new Exception('Was not able to create new task entry in database');
 			$this->id = $db->lastInsertId();
 			unset($this->dirty);
 			$this->add_user(['id'=>$user->id,'email'=>$user->email,'login'=>$user->login,'permission'=>Task::PERMISSION_CREATOR]);
@@ -410,9 +410,9 @@
 		public function add_user($new_user = null, $notify = false){
 			global $user,$services;
 			// check
-			assert(!empty($this->id),'Task does not contain "id"');
-			assert(array_key_exists('id', $new_user),'$new_user array does not contain "id"');
-			assert(array_key_exists('permission', $new_user),'$new_user array does not contain "permission"');
+			if (empty($this->id)) throw new Exception('Task does not contain "id"');
+			if (!array_key_exists('id', $new_user)) throw new Exception('$new_user array does not contain "id"');
+			if (!array_key_exists('permission', $new_user)) throw new Exception('$new_user array does not contain "permission"');
 
 			$permission = $new_user['permission'];
 			switch ($permission){
@@ -433,10 +433,10 @@
 
 			if ($new_user['permission'] == Task::NO_PERMISSION){ // deassign
 				$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid AND permissions != '.Task::PERMISSION_CREATOR.';'); // do not delete creator!
-				assert($query->execute($args),'Was not able to remove user from task!');
+				if (!$query->execute($args)) throw new Exception('Was not able to remove user from task!');
 			} else { // assign
 				$query = $db->prepare('SELECT user_id FROM tasks_users WHERE task_id = :tid AND user_id = :uid');
-				assert($query->execute($args),'Was not able to request task assignment!');
+				if (!$query->execute($args)) throw new Exception('Was not able to request task assignment!');
 				$rows = $query->fetchAll();
 				$args[':perm'] = $new_user['permission'];
 				if (empty($rows)){
@@ -445,7 +445,7 @@
 					$query = $db->prepare('UPDATE tasks_users SET permissions = :perm WHERE task_id = :tid AND user_id = :uid AND permissions != '.Task::PERMISSION_CREATOR.';'); // do not alter creator!
 				}
 
-				assert($query->execute($args),'Was not able to write task assignment!');
+				if (!$query->execute($args)) throw new Exception('Was not able to write task assignment!');
 				// share tags
 				if (isset($services['bookmark'])){
 					$url = getUrl('task',$this->id.'/view');
@@ -469,44 +469,44 @@
 
 		public function set_state($state){
 			$db = get_or_create_db();
-			assert(!empty($this->id),'invalid task id passed!');
-			assert(is_numeric($state),'invalid state passed!');
+			if (empty($this->id)) throw new Exception('invalid task id passed!');
+			if (!is_numeric($state)) throw new Exception('invalid state passed!');
 			$query = $db->prepare('UPDATE tasks SET status = :state WHERE id = :id;');
-			assert($query->execute(array(':state' => $state,':id'=>$this->id)),'Was not able to alter task state in database');
+			if (!$query->execute(array(':state' => $state,':id'=>$this->id))) throw new Exception('Was not able to alter task state in database');
 		}
 
 		public function delete(){
-			assert(!empty($this->id),'invalid task id passed!');
+			if (empty($this->id)) throw new Exception('invalid task id passed!');
 			$db = get_or_create_db();
 			$args = [':id'=>$this->id];
 
 			$query = $db->prepare('DELETE FROM tasks WHERE id = :id');
-			assert($query->execute([':id'=>$this->id]));
+			if (!$query->execute([':id'=>$this->id]))throw new Exception('Was not able to delete task!');
 
 			$query = $db->prepare('DELETE FROM task_dependencies WHERE task_id = :id');
-			assert($query->execute([':id'=>$this->id]));
+			if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to delete task!');
 
 			$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :id');
-			assert($query->execute([':id'=>$this->id]));
+			if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to delete task_users entry!');
 
 			$args[':ptid']= $this->parent_task_id;
 			$query = $db->prepare('UPDATE tasks SET parent_task_id = :ptid WHERE parent_task_id = :id');
-			assert($query->execute($args));
+			if (!$query->execute($args)) throw new Exception('Was not able to update parent of dependent tasks');
 			info('Task has been deleted.');
 		}
 
 		public function drop_user($user_id){
-			assert(!empty($this->id),'invalid task id passed!');
+			if (empty($this->id)) throw new Exception('invalid task id passed!');
 			$db = get_or_create_db();
 			$query = $db->prepare('DELETE FROM tasks_users WHERE task_id = :tid AND user_id = :uid;');
-			assert($query->execute([':tid'=>$this->id,':uid'=>$user_id]),'Was not able to remove user from task.');
+			if (!$query->execute([':tid'=>$this->id,':uid'=>$user_id])) throw new Exception('Was not able to remove user from task.');
 		}
 
 		public function children(){
 			if (empty($this->children))	{
 				$db = get_or_create_db();
 				$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name COLLATE NOCASE ASC');
-				assert($query->execute([':id'=>$this->id]),'Was not able to query children of '.$this->name);
+				if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to query children of '.$this->name);
 				$rows = $query->fetchAll(INDEX_FETCH);
 				$children = [];
 				foreach ($rows as $id => $row){
@@ -553,7 +553,7 @@
 			$db = get_or_create_db();
 			$sql = 'SELECT id,status FROM tasks_users LEFT JOIN tasks ON id=task_id WHERE '.implode(' AND ',$where).' ORDER BY RANDOM() LIMIT 1';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to read tasks table.');
+			if (!$query->execute($args)) throw new Exception('Was not able to read tasks table.');
 			$rows = $query->fetchAll(INDEX_FETCH);
 			$query->closeCursor();
 			return reset(array_keys($rows));
@@ -568,10 +568,10 @@
 			$select = 'SELECT id FROM tasks LEFT JOIN tasks_users ON tasks.id = tasks_users.task_id WHERE user_id = :old AND project_id = :pid';
 
 			$query = $db->prepare('DELETE FROM tasks_users WHERE user_id = :new AND task_id IN ('.$select.')');
-			assert($query->execute($args),'Was not able to strip your current permissions from user`s tasks!');
+			if (!$query->execute($args)) throw new Exception('Was not able to strip your current permissions from user`s tasks!');
 
 			$query = $db->prepare('UPDATE tasks_users SET permissions='.Task::PERMISSION_CREATOR.', user_id= :new WHERE user_id = :old and task_id IN ('.$select.')');
-			assert($query->execute($args),'Was not able to assign user`s tasks to you!');
+			if (!$query->execute($args)) throw new Exception('Was not able to assign user`s tasks to you!');
 		}
 
 		public static function update_states($db){
