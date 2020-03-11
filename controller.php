@@ -4,8 +4,8 @@ const MODULE = 'Items';
 $title = t('Umbrella Item Management');
 
 function get_or_create_db(){
-	if (!file_exists('db')) assert(mkdir('db'),'Failed to create item/db directory!');
-	assert(is_writable('db'),'Directory item/db not writable!');
+	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create item/db directory!');
+	if (!is_writable('db')) throw new Exception('Directory item/db not writable!');
 	if (!file_exists('db/items.db')){
 		$db = new PDO('sqlite:db/items.db');
 
@@ -25,7 +25,7 @@ function get_or_create_db(){
 							case $prop_k==='DEFAULT':
 								$sql.= 'DEFAULT '.($prop_v === null?'NULL ':'"'.$prop_v.'" '); break;
 							case $prop_k==='KEY':
-								assert($prop_v === 'PRIMARY','Non-primary keys not implemented in invoice/controller.php!');
+								if ($prop_v != 'PRIMARY') throw new Exception('Non-primary keys not implemented in invoice/controller.php!');
 								$sql.= 'PRIMARY KEY '; break;
 							default:
 								$sql .= $prop_v.' ';
@@ -36,7 +36,7 @@ function get_or_create_db(){
 			}
 			$sql = str_replace([' ,',', )'],[',',')'],$sql.')');
 			$query = $db->prepare($sql);
-			assert($db->query($sql),'Was not able to create items table in items.db!');
+			if (!$db->query($sql)) throw new Exception('Was not able to create items table in items.db!');
 		}
 	} else {
 		$db = new PDO('sqlite:db/items.db');
@@ -102,7 +102,7 @@ class Item extends UmbrellaObjectWithId{
 		if (isset($options['order']) && array_key_exists($options['order'],static::table())) $sql .= ' ORDER BY '.$options['order'].' COLLATE NOCASE ASC';
 		$query = $db->prepare($sql);
 
-		assert($query->execute($args),'Was not able to load items for the selected company.');
+		if (!$query->execute($args)) throw new Exception('Was not able to load items for the selected company.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		if (empty($rows)){
 			error('Was not able to load any items.');
@@ -132,7 +132,7 @@ class Item extends UmbrellaObjectWithId{
 				}
 				$sql = rtrim($sql,',').' WHERE id = :id';
 				$query = $db->prepare($sql);
-				assert($query->execute($args),'Was no able to update item in database!');
+				if (!$query->execute($args)) throw new Exception('Was no able to update item in database!');
 			}
 		} else {
 			$known_fields = array_keys(Item::table());
@@ -146,7 +146,7 @@ class Item extends UmbrellaObjectWithId{
 			}
 			$sql = 'INSERT INTO items ( '.implode(', ',$fields).' ) VALUES ( :'.implode(', :',$fields).' )';
 			$query = $db->prepare($sql);
-			assert($query->execute($args),'Was not able to insert new item');
+			if (!$query->execute($args)) throw new Exception('Was not able to insert new item');
 			$this->id = $db->lastInsertId();
 			$this->dirty = [];
 		}
