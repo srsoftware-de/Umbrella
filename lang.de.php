@@ -125,6 +125,7 @@ $translations = array(
 		'view'=>'ansehen',
 		'wait'=>'abwarten',
 		'Yes'=>'Ja',
+		'You are not allowed to add sub-tasks to this task!'=>'Sie haben keine Berechtigung, dieser Aufgabe Unteraufgaben hinzuzufügen',
 		'You are not allowed to add users to this task, who are not member of the project.'=>'Sie können der Aufgabe keine Nutzer zuordnen, die nicht zum Projekt gehören.',
 		'You are not allowed to modify this task.'=>'Sie haben keine Berechtigung die Aufgabe zu ändern!',
 		'You can`t add the project to itself!'=>'Sie können das Projekt nicht in sich selbst einfügen!',
