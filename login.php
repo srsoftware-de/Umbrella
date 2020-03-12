@@ -54,7 +54,7 @@ if (!empty($login_services)) { ?>
 		<fieldset><legend><?= t('Password')?></legend>
 		<input type="password" name="pass" />
 		</fieldset>
-		<input type="submit" />
+		<button type="submit"><?= t('Login')?></button>
 	</fieldset>
 </form>
 
