@@ -250,7 +250,7 @@
 			//debug(query_insert($query, $args),1);
 			if (!$query->execute($args)) throw new Exception('Was not able to update page!');
 			$subject = t('The page "◊" has been updated.',$this->id);
-			info($subject.' '.t('<a href="share">Click here</a> to share it with other users.'));
+			info($subject.' – '.t('<a href="share">Click here</a> to share it with other users.'));
 			if (param('notify') == 'on'){
 				$recipients = array_keys($this->users());
 				$body = t('New content of ◊:',getUrl('wiki',$this->id.'/view'))."\n\n".$new_content;

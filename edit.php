@@ -40,6 +40,8 @@ if (isset($services['bookmark'])){
 
 if (!empty($redirect)) redirect($wiki.'/'.$redirect);
 
+$usrl = getUrl('user');
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
@@ -66,7 +68,7 @@ include '../common_templates/messages.php'; ?>
 		<legend><?= t('Users')?></legend>
 		<?php $guest = false; foreach ($page->users() as $uid => $user) {
 			if (is_array($user)) { ?>
-				<a class="button" href="<?= $usrl.$user['id'].'/view'?>"><?= $user['login']?></a>
+				<a class="button" href="<?= $usrl.$user['id'].'/view'?>" target="_blank"><?= $user['login']?></a>
 			<?php } else if (!$guest){
 				echo t('Guests');
 				$guest = true;

@@ -15,8 +15,8 @@ if (!empty($title) && !empty($content)){
 		$tags = param('tags');
 		if (!empty($tags)) $page->setTags($tags);
 	}
-
-	redirect(getUrl('wiki',$page->id.'/share'));
+	info(t('The page "◊" has been created',$title).' – '.t('<a href="share">Click here</a> to share it with other users.'));
+	redirect(getUrl('wiki',$page->id.'/view'));
 }
 
 include '../common_templates/head.php';
