@@ -4,7 +4,7 @@ $user = User::require_login();
 
 $messages = param('messages');
 if ($messages) {
-	$messages = Message::load(['user_id'=>$user->id,'state'=>Message::WAITING,'last_id'=>$messages]);
+	$messages = Message::load(['user_id'=>$user->id/*,'state'=>Message::WAITING*/,'last_id'=>$messages]);
 	$users = User::load(['target'=>'json']);
 	foreach ($messages as $message) $message->from = $users[$message->author];
 	die(json_encode($messages));
