@@ -3,19 +3,16 @@
 require_login('files');
 
 $path = param('path');
-$shared_files = shared_files();
-if ($path){
-	$parent = dirname($path);
-	$parts = explode(DS, $path);
-	while ($part = array_shift($parts)) $shared_files = $shared_files[$part];
-}
+$entries = shared_files($path);
+$context = in_array($path, ['project','user']) ? request($path,'json') : null;
+$path = empty($path) ? '' : rtrim($path,DS).DS;
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <h1><?= t('shared files: ◊',$path?$path:' ')?></h1>
-<?php if ($path) $path = rtrim($path,DS).DS; ?>
+<?php  ?>
 <table>
 	<tr>
 		<th><?= t('File / Directory') ?></th>
@@ -28,18 +25,20 @@ include '../common_templates/messages.php'; ?>
 		<td><a title="<?= t('move one level up') ?>" href="<?= $up ?>">..</a></td>
 	</tr>
 	<?php }?>
-	<?php foreach ($shared_files as $entry => $content){ ?>
+	<?php foreach ($entries as $file_name => $type){
+		$name = isset($context[$file_name]['login']) ? $context[$file_name]['login'] : (isset($context[$file_name]['name']) ? $context[$file_name]['name'] : $file_name);
+		?>
 	<tr>
-		<?php if ($content == $path.$entry) {?>
+		<?php if ($type == 'file') {?>
 		<td>
-			<a title="<?= t('dowlnload file')?>" href="download?file=<?= $path.$entry ?>">
-				<span class="symbol"></span> <?= $entry ?>
+			<a title="<?= t('dowlnload file')?>" href="download?file=<?= $path.$file_name ?>">
+				<span class="symbol"></span> <?= $name ?>
 			</a>
 		</td>
 		<?php } else { ?>
 		<td>
-			<a title="<?= t('show folder')?>" href="?path=<?= $path.$entry ?>">
-				<span class="symbol"></span> <?= $entry ?>
+			<a title="<?= t('show folder')?>" href="?path=<?= $path.$file_name ?>">
+				<span class="symbol"></span> <?= $name ?>
 			</a>
 		</td>
 		<?php }?>

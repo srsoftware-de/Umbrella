@@ -70,10 +70,8 @@
 				break;
 		}
 
-		$shared_files = shared_files_list($relative_path);
-		foreach ($shared_files as $entry) {
-			if ($entry['file'] == $relative_path) return true;
-		}
+		$shared_files = shared_files($relative_path);
+		if (!empty($shared_files)) return true;
 
 		return false;
 	}
@@ -191,52 +189,41 @@
 		return false;
 	}
 
-
-
 	function get_shares($filename){
-		$absolute_path = base_dir().DS.$filename;
-
-		$db = get_or_create_db();
-
-		$query = $db->prepare('SELECT user_id,file FROM file_shares WHERE file = :file');
+		$query = get_or_create_db()->prepare('SELECT user_id,file FROM file_shares WHERE file = :file');
 		if (!$query->execute([':file'=>$filename])) throw new Exception('Was no able to query file list.');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		return $rows;
 	}
 
-	function shared_files_list($filename = null){
+	function shared_files($path){
 		global $user;
-		$db = get_or_create_db();
-
-		$sql = 'SELECT file FROM file_shares WHERE user_id = :uid';
+		$sql = 'SELECT * FROM file_shares';
+		$where = ['user_id = :uid'];
 		$args = [':uid'=>empty($user)?0:$user->id];
-		if ($filename !== null){
-			$sql .= ' AND file = :file';
-			$args[':file'] = $filename;
+		if (!empty($path)){
+			$where[] = 'file like :key';
+			$args[':key'] = $path.'%';
 		}
-		$query = $db->prepare($sql);
-		if (!$query->execute($args)) throw new Exception('Was no able to query file list.');
-		return $query->fetchAll(PDO::FETCH_ASSOC);
-	}
 
-	function shared_files($filename = null){
-		$result = array();
-		foreach (shared_files_list($filename) as $row){
-			$filename = $row['file'];
-			$parts = explode(DS, $filename);
-			$pointer = &$result;
-			while ($part = array_shift($parts)){
+		if (!empty($where)) $sql .= ' WHERE ( '.implode(' ) AND ( ', $where).' )';
+		$sql .= ' ORDER BY file COLLATE NOCASE ASC';
 
-				if (!isset($pointer[$part])){
-					$pointer[$part] = [];
-					if (count($parts) == 1){
-						$pointer[$part][array_shift($parts)] = $filename;
-					}
-				}
-				$pointer = &$pointer[$part];
-			}
+		$query = get_or_create_db()->prepare($sql);
+		//debug(query_insert($query, $args));
+		if (!$query->execute($args)) throw new Exception('Was not able to read list of shared files');
+		$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+		$paths = [];
+		$len = strlen($path);
+		foreach ($rows as $row){
+			$file = substr($row['file'],$len);
+			if ($file[0] == '/') $file = substr($file, 1);
+			$parts = explode('/', $file);
+			if (count($parts) == 1){
+				$paths[$file] = 'file';
+			} else $paths[$parts[0]] = 'dir';
 		}
-		return $result;
+		return $paths;
 	}
 
 	function share_file($filename = null,$user_id = null,$send_mail = null){
