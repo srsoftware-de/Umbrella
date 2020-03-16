@@ -8,7 +8,7 @@ $entries = list_entries($path);
 if (param('format') == 'json') die(json_encode($entries));
 
 $parts = explode('/',$path);
-debug($parts);
+
 if (isset($parts[1])){
 	switch($parts[0]){
 		case 'project':
