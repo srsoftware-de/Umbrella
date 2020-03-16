@@ -7,6 +7,24 @@ if (in_array($path,['.','user'])) $path = null;
 $entries = list_entries($path);
 if (param('format') == 'json') die(json_encode($entries));
 
+$parts = explode('/',$path);
+debug($parts);
+if (isset($parts[1])){
+	switch($parts[0]){
+		case 'project':
+			$prj = request('project','json',['ids'=>$parts[1]]);
+			$parts[0] = '<a href="'.getUrl('project',$parts[1].'/view').'">'.t('Projects');
+			$parts[1] = $prj['name'].'</a>';
+			break;
+		case 'company':
+			$prj = request('company','json',['ids'=>$parts[1]]);
+			$parts[0] = '<a href="'.getUrl('company',$parts[1].'/view').'">'.t('Companies');
+			$parts[1] = $prj['name'].'</a>';
+			break;
+	}
+}
+$display_path = implode('/', $parts);
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
@@ -25,7 +43,7 @@ include '../common_templates/messages.php'; ?>
 
 <fieldset>
 	<legend>
-		<?= t('Files: ◊',$path?$path:' ')?>
+		<?= t('Files: ◊',$path?$display_path:' ')?>
 		<span class="right">
 		<a class="symbol" title="<?= t('add new file') ?>" href="add<?= $query ?>"></a>
 		<a class="symbol" title="<?= t('add new directory') ?>" href="add_dir<?= $query ?>"></a>
