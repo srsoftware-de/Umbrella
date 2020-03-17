@@ -71,6 +71,13 @@
 			];
 		}
 
+		function delete_version(){
+			$sql = 'DELETE FROM pages WHERE id = :id AND version = :version';
+			$args = [':id'=>$this->id,':version'=>$this->version];
+			$query = get_or_create_db()->prepare($sql);
+			if (!$query->execute($args)) throw new Exception('Was not able to remove version '.$this->version.' of '.$this->id);
+		}
+
 		function grant_access($user_rights){
 			global $user;
 			$db = get_or_create_db();
@@ -145,6 +152,8 @@
 			}
 
 			if (!empty($where)) $sql .= ' WHERE ('.implode(') AND (', $where).')';
+
+			$order = empty($options['order'])?'default':$options['order'];
 
 			$sql .= ' ORDER BY version ASC, id COLLATE NOCASE ASC'; // this, together with INDEX_FETCH assures that only the last version is loaded
 
@@ -262,11 +271,10 @@
 
 		function users(){
 			if (!isset($this->users)){
-				$db = get_or_create_db();
 				$sql = 'SELECT * FROM page_users WHERE page_id = :id';
 				$args = [':id'=>$this->id];
 
-				$query = $db->prepare($sql);
+				$query = get_or_create_db()->prepare($sql);
 				//debug(query_insert($query, $args));
 				if (!$query->execute($args)) throw new Exception('Could not load users of page');
 				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
@@ -280,6 +288,19 @@
 				}
 			}
 			return $this->users;
+		}
+
+		function versions(){
+			if (empty($this->versions)){
+				$sql = 'SELECT version FROM pages WHERE id = :id ORDER BY version DESC';
+				$args = [':id'=>$this->id];
+				$query = get_or_create_db()->prepare($sql);
+				//debug(query_insert($query, $args));
+				if (!$query->execute($args)) throw new Exception('Was not able to load version list of '.$this->id);
+				$rows = $query->fetchAll(INDEX_FETCH);
+				$this->versions = array_keys($rows);
+			}
+			return $this->versions;
 		}
 	}
 

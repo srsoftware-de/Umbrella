@@ -4,8 +4,8 @@
 $user = empty($_SESSION['token']) ? null : getLocallyFromToken();
 if ($user === null) validateToken('wiki');
 
-$id = param('id');
 $wiki = getUrl('wiki');
+$id = param('id');
 if (empty($id)){
 	error('No id passed to view');
 	redirect($wiki);
@@ -34,7 +34,6 @@ if (!$readable){
 	redirect($wiki);
 }
 
-
 $title = $page->id . ' - '.$title;
 
 if (isset($services['bookmark'])) $bookmark = request('bookmark','json_get?id='.sha1(location('*')));
@@ -52,7 +51,8 @@ include '../common_templates/messages.php'; ?>
 			<span class="right symbol">
 			<?php if ($writeable) { ?>
 				<a href="edit" title="<?= t('edit')?>"></a>
-				<a href="share"></a>
+				<a href="share" title="<?= t('share page')?>"></a>
+				<a href="delete?version=<?= $page->version ?>" title="<?= t('delete version ◊',$page->version) ?>"></a>
 			<?php } ?>
 				<a href="<?= $wiki.'/add_page'?>" title="<?= t('Add page')?>"></a>
 			</span>
@@ -74,13 +74,13 @@ include '../common_templates/messages.php'; ?>
 	</tr>
 	<tr>
 		<th>
-			<?php if ($version) { ?>
-			<a href="view"><?= t('Latest&nbsp;version')?></a><br/>
-			<?php } ?>
-			<?= t('Version&nbsp;◊',$page->version)?>
-			<?php $v = $page->version; while ($v > 1){ $v--; ?>
-			<br/><a href="<?= $wiki.$id.'/view?version='.$v ?>"><?= t('Version&nbsp;◊',$v)?></a>
-			<?php } ?>
+			<?php foreach ($page->versions() as $v) { ?>
+			<br/>
+			<?php if ($v == $page->version){ ?>
+			<?= t('Version&nbsp;◊',$v)?>
+			<?php } else { ?>
+			<a href="<?= $wiki.$id.'/view?version='.$v ?>"><?= t('Version&nbsp;◊',$v)?></a>
+			<?php }} ?>
 		</th>
 		<td><?= markdown($page->content)?></td>
 	</tr>
