@@ -14,7 +14,7 @@ if ($key = param('key')){
 	<?php foreach ($tags as $tag => $dummy){ ?>
 	<a class="button" href="<?= $url.$tag.'/view' ?>"><?= emphasize($tag,$key) ?></a>
 	<?php } ?>
-	</fieldset> <?php } // not empty
+	</fieldset> <?php } // tags not empty
 	foreach ($bookmarks as $hash => $bookmark ) {?>
 	<fieldset>
 		<legend>
@@ -31,5 +31,17 @@ if ($key = param('key')){
 		</div>
 		<?php } ?>
 	</fieldset>
+	<?php }
+} // key given
+
+if ($key = param('tag')){
+	$tags = Tag::load(['search'=>$key]);
+	if (!empty($tags)){
+		$url = getUrl('bookmark'); ?>
+	<fieldset class="tags">
+		<legend><?= t('Tags')?></legend>
+	<?php foreach ($tags as $tag => $dummy){ ?>
+	<a class="button" href="<?= $url.$tag.'/view' ?>"><?= emphasize($tag,$key) ?></a>
 	<?php } ?>
-<?php }
+	</fieldset> <?php } // tags not empty
+}

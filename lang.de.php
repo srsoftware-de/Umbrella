@@ -18,6 +18,7 @@ $translations = array(
 		'edit bookmark'=>'Lesezeichen bearbeiten',
 		'Edit URL ◊'=>'URL ◊ bearbeiten',
 		'Files'=>'Dateien',
+		'full-text search'=>'Volltextsuche',
 		'import from delicious'=>'von Delicious importieren',
 		'Import tags from delicious'=>'Tags von delicious importieren',
 		'Import tags from file'=>'Tags aus Datei importieren',
