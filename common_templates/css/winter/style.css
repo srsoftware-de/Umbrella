@@ -454,11 +454,13 @@ div.search{
 	max-width: 150px;
 }
 
-div.search input{
+div.search input,
+div.search label{
 	display: none;
 }
 
-div.search:hover input{
+div.search:hover input,
+div.search:hover label{
 	display: initial;
 }
 

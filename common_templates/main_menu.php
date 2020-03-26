@@ -1,10 +1,16 @@
 <div id="main_menu">
 <?php if (isset($user)) { ?>
 	<div class="search">
-	<form action="<?= getUrl('user','search')?>" method="GET">
-	<input type="text" name="key" />
-	<button type="submit" class="symbol"></button>
-	</form>
+		<form action="<?= getUrl('user','search')?>" method="GET">
+			<input type="text" name="key" />
+			<button type="submit" class="symbol"></button>
+			<?php if (isset($services['bookmark'])) { ?>
+			<label>
+				<input type="checkbox" name="fulltext" />
+				<?= t('full-text search')?>
+			</label>
+			<?php } // if bookmark?>
+		</form>
 	</div>
 <?php }
 	foreach ($services as $service){ if (empty($service['name'])) continue;?>

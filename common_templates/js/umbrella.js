@@ -33,9 +33,19 @@ function getHeadings(elem){
 	});
 }
 
+function keyEvent(e){
+	if (e.ctrlKey && e.key === 'f') { // display search form on Ctrl+F
+		e.preventDefault();
+		$('.search *').show();
+		$('.search form>input').focus();
+	}
+}
+
 getHeadingsTimer = null;
 
 function getHeadings_delayed(){
 	if (getHeadingsTimer != null) clearTimeout(getHeadingsTimer);
 	getHeadingsTimer = window.setTimeout(getHeadings,200,this);
 }
+
+document.addEventListener('keydown',keyEvent);
