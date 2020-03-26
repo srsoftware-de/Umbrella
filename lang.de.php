@@ -34,6 +34,7 @@ $translations = array(
 		'Export tasks'=>'Aufgaben exportieren',
 		'files'=>'Dateien',
 		'Files'=>'Dateien',
+		'full-text search'=>'Volltextsuche',
 		'import project'=>'Projekt importieren',
 		'Import project from exported json file'=>'Projekt aus exportierter JSON-Datei importieren',
 		'Invoices'=>'Rechnungen',
