@@ -8,21 +8,34 @@ if (!$key){
 	redirect(getUrl('user'));
 }
 
+$fulltext = param("fulltext",false) != false;
+if (!isset($services['bookmark'])) $fulltext = true;
+
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <h2><?= t('Your search provided the following results:') ?></h2>
 
-<?php foreach ($services as $service => $data){
-	if ($service == 'user') continue;
-	$result = request($service,'search',['key'=>$key],false,NO_CONVERSION);
+<?php if ($fulltext){
+	foreach ($services as $service => $data){
+		if ($service == 'user') continue;
+		$result = request($service,'search',['key'=>$key],false,NO_CONVERSION);
+		if ($result){ ?>
+	<fieldset class="<?= $service ?>">
+		<legend><?= t($data['name'])?></legend>
+		<?= $result ?>
+	</fieldset>
+	<?php } // if result
+	} // loop
+} /* fulltext */ else /* tag search */ {
+	$result = request('bookmark','search',['tag'=>$key],false,NO_CONVERSION);
 	if ($result){ ?>
-<fieldset class="<?= $service ?>">
-	<legend><?= t($data['name'])?></legend>
-	<?= $result ?>
-</fieldset>
-<?php }
+	<fieldset class="bookmark">
+		<legend><?= t('Bookmarks')?></legend>
+		<?= $result ?>
+	</fieldset>
+	<?php } // if result
 }
 
 include '../common_templates/closure.php'; ?>
