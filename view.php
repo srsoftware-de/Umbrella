@@ -127,15 +127,6 @@ if ($project){
 	</tr>
 	<?php } ?>
 	<tr>
-		<th><?= t('Description')?></th><td><?= $project->description; ?></td>
-	</tr>
-	<?php if ($est_time) { ?>
-	<tr>
-		<th><?= t('Estimated time')?></th><td><?= t('◊ hours',$est_time) ?></td>
-	</tr>
-	<?php } ?>
-	<?php if (isset($services['files'])){ ?>
-	<tr>
 		<th><?= t('Related') ?></th>
 		<td>
 			<?php if (isset($services['files'])) { ?>
@@ -146,6 +137,13 @@ if ($project){
 			<a href="<?= getUrl('time','?project='.$project->id) ?>"><span class="symbol"></span> <?= t('timetracking') ?></a>&nbsp;
 			<?php } ?>
 		</td>
+	</tr>
+	<tr>
+		<th><?= t('Description')?></th><td><?= $project->description; ?></td>
+	</tr>
+	<?php if ($est_time) { ?>
+	<tr>
+		<th><?= t('Estimated time')?></th><td><?= t('◊ hours',$est_time) ?></td>
 	</tr>
 	<?php } ?>
 	<tr>
