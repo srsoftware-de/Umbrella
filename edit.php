@@ -24,7 +24,7 @@ $companies = isset($services['company']) ? request('company','json') : null;
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('project',$project_id.'/view'));
-	$bookmark = request('bookmark','json_get?id='.$hash);
+	$bookmark = request('bookmark',$hash.'/json');
 }
 
 
