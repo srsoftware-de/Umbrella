@@ -36,7 +36,7 @@ if (!$readable){
 
 $title = $page->id . ' - '.$title;
 
-if (isset($services['bookmark'])) $bookmark = request('bookmark','json_get?id='.sha1(location('*')));
+if (isset($services['bookmark'])) $bookmark = request('bookmark',sha1(location('*')).'/json');
 
 $usrl = getUrl('user');
 

@@ -33,7 +33,7 @@ if ($new_title != $page->id) $redirect = $page->rename($new_title);
 
 if (isset($services['bookmark'])){
 	$hash = sha1(str_replace('/edit', '/view', location('*')));
-	$bookmark = request('bookmark','json_get?id='.$hash);
+	$bookmark = request('bookmark',$hash.'/json');
 	$tags = param('tags');
 	if (!empty($tags)) $page->setTags($tags);
 }

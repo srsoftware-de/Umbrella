@@ -11,7 +11,7 @@ if (!empty($title) && !empty($content)){
 
 	if (isset($services['bookmark'])){
 		$hash = sha1($wiki.$title.'/view');
-		$bookmark = request('bookmark','json_get?id='.$hash);
+		$bookmark = request('bookmark',$hash.'/json');
 		$tags = param('tags');
 		if (!empty($tags)) $page->setTags($tags);
 	}
