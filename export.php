@@ -19,7 +19,7 @@ $show_closed_children = param('closed') == 'show';
 $bookmark = false;
 if (isset($services['bookmark'])){
 	$hash = sha1(location('*'));
-	$bookmark = request('bookmark','json_get?id='.$hash);
+	$bookmark = request('bookmark',$hash.'/json');
 }
 header('Content-Disposition: attachment; filename="'.$task->name.'.html"');
 

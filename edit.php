@@ -71,7 +71,7 @@ if ($name = post('name')){
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('task',$task_id.'/view'));
-	$bookmark = request('bookmark','json_get?id='.$hash);
+	$bookmark = request('bookmark',$hash.'/json');
 }
 
 function show_project_task_checkbox($list, $id){

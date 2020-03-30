@@ -19,6 +19,14 @@ if (empty($project)){
 	redirect(getUrl('project'));
 }
 
+$tags = [];
+if (isset($services['bookmark'])){
+	$hash = sha1(getUrl('task',$task_id.'/view'));
+	$bookmark = request('bookmark',$hash.'/json');
+	$tags = param('tags',implode(' ',$bookmark['tags']));
+}
+
+
 if (post('name')){
 	$user_permissions = post('users');
 	$users = [];
@@ -106,7 +114,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){?>
 		<fieldset><legend><?= t('Tags')?></legend>
-			<input name="tags" type="text" value="<?= param('tags') ?>" />
+			<input name="tags" type="text" value="<?= $tags ?>" />
 		</fieldset>
 		<?php }?>
 		<fieldset>

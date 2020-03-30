@@ -18,7 +18,7 @@ $show_closed_children = $task->show_closed == 1 || param('closed') == 'show';
 $bookmark = false;
 if (isset($services['bookmark'])){
 	$hash = sha1(location('*'));
-	$bookmark = request('bookmark','json_get?id='.$hash);
+	$bookmark = request('bookmark',$hash.'/json');
 }
 
 function display_children($task){
