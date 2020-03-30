@@ -18,7 +18,7 @@ $tasks = request('task','json',['project_ids'=>array_keys($projects)]); // get a
 
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('document',$id.'/view'));
-	$bookmark = request('bookmark','json_get?id='.$hash);
+	$bookmark = request('bookmark',$hash.'/json');
 	if (!$bookmark) $default_tags = implode(' ', [$document->customer_short(),$document->number,t($document->type()->name)]);
 }
 
