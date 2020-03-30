@@ -302,8 +302,8 @@ function redirect($url){
 
 function replace_text($text,$replacements = null){
 	if ($replacements !== null){
-		if (!is_array($replacements)) $replacements = array($replacements);
-		while ($rep = array_shift($replacements)) $text = preg_replace('/◊/', $rep, $text,1);
+		if (!is_array($replacements)) $replacements = [$replacements];
+		foreach ($replacements as $rep) $text = preg_replace('/◊/', $rep, $text,1);
 	}
 	return $text;
 }
