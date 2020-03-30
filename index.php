@@ -40,7 +40,7 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($items as $item) {
-			$bookmark = $bookmark_service ? request('bookmark','json_get',['url'=>$item_base_url.$item->id.'/view']) : null;
+			$bookmark = $bookmark_service ? request('bookmark','json',['url'=>$item_base_url.$item->id.'/view']) : null;
 		?>
 		<tr>
 			<td><?= $item->code ?></td>

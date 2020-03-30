@@ -26,7 +26,7 @@ if ($id = param('id')){
 	}
 } else error('No item id passed to edit method!');
 
-$bookmark = isset($services['bookmark']) ? request('bookmark','json_get?id='.sha1(getUrl('items',$id.'/view'))) : null;
+$bookmark = isset($services['bookmark']) ? request('bookmark',sha1(getUrl('items',$id.'/view')).'/json') : null;
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
