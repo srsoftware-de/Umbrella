@@ -214,12 +214,14 @@ function location($drop = []){
 }
 
 function markdown($text){
-	if (file_exists('lib/parsedown/Parsedown.php')){
+	if (file_exists('lib')){
 		include_once 'lib/parsedown/Parsedown.php';
+		include_once 'lib/parsedown-extra/ParsedownExtra.php';
 		return Parsedown::instance()->parse($text);
-	} else if (file_exists('../lib/parsedown/Parsedown.php')){
+	} else if (file_exists('../lib')){
 		include_once '../lib/parsedown/Parsedown.php';
-		return Parsedown::instance()->parse($text);
+		include_once '../lib/parsedown-extra/ParsedownExtra.php';
+		return ParsedownExtra::instance()->parse($text);
 	} else{
 		return str_replace("\n", "<br/>", htmlentities($text));
 	}
