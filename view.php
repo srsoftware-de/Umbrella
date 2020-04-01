@@ -122,7 +122,7 @@ include '../common_templates/messages.php'; ?>
 	<?php if ($task->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $task->description(); ?></td>
+		<td class="description"><?= markdown($task->description); ?></td>
 	</tr>
 	<?php } ?>
 	<?php if (

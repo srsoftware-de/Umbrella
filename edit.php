@@ -113,7 +113,7 @@ include '../common_templates/messages.php'; ?>
 		<fieldset>
 			<legend><?= t('Project')?></legend>
 			<select name="project_id">
-			<?php foreach ($projects as $pid => $project){ if ($project['status'] >= PROJECT_STATUS_COMPLETE) continue; ?>
+			<?php foreach ($projects as $pid => $project){ if ($project['status'] >= PROJECT_STATUS_COMPLETE && $project['id']!=$task->project_id) continue; ?>
 				<option value="<?= $pid ?>" <?= ($pid == $task->project_id)?'selected="selected"':''?>><?= $project['name'] ?></option>
 			<?php }?>
 			</select>

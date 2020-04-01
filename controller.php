@@ -262,14 +262,6 @@
 			return in_array($this->users($user->id)['permissions'],[Task::PERMISSION_CREATOR,Task::PERMISSION_READ_WRITE,Task::PERMISSION_ASSIGNEE]);
 		}
 
-		public function description(){
-			if (file_exists('../lib/parsedown/Parsedown.php')){
-				include_once '../lib/parsedown/Parsedown.php';
-				return Parsedown::instance()->parse($this->description);
-			}
-			return str_replace("\n", "<br/>", $this->description);
-		}
-
 		public static function perm_name($permission){
 			switch ($permission){
 				case Task::PERMISSION_ASSIGNEE: return t('assignee');
