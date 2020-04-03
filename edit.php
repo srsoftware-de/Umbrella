@@ -33,7 +33,7 @@ if ($user_id = param('id')){
 						case 'project':
 							foreach ($notification_settings as $pid => $p_sett) {
 								$settings['notifications']['project'][$pid] = eval_notification_options($p_sett);
-							}
+			}
 							break;
 					}
 				}
@@ -52,7 +52,7 @@ if ($user_id = param('id')){
 		error('Currently, only admin can edit other users!');
 		redirect('../index');
 	}
-} else redirect(getUrl('user',$user->id.'/edit'));
+} else error('No user ID passed to user/edit!');
 $themes = get_themes();
 
 
