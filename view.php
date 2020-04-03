@@ -32,7 +32,7 @@ include '../common_templates/messages.php';
 				<button type="submit"><?= t('Save') ?></button>
 			</form>
 		</td>
-		<td><?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?></td>
+		<td><?= markdown($note->note) ?></td>
 	</tr>
 </table>
 <?php include '../common_templates/closure.php';
