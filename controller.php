@@ -565,7 +565,7 @@
 		function exists(){
 			$db = get_or_create_db();
 			$query = $db->prepare('SELECT count(*) AS count FROM users WHERE login = :login');
-			if($query->execute([':login'=>$this->login])) throw new Exception('Was not able to check existance of user!');
+			if(!$query->execute([':login'=>$this->login])) throw new Exception('Was not able to check existance of user!');
 			$results = $query->fetchAll(PDO::FETCH_ASSOC);
 			if (empty($results)) return false;
 			return $results[0]['count'] > 0;
