@@ -31,13 +31,13 @@ if (!empty($users) && is_array($users)){
 	$notify = param('notify') == 'on';
 	$added = false;
 	foreach ($users as $uid => $perm){
-		if (!array_key_exists($uid, $project_users)){
+		if (!isset($project_users->{$uid})){
 			error('User with id ◊ is not part of the project!',$uid);
 			continue;
 		}
 		if ($perm == Task::PERMISSION_CREATOR) $perm = Task::PERMISSION_READ_WRITE; // if someone tries to assign creator permissions to a task: fall back to read/write
-		$u = $project_users[$uid]['data'];
-		$u['permission'] = $perm;
+		$u = $project_users->{$uid}->data;
+		$u->permission = $perm;
 		if ($task->add_user($u,$notify)) $added = true;
 	}
 	if ($added) redirect(getUrl('task',$task_id.'/view'));
@@ -60,13 +60,13 @@ if ($task->is_writable()){ ?>
 				<th class="symbol" title="<?= t('no access')?>"></th>
 			</tr>
 			<?php foreach ($project_users as $id => $u) {
-				$perm = isset($task->users[$id]) ? $task->users[$id]['permissions'] : 0;
+				$perm = isset($task->users[$id]) ? $task->users[$id]->permissions : 0;
 				$disabled = ($perm == Task::PERMISSION_CREATOR);
 			?>
 			<tr>
 			</tr>
 			<tr>
-				<td><?= $u['data']['login']?></td>
+				<td><?= $u->data->login ?></td>
 				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' readonly="readonly"':''?> title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" <?= $perm == Task::PERMISSION_ASSIGNEE ? 'checked="checked" ':'' ?>/></td>
 				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' readonly="readonly"':''?> title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $perm == Task::PERMISSION_READ_WRITE||$perm == Task::PERMISSION_CREATOR ? 'checked="checked" ':'' ?>/></td>
 				<td><input type="radio" name="users[<?= $id ?>]"<?= $disabled ? ' readonly="readonly"':''?> title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" <?= $perm == Task::PERMISSION_READ ? 'checked="checked"':'' ?>/></td>

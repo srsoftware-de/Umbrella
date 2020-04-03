@@ -13,7 +13,7 @@ if (empty($task)){
 	redirect(getUrl('project'));
 }
 
-$project = request('project','json',['ids'=>$task->project_id,'users'=>'true']);
+$project = request('project','json',['ids'=>$task->project_id,'users'=>'true'],false,OBJECT_CONVERSION);
 if (empty($project)){
 	error('You don`t have access to that project!');
 	redirect(getUrl('project'));
@@ -32,14 +32,14 @@ if (post('name')){
 	$users = [];
 	if (!empty($user_permissions) && is_array($user_permissions)){
 		foreach ($user_permissions as $uid => $perm){
-			if (empty($project['users'][$uid])){
+			if (empty($project->users->{$uid})){
 				error('User with id ◊ is not member of the project!',$uid);
 				break;
 			}
 			if ($uid == $user->id) $perm = Task::PERMISSION_CREATOR;
 			if ($perm == 0) continue;
-			$u = $project['users'][$uid]['data'];
-			$u['permission'] = $perm;
+			$u = $project->users->{$uid}->data;
+			$u->permission = $perm;
 			$users[$uid] = $u;
 		}
 	}
@@ -66,7 +66,7 @@ include '../common_templates/messages.php'; ?>
 	<fieldset>
 		<fieldset>
 			<legend><?= t('Project')?></legend>
-			<a href="<?= getUrl('project',$task->project_id.'/view')?>"><?= $project['name']?></a>
+			<a href="<?= getUrl('project',$task->project_id.'/view')?>"><?= $project->name ?></a>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
@@ -94,9 +94,9 @@ include '../common_templates/messages.php'; ?>
 					<th title="<?= t('read only')?>" class="symbol"></th>
 					<th title="<?= t('no access')?>" class="symbol"></th>
 				</tr>
-			<?php foreach ($task->project('users') as $id => $u) { $owner = $id == $user->id; ?>
+			<?php foreach ($task->project->users as $id => $u) { $owner = $id == $user->id; ?>
 				<tr>
-					<td><?= $u['data']['login']?></td>
+					<td><?= $u->data->login ?></td>
 					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" /></td>
 					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('read + write')?>" value="<?= Task::PERMISSION_READ_WRITE ?>" <?= $owner?'checked="checked" ':'' ?>/></td>
 					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('read only')?>" value="<?= Task::PERMISSION_READ ?>" /></td>

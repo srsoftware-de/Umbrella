@@ -49,10 +49,10 @@ r = admin_session.get('http://localhost/project/',allow_redirects=False)
 expectError(r,'Sie sind nicht berechtigt, auf dieses Projekt zuzugreifen!')
 
 # project of other user, shoud produce redirect, then error
-r = admin_session.get('http://localhost/task/add_to_project/2',allow_redirects=False)
+r = user_session.get('http://localhost/task/add_to_project/1',allow_redirects=False)
 expectRedirect(r,'http://localhost/project/')
 
-r = admin_session.get('http://localhost/project/',allow_redirects=False)
+r = user_session.get('http://localhost/project/',allow_redirects=False)
 expectError(r,'Sie sind nicht berechtigt, auf dieses Projekt zuzugreifen!')
 
 # common project. check form

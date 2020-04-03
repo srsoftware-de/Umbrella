@@ -1,4 +1,6 @@
 <?php include 'controller.php';
+global $title,$services;
+
 require_login('task');
 
 $task_id = param('id');
@@ -21,7 +23,7 @@ if (isset($services['bookmark'])){
 	$hash = sha1(location('*'));
 	$bookmark = request('bookmark',$hash.'/json');
 }
-header('Content-Disposition: attachment; filename="'.$task->name.'.html"');
+//header('Content-Disposition: attachment; filename="'.$task->name.'.html"');
 
 function display_children($task){
 	global $show_closed_children,$task_id,$services;
@@ -33,7 +35,7 @@ function display_children($task){
 			<?php if (!empty($child_task->description)) { ?>
 			<fieldset>
 				<legend><?= t('Description')?></legend>
-				<?= $child_task->description()?>
+				<?= markdown($child_task->description)?>
 			</fieldset>
 			<?php } // description not empty ?>
 			<?php if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$child_task->id,'form'=>false],false,NO_CONVERSION); ?>
@@ -66,10 +68,10 @@ include '../common_templates/head.php'; ?>
 		<td><a href="../<?= $task->parent_task_id ?>/view"><?= $task->parent('name');?></a></td>
 	</tr>
 	<?php }?>
-	<?php if ($task->description()){ ?>
+	<?php if ($task->description){ ?>
 	<tr>
 		<th><?= t('Description')?></th>
-		<td class="description"><?= $task->description(); ?></td>
+		<td class="description"><?= markdown($task->description); ?></td>
 	</tr>
 	<?php } ?>
 	<?php if (!empty($task->est_time) || !empty($task->child_time())){ ?>

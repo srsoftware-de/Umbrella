@@ -65,7 +65,7 @@ r = admin_session.post('http://localhost/task/withdraw_user',allow_redirects=Fal
 expect(r.status_code == 500)
 
 # project_id: unaccessible
-r = admin_session.post('http://localhost/task/withdraw_user',allow_redirects=False,data={'project_id':USER2_PROJECT,'user_id':USER2})
+r = user_session.post('http://localhost/task/withdraw_user',allow_redirects=False,data={'project_id':ADMIN_PROJECT,'user_id':USER2})
 expect(r.status_code == 500)
 
 # project_id: valid

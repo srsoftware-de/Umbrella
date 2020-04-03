@@ -82,23 +82,23 @@ expect(r,'<form method="POST">')
 
 # target_project non-existing: error
 r = admin_session.post('http://localhost/task/from_project/'+str(ADMIN_PROJECT),allow_redirects=False,data={'target_project':9999})
-expectRedirect(r,'http://localhost/project/1/view')
+expectRedirect(r,'http://localhost/project/'+str(ADMIN_PROJECT)+'/view')
 
-r = admin_session.get('http://localhost/project/1/view')
+r = admin_session.get('http://localhost/project/'+str(ADMIN_PROJECT)+'/view')
 expectError(r,'Sie sind nicht berechtigt, auf dieses Projekt zuzugreifen!')
 
 # target_project non-accessible: error
-r = admin_session.post('http://localhost/task/from_project/'+str(ADMIN_PROJECT),allow_redirects=False,data={'target_project':USER2_PROJECT})
-expectRedirect(r,'http://localhost/project/1/view')
+r = user_session.post('http://localhost/task/from_project/'+str(USER2_PROJECT),allow_redirects=False,data={'target_project':ADMIN_PROJECT})
+expectRedirect(r,'http://localhost/project/'+str(USER2_PROJECT)+'/view')
 
-r = admin_session.get('http://localhost/project/1/view')
+r = user_session.get('http://localhost/project/'+str(USER2_PROJECT)+'/view')
 expectError(r,'Sie sind nicht berechtigt, auf dieses Projekt zuzugreifen!')
 
 # target_project = source project: error
 r = admin_session.post('http://localhost/task/from_project/'+str(ADMIN_PROJECT),allow_redirects=False,data={'target_project':ADMIN_PROJECT})
-expectRedirect(r,'http://localhost/project/1/view')
+expectRedirect(r,'http://localhost/project/'+str(ADMIN_PROJECT)+'/view')
 
-r = admin_session.get('http://localhost/project/1/view')
+r = admin_session.get('http://localhost/project/'+str(ADMIN_PROJECT)+'/view')
 expectError(r,'Sie können das Projekt nicht in sich selbst einfügen!')
 
 # target_project valid: forward to created task
