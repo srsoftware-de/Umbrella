@@ -4,7 +4,7 @@
 ?>
 <html>
 	<head>
-		<title><?= isset($title)?$title:'Umbrella' ?></title>
+		<title><?= isset($view->title)?$view->title:(isset($title)?$title:'Umbrella') ?></title>
 		<link rel="stylesheet" type="text/css" href="<?= $base ?>common_templates/css/<?= isset($theme)?$theme:'comfort' ?>/style.css<?= $hash ?>" />
 		<link rel="stylesheet" type="text/css" href="<?= $base ?>common_templates/css/<?= isset($theme)?$theme:'comfort' ?>/colors.css<?= $hash ?>" />
 		<link rel="stylesheet" type="text/css" href="<?= $base ?>common_templates/css/<?= isset($theme)?$theme:'comfort' ?>/svg_colors.css<?= $hash ?>" />

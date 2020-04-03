@@ -20,7 +20,7 @@ for DIR in $DIRS; do
 	for SCRIPT in *test.py; do
 		# if FILTER is set, only start scripts whose name contains the respective text
 		if [[ $SCRIPT == *$FILTER* ]]; then
-			echo -n launching $DIR/tests/$SCRIPT
+			echo -n $DIR/tests/$SCRIPT
 			python "$SCRIPT" || exit -1
 		fi
 	done
