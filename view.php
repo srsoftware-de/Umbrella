@@ -16,6 +16,7 @@ if (empty($project)){
 	redirect(getUrl('project'));
 }
 
+$title = t('Umprella: Project ◊',$project->name);
 $current_user_is_owner = $project->users[$user->id]['permission'] == PROJECT_PERMISSION_OWNER;
 
 if ($remove_user_id = param('remove_user')){
@@ -28,14 +29,12 @@ if ($remove_user_id = param('remove_user')){
 	} else error('You are not allowed to remove users from this project');
 }
 
-$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id]);
+$show_closed_tasks = param('closed') == 'show';
+$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id,'load_closed'=>$show_closed_tasks]);
 
 if (param('note_added')) $project->send_note_notification();
 
 if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
-
-$title = t('Umprella: Project ◊',$project->name);
-$show_closed_tasks = param('closed') == 'show';
 
 if (file_exists('../lib/parsedown/Parsedown.php')){
 	include '../lib/parsedown/Parsedown.php';
@@ -48,6 +47,7 @@ function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 	foreach ($task_list as $tid => $task){
 		if (!$show_closed_tasks && ($task['status']>=60) && !$parent_show_closed) continue;
 		if ($task['parent_task_id'] != $parent_task_id) continue;
+		$redirect = urlencode(location());
 		if ($first){
 			$first = false; ?><ul><?php
 		} ?>
@@ -57,21 +57,21 @@ function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 			(<?= $task['est_time']?>&nbsp;h)
 			<?php } ?>
 			<span class="hover_h symbol">
-			<a title="<?= t('edit') ?>" href="../../task/<?= $tid ?>/edit?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('edit') ?>" href="../../task/<?= $tid ?>/edit?redirect=<?= $redirect ?>"></a>
 			<a title="<?= t('add subtask') ?>" 	href="../../task/<?= $tid ?>/add_subtask"> </a>
 			<?php if ($task['status'] != TASK_STATUS_STARTED) { ?>
-			<a title="<?= t('started') ?>"  href="../../task/<?= $tid ?>/start?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('started') ?>"  href="../../task/<?= $tid ?>/start?redirect=<?= $redirect ?>"></a>
 			<?php } if ($task['status'] != TASK_STATUS_COMPLETE) { ?>
-			<a title="<?= t('complete') ?>" href="../../task/<?= $tid ?>/complete?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('complete') ?>" href="../../task/<?= $tid ?>/complete?redirect=<?= $redirect ?>"></a>
 			<?php } if ($task['status'] != TASK_STATUS_CANCELED) { ?>
-			<a title="<?= t('cancel') ?>"   href="../../task/<?= $tid ?>/cancel?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('cancel') ?>"   href="../../task/<?= $tid ?>/cancel?redirect=<?= $redirect ?>"></a>
 			<?php } if ($task['status'] != TASK_STATUS_OPEN) { ?>
-			<a title="<?= t('open') ?>"     href="../../task/<?= $tid ?>/open?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('open') ?>"     href="../../task/<?= $tid ?>/open?redirect=<?= $redirect ?>"></a>
 			<?php } if ($task['status'] != TASK_STATUS_PENDING) { ?>
-			<a title="<?= t('wait') ?>"     href="../../task/<?= $tid ?>/wait?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('wait') ?>"     href="../../task/<?= $tid ?>/wait?redirect=<?= $redirect ?>"></a>
 			<?php } ?>
 			<a title="<?= t('add user') ?>" href="../../task/<?= $tid ?>/add_user"> </a>
-			<a title="<?= t('delete') ?>"   href="../../task/<?= $tid ?>/delete?redirect=../../project/<?= $project_id ?>/view"></a>
+			<a title="<?= t('delete') ?>"   href="../../task/<?= $tid ?>/delete?redirect=<?= $redirect ?>"></a>
 			</span>
 			<?php display_tasks($task_list,$tid,$task['show_closed']==1)?>
 		</li>
