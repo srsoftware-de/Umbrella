@@ -497,17 +497,19 @@
 			if (!$query->execute([':tid'=>$this->id,':uid'=>$user_id])) throw new Exception('Was not able to remove user from task.');
 		}
 
-		public function children(){
+		public function children($recurse = true, $load_closed = false, $db = null){
 			if (empty($this->children))	{
-				$db = get_or_create_db();
+				if ($db == null ) $db = get_or_create_db();
 				$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name COLLATE NOCASE ASC');
 				if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to query children of '.$this->name);
 				$rows = $query->fetchAll(INDEX_FETCH);
 				$children = [];
-				foreach ($rows as $id => $row){
+				foreach ($rows as $row){
 					$task = new Task();
 					$task->patch($row);
+					if (!$load_closed && $task->status >= TASK_STATUS_COMPLETE) continue;
 					unset($task->dirty);
+					if ($recurse) $task->children($recurse,$load_closed,$db); // load children recursively
 					$children[$task->id] = $task;
 				}
 				$this->children = $children;

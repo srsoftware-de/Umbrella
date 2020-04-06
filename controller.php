@@ -20,33 +20,36 @@ function view() {
 
 	$task->project(); // load project
 
-	$data = new class (){};
-	$data->task = $task;
-	$data->title = $task->name.' - Umbrella';
+	$view = new class (){};
+	$view->task = $task;
+	$view->title = $task->name.' - Umbrella';
 
-	$data->show_closed_children = $task->show_closed == 1 || param('closed') == 'show';
-	$data->bookmark = false;
+	$view->show_closed_children = $task->show_closed == 1 || param('closed') == 'show';
+	$task->children(true,$view->show_closed_children); # load children
+
+	$view->bookmark = false;
 	if (isset($services['bookmark'])){
 		$hash = sha1(location('*'));
-		$data->bookmark = request('bookmark',$hash.'/json');
+		$view->bookmark = request('bookmark',$hash.'/json');
 	}
 
-	if (empty($task->parent())){
+	// load siblings:
+	if (empty($task->parent())){ // either from project, when there is no parent task
 		$siblings = Task::load(['project_ids'=>$task->project_id,'parent_task_id'=>null]);
-	} else {
+	} else { // or from parent task
 		$siblings = $task->parent()->children();
 	}
-	$data->previous = null;
-	$data->next = null;
-	$last = null;
+	$view->previous = null;
+	$view->next = null;
 
+	$last = null;
 	foreach ($siblings as $sibling){
 		if ($sibling->status > 50) continue;
-		if ($last != null && $last->id == $task->id) $data->next = $sibling;
-		if ($sibling->id == $task->id) $data->previous = $last;
+		if ($last != null && $last->id == $task->id) $view->next = $sibling;
+		if ($sibling->id == $task->id) $view->previous = $last;
 		$last = $sibling;
 	}
 
-	return $data;
+	return $view;
 }
 ?>
