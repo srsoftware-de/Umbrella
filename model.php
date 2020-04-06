@@ -96,6 +96,7 @@
 			$db = get_or_create_db();
 			Task::update_states($db);
 
+			$load_closed = !empty($options['load_closed']) && $options['load_closed']===true;
 			$ids_only = isset($options['ids_only']) && $options['ids_only'];
 
 			$sql = 'SELECT id';
@@ -106,6 +107,7 @@
 				$sql .= ',*';
 				$where[] = 'id IN (SELECT task_id FROM tasks_users WHERE user_id = ?)';
 				$args[] = $user->id;
+				$load_closed = true;
 			}
 
 			$sql .= ' FROM tasks';
@@ -117,6 +119,7 @@
 				$qMarks = str_repeat('?,', count($ids)-1).'?';
 				$where[] = 'id IN ('.$qMarks.')';
 				$args = array_merge($args, $ids);
+				$load_closed = true;
 			}
 
 			if (isset($options['project_ids'])){
@@ -131,6 +134,7 @@
 				$key = '%'.$options['key'].'%';
 				$where[] = '(name LIKE ? OR description LIKE ?)';
 				$args = array_merge($args, [$key,$key]);
+				$load_closed = true;
 			}
 
 			if (array_key_exists('parent_task_id',$options)){
@@ -140,6 +144,11 @@
 					$where[] = 'parent_task_id = ?';
 					$args[] = $options['parent_task_id'];
 				}
+			}
+
+			if (!$load_closed){
+				$where[] = 'status < ?';
+				$args[] = TASK_STATUS_COMPLETE;
 			}
 
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);

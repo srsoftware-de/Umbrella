@@ -128,9 +128,6 @@ expect((1,USER2,WRITE) in rows)
 cursor.execute('DELETE FROM tasks_users WHERE user_id>1')
 db.commit();
 
-for row in rows:
-    print row
-
 # notify: absent
 r = admin_session.post('http://localhost/task/1/add_user',data={'users[2]':WRITE})
 expectNot(r,'benachrichtigt')

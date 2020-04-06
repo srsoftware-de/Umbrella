@@ -9,5 +9,6 @@ if ($ids      = param('ids')) {
 }
 if ($pids     = param('project_ids')) $options['project_ids'] = $pids;
 if ($ids_only = param('ids_only'))    $options['ids_only']    = $ids_only;
+if (param('load_closed') == true)     $options['load_closed'] = true;
 
 die(json_encode(Task::load($options)));
