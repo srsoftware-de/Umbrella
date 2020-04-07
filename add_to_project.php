@@ -7,12 +7,11 @@ if (empty($project_id)){
 	redirect(getUrl('project'));
 }
 
-$project = request('project','json',['ids'=>$project_id,'users'=>'true'],false,OBJECT_CONVERSION);
+$project = request('project','json',['id'=>$project_id,'users'=>'true'],false,OBJECT_CONVERSION);
 if (empty($project)){
 	error('You don`t have access to that project!');
 	redirect(getUrl('project'));
 }
-
 
 if ($name = post('name')){
 	$user_permissions = param('users');

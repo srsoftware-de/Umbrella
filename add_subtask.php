@@ -13,7 +13,7 @@ if (empty($task)){
 	redirect(getUrl('project'));
 }
 
-$project = request('project','json',['ids'=>$task->project_id,'users'=>'true'],false,OBJECT_CONVERSION);
+$project = request('project','json',['id'=>$task->project_id,'users'=>'true'],false,OBJECT_CONVERSION);
 if (empty($project)){
 	error('You don`t have access to that project!');
 	redirect(getUrl('project'));
@@ -94,7 +94,7 @@ include '../common_templates/messages.php'; ?>
 					<th title="<?= t('read only')?>" class="symbol"></th>
 					<th title="<?= t('no access')?>" class="symbol"></th>
 				</tr>
-			<?php foreach ($task->project->users as $id => $u) { $owner = $id == $user->id; ?>
+			<?php foreach ($project->users as $id => $u) { $owner = $id == $user->id; ?>
 				<tr>
 					<td><?= $u->data->login ?></td>
 					<td><input type="radio" <?= $owner?'readonly="readonly"':''?>name="users[<?= $id ?>]" title="<?= t('assignee')?>" value="<?= Task::PERMISSION_ASSIGNEE ?>" /></td>

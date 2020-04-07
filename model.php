@@ -238,7 +238,7 @@
 		}
 
 		public function project($field = null){
-			if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true],false,OBJECT_CONVERSION);
+			if (empty($this->project)) $this->project = request('project','json',['id'=>$this->project_id,'users'=>true],false,OBJECT_CONVERSION);
 			if ($field){
 				if (empty($this->project)) return null;
 				return $this->project->{$field};

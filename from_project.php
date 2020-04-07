@@ -7,7 +7,7 @@ if (empty($project_id)){
 	redirect(getUrl('task'));
 }
 
-$source = request('project','json',['ids'=>$project_id,'users'=>true]);
+$source = request('project','json',['id'=>$project_id,'users'=>true]);
 if (empty($source)){
 	error('You don`t have access to that project!');
 	redirect(getUrl('task'));
