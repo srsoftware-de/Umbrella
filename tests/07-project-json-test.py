@@ -32,21 +32,21 @@ expectJson(r,'{"2": {"status": "'+str(OPEN)+'", "description": "owned by user2",
 
 # get project admin's project: forbidden for user 1
 r = user_session.get('http://localhost/project/json?ids=1',allow_redirects=False)
-expectJson(r,'null')
+expectJson(r,'[]')
 
 r = user_session.get('http://localhost/project/1/json',allow_redirects=False)
 expectJson(r,'null')
 
 # get project admin's project
-r = admin_session.get('http://localhost/project/json?ids=1',allow_redirects=False)
+r = admin_session.get('http://localhost/project/1/json',allow_redirects=False)
 expectJson(r,'{"id":"1","company_id":null,"name":"admin-project","description":"owned by admin","status":"'+str(OPEN)+'"}')
 
 # get user2's project
-r = user_session.get('http://localhost/project/json?ids=2',allow_redirects=False)
+r = user_session.get('http://localhost/project/2/json',allow_redirects=False)
 expectJson(r,'{"id":"2","company_id":null,"name":"user2-project","description":"owned by user2","status":"'+str(OPEN)+'"}')
 
 # admin has no access to project of user2, should recieve null
-r = admin_session.get('http://localhost/project/json?ids=2',allow_redirects=False)
+r = admin_session.get('http://localhost/project/2/json',allow_redirects=False)
 expectJson(r,'null')
 
 # if this fails, try to run user/tests/04-user-edit-test before!

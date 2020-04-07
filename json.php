@@ -5,16 +5,15 @@ require_login('project');
 $options = [];
 
 $ids = param('ids',[]);
+if (!empty($ids) && !is_array($ids)) $ids = [$ids]; // force ids to be array
 
 $id = param('id');
 if (!empty($id)){
 	if (empty($ids)){ // if ids is not set: use id as ids
 		$ids = $id;
 	} else { // if ids is set...
-		if (is_array($ids)){ //...and is an array: add id
-			$ids[] = $id;
-			$ids = array_unique($ids);
-		} else if ($ids != $id) $ids = [ $id, $ids ]; // ... and is not an array: combine to array with id
+		$ids[] = $id;
+		$ids = array_unique($ids);
 	}
 }
 
