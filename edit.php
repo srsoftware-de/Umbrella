@@ -55,7 +55,6 @@ if ($user_id = param('id')){
 } else error('No user ID passed to user/edit!');
 $themes = get_themes();
 
-
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
 include '../common_templates/messages.php';
@@ -105,17 +104,19 @@ if ($allowed){ ?>
 				</th>
 			</tr>
 			<?php foreach ($projects as $project) {
-				if ($project['status'] >= PROJECT_STATUS_COMPLETE) continue; ?>
+				if ($project['status'] >= PROJECT_STATUS_COMPLETE) continue;
+				$notification_settings = isset($user->settings['notifications']['project'][$project['id']]) ? isset($user->settings['notifications']['project'][$project['id']]) : 0;
+				?>
 			<tr>
 				<td><?= $project['name'] ?></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_INSTANTLY ?>]" <?= $user->settings['notifications']['project'][$project['id']] === Message::SEND_INSTANTLY ? 'checked="checked"':''?> /></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_8 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_8 ? 'checked="checked"':''?> /></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_10 ?>]"<?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_10 ? 'checked="checked"':''?>  /></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_12 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_12 ? 'checked="checked"':''?> /></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_14 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_14 ? 'checked="checked"':''?> /></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_16 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_16 ? 'checked="checked"':''?> /></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_18 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_18 ? 'checked="checked"':''?> /></td>
-				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_20 ?>]" <?= $user->settings['notifications']['project'][$project['id']] & Message::SEND_AT_20 ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_INSTANTLY ?>]" <?= $notification_settings === Message::SEND_INSTANTLY ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_8 ?>]"      <?= $notification_settings & Message::SEND_AT_8 ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_10 ?>]"     <?= $notification_settings & Message::SEND_AT_10 ? 'checked="checked"':''?>  /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_12 ?>]"     <?= $notification_settings & Message::SEND_AT_12 ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_14 ?>]"     <?= $notification_settings & Message::SEND_AT_14 ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_16 ?>]"     <?= $notification_settings & Message::SEND_AT_16 ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_18 ?>]"     <?= $notification_settings & Message::SEND_AT_18 ? 'checked="checked"':''?> /></td>
+				<td><input type="checkbox" name="settings[notifications][project][<?= $project['id']?>][<?= Message::SEND_AT_20 ?>]"     <?= $notification_settings & Message::SEND_AT_20 ? 'checked="checked"':''?> /></td>
 			</tr>
 			<?php } }?>
 			<tr>
