@@ -278,7 +278,7 @@
 			$projects = [];
 			if (!empty($project_ids)){
 				$token = Token::getOrCreate($admin,false); // create token for admin user
-				$projects = request('project','json',['ids'=>array_keys($project_ids),'token'=>$token]); // request projects using token
+				$projects = request('project','json',['ids'=>array_keys($project_ids),'token'=>$token,'grant'=>'all']); // request projects using token
 				Token::load($token)->revoke()->destroy(); // revoke token so it can not be abused
 			}
 
