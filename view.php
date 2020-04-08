@@ -127,7 +127,6 @@ include '../common_templates/messages.php'; ?>
 		</td>
 	</tr>
 	<?php } ?>
-	<?php if (!empty($view->task->children)){?>
 	<tr>
 		<th>
 			<?= t('Child tasks')?>
@@ -139,7 +138,6 @@ include '../common_templates/messages.php'; ?>
 			<?php display_children($view->task); ?>
 		</td>
 	</tr>
-	<?php } ?>
 	<?php if (!empty($view->task->users())){ ?>
 	<tr>
 		<th>
