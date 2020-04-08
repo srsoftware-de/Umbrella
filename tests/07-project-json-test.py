@@ -45,9 +45,17 @@ expectJson(r,'{"id":"1","company_id":null,"name":"admin-project","description":"
 r = user_session.get('http://localhost/project/2/json',allow_redirects=False)
 expectJson(r,'{"id":"2","company_id":null,"name":"user2-project","description":"owned by user2","status":"'+str(OPEN)+'"}')
 
-# admin has no access to project of user2, should recieve null
+# admin has no access to project of user2 withour grant parameter, should recieve null
 r = admin_session.get('http://localhost/project/2/json',allow_redirects=False)
 expectJson(r,'null')
+
+# admin should be able to get all projects if grant parameter ist set to all
+r = admin_session.get('http://localhost/project/json?grant=all',allow_redirects=False)
+expectJson(r,'{"1": {"status": "'+str(OPEN)+'", "description": "owned by admin", "id": "1", "name": "admin-project", "company_id": null}, "3": {"status": "'+str(OPEN)+'", "description": "created by user2", "id": "3", "name": "common-project", "company_id": null}, "2": {"status": "'+str(OPEN)+'", "description": "owned by user2", "id": "2", "name": "user2-project", "company_id": null}}')
+
+# grant parameter should not be valid for normal user
+r = user_session.get('http://localhost/project/json?ids=1&grant=all',allow_redirects=False)
+expectJson(r,'[]')
 
 # if this fails, try to run user/tests/04-user-edit-test before!
 r = admin_session.get('http://localhost/project/json?users=true',allow_redirects=False)
