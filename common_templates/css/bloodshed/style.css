@@ -13,6 +13,11 @@ body{
 a{
 	text-decoration: none;
 }
+code {
+	display: inline-block;
+	padding: 5px;
+	margin: 5px 0;
+}
 textarea {
 	min-width: 25%;
 	min-height: 40px;
@@ -449,11 +454,13 @@ div.search{
 	max-width: 150px;
 }
 
-div.search input{
+div.search input,
+div.search label{
 	display: none;
 }
 
-div.search:hover input{
+div.search:hover input,
+div.search:hover label{
 	display: initial;
 }
 
