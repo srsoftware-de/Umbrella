@@ -59,6 +59,13 @@ code{
 #main_menu a{
 	display: block;
 	text-align: center;
+	overflow: hidden;
+}
+
+#main_menu a:hover{
+	display: inline-block;
+	min-width: 134px;
+	margin: 0 5px 0 5px;
 }
 
 .hidden{
@@ -252,10 +259,27 @@ legend{
 }
 
 .search input {
-	margin: 5px;
-	width: 95px;
+	margin: 5px 0 0 5px;
+	width: 62%;
 }
 
+.search label input{
+	width: 10px;
+}
+
+.search label{
+	display: none;
+}
+
+.search:hover label{
+	display: block;
+}
+
+.search button{
+	width: 40px;
+	font-size: 14px;
+	padding: 0;
+}
 
 .share{
 	height: 35px;

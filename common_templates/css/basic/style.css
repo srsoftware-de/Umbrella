@@ -1,0 +1,8 @@
+@font-face {
+	font-family: "awesome";
+	src: url("../fontawesome-webfont.woff");
+}
+.symbol{
+	font-family: awesome;
+	text-decoration: none;
+}

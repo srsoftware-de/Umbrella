@@ -71,3 +71,7 @@ body > a.symbol {
 .errors span{
 	background: orange;
 }
+
+.search label{
+	color: white;
+}
