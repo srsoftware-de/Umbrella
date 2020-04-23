@@ -34,10 +34,25 @@ function getHeadings(elem){
 }
 
 function keyEvent(e){
-	if (e.ctrlKey && e.key === 'f') { // display search form on Ctrl+F
-		e.preventDefault();
-		$('.search *').show();
-		$('.search form>input').focus();
+	if (e.ctrlKey){		
+		if (e.key === 'f') { // display search form on Ctrl+F
+			e.preventDefault();
+			$('.search *').show();
+			$('.search form>input').focus();
+		}
+		return;
+	}
+	if (e.altKey){
+		switch (e.keyCode){
+			case 38:
+				$('a.parent').each(function(){this.click()});
+				return;
+			case 39:
+				$('a.next').each(function(){this.click()});
+				return
+			default:
+				console.log(e.keyCode);
+		}
 	}
 }
 
