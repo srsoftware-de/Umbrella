@@ -57,8 +57,15 @@ function keyEvent(e){
 	switch (e.keyCode){
 		case 27: // ESC
 			if (document.location.href.includes("/add")) window.history.back();
+			if (document.location.href.includes("/edit")) window.history.back();
 			return;
 		case 107: // +
+			var active = document.activeElement.tagName;
+			switch (active){
+				case 'TEXTAREA':
+					// do not activate add-link when in these fields
+					return;
+			}
 			var addLink = $('a[href^="add"]')[0];
 			if (addLink) addLink.click();
 			return;
