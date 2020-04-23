@@ -55,8 +55,8 @@ include '../common_templates/messages.php'; ?>
 		</th>
 		<td class="navi">
 			<?= isset($view->previous) ? '<a href="'.getUrl('task',$view->previous->id.'/view').'" title="'.t('go to previous task').'"><span class="symbol"></span>&nbsp;'.$view->previous->name.'</a>':'' ?> |
-			<?= !empty($view->task->parent()) ? '<a href="'.getUrl('task',$view->task->parent()->id.'/view').'" title="'.t('go to next task').'"><span class="symbol"></span>&nbsp;'.$view->task->parent()->name.'</a>':'' ?> |
-			<?= isset($view->next) ? '<a href="'.getUrl('task',$view->next->id.'/view').'" title="'.t('go to next task').'">'.$view->next->name.'&nbsp;<span class="symbol"></span></a>':'' ?>
+			<?= !empty($view->task->parent()) ? '<a class="parent" href="'.getUrl('task',$view->task->parent()->id.'/view').'" title="'.t('go to next task').'"><span class="symbol"></span>&nbsp;'.$view->task->parent()->name.'</a>':'' ?> |
+			<?= isset($view->next) ? '<a class="next" href="'.getUrl('task',$view->next->id.'/view').'" title="'.t('go to next task').'">'.$view->next->name.'&nbsp;<span class="symbol"></span></a>':'' ?>
 		</td>
 	</tr>
 	<tr>
