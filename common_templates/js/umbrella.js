@@ -54,6 +54,16 @@ function keyEvent(e){
 				console.log(e.keyCode);
 		}
 	}
+	switch (e.keyCode){
+		case 27: // ESC
+			if (document.location.href.includes("/add")) window.history.back();
+			return;
+		case 107: // +
+			var addLink = $('a[href^="add"]')[0];
+			if (addLink) addLink.click();
+			return;
+	}
+	console.log(e);
 }
 
 getHeadingsTimer = null;
