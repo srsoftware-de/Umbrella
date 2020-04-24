@@ -125,7 +125,7 @@
 				$keys = explode('+',$options['search']); // search in concatenated field
 				foreach ($keys as $key){
 					$having[] = 'search LIKE ?';
-					$args[] = '%'.$key.'%';
+					$args[] = '%'.trim($key).'%';
 				}
 			}
 
@@ -263,7 +263,7 @@
 				$search = explode(' ',$search);
 				foreach ($search as $key){
 					$where[] = 'comment LIKE ?';
-					$args[] = '%'.$key.'%';
+					$args[] = '%'.trim($key).'%';
 				}
 			}
 
