@@ -1,8 +1,21 @@
 <?php include 'controller.php';
 $title = 'Umbrella login';
 
+$login_services = LoginService::load();
+$service_known = false;
+
 $redirect = param('returnTo');
-if ($username = post('username')){ // defined in bootstrap.php
+if (!empty($redirect)){
+	foreach ($services as $service){
+		if (strpos($redirect, $service['path'])===0) {
+			$service_known = true;
+			break;
+		}
+	}
+	if (!$service_known) error("◊ does not belong to a known service. Will not pass token.",$redirect);
+}
+
+if (no_error() && $username = post('username')){ // defined in bootstrap.php
 	if ($pass =  post('pass')){
 		$users = User::load(['login'=>$username,'passwords'=>'load']);
 		foreach ($users as $u){
@@ -18,20 +31,7 @@ if ($username = post('username')){ // defined in bootstrap.php
 $admin = User::load(['ids'=>1,'passwords'=>'load']);
 if ($admin->pass == sha1('admin') && $admin->login == 'admin') info(t('The default username/password is admin/admin.'));
 
-$login_services = LoginService::load();
-if (!empty($redirect)){
-	$allowed = false;
-	foreach ($services as $service){
-		if (strpos($redirect, $service['path'])===0) {
-			$allowed = true;
-			break;
-		}
-	}
-	if (isset($_SESSION['token']) && Token::load($_SESSION['token'])) {
-		if ($allowed) redirect($redirect.'?token='.$_SESSION['token']);
-		redirect($redirect);
-	}
-}
+if (no_error() && !empty($redirect) && isset($_SESSION['token']) && Token::load($_SESSION['token'])) redirect($redirect.'?token='.$_SESSION['token']);
 
 include '../common_templates/head.php';
 include '../common_templates/messages.php';
