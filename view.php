@@ -45,8 +45,6 @@ include '../common_templates/messages.php'; ?>
 			</span>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$view->task->project_id ?>" title="<?= t('show project files'); ?>" target="_blank"><span class="symbol"></span> <?= t('Files')?></a>
-
-
 		</td>
 	</tr>
 	<tr>
@@ -54,9 +52,9 @@ include '../common_templates/messages.php'; ?>
 			<?= t('Navigation')?>
 		</th>
 		<td class="navi">
-			<?= isset($view->previous) ? '<a href="'.getUrl('task',$view->previous->id.'/view').'" title="'.t('go to previous task').'"><span class="symbol"></span>&nbsp;'.$view->previous->name.'</a>':'' ?> |
-			<?= !empty($view->task->parent()) ? '<a class="parent" href="'.getUrl('task',$view->task->parent()->id.'/view').'" title="'.t('go to next task').'"><span class="symbol"></span>&nbsp;'.$view->task->parent()->name.'</a>':'' ?> |
-			<?= isset($view->next) ? '<a class="next" href="'.getUrl('task',$view->next->id.'/view').'" title="'.t('go to next task').'">'.$view->next->name.'&nbsp;<span class="symbol"></span></a>':'' ?>
+		<?php while (!empty($view->navigation)){ $link = array_shift($view->navigation); ?>
+		<a href="<?= $link->href ?>" title="<?= $link->hover ?>" <?= empty($link->class) ? '':'class="'.$link->class.'"' ?>><span class="symbol"><?= $link->symbol ?></span>&nbsp;<?= $link->text ?></a><?= empty($view->navigation) ? '':' | ' ?>
+		<?php } // while ?>
 		</td>
 	</tr>
 	<tr>

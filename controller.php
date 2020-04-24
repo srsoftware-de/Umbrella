@@ -5,7 +5,6 @@ function view() {
 
 	require_login('task');
 
-
 	$task_id = param('id');
 	if (empty($task_id)){
 		error('No task id passed!');
@@ -39,16 +38,26 @@ function view() {
 	} else { // or from parent task
 		$siblings = $task->parent()->children();
 	}
-	$view->previous = null;
-	$view->next = null;
+	$previous = null;
+	$next = null;
 
 	$last = null;
 	foreach ($siblings as $sibling){
 		if ($sibling->status > 50) continue;
-		if ($last != null && $last->id == $task->id) $view->next = $sibling;
-		if ($sibling->id == $task->id) $view->previous = $last;
+		if ($last != null && $last->id == $task->id) $next = $sibling;
+		if ($sibling->id == $task->id) $previous = $last;
 		$last = $sibling;
 	}
+
+	$view->navigation = [];
+
+	if (!empty($previous)) $view->navigation[] = (object)['href'=>getUrl('task',$previous->id."/view"),'text'=>$previous->name,'symbol'=>'','hover'=>t('go to previous task')];
+	if (empty($task->parent())){
+		$view->navigation[] = (object)['href'=> getUrl('project',$task->project->id.'/view'),'text'=>$task->project->name,'symbol'=>'','hover'=>t('go to project'),'class'=>'parent'];
+	} else {
+		$view->navigation[] = (object)['href'=> getUrl('task',$task->parent->id.'/view'),'text'=>$task->parent->name,'symbol'=>'','hover'=>t('go to parent task'),'class'=>'parent'];
+	}
+	if (!empty($next)) $view->navigation[] = (object)['href'=>getUrl('task',$next->id."/view"),'text'=>$next->name,'symbol'=>'','hover'=>t('go to next task')];
 
 	return $view;
 }
