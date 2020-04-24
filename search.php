@@ -9,6 +9,7 @@ if (!$key){
 }
 
 $fulltext = param("fulltext",false) != false;
+if (strpos($key,'+')!==false) $fulltext = true;
 if (!isset($services['bookmark'])) $fulltext = true;
 
 include '../common_templates/head.php';
