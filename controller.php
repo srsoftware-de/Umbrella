@@ -104,7 +104,8 @@
 		static function load($options){
 			global $services,$user;
 			$sql = 'SELECT * FROM urls LEFT JOIN tags ON urls.hash = tags.url_hash';
-			$where = ['user_id = ?'];
+			$where = ['tags.user_id = ?'];
+			$having = [];
 			$args = [$user->id];
 			$single = false;
 			if (isset($options['url_hash'])){
@@ -116,12 +117,21 @@
 				$args = array_merge($args,$options['url_hash']);
 			}
 			if (isset($options['search'])){
-				$where[] = 'url LIKE ?';
-				$args[] = '%'.$options['search'].'%';
+				$sql = str_replace("*", "*,(GROUP_CONCAT(tag) || ',' || comment || ',' || url ) AS search", $sql); // add a field that contains url, comment and all tags
+				$sql.= ' LEFT JOIN url_comments ON urls.hash = url_comments.url_hash LEFT JOIN comments ON url_comments.comment_hash = comments.hash'; // join required tables
+				$where[] = 'url_comments.user_id = ?'; // only fetch comments of current user
+				$args[] = $user->id;
+
+				$keys = explode('+',$options['search']); // search in concatenated field
+				foreach ($keys as $key){
+					$having[] = 'search LIKE ?';
+					$args[] = '%'.$key.'%';
+				}
 			}
 
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
-			$sql .= ' GROUP BY hash';
+			$sql .= ' GROUP BY urls.hash'; // some queries load tables that also contain hash column
+			if (!empty($having)) $sql .= ' HAVING '.implode(' AND ',$having);
 
 			if (isset($options['order'])){
 				$order = is_array($options['order']) ? $options['order'] : [$options['order']];
@@ -136,9 +146,10 @@
 			//debug(query_insert($sql,$args));
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-//			debug(query_insert($query,$args),1);
+			//debug(query_insert($query,$args));
 			if (!$query->execute($args)) throw new Exception('Was not able to request bookmark list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
+			//debug($rows,1);
 			$bookmarks = [];
 			foreach ($rows as $row){
 				$b = new Bookmark();
@@ -313,7 +324,6 @@
 
 		static function load($options){
 			global $user;
-
 			$sql = 'SELECT * FROM tags';
 
 			$where = ['user_id = ?'];
@@ -332,8 +342,11 @@
 			}
 
 			if (isset($options['search'])){
-				$where[] = 'tag LIKE ?';
-				$args[] = '%'.$options['search'].'%';
+				$keys = explode('+',$options['search']);
+				foreach ($keys as $key){
+					$where[] = 'tag LIKE ?';
+					$args[] = '%'.$key.'%';
+				}
 			}
 
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ',$where);
@@ -347,7 +360,6 @@
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
-
 			if (!$query->execute($args)) throw new Exception('Was not able to request tag list!');
 			$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 			$tags = [];
