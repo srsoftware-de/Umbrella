@@ -155,7 +155,7 @@
 
 			$order = empty($options['order'])?'default':$options['order'];
 
-			$sql .= ' ORDER BY version ASC, id COLLATE NOCASE ASC'; // this, together with INDEX_FETCH assures that only the last version is loaded
+			$sql .= ' ORDER BY id COLLATE NOCASE ASC, version ASC'; // this, together with INDEX_FETCH assures that only the last version is loaded
 
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
