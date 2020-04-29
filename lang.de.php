@@ -30,6 +30,7 @@ $translations = [
 	'Email has been sent to ◊'=>'Email an ◊ wurde gesendet.',
 	'Files'=>'Dateien',
 	'From' =>'Von',
+	'full-text search'=>'Volltextsuche',
 	'◊ has been de-assigned.'=>'Verbindung mit ◊ wurde aufgehoben.',
 	'Invoices'=>'Rechnungen',
 	'Last ◊ messages'=>'Letzte ◊ Nachrichten',
