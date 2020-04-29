@@ -55,7 +55,12 @@ include '../common_templates/messages.php'; ?>
 	<?= t('Are you sure you want to delete the following content?')?>
 	<a class="button" href="view?version=<?= $page->version ?>"><?= t('No')?></a>
 	<a class="button" href="delete?version=<?= $page->version ?>&commit=true"><?= t('Yes')?></a>
-	<h2><?= $page->id ?></h2>
 </fieldset>
-<?= markdown($page->content)?>
+<fieldset>
+	<legend>
+		<?= t('content') ?>
+	</legend>
+	<h2><?= $page->id ?></h2>
+	<?= markdown($page->content)?>
+</fieldset>
 <?php include '../common_templates/closure.php'; ?>
