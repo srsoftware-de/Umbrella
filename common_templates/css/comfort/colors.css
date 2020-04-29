@@ -27,6 +27,7 @@ code{
 	color: #414141;
 }
 
+li:hover > a,
 a:hover{
 	color: red;
 }
