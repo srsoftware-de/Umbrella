@@ -15,12 +15,12 @@ if ($key = param('key')){
 	<a class="button" href="<?= $url.$tag.'/view' ?>"><?= emphasize($tag,$key) ?></a>
 	<?php } ?>
 	</fieldset> <?php } // tags not empty
-	foreach ($bookmarks as $hash => $bookmark ) {?>
+	foreach ($bookmarks as $hash => $bookmark ) { ?>
 	<fieldset>
 		<legend>
 			<a class="symbol" href="<?= $url.$hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a class="symbol" href="<?= $url.$hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
-			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= emphasize($bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url,$key)?></a>
+			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= emphasize($bookmark->comment ? $bookmark->comment:$bookmark->url,$key)?></a>
 		</legend>
 		<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= emphasize($bookmark->url,$key) ?></a>
 		<?php if (!empty($bookmark->tags())) { ?>
