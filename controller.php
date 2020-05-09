@@ -143,7 +143,7 @@
 		if ($base_folder == 'project'){
 			$project_id = array_shift($dir_parts);
 			$meta['project_id'] = $project_id;
-			$project = request('project','json',['ids'=>$project_id,'users'=>true]);
+			$project = request('project','json',['id'=>$project_id,'users'=>true]);
 			$users = request('user','json',['ids'=>array_keys($project['users'])]);
 			$subject = t('◊ uploaded a file to "◊"',[$user->login,$project['name']]);
 		} elseif ($base_folder == 'company'){
