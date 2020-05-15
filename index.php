@@ -12,7 +12,7 @@ $parts = explode('/',$path);
 if (isset($parts[1])){
 	switch($parts[0]){
 		case 'project':
-			$prj = request('project','json',['ids'=>$parts[1]]);
+			$prj = request('project','json',['id'=>$parts[1]]);
 			$parts[0] = '<a href="'.getUrl('project',$parts[1].'/view').'">'.t('Projects');
 			$parts[1] = $prj['name'].'</a>';
 			break;
