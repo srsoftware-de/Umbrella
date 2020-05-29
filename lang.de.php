@@ -25,6 +25,7 @@ $translations = array(
 		'Field'=>'Feld',
 		'Files'=>'Dateien',
 		'Float'=>'Gleitkommazahl',
+		'full-text search'=>'Volltextsuche',
 		'Integer'=>'Ganzzahl',
 		'Invoices'=>'Rechnungen',
 		'Item'=>'Artikel',
