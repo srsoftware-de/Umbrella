@@ -43,6 +43,7 @@ $translations = array(
 		'Estimated time'=>'Erwartete Zeit',
 		'export task'=>'Aufgabe exportieren',
 		'Files'=>'Dateien',
+		'full-text search'=>'Volltextsuche',
 		'go to previous task'=>'zur vorigen Aufgabe gehen',
 		'go to next task'=>'zur nächsten Aufgabe gehen',
 		'Hide/Show'=>'Ein-/Ausblenden',
