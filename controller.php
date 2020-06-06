@@ -91,7 +91,7 @@ class Note extends UmbrellaObjectWithId{
 				case 'time':
 					if (strpos($id, 'project:')===0){ // in the first case: request project
 						$parts = explode(':', $id);
-						$entities = request('project','json',['ids'=>array_pop($parts)]);
+						$entities = request('project','json',['id'=>array_pop($parts)]);
 						if (empty($entities)) return [];
 						break;
 					}
