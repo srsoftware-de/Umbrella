@@ -8,7 +8,7 @@ if (empty($project_id)){
 	redirect(getUrl('model'));
 }
 
-$project = request('project','json',['ids'=>$project_id]);
+$project = request('project','json',['id'=>$project_id]);
 if (empty($project)){
 	error('You are not allowed to access that project!');
 	redirect(getUrl('model'));
@@ -31,7 +31,7 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add Model to ◊',$project['name']); ?></legend>
+	<legend><?= t('Add Model to "◊"',$project['name']); ?></legend>
 	<form method="POST">
 	<fieldset>
 		<legend><?= t('Name'); ?></legend>
