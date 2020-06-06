@@ -182,7 +182,7 @@
 			$tasks_referenced_by_times = request('task','json',$task_filter);
 
 			/* Fetch all projects and filter by referencing takss */
-			$projects = $filter_by_project ? request('project','json',['ids'=>$options['project_id']]) : request('project','json');
+			$projects = $filter_by_project ? request('project','json',['id'=>$options['project_id']]) : request('project','json');
 
 			$filtered_times = [];
 			foreach ($all_times as $tid => $time){
