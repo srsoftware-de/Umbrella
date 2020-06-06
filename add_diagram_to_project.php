@@ -8,7 +8,7 @@ if (empty($project_id)) {
 	redirect(getUrl('model'));
 }
 
-$project = request('project','json',['ids'=>$project_id]);
+$project = request('project','json',['id'=>$project_id]);
 if (empty($project)){
 	error('You are not allowed to access that project!');
 	redirect(getUrl('model'));

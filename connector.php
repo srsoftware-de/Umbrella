@@ -7,15 +7,12 @@ if (empty($process_connector_id)) {
 	error('No process connector id passed to form!');
 	redirect(getUrl('model'));
 }
-
 $process_place_id = param('place_id');
 if (empty($process_place_id)){
 	$connector = Connector::load(['ids'=>$process_connector_id]);
 } else {
-
+	$connector = Connector::load(['process_connector_id'=>$process_connector_id]);
 }
-
-
 
 if ($name = param('name')){
 	$connector->patch(['name'=>$name])->save();

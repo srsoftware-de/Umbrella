@@ -239,7 +239,7 @@ class Connector extends UmbrellaObjectWithId{
 	}
 
 	function project(){
-		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		if (empty($this->project)) $this->project = request('project','json',['id'=>$this->project_id]);
 		return $this->project;
 	}
 
@@ -588,7 +588,7 @@ class Flow extends UmbrellaObjectWithId{
 	}
 
 	function project(){
-		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		if (empty($this->project)) $this->project = request('project','json',['id'=>$this->project_id]);
 		return $this->project;
 	}
 
@@ -713,7 +713,7 @@ class Diagram extends UmbrellaObjectWithId{
 	}
 
 	function project(){
-		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true]);
+		if (empty($this->project)) $this->project = request('project','json',['id'=>$this->project_id,'users'=>true]);
 		return $this->project;
 	}
 
@@ -1244,7 +1244,7 @@ class Process extends UmbrellaObjectWithId{
 	}
 
 	function project(){
-		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id,'users'=>true]);
+		if (empty($this->project)) $this->project = request('project','json',['id'=>$this->project_id,'users'=>true]);
 		return $this->project;
 	}
 
@@ -1849,7 +1849,7 @@ class Terminal extends UmbrellaObjectWithId{
 	}
 
 	function project(){
-		if (empty($this->project)) $this->project = request('project','json',['ids'=>$this->project_id]);
+		if (empty($this->project)) $this->project = request('project','json',['id'=>$this->project_id]);
 		return $this->project;
 	}
 

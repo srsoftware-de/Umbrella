@@ -25,7 +25,7 @@ include '../common_templates/main_menu.php';
 include '../common_templates/messages.php'; ?>
 
 <fieldset>
-	<legend><?= t('Add process to ◊',t(($process->r == 0?'model':'process').' "?"',$process->name)); ?></legend>
+	<legend><?= t('Add process to ◊',t(($process->r == 0?'model':'process').' "◊"',$process->name)); ?></legend>
 	<form method="POST">
 	<input type="hidden" name="project_id" value="<?= $process->project_id ?>" />
 	<input type="hidden" name="model_id" value="<?= $process->id ?>" />
