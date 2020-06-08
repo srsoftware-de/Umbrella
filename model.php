@@ -528,7 +528,11 @@
 
 		public function child_time(){
 			$sum = 0;
-			foreach ($this->children() as $child) $sum += $child->est_time + $child->child_time();
+			foreach ($this->children() as $child) {
+				$sum += empty($child->est_time) ? 0 : $child->est_time;
+				$ct = $child->child_time();
+				$sum += empty($ct) ? 0 : $ct;				
+			}
 			return $sum;
 		}
 
