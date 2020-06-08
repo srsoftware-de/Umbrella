@@ -84,7 +84,7 @@ function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 }
 
 $est_time = 0;
-foreach ($tasks as $task) $est_time += $task['est_time'];
+foreach ($tasks as $task) $est_time += empty($task['est_time']) ? 0 : $task['est_time'];
 
 include '../common_templates/head.php';
 include '../common_templates/main_menu.php';
