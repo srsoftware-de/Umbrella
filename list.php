@@ -8,7 +8,7 @@ foreach ($services as $service => $sdata){
 	if (isset($map[$service])){?>
 <fieldset class="<?= $service ?>">
 	<legend><?= t($sdata['name']) ?></legend>
-	<?php foreach ($map[$service] as $bookmark) { $bookmark->comment() ?>
+	<?php foreach ($map[$service] as $hash => $bookmark) { $bookmark->comment() ?>
 	<span class="hover_h">
 		<a class="button" href="<?= $bookmark->url ?>"><?= $bookmark->comment() ? $bookmark->comment->comment : $bookmark->url ?></a>
 		<a class="symbol" href="<?= $base_url.$hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
