@@ -599,7 +599,7 @@
 					if (trim($tag) != '') $tags[]=$tag;
 				}
 				$url = getUrl('task',$this->id.'/view');
-				request('bookmark','add',['url'=>$url,'comment'=>t('Task: ◊',$this->name),'tags'=>$tags]);
+				request('bookmark','add',['url'=>$url,'comment'=>$this->name,'tags'=>$tags]);
 				return sha1($url);
 			}
 			return false;
