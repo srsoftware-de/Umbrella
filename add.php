@@ -18,7 +18,7 @@ if (access_granted($dir) && !in_array($dir,['company','project'])){
 					$tags[] = $info['name'];
 					$display_url = getUrl('files','index?path='.$info['dir']);
 					$tags=implode(' ', $tags);
-				 	request('bookmark','add',['url'=>$display_url,'tags'=>$tags,'comment'=>t('Show "◊" in Umbrella File Manager.',$info['name'])]);
+				 	request('bookmark','add',['url'=>$display_url,'tags'=>$tags,'comment'=>$info['name']]);
 				}
 				redirect('index'.($dir?'?path='.$dir:''));
 			} else error($info);
