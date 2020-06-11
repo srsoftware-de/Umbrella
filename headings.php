@@ -18,8 +18,7 @@ if ($page = param('page')){
 		if ($tag->getAttribute('name') != 'keywords') continue;
 		$keywords = explode(',', str_replace(' ','_',str_replace(', ',',',$tag->getAttribute('content'))));
 	}
-	$keywords[] = sha1($page);
-	die(json_encode(['headings'=>$headings,'keywords'=>$keywords],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+	die(json_encode(['headings'=>$headings],JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
 } else {
 	echo 'No path set!';
 }
