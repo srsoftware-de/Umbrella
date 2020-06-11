@@ -20,9 +20,9 @@ if ($key = param('key')){
 		<legend>
 			<a class="symbol" href="<?= $url.$hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a class="symbol" href="<?= $url.$hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
-			<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= emphasize($bookmark->comment ? $bookmark->comment:$bookmark->url,$key)?></a>
+			<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= emphasize($bookmark->comment ? $bookmark->comment:$bookmark->url,$key)?></a>
 		</legend>
-		<a <?= $bookmark->external?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= emphasize($bookmark->url,$key) ?></a>
+		<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= emphasize($bookmark->url,$key) ?></a>
 		<?php if (!empty($bookmark->tags())) { ?>
 		<div class="tags">
 			<?php foreach ($bookmark->tags() as $tag => $dummy){ ?>

@@ -157,9 +157,8 @@
 				unset($row['hash']);
 				$b->patch($row);
 
-				$b->patch(['external'=>true]);
 				foreach ($services as $name => $service){
-					if (strpos($b->url,$service['path']) === 0) $b->external = false;
+					if (strpos($b->url,$service['path']) === 0) $b->internal = $name;
 				}
 
 				unset($b->dirty);
