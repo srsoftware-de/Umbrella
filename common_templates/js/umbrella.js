@@ -28,7 +28,6 @@ function getHeadings(elem){
 		dataType: "json",
 		success: function(data){
 			for (var index in data.headings) addDescriptionOption(data.headings[index]);
-			$('input[name=tags]').attr('value',data.keywords.join(' '));
 		}		
 	});
 }
