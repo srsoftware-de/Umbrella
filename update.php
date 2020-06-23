@@ -56,19 +56,31 @@ function update1(){
 	}
 }
 
+function update2(){
+	global $db;
+	if (no_error()){
+		$sql = 'ALTER TABLE polls ADD COLUMN private BOOLEAN;';
+		$query = $db->prepare($sql);
+		if ($query->execute()){
+			info("Created 'private' table.");
+		} else error("0x008: Was not able to add column 'private' to poll table");	
+	}
+}
+
 function updateDB($version){
 	global $db;
 	info('Attempting to update to db verison ◊.',$version);
 
 	switch ($version){
 		case 1: update1(); break;
+		case 2: update2(); break;
 	}
 
 	if (no_error()){
 		$query = $db->prepare('REPLACE INTO settings (key, value) VALUES ("db_version", ?)');
 		if ($query->execute([$version])) {
 			info("Set db_version ◊ in settings table",$version);
-		} else error("0x006: Was not able insert db version into settings table!");
+		} else error("0x007: Was not able insert db version into settings table!");
 	}
 
 	if (no_error()) info('Update performed');

@@ -1,7 +1,7 @@
 <?php include '../bootstrap.php';
 
 const MODULE = 'Poll';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 $title = t('Umbrella Poll Management');
 
 function db_version(){
@@ -55,7 +55,7 @@ class Option extends UmbrellaObject{
 		];
 	}
 
-	static function load($options){
+	static function load($options = []){
 		$sql = 'SELECT * FROM options';
 
 		$where = [];
@@ -159,7 +159,8 @@ class Poll extends UmbrellaObjectWithId{
 				'id' => ['VARCHAR'=>255,'NOT NULL','PRIMARY KEY'],
 				'user_id' => ['INT','NOT NULL','REFERENCES user(id)'],
 				'name' => ['VARCHAR'=>255,'NOT NULL'],
-				'description' => ['TEXT']
+				'description' => ['TEXT'],
+				'private' => ['BOOLEAN']
 		];
 	}
 
@@ -191,7 +192,7 @@ class Poll extends UmbrellaObjectWithId{
 		];
 	}
 	/**** end of table functions ******/
-	static function load($options){
+	static function load($options = []){
 		$sql = 'SELECT * FROM polls';
 
 		$where = [];
@@ -330,8 +331,8 @@ class Poll extends UmbrellaObjectWithId{
 
 		$this->id = sha1($this->name.time());
 
-		$sql = 'INSERT INTO polls (id, user_id, name, description) VALUES (:id, :uid, :name, :desc)';
-		$args = [':id'=>$this->id, ':uid'=>$this->user_id, ':name'=>$this->name, ':desc'=>$this->description];
+		$sql = 'INSERT INTO polls (id, user_id, name, description,private) VALUES (:id, :uid, :name, :desc, :priv)';
+		$args = [':id'=>$this->id, ':uid'=>$this->user_id, ':name'=>$this->name, ':desc'=>$this->description, ':priv'=>true];
 
 		$query = get_or_create_db()->prepare($sql);
 		if (!$query->execute($args)) throw new Exception('Was not able to put new poll into database!');
@@ -379,8 +380,8 @@ class Poll extends UmbrellaObjectWithId{
 	}
 
 	function update(){
-		$sql = 'UPDATE polls SET name = :name, description = :desc WHERE id = :id';
-		$args = [':name'=>$this->name,':desc'=>$this->description,':id'=>$this->id];
+		$sql = 'UPDATE polls SET name = :name, description = :desc, private = :priv WHERE id = :id';
+		$args = [':name'=>$this->name,':desc'=>$this->description,':id'=>$this->id,':priv'=>$this->private];
 		$query = get_or_create_db()->prepare($sql);
 
 		if (!$query->execute($args)) throw new Exception('Was not able to update poll!');
