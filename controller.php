@@ -579,7 +579,7 @@
 			$query = $db->prepare('INSERT INTO tokens (user_id, token, expiration) VALUES (:uid, :tok, :exp)');
 			$token = generateRandomString();
 			$args = [':uid'=>$this->id,':tok'=>$token,':exp'=>(time()+60*60*240)];
-			if($query->execute($args)) throw new Exception('Was not able to set token for user.'); // token valid for 10 days
+			if(!$query->execute($args)) throw new Exception('Was not able to set token for user.'); // token valid for 10 days
 			$subject = t('◊ invited you to Umbrella',$user->login);
 			$url = getUrl('user',$this->id.'/edit?token='.$token);
 			$text = t('Umbrella is an online project management system developed by Stephan Richter.')."\n".
