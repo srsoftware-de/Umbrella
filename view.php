@@ -11,6 +11,7 @@ $id = param('id');
 if (!$id) error('No tag passed to view!');
 
 $tag = Tag::load(['tag'=>$id]);
+if (!$tag) redirect(getUrl('bookmark'));
 $bookmarks = $tag->bookmarks();
 $legend = t('Tag "◊"',$tag->tag).' - <a href="'.getUrl('user','search?fulltext=true&key='.$tag->tag).'">'.t('Search for "◊"',$tag->tag).'</a>';
 $users = load_connected_users();
