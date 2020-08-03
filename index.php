@@ -54,7 +54,7 @@ include '../common_templates/messages.php'; ?>
 			<th><?= t('File / Directory') ?></th>
 			<th><?= t('Actions') ?></th>
 		</tr>
-		<?php foreach ($entries['dirs'] as $alias => $dir){ ?>
+		<?php foreach ($entries['dirs'] as $alias => $dir){ $dir = urlencode($dir); ?>
 		<tr>
 			<td>
 				<a href="?path=<?= $dir ?>">

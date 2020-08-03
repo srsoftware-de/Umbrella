@@ -11,7 +11,7 @@
 	static $projects = null;
 	static $companies = null;
 
-	$query = param('path') ? '?dir='.param('path') : '';
+	$query = param('path') ? '?dir='.urlencode(param('path')) : '';
 
 	function get_or_create_db(){
 		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create files'.DS.'db directory!');
