@@ -7,15 +7,19 @@ $content = param('content');
 
 if (!empty($title) && !empty($content)){
 	$page = new Page();
-	$page->patch(['id'=>$title,'content'=>$content])->save();
+	try {
+		$page->patch(['id'=>$title,'content'=>$content])->save();
 
-	if (isset($services['bookmark'])){
-		$hash = sha1($wiki.$title.'/view');
-		$bookmark = request('bookmark',$hash.'/json');
-		$tags = param('tags');
-		if (!empty($tags)) $page->setTags($tags);
+		if (isset($services['bookmark'])){
+			$hash = sha1($wiki.$title.'/view');
+			$bookmark = request('bookmark',$hash.'/json');
+			$tags = param('tags');
+			if (!empty($tags)) $page->setTags($tags);
+		}
+		info(t('The page "◊" has been created',$title).' – '.t('<a href="share">Click here</a> to share it with other users.'));
+	} catch (Exception $e) {
+		error($e->getMessage());
 	}
-	info(t('The page "◊" has been created',$title).' – '.t('<a href="share">Click here</a> to share it with other users.'));
 	redirect(getUrl('wiki',$page->id.'/view'));
 }
 
