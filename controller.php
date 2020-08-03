@@ -290,8 +290,11 @@
 
 		function assign($user_id){
 			$db = get_or_create_db();
+			$args = [':url_hash'=>$this->url_hash,':uid'=>$user_id];
+			$query = $db->prepare('DELETE FROM url_comments WHERE url_hash = :url_hash AND user_id = :uid');
+			$query->execute($args);
 			$query = $db->prepare('INSERT OR IGNORE INTO url_comments (url_hash, comment_hash, user_id) VALUES (:url_hash, :comment_hash, :uid)');
-			$args = [':url_hash'=>$this->url_hash,':comment_hash'=>$this->comment_hash,':uid'=>$user_id];
+			$args[':comment_hash']=$this->comment_hash;
 			$query->execute($args);
 			unset($this->dirty);
 			return $this;
