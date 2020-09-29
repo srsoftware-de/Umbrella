@@ -169,7 +169,7 @@
 			$target = $directory.DS.'.dia'.DS.basename($filename).'.png';
 			$out = [];
 			$return_code = 0;
-			exec('dia -e '.$target.' '.$filename,$out,$return_code);
+			exec('dia -e "'.$target.'" '.$filename,$out,$return_code);
 			if ($return_code === 0) info('Created file ◊',$target);
 
 		}
