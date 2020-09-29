@@ -488,13 +488,14 @@
 
 		function revoke(){
 			$db = get_or_create_db();
-			$query = $db->prepare('SELECT domain FROM token_uses WHERE token = :token;');
-			if ($query->execute([':token'=>$this->token])){
+			$args = [':token'=>$this->token];
+			$query = $db->prepare('SELECT domain FROM token_uses WHERE token = :token;');			
+			if ($query->execute($args)){
 				$rows = $query->fetchAll(PDO::FETCH_ASSOC);
 				foreach ($rows as $row) file_get_contents($row['domain'].'?revoke='.$this->token);
 			}
 			$query = $db->prepare('DELETE FROM token_uses WHERE token = :token');
-			if (!$query->execute([':token'=>$this->token])) throw new Exception('Was not able to execute DELETE statement.');
+			if (!$query->execute($args)) throw new Exception('Was not able to execute DELETE statement: '.query_insert($query, $args));
 			return $this;
 		}
 
