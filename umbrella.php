@@ -5,7 +5,8 @@ require_login('mindmap');
 if (param('data')){
     print Mindmap::save()->id;
 } else {
-    print Mindmap::load()->data;    
+    $mindmap = Mindmap::load();
+    print '{"title":"'.$mindmap->title.'","data":'.$mindmap->data.'}';
 }
 
 ?>

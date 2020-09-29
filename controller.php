@@ -59,14 +59,46 @@ class Mindmap extends UmbrellaObjectWithId{
 	static function index(){
 	    global $user;
 	    $data = ['text'=>'Index'];
-	    $sql = 'SELECT id,title FROM mindmaps LEFT JOIN users ON mindmaps.id = users.mindmap_id WHERE user_id = :u ORDER BY title ASC, id ASC';
+	    $sql = 'SELECT id,title FROM mindmaps LEFT JOIN users ON mindmaps.id = users.mindmap_id WHERE user_id = :u ORDER BY title COLLATE NOCASE ASC, id ASC';
 	    $query = get_or_create_db()->query($sql);
 	    $args = [':u'=>$user->id];
 	    if (!$query->execute($args)) throw new Exception("Was not able to read mindmap list!");
-	    $rows = $query->fetchAll(INDEX_FETCH);
 	    $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-	    foreach ($rows as $id => $row) $data['children'][] = ['text'=>$row['title'],'url'=>$url.'?id='.$id];	    
+	    
+	    $rows = $query->fetchAll(PDO::FETCH_ASSOC);
+	    $data = Mindmap::indexMap($rows,0,sizeof($rows),$url);
+        $data['text'] = 'Index';
 	    $result = (new Mindmap())->patch(['data'=>json_encode($data),'title'=>'Index']);
+	    unset($result->dirty);
+	    return $result;
+	}
+	
+	static function indexMap($rows,$start,$end,$base){
+	    $startTitle = strtoupper($rows[$start]['title']);
+	    $endTitle = strtoupper($rows[$end-1]['title']);
+	    //debug(['start'=>$startTitle,'end'=>$endTitle]);
+	    
+        $i = 0;
+        while ($i<strlen($startTitle) && $i<strlen($endTitle) && $startTitle[$i] == $endTitle[$i]) $i++;
+        $startTitle = substr($startTitle, 0,$i+1);
+        $endTitle = substr($endTitle, 0,$i+1);
+        //debug(['i'=>$i,'start'=>$startTitle,'end'=>$endTitle]);
+	    
+	    $title = $startTitle.'...'.$endTitle;
+	    $result = ['text'=>$title];
+	    $count = $end - $start;
+	    if ($count > 7){
+	        $step = ceil($count / 7);
+	        for ($startIndex = $start; $startIndex<$end; $startIndex = $startIndex+$step){
+	            $endIndex = min($startIndex+$step,$end);
+	            $result['children'][] = Mindmap::indexMap($rows, $startIndex, $endIndex, $base);
+	        }	        
+	    } else for ($i = $start; $i < $end; $i++){
+	        $child = $rows[$i];
+	        $child['url'] = $base.'?id='.$child['id'];
+	        $child['text'] = $child['title'];
+            $result['children'][] = $child;
+	    }
 	    return $result;
 	}
 	
@@ -97,14 +129,15 @@ class Mindmap extends UmbrellaObjectWithId{
 	    $data = param("data");
 	    if (empty($data)) return (new Mindmap())->setContent(json_encode(["text"=>"Keine Daten übergeben!"]));
 	    $title = param("title");
-	    if (empty($title)) $title = "NEW MINDMAP";
 	    $id = param("id");
 	    if (empty($id)){
 	        // create new
-	        return (new Mindmap())->patch(['data'=>$data,'title'=>$title])->saveNew();
+	        return (new Mindmap())->patch(['data'=>$data,'title'=>empty($title) ? 'New Mindmap' : $title])->saveNew();
 	    } else {
 	        // update
-	        return Mindmap::load()->patch(['data'=>$data,'title'=>$title])->update();	        
+	        $mm = Mindmap::load()->patch(['data'=>$data]);
+	        if (!empty($title)) $mm->patch(['title'=>$title]);
+	        return $mm->update();	        
 	    }	    
 	}
 	/***** end of static functions ******/
