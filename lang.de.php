@@ -32,6 +32,7 @@ $translations = array(
 		'Polls'=>'Umfragen',
 		'Projects'=>'Projekte',
 		'References'=>'Verwendung',
+        'Save'=>'Speichern',
 		'== Select a timetrack =='=>'== Timetrack auswählen ==',
 		'show completed times'=>'abgeschlossene Zeiten anzeigen',
 		'start' => 'Zeiterfassunng starten',

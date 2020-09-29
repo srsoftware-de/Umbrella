@@ -44,7 +44,7 @@ include '../common_templates/messages.php'; ?>
 			<?php }?>
 			</select>
 		</fieldset>
-		<input type="submit" />
+		<button type="submit"><?= t("Save")?></button>
 	</fieldset>
 </form>
 
