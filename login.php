@@ -7,7 +7,7 @@ $service_known = false;
 $redirect = param('returnTo');
 if (!empty($redirect)){
 	foreach ($services as $service){
-		if (strpos($redirect, $service['path'])===0) {
+	    if (strpos($redirect, rtrim($service['path'], '/'))===0) {
 			$service_known = true;
 			break;
 		}
