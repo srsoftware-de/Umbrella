@@ -27,14 +27,19 @@ foreach ($services as $service => $sdata){
 if (!empty($map['external'])) { ?>
 <fieldset class="bookmark">
 	<legend><?= $legend ?></legend>
-	<?php foreach ($map['external'] as $hash => $bookmark ) {?>
+	<?php foreach ($map['external'] as $hash => $bookmark ) {	    
+	    if ($bookmark->comment()){
+	        $parts = explode("\n", $bookmark->comment()->comment,2);
+	    }
+	    ?>
 	<fieldset>
 		<legend>
 			<a class="symbol" href="<?= $base_url.$hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a class="symbol" href="<?= $base_url.$hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
-			<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->comment() ? $bookmark->comment()->comment:$bookmark->url ?></a>
+			<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $parts ? $parts[0] : $bookmark->url ?> | <?= date('Y-m-d H:i',$bookmark->timestamp) ?></a>
 		</legend>
 		<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
+		<?= $parts ? markdown($parts[1]) : "" ?>
 		<div class="tags">
 			<?php foreach ($bookmark->tags() as $tag){ ?>
 			<a class="button" href="<?= $base_url.$tag->tag.'/view' ?>"><?= $tag->tag ?></a>
