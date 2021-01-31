@@ -254,8 +254,8 @@ input[type="submit"] {
 	display: none;
 }
 
-.hover_h:hover{
-	padding: 30px 0;
+.hover_h:hover {
+	padding: 5px 0 20px;
 }
 
 .hover_h:hover > a:nth-child(n+2){
