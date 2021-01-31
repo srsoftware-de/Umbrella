@@ -117,7 +117,7 @@
 				$args = array_merge($args,$options['url_hash']);
 			}
 			if (isset($options['search'])){
-				$sql = str_replace("*", "*,(GROUP_CONCAT(tag) || ',' || comment || ',' || url ) AS search", $sql); // add a field that contains url, comment and all tags
+				$sql = str_replace("*", "url,timestamp,url_comments.url_hash,url_comments.user_id,(GROUP_CONCAT(tag) || ',' || comment || ',' || url ) AS search", $sql); // add a field that contains url, comment and all tags
 				$sql.= ' LEFT JOIN url_comments ON urls.hash = url_comments.url_hash LEFT JOIN comments ON url_comments.comment_hash = comments.hash'; // join required tables
 				$where[] = 'url_comments.user_id = ?'; // only fetch comments of current user
 				$args[] = $user->id;

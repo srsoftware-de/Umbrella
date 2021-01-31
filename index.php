@@ -8,6 +8,7 @@ if ($share_user = param('share_user_id')) {
 }
 
 $bookmarks = Bookmark::load(['order' => 'timestamp DESC', 'limit' => param('limit',40)]);
+//debug($bookmarks);
 $legend = t('latest bookmarks');
 $users = load_connected_users();
 $base_url = getUrl('bookmark');

@@ -31,6 +31,7 @@ if (!empty($map['external'])) { ?>
 	    if ($bookmark->comment()){
 	        $parts = explode("\n", $bookmark->comment()->comment,2);
 	    }
+	    $url = strlen($bookmark->url) > 100 ? substr($bookmark->url, 0, 99) . '…' : $bookmark->url;
 	    ?>
 	<fieldset>
 		<legend>
@@ -38,7 +39,7 @@ if (!empty($map['external'])) { ?>
 			<a class="symbol" href="<?= $base_url.$hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $parts ? $parts[0] : $bookmark->url ?> | <?= date('Y-m-d H:i',$bookmark->timestamp) ?></a>
 		</legend>
-		<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $bookmark->url ?></a>
+		<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $url ?></a>
 		<?= $parts ? markdown($parts[1]) : "" ?>
 		<div class="tags">
 			<?php foreach ($bookmark->tags() as $tag){ ?>

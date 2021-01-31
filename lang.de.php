@@ -25,6 +25,7 @@ $translations = array(
 		'Invoices'=>'Rechnungen',
 		'Items'=>'Artikel',
 		'latest bookmarks'=>'neuste Lesezeichen',
+		'external links'=>'externe Links',
 		'Log out ◊'=>'◊ ausloggen',
 		'Models' => 'Modelle',
 		'New Url'=>'Neue Url:',
