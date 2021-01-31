@@ -237,10 +237,10 @@
 			$content = preg_replace('/\[\[([^\]]*)\]\]/', '[$1](../$1/view)', $content); // replace mediawiki-style links
 
 			// replace mediawiki-style headings
-			$content = preg_replace('/====(.*)====/', '#### $1', $content);
-			$content = preg_replace('/===(.*)===/', '### $1', $content);
-			$content = preg_replace('/==(.*)==/', '## $1', $content);
-			$content = preg_replace('/=(.*)=/', '# $1', $content);
+			$content = preg_replace("/\n====(.*)====/", '#### $1', $content);
+			$content = preg_replace("/\n===(.*)===/", '### $1', $content);
+			$content = preg_replace("/\n==(.*)==/", '## $1', $content);
+			$content = preg_replace("/\n=(.*)=/", '# $1', $content);
 
 			// replace mediawiki-style lists:
 			$content = preg_replace('/^\s*\*\*/m', '    *', $content);
