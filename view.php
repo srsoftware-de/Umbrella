@@ -13,6 +13,7 @@ function display_children($task){
 			<span class="hover_h">
 			<a title="<?= t('edit')?>"			href="../<?= $id ?>/edit?redirect=../<?= $task->id ?>/view"     class="symbol"></a>
 			<a title="<?= t('add subtask')?>"	href="../<?= $id ?>/add_subtask" class="symbol"></a>
+			<a title="<?= t('add user')?>"	    href="../<?= $id ?>/add_user" class="symbol"></a>
 			<a title="<?= t('complete')?>"		href="../<?= $id ?>/complete?redirect=../<?= $task->id ?>/view" class="<?= $child_task->status == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('cancel')?>"		href="../<?= $id ?>/cancel?redirect=../<?= $task->id ?>/view"   class="<?= $child_task->status == TASK_STATUS_CANCELED ? 'hidden':'symbol'?>"></a>
 			<a title="<?= t('start')?>"			href="../<?= $id ?>/start?redirect=../<?= $task->id ?>/view"    class="<?= $child_task->status == TASK_STATUS_STARTED  ? 'hidden':'symbol'?>"></a>

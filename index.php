@@ -72,5 +72,4 @@ include '../common_templates/messages.php'; ?>
 <?php }; ?>
 
 </table>
-<?php
-include '../common_templates/closure.php'; ?>
+<?php include '../common_templates/closure.php'; ?>

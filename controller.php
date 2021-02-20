@@ -1,5 +1,33 @@
 <?php include 'model.php';
 
+$base_url = $services['task']['path'];
+
+function easylist() {
+    global $services,$base_url;
+    require_login('task');
+    
+    if ($tag = param('tag')) redirect(getUrl('task',$tag.'/easylist'));
+    if ($complete_id = param('complete')) request('task',$complete_id.'/complete');
+    if ($open_id = param('open')) request('task',$open_id.'/open');
+    $view = new stdClass();
+    $view->tag = param('id');
+    if (empty($view->tag)) return null;
+    
+    $bookmarks = request('bookmark','json',['tag'=>$view->tag],false,OBJECT_CONVERSION);
+    $start = strlen($base_url);
+    $task_ids = [];
+    foreach ($bookmarks as $bookmark){
+        if (strpos($bookmark->url, $base_url) === 0){
+            $suffix = substr($bookmark->url, $start);
+            $num = explode('/', $suffix)[0];
+            $task_ids[$num]=true;
+        }
+    }
+    
+    $view->tasks = Task::load(['ids'=>array_keys($task_ids),'order'=>'name']);
+    return $view;
+}
+
 function view() {
 	global $services;
 
