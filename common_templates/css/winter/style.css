@@ -481,6 +481,12 @@ div.search:hover label{
 	max-height: none;
 }
 
+.easylist fieldset a.button {
+    width: 80%;
+    padding: 30px;
+    text-align: center;
+}
+
 @media (max-width:1199px) {
 	table.documents tr>*:nth-child(5),
 	body.time tr>*:nth-child(3),

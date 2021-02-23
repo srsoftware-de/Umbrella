@@ -412,6 +412,13 @@ img[src*="width=33%"]{
 img[src$="width=25%"]{
 	max-width: 25%;
 }
+
+.easylist fieldset a.button {
+    display: block;
+    text-align: center;
+    padding: 10px;
+}
+
 @media (min-width: 1100px){
 	.share{
 		position: absolute;
