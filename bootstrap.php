@@ -214,6 +214,9 @@ function location($drop = []){
 }
 
 function markdown($text){
+    
+    if (file_exists('/opt/plantuml.jar')) $text = transformUml($text);
+    
 	if (file_exists('lib/parsedown')){
 		include_once 'lib/parsedown/Parsedown.php';
 		if (file_exists('lib/parsedown-extra')){
@@ -230,7 +233,7 @@ function markdown($text){
 			return ParsedownExtra::instance()->parse($text);
 		}
 		return Parsedown::instance()->parse($text);
-	}
+	}	
 
 	return str_replace("\n", "<br/>", htmlentities($text));
 }
@@ -503,6 +506,25 @@ function test_mail($reciever,$subject, $data, $head){
 
 function throw_exception($text,$replacements){
 	throw new Exception(t($text,$replacements));
+}
+
+function transformUml($text){
+    $startpos = strpos($text, '@startuml');
+    while ($startpos !== false){
+        $endpos = strpos($text, '@enduml',$startpos);
+        if ($endpos === false) break;
+        
+        $uml = substr($text, $startpos, $endpos-$startpos+7)."\n";
+        $tmpfname = "/tmp/".md5($uml);
+        if (!file_exists($tmpfname.'.png')){
+            file_put_contents($tmpfname, $uml);
+            exec('java -jar /opt/plantuml.jar -charset utf-8 -tpng '.$tmpfname);
+        }
+        $image = '<img src="data:image/png;base64,'.base64_encode(file_get_contents($tmpfname.'.png')).'"/>';
+        $text = substr($text, 0,$startpos)."\n".$image.substr($text, $endpos+8);
+        $startpos = strpos($text, '@startuml',$startpos + strlen($image));
+    }
+    return $text;
 }
 
 /* uses the user service to validate the session token and get user data */
