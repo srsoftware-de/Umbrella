@@ -263,7 +263,7 @@ include '../common_templates/messages.php'; ?>
 					<td>
 						<?= $position->item_code ?>
 						<?php if ($position->time_id !== null) {?><br/>
-						(<a href="<?= getUrl('time',$position->time_id.'/view') ?>"><?= t('Show time')?></a>)
+						(<a href="<?= getUrl('time',$position->time_id.'/view') ?>" target="_blank"><?= t('Show time')?></a>)
 						<?php } ?>
 						<?= $position->optional ? '('.t('optional').')' : '' ?>
 					</td>
@@ -419,7 +419,7 @@ include '../common_templates/messages.php'; ?>
 					<td>
 						<input name="position[<?= $pos ?>][item_code]" value="<?= $position->item_code ?>" />
 						<?php if ($position->time_id !== null) {?><br/>
-						<a href="<?= getUrl('time',$position->time_id.'/view') ?>"><?= t('Show time')?></a>
+						<a href="<?= getUrl('time',$position->time_id.'/view') ?>" target="_blank"><?= t('Show time')?></a>
 						<?php } ?>
 						<label>
 							<input type="checkbox" name="position[<?= $pos ?>][optional]" <?= $position->optional ? 'checked="checked"' : '' ?>/>
