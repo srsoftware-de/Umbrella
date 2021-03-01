@@ -23,13 +23,14 @@
 		<li>Inventarverwaltung</li>
 		<li>Notizen zu allen Elementen</li>
 		<li>Projektmodellierung</li>
-		<li>Online-Videokonferenzen</li>
+		<li>Wiki</li>
 	</ul>
+	<p>Umbrella unterstützt dabei durchgängig die Textformatierung mittels Markdown die Verwendung von <a href="https://plantuml.com">PlantUML</a>.
 </fieldset>
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
 	<legend>Ich möchte Umbrella testen</legend>
-	<p>Unter <a class="button" href="https://umbrella-demo.keawe.de/project/3/view">https://umbrella-demo.keawe.de</a> gibt es eine Demo-Installation, an welcher man sich ohne vorherige Registrierung anmelden kann.</p>
+	<p>Unter <a class="button" href="https://umbrella-demo.srsoftware.de/project/3/view">https://umbrella-demo.srsoftware.de</a> gibt es eine Demo-Installation, an welcher man sich ohne vorherige Registrierung anmelden kann.</p>
 	<p>Der Vorteil: Sie müssen nichts installieren und können sofort starten!</p>
 	<p>Diese Demo-Version wird täglich zurückgesetzt und umfasst eine Auswahl an Beispielbenutzern mit verschiedenen Projekten, Aufgaben, Notizen und Berechtigungen und erläutert die wichtigsten Elemente der Software.</p>
 	<p>Wenn du es auf einem eigenen Server installierst hast du eine Cloud-Software, deren Daten <b>in deiner Hand</b> liegen.
@@ -47,7 +48,7 @@
 	<p>Kein großes Problem!</p>
 	<p>Umbrella ist so modular gestaltet, dass man binnen kurzer Zeit weitere Module für beliebige Aufgaben ergänzen kann. Dies kann entweder in PHP geschehen, oder aber in einer beliebigen anderen Programmiersprache, die über eine HTTP-Verbindung mit dem Framework kommunizieren kann.</p>
 	<p>Durch die Quelloffenheit kann jeder neue Module beisteuern oder bestehende anpassen</p>
-	<p>Natürlich können Sie auch gern neue <a class="button" href="https://github.com/keawe-software/Umbrella/issues/new">Funktionalitäten anfragen</a> oder ein Modul für Ihre Zwecke <a class="button" href="https://keawe.de/contact">in Auftrag geben</a>.</p>
+	<p>Natürlich können Sie auch gern neue <a class="button" href="https://github.com/srsoftware-de/Umbrella/issues/new">Funktionalitäten anfragen</a> oder ein Modul für Ihre Zwecke <a class="button" href="https://srsoftware.de/contact">in Auftrag geben</a>.</p>
 </fieldset>
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
@@ -73,8 +74,8 @@
 		<li>auf dem Server muss das SQLite-DBs laufen</li>
 	</ul>
 	<p>Und das ist schon alles!</p>
-	<p>Zum installieren kannst du dir einfach den Quelltext von <a class="button" href="https://github.com/keawe-software/Umbrella">GitHub</a> holen.</p>
-	<p>Für die weniger IT-versierten können wir auch eine betreute Installation vornehmen, <a class="button" href="https://keawe.de/contact">Kontaktieren Sie uns</a> einfach, wir erstellen gern ein individuelles Angebot! Dabei können Sie entscheiden, ob die Software bei Ihnen gehostet werden soll oder wir für Sie ein Hosting bereitstellen.</p>
+	<p>Zum installieren kannst du dir einfach den Quelltext von <a class="button" href="https://github.com/srsoftware-de/Umbrella">GitHub</a> holen.</p>
+	<p>Für die weniger IT-versierten können wir auch eine betreute Installation vornehmen, <a class="button" href="https://srsoftware.de/contact">Kontaktieren Sie uns</a> einfach, wir erstellen gern ein individuelles Angebot! Dabei können Sie entscheiden, ob die Software bei Ihnen gehostet werden soll oder wir für Sie ein Hosting bereitstellen.</p>
 </fieldset>
 
 
