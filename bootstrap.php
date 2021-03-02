@@ -516,11 +516,11 @@ function transformUml($text){
         
         $uml = substr($text, $startpos, $endpos-$startpos+7)."\n";
         $tmpfname = "/tmp/".md5($uml);
-        if (!file_exists($tmpfname.'.png')){
+        if (!file_exists($tmpfname.'.svg')){
             file_put_contents($tmpfname, $uml);
-            exec('java -jar /opt/plantuml.jar -charset utf-8 -tpng '.$tmpfname);
+            exec('java -jar /opt/plantuml.jar -charset utf-8 -tsvg '.$tmpfname);
         }
-        $image = '<img src="data:image/png;base64,'.base64_encode(file_get_contents($tmpfname.'.png')).'"/>';
+        $image = '<img src="data:image/svg+xml;base64,'.base64_encode(file_get_contents($tmpfname.'.svg')).'"/>';
         $text = substr($text, 0,$startpos)."\n".$image.substr($text, $endpos+8);
         $startpos = strpos($text, '@startuml',$startpos + strlen($image));
     }
