@@ -4,8 +4,11 @@ foreach ($bookmarks as $hash => $bookmark) {
 	$type = empty($bookmark->internal) ? 'external' : $bookmark->internal;
 	$map[$type][$hash] = $bookmark;
 } 
+
 foreach ($services as $service => $sdata){
-	if (isset($map[$service])){?>
+	if (isset($map[$service])){
+	    usort($map[$service], function ($b1,$b2) { return strcasecmp($b1->comment()->comment,$b2->comment()->comment); });
+	    ?>
 <fieldset class="<?= $service ?>">
 	<legend><?= t($sdata['name']) ?>
 	<?php if ($service == 'task') { ?>
