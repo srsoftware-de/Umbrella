@@ -1,5 +1,5 @@
 <?php
-$map = []; 
+$map = [];
 foreach ($bookmarks as $hash => $bookmark) {
 	$type = empty($bookmark->internal) ? 'external' : $bookmark->internal;
 	$map[$type][$hash] = $bookmark;
@@ -7,7 +7,11 @@ foreach ($bookmarks as $hash => $bookmark) {
 foreach ($services as $service => $sdata){
 	if (isset($map[$service])){?>
 <fieldset class="<?= $service ?>">
-	<legend><?= t($sdata['name']) ?></legend>
+	<legend><?= t($sdata['name']) ?>
+	<?php if ($service == 'task') { ?>
+	<a href="<?= getUrl('task',$id.'/easylist') ?>">→ <?= t('Easylist')?></a>
+	<?php } ?>
+	</legend>
 	<?php foreach ($map[$service] as $hash => $bookmark) { $bookmark->comment() ?>
 	<span class="hover_h">
 		<a class="button" href="<?= $bookmark->url ?>"><?= $bookmark->comment() ? $bookmark->comment->comment : $bookmark->url ?></a>

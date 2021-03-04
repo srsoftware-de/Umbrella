@@ -2,6 +2,8 @@
 
 require_login('bookmark');
 
+$base_url = getUrl('bookmark');
+
 if ($key = param('key')){
 	$url_hashes = [];
 	foreach (Comment::load(['search'=>$key]) as $comment) $url_hashes[] = $comment->url_hash;
