@@ -2,6 +2,7 @@
 	include '../bootstrap.php';
 
 	const MODULE = 'Task';
+	const DB_VERSION = 1;
 	$title = t('Umbrella Task Management');
 
 	function get_or_create_db(){
@@ -50,6 +51,24 @@
 			$db = new PDO('sqlite:db/'.$table_filename);
 		}
 		return $db;
+	}
+	
+	class Settings {
+	    static function table(){
+	        return [
+	            'key'	=> ['VARCHAR'=>255,'KEY'=>'PRIMARY'],
+	            'value'	=> ['VARCHAR'=>255,'NOT NULL'],
+	        ];
+	    }
+	    
+	    static function db_version(){
+	        $db = get_or_create_db();
+	        $query = $db->prepare('SELECT value FROM settings WHERE key = "db_version"');
+	        if (!$query->execute()) throw new Exception(_('Failed to query db_version!'));
+	        $rows = $query->fetchAll(PDO::FETCH_COLUMN);
+	        if (empty($rows)) return null;
+	        return reset($rows);
+	    }
 	}
 
 	class Task extends UmbrellaObjectWithId{
