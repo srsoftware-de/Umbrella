@@ -26,7 +26,7 @@ Daher ist es möglich, die Installation auf benötigte Module zu beschränken, w
 
 ## Ich möchte Umbrella testen
 
-Unter https://umbrella-demo.keawe.de gibt es eine Demo-Installation, an welcher man sich ohne vorherige Registrierung anmelden kann.
+Unter https://umbrella-demo.srsoftware.de gibt es eine Demo-Installation, an welcher man sich ohne vorherige Registrierung anmelden kann.
 
 Diese wird täglich zurückgesetzt und umfasst eine Auswahl an Beispielbenutzern mit verschiedenen Projekten, Aufgaben, Notizen und Berechtigungen umfassen
 
@@ -41,6 +41,6 @@ auf dem Server muss ein php-Interpreter installiert sein
 auf dem Server muss das SQLite-DBs laufen
 Und das ist schon alles!
 
-Zum installieren kannst du dir einfach den Quelltext von [GitHub](https://github.com/keawe-software/Umbrella) holen.
+Zum installieren kannst du dir einfach den Quelltext von [GitHub](https://github.com/srsoftware-de/Umbrella) holen.
 
 Die Installation ist in [einer separaten Datei](INSTALL.md) beschrieben.
