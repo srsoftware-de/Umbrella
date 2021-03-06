@@ -25,7 +25,7 @@
 		<li>Projektmodellierung</li>
 		<li>Wiki</li>
 	</ul>
-	<p>Umbrella unterstützt dabei durchgängig die Textformatierung mittels Markdown die Verwendung von <a href="https://plantuml.com">PlantUML</a>.
+	<p>Umbrella unterstützt dabei durchgängig die Textformatierung mittels Markdown und die Verwendung von <a href="https://plantuml.com">PlantUML</a>.
 </fieldset>
 
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
