@@ -30,9 +30,9 @@ include '../common_templates/messages.php'; ?>
 	<?php } // if result
 	} // loop
 } /* fulltext */ else /* tag search */ {
-	$result = request('bookmark','search',['tag'=>$key],false,NO_CONVERSION);
+	$result = request('bookmark','search',['key'=>$key],false,NO_CONVERSION);
 	if ($result){ ?>
-	<fieldset class="bookmark">
+	<fieldset>
 		<legend><?= t('Bookmarks')?></legend>
 		<?= $result ?>
 	</fieldset>

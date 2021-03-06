@@ -1,24 +1,27 @@
 <?php include 'controller.php';
 
-User::require_login();
+$user = User::require_login();
 
 $login_services = LoginService::load();
 
-if ($service_name = param('service')) $_SESSION['login_service_name'] = $service_name;
+$service_name = param('service');
+
+if ($service_name) $_SESSION['login_service_name'] = $service_name;
+
 if (!empty($_SESSION['login_service_name'])) $login_service = $login_services[$_SESSION['login_service_name']];
 
 if ($login_service){
 	include 'lib/OpenIDConnectClient.php';
 
 	$oidc = new OpenIDConnectClient($login_service->url,$login_service->client_id,$login_service->client_secret);
-	try  {
+	try  {	    
 		if ($oidc->authenticate()){
 			$oidc->setRedirectURL(getUrl('user','add_openid_login'));
 			$info = $oidc->requestUserInfo();
 			unset($_SESSION['login_service_name']);
 			$login_service->assign($info->{$login_service->user_info_field});
 			redirect('index');
-		}
+		} else die("Was not able to authenticate user!");
 	} catch (OpenIDConnectClientException $e){
 		error($e->getMessage());
 	}

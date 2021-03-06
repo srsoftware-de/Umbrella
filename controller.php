@@ -82,9 +82,9 @@
 			global $user;
 			$db = get_or_create_db();
 
-			$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user);');
-			if (!$query->execute([':service'=>$this->id.':'.$foreign_id,':user'=>$user->id])) throw new Exception(t('Was not able to assign service id (?) with your user account!',$foreign_id));
-			info('Your account has been assigned with ◊ / id ◊',[$this->id,$foreign_id]);
+	    		$query = $db->prepare('INSERT INTO service_ids_users (service_id, user_id) VALUES (:service, :user );');
+			if (!$query->execute([':service'=>$this->name.':'.$foreign_id,':user'=>$user->id])) throw new Exception(t('Was not able to assign service id (?) with your user account!',$foreign_id));
+			info('Your account has been assigned with ◊ / id ◊',[$this->name,$foreign_id]);
 		}
 
 		function deassign($foreign_id){
