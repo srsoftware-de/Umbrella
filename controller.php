@@ -36,10 +36,10 @@ function create_table($db,$table,$fields){
 }
 
 function get_or_create_db(){
-	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create '.MODULE.'/db directory!');
-	if (!is_writable('db')) throw new Exception('Directory '.MODULE.'/db not writable!');
-	if (!file_exists('db/'.MODULE.'.db')){
-		$db = new PDO('sqlite:db/'.MODULE.'.db');
+	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create '.MODULE.'/.db directory!');
+	if (!is_writable('.db')) throw new Exception('Directory '.MODULE.'/.db not writable!');
+	if (!file_exists('.db/'.MODULE.'.db')){
+		$db = new PDO('sqlite:.db/'.MODULE.'.db');
 
 		$tables = [
 		    'data_sources'=>DataSource::table(),
@@ -50,7 +50,7 @@ function get_or_create_db(){
 		foreach ($tables as $table => $fields) create_table($db,$table, $fields);
 		
 	} else {
-		$db = new PDO('sqlite:db/'.MODULE.'.db');
+		$db = new PDO('sqlite:.db/'.MODULE.'.db');
 	}
 	return $db;
 }
@@ -146,16 +146,28 @@ class Measure extends UmbrellaObject{
     }
 }
 
-function save(){
+function save(){    
+    // discover, if user is logged in
+    $user = empty($_SESSION['token']) ? null : getLocallyFromToken();
+    if ($user === null) validateToken('logging');
+    debug($user === null ? "logging anonymously" : "you are logging as ".$user->login);
+    
+    
     $db_time = time();
     $id = param('id');
-    $source_time = param('time');
-    $value = param('val');
-    $token = param('token');
     if (!$id) die('no id'); // TODO: sinnvolle message zurückgeben
-    if (!$value) die('no value');
-    
     $data_source = new DataSource($id);
+    
+    if ($json = param('json')){
+        $data = json_decode($json,JSON_OBJECT_AS_ARRAY); 
+    } else {
+        $data = array_merge($_GET,$_POST);
+    }
+    
+    $source_time = $data['time'];
+    $value = $data['val'];
+    $token = $data['token'];
+    if (!$value) die('no value');
     
     $latest_measure = $data_source->latest($token);
     if ($latest_measure->value == $value){
