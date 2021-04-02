@@ -6,10 +6,10 @@ const WRITE_PERMISSION = 2;
 $title = t('Umbrella Item Management');
 
 function get_or_create_db(){
-	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create '.MODULE.'/db directory!');
-	if (!is_writable('db')) throw new Exception('Directory '.MODULE.'/db not writable!');
-	if (!file_exists('db/'.MODULE.'.db')){
-		$db = new PDO('sqlite:db/'.MODULE.'.db');
+	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create '.MODULE.'/.db directory!');
+	if (!is_writable('.db')) throw new Exception('Directory '.MODULE.'/.db not writable!');
+	if (!file_exists('.db/'.MODULE.'.db')){
+		$db = new PDO('sqlite:.db/'.MODULE.'.db');
 
 		$tables = [
 			'mindmaps'=>Mindmap::table(),
@@ -41,7 +41,7 @@ function get_or_create_db(){
 			if (!$db->query($sql)) throw new Exception('Was not able to create items table in '.MODULE.'.db!');
 		}
 	} else {
-		$db = new PDO('sqlite:db/'.MODULE.'.db');
+		$db = new PDO('sqlite:.db/'.MODULE.'.db');
 	}
 	return $db;
 
