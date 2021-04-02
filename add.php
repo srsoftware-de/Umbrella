@@ -50,7 +50,7 @@ if (!empty($customer_vcard)){
 
 	$customer_settings = CompanyCustomerSettings::load($company,$document->type_id,$document->customer_number);
 	$customer_settings->applyTo($document);
-
+	
 	$document->template_id = 0; // TODO impelement by selection
 	$document->save();
 	$company_settings->save();

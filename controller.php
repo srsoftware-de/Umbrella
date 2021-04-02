@@ -389,14 +389,30 @@ class CompanySettings extends UmbrellaObject{
 	}
 
 	function updateFrom(Document $document){
-		$prefix = preg_replace('/[1-9]+\D*$/', '', $document->number);
-		$suffix = preg_replace('/^\D*\d+/', '', $document->number);
+	    $len = strlen($document->number);
+	    $part = '';
+	    $prefix = null;
+	    for ($i = 0; $i<$len; $i++){
+            $c = $document->number[$i];
+            if ($prefix == null){
+                if (ctype_digit($c) && ($c > 0)){
+                    $prefix = $part;
+                } else $part .= $c;
+            } else {
+                if (!ctype_digit($c)){
+                    $suffix = substr($document->number, $i);
+                    break;
+                }
+            }
+	    }
+	    
 		$number = substr($document->number,strlen($prefix),strlen($document->number)-strlen($prefix)-strlen($suffix))+1;
 		$data = [
 			'type_prefix' => $prefix,
 			'type_suffix' => $suffix,
 			'type_number' => max($number,$this->{'type_number'}),
 		];
+		
 		$this->patch($data);
 		$this->save();
 	}

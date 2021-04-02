@@ -25,7 +25,7 @@ if (isset($services['bookmark'])){
 if ($services['time']){
 	if (isset($document->company_id) && $document->company_id !== null){
 		$times = request('time','json',['task_ids'=>array_keys($tasks),'order'=>'end_time']); // get all times for tasks of the project
-
+		
 		$user_ids = [];
 		foreach ($times as $time_id => $time){
 			$user_ids[$time['user_id']] = true; // add user id of time to user_ids list
