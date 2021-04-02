@@ -14,13 +14,13 @@
 	$query = param('path') ? '?dir='.urlencode(param('path')) : '';
 
 	function get_or_create_db(){
-		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create files'.DS.'db directory!');
-		if (!is_writable('db')) throw new Exception('Directory files'.DS.'db not writable!');
-		if (!file_exists('db'.DS.'files.db')){
-			$db = new PDO('sqlite:db'.DS.'files.db');
+		if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create files'.DS.'.db directory!');
+		if (!is_writable('.db')) throw new Exception('Directory files'.DS.'.db not writable!');
+		if (!file_exists('.db'.DS.'files.db')){
+			$db = new PDO('sqlite:.db'.DS.'files.db');
 			$db->query('CREATE TABLE file_shares (file VARCHAR(2048) NOT NULL, user_id INT NOT NULL, PRIMARY KEY(file, user_id));');
 		} else {
-			$db = new PDO('sqlite:db'.DS.'files.db');
+			$db = new PDO('sqlite:.db'.DS.'files.db');
 		}
 		return $db;
 
