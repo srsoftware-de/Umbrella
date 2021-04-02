@@ -16,10 +16,10 @@
 
 	function get_or_create_db(){
 		$table_filename = 'users.db';
-		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create user/db directory!');
-		if (!is_writable('db')) throw new Exception('Directory user/db not writable!');
-		if (!file_exists('db/'.$table_filename)){
-			$db = new PDO('sqlite:db/'.$table_filename);
+		if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create user/.db directory!');
+		if (!is_writable('.db')) throw new Exception('Directory user/.db not writable!');
+		if (!file_exists('.db/'.$table_filename)){
+			$db = new PDO('sqlite:.db/'.$table_filename);
 
 			$tables = [
 					'users'=>User::table(),
@@ -62,7 +62,7 @@
 
 			User::createAdmin();
 		} else {
-			$db = new PDO('sqlite:db/'.$table_filename);
+			$db = new PDO('sqlite:.db/'.$table_filename);
 		}
 		return $db;
 	}
