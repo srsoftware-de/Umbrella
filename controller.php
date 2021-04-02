@@ -4,10 +4,10 @@ const MODULE = 'Items';
 $title = t('Umbrella Item Management');
 
 function get_or_create_db(){
-	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create item/db directory!');
-	if (!is_writable('db')) throw new Exception('Directory item/db not writable!');
-	if (!file_exists('db/items.db')){
-		$db = new PDO('sqlite:db/items.db');
+	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create item/.db directory!');
+	if (!is_writable('.db')) throw new Exception('Directory item/.db not writable!');
+	if (!file_exists('.db/items.db')){
+		$db = new PDO('sqlite:.db/items.db');
 
 		$tables = [
 			'items'=>Item::table(),
@@ -39,7 +39,7 @@ function get_or_create_db(){
 			if (!$db->query($sql)) throw new Exception('Was not able to create items table in items.db!');
 		}
 	} else {
-		$db = new PDO('sqlite:db/items.db');
+		$db = new PDO('sqlite:.db/items.db');
 	}
 	return $db;
 
