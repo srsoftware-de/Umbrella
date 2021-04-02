@@ -14,10 +14,10 @@ function db_version(){
 }
 
 function get_or_create_db(){
-	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create poll/db directory!');
-	if (!is_writable('db')) throw new Exception('Directory poll/db not writable!');
-	if (!file_exists('db/poll.db')){
-		$db = new PDO('sqlite:db/poll.db');
+	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create poll/.db directory!');
+	if (!is_writable('.db')) throw new Exception('Directory poll/.db not writable!');
+	if (!file_exists('.db/poll.db')){
+		$db = new PDO('sqlite:.db/poll.db');
 
 		$tables = [
 				'polls'      => Poll::table(),
@@ -34,7 +34,7 @@ function get_or_create_db(){
 			if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in poll.db!');
 		}
 	} else {
-		$db = new PDO('sqlite:db/poll.db');
+		$db = new PDO('sqlite:.db/poll.db');
 	}
 	return $db;
 }
