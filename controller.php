@@ -11,14 +11,14 @@ const MODULE = 'Contact';
 $title = t('Umbrella Contact Management');
 
 function get_or_create_db(){
-	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create contact/db directory!');
-	if (!is_writable('db')) throw new Exception('Directory contact/db not writable!');
-	if (!file_exists('db/contacts.db')){
-		$db = new PDO('sqlite:db/contacts.db');
+	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create contact/.db directory!');
+	if (!is_writable('.db')) throw new Exception('Directory contact/.db not writable!');
+	if (!file_exists('.db/contacts.db')){
+		$db = new PDO('sqlite:.db/contacts.db');
 		$db->query('CREATE TABLE contacts (id INTEGER PRIMARY KEY, DATA TEXT);');
 		$db->query('CREATE TABLE contacts_users (contact_id INT NOT NULL, user_id INT NOT NULL, assigned BOOLEAN DEFAULT 0, PRIMARY KEY(contact_id, user_id));');
 	} else {
-		$db = new PDO('sqlite:db/contacts.db');
+		$db = new PDO('sqlite:.db/contacts.db');
 	}
 	return $db;
 }
