@@ -5,10 +5,10 @@
 
 	function get_or_create_db(){
 		$table_filename = 'wiki.db';
-		if (!file_exists('db')) if (!mkdir('db')) throw new Exception('Failed to create '.strtolower(MODULE).'/db directory!');
-		if (!is_writable('db')) throw new Exception('Directory '.strtolower(MODULE).'/db not writable!');
-		if (!file_exists('db/'.$table_filename)){
-			$db = new PDO('sqlite:db/'.$table_filename);
+		if (!file_exists('.db')) if (!mkdir('.db')) throw new Exception('Failed to create '.strtolower(MODULE).'/.db directory!');
+		if (!is_writable('.db')) throw new Exception('Directory '.strtolower(MODULE).'/.db not writable!');
+		if (!file_exists('.db/'.$table_filename)){
+			$db = new PDO('sqlite:.db/'.$table_filename);
 
 			$tables = [
 					'pages'=>Page::table(),
@@ -44,7 +44,7 @@
 				if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.' ("'.$sql.'") !');
 			}
 		} else {
-			$db = new PDO('sqlite:db/'.$table_filename);
+			$db = new PDO('sqlite:.db/'.$table_filename);
 		}
 		return $db;
 	}
