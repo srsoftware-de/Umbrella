@@ -19,7 +19,7 @@ include '../common_templates/messages.php'; ?>
 <?php foreach ($view->tasks as $task) if ($task->status == TASK_STATUS_OPEN) { ?>
 <p>
 <a class="button" href="<?= $base_url.'/'.$view->tag .'/easylist?complete='.$task->id ?>">
-<?= $task->name ?><?= $task->description ? '<br/>'.$task->description : ''?>
+<?= $task->name ?><?= $task->description ? '<br/>'.strip_tags(markdown($task->description),'<br>')  : ''?>
 </a>
 <a class="symbol" href="<?= $base_url.'/'.$task->id .'/view' ?>"></a>
 </p>
@@ -31,7 +31,7 @@ include '../common_templates/messages.php'; ?>
 <?php foreach ($view->tasks as $task) if ($task->status == TASK_STATUS_COMPLETE) { ?>
 <p>
 <a class="button" href="<?= $base_url.'/'.$view->tag .'/easylist?open='.$task->id ?>">
-<?= $task->name ?><?= $task->description ? '<br/>'.$task->description : ''?>
+<?= $task->name ?><?= $task->description ? '<br/>'.strip_tags(markdown($task->description),'<br>') : ''?>
 </a>
 <a class="symbol" href="<?= $base_url.'/'.$task->id .'/view' ?>"></a>
 </p>
