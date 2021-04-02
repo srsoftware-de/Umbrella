@@ -8,10 +8,10 @@
 
 	function get_or_create_db(){
 		$table_filename = 'tags.db';
-		if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create '.strtolower(MODULE).'/db directory!');
-		if (!is_writable('db')) throw new Exception('Directory '.strtolower(MODULE).'/db not writable!');
-		if (!file_exists('db/'.$table_filename)){
-			$db = new PDO('sqlite:db/'.$table_filename);
+		if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create '.strtolower(MODULE).'/.db directory!');
+		if (!is_writable('.db')) throw new Exception('Directory '.strtolower(MODULE).'/.db not writable!');
+		if (!file_exists('.db/'.$table_filename)){
+			$db = new PDO('sqlite:.db/'.$table_filename);
 
 			$tables = [
 				'tags'=>Tag::table(),
@@ -50,7 +50,7 @@
 				if (!$query->execute()) throw new Exception('Was not able to create '.$table.' table in '.$table_filename.'!');
 			}
 		} else {
-			$db = new PDO('sqlite:db/'.$table_filename);
+			$db = new PDO('sqlite:.db/'.$table_filename);
 		}
 		return $db;
 	}
