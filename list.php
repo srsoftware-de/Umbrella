@@ -15,11 +15,11 @@ foreach ($services as $service => $sdata){
 	<a href="<?= getUrl('task',$id.'/easylist') ?>">→ <?= t('Easylist')?></a>
 	<?php } ?>
 	</legend>
-	<?php foreach ($map[$service] as $hash => $bookmark) { $bookmark->comment() ?>
+	<?php foreach ($map[$service] as $bookmark) { $bookmark->comment() ?>
 	<span class="hover_h">
 		<a class="button" href="<?= $bookmark->url ?>"><?= $bookmark->comment() ? $bookmark->comment->comment : $bookmark->url ?></a>
-		<a class="symbol" href="<?= $base_url.$hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
-		<a class="symbol" href="<?= $base_url.$hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
+		<a class="symbol" href="<?= $base_url.$bookmark->url_hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
+		<a class="symbol" href="<?= $base_url.$bookmark->url_hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
 		<a><br/><br/><?= t('Tags:') ?></a>
 		<?php foreach ($bookmark->tags() as $tag){ ?>		
 		<a class="button" href="<?= $base_url.$tag->tag.'/view' ?>"><?= $tag->tag ?></a>
@@ -34,7 +34,7 @@ foreach ($services as $service => $sdata){
 if (!empty($map['external'])) { ?>
 <fieldset class="bookmark">
 	<legend><?= $legend ?></legend>
-	<?php foreach ($map['external'] as $hash => $bookmark ) {	    
+	<?php foreach ($map['external'] as $bookmark ) {	    
 	    if ($bookmark->comment()){
 	        $parts = explode("\n", $bookmark->comment()->comment,2);
 	    }
@@ -42,8 +42,8 @@ if (!empty($map['external'])) { ?>
 	    ?>
 	<fieldset>
 		<legend>
-			<a class="symbol" href="<?= $base_url.$hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
-			<a class="symbol" href="<?= $base_url.$hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
+			<a class="symbol" href="<?= $base_url.$bookmark->url_hash ?>/edit?returnTo=<?= urlencode(location('*'))?>"></a>
+			<a class="symbol" href="<?= $base_url.$bookmark->url_hash ?>/delete?returnTo=<?= urlencode(location('*'))?>"></a>
 			<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $parts ? $parts[0] : $bookmark->url ?> | <?= date('Y-m-d H:i',$bookmark->timestamp) ?></a>
 		</legend>
 		<a <?= empty($bookmark->internal)?'target="_blank"':''?> href="<?= $bookmark->url ?>" ><?= $url ?></a>
@@ -56,7 +56,7 @@ if (!empty($map['external'])) { ?>
 		<fieldset class="share">
 			<legend><?= t('Share bookmark')?></legend>
 			<form method="POST">
-				<input type="hidden" name="share_url_hash" value="<?= $hash?>" />
+				<input type="hidden" name="share_url_hash" value="<?= $bookmark->url_hash?>" />
 				<input type="hidden" name="notify" value="1" />
 				<select name="share_user_id">
 				<option value=""><?= t('select user')?></option>
