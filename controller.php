@@ -4,10 +4,10 @@ const MODULE = 'Company';
 $title = 'Umbrella Company Management';
 
 function get_or_create_db(){
-	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create company/db directory!');
-	if (!is_writable('db')) throw new Exception('Directory company/db not writable!');
-	if (!file_exists('db/companies.db')){
-		$db = new PDO('sqlite:db/companies.db');
+	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create company/.db directory!');
+	if (!is_writable('.db')) throw new Exception('Directory company/.db not writable!');
+	if (!file_exists('.db/companies.db')){
+		$db = new PDO('sqlite:.db/companies.db');
 		$sql = 'CREATE TABLE companies ( ';
 		foreach (Company::fields() as $field => $props){
 			$sql .= $field . ' ';
@@ -33,7 +33,7 @@ function get_or_create_db(){
 		if (!$db->query($sql)) throw new Exception('Was not able to create companies table in companies.db!');
 		if (!$db->query('CREATE TABLE companies_users (company_id INT NOT NULL, user_id INT NOT NULL)')) throw new Exception('Was not able to create table companies_users.');
 	} else {
-		$db = new PDO('sqlite:db/companies.db');
+		$db = new PDO('sqlite:.db/companies.db');
 	}
 	return $db;
 
