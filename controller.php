@@ -6,10 +6,10 @@ const MODULE = 'Notes';
 $title = t('Umbrella Notes Management');
 
 function get_or_create_db(){
-	if (!file_exists('db') && !mkdir('db')) throw new Exception('Failed to create notes/db directory!');
-	if (!is_writable('db')) throw new Exception('Directory notes/db not writable!');
-	if (!file_exists('db/notes.db')){
-		$db = new PDO('sqlite:db/notes.db');
+	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create notes/.db directory!');
+	if (!is_writable('.db')) throw new Exception('Directory notes/.db not writable!');
+	if (!file_exists('.db/notes.db')){
+		$db = new PDO('sqlite:.db/notes.db');
 
 		$tables = [
 			'notes'=>Note::table(),
@@ -40,7 +40,7 @@ function get_or_create_db(){
 			if (!$db->query($sql)) throw new Exception('Was not able to create '.$table.' table in companies.db!');
 		}
 	} else {
-		$db = new PDO('sqlite:db/notes.db');
+		$db = new PDO('sqlite:.db/notes.db');
 	}
 	return $db;
 }
