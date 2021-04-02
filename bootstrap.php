@@ -348,7 +348,7 @@ function request($service = null,$path,$data = [], $debug = false,$decode = ARRA
 
 	$context = stream_context_create($options);
 	$response = file_get_contents($url,false,$context);
-	if ($debug) debug($response);
+	if ($debug) debug(['response'=>$response]);
 	switch ($decode){
 		case ARRAY_CONVERSION:
 			return json_decode($response,true);
