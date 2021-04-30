@@ -33,7 +33,8 @@ foreach ($notes as $nid => $note){ ?>
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
 		<fieldset class="add note">
 			<legend><?= t('add note - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
-			<textarea name="note"></textarea>
+			<textarea id="preview-source" name="note"></textarea>
+			<div id="preview"></div>
 			<button type="submit"><?= t('add note') ?></button>
 		</fieldset>
 	</form>

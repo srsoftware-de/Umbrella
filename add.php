@@ -23,7 +23,8 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 	<fieldset>
 		<legend><?= t('note') ?></legend>
-		<textarea name="note"><?= param('note','') ?></textarea>
+		<textarea id="preview-source" name="note"><?= param('note','') ?></textarea>
+		<div id="preview"></div>
 	</fieldset>
 	<button type="submit"><?= t('Save') ?></button>
 	</form>
