@@ -37,8 +37,9 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="title" value="<?= $title ?>" />
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea name="content"><?= $content ?></textarea>
+			<legend><?= t('Description - <a target="_blank" href="◊">↗Markdown</a> and <a target="_blank" href="◊">↗PlantUML</a> supported',t('MARKDOWN_HELP'),t('PLANTUML_HELP'))?></legend>
+			<textarea name="content" id="preview-source"><?= $content ?></textarea>
+			<div id="preview" />
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
 		<fieldset>
