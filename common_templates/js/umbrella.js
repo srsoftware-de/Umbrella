@@ -32,6 +32,8 @@ function getHeadings(elem){
 	});
 }
 
+var preview_timer = 0;
+
 function keyEvent(e){
 	if (e.ctrlKey){		
 		if (e.key === 'f') { // display search form on Ctrl+F
@@ -69,6 +71,11 @@ function keyEvent(e){
 			if (addLink) addLink.click();
 			return;
 	}
+	if (e.target.id == 'preview-source') {
+		clearTimeout(preview_timer);
+		preview_timer = setTimeout(preview,500,e.target);
+	}
+	
 	console.log(e);
 }
 
@@ -79,4 +86,23 @@ function getHeadings_delayed(){
 	getHeadingsTimer = window.setTimeout(getHeadings,200,this);
 }
 
+function preview(txt){
+	let target = document.getElementById('preview');
+	if (!target) return;
+	$(target).addClass('loading');
+	let url = 'https://umbrella.srsoftware.de/user/preview';
+	$.ajax({
+		method: 'POST',
+		url: url,
+		data: { source : txt.value },
+		success: function(content,status,xhr){
+			target.innerHTML=content;
+			$(target).removeClass('loading');
+			$(txt).css('height',Math.max(target.clientHeight,200));
+		},
+		error: function(a,b,c){
+			console.log("preview request failed!");
+		}
+	});	
+}
 document.addEventListener('keydown',keyEvent);

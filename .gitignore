@@ -28,3 +28,4 @@ wiki
 .well-known
 *.workspace
 .*.swp
+.dia

@@ -19,8 +19,9 @@ code {
 	margin: 5px 0;
 }
 textarea {
-	min-width: 25%;
-	min-height: 40px;
+	min-height: 60px;
+	width: 100%;
+	font-size: 16px;
 }
 
 textarea:hover{
@@ -487,6 +488,24 @@ div.search:hover label{
     text-align: center;
 }
 
+#preview,
+#preview-source{
+	display: inline-block;
+	max-width: calc(50% - 20px);
+	vertical-align: bottom; 
+}
+
+table #preview,
+table #preview-source{
+	display: inherit;
+	max-width: unset;
+	vertical-align: inherit;
+}
+
+#preview.loading{
+	opacity: 0.2;
+}
+
 @media (max-width:1199px) {
 	table.documents tr>*:nth-child(5),
 	body.time tr>*:nth-child(3),
@@ -535,6 +554,11 @@ div.search:hover label{
 	}
 	fieldset.bookmark > fieldset{
 		max-height: 50px;
+	}
+	#preview,
+	#preview-source{
+		display: block;
+		max-width: unset;
 	}
 }
 

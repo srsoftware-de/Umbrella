@@ -136,6 +136,7 @@ fieldset{
 fieldset textarea{
 	width: 100%;
 	height: 200px;
+	font-size: 16px;
 }
 img{
 	max-width: 100%;
@@ -413,6 +414,24 @@ img[src$="width=25%"]{
 	max-width: 25%;
 }
 
+#preview,
+#preview-source{
+	display: inline-block;
+	max-width: calc(50% - 20px);
+	vertical-align: bottom; 
+}
+
+table #preview,
+table #preview-source{
+	display: inherit;
+	max-width: unset;
+	vertical-align: inherit;
+}
+
+#preview.loading{
+	opacity: 0.2;
+}
+
 .easylist fieldset a.button {
     display: block;
     text-align: center;
@@ -426,7 +445,17 @@ img[src$="width=25%"]{
 		top: 8px;
 	}
 }
+@media (max-width: 900px){
+	#preview,
+	#preview-source{
+		display: block;
+		max-width: unset;
+	}
+}
 @media (max-width: 700px){
+	body{
+		margin-left: 30px;
+	}
 	#main_menu{
  		max-width: 30px;
  		z-index: 10;
@@ -435,9 +464,6 @@ img[src$="width=25%"]{
 	}
 	#main_menu:hover{
 		max-width: unset;
-	}
-	body{
-		margin-left: 30px;
 	}
 }
 @media print{
