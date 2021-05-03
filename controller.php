@@ -38,7 +38,7 @@ function view() {
 		error('No task id passed!');
 		redirect(getUrl('task'));
 	}
-
+	
 	$task = Task::load(['ids'=>$task_id]);
 	if (empty($task)){
 		error('You don`t have access to that task!');

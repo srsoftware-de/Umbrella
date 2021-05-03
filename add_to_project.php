@@ -96,9 +96,10 @@ include '../common_templates/messages.php'; ?>
 			<?= t('Only selected users will be able to access the task!') ?>
 			</p>
 		</fieldset>
-		<?php if (isset($services['bookmark'])){?>
+		<?php if (isset($services['bookmark'])){ 
+		    $bkmk = request('bookmark','json',['url'=>getUrl('project',$project_id.'/view')],false,OBJECT_CONVERSION); ?>
 		<fieldset><legend><?= t('Tags')?></legend>
-			<input name="tags" type="text" value="<?= param('tags') ?>" />
+			<input name="tags" type="text" value="<?= param('tags',implode(' ',$bkmk->tags)) ?>" />
 		</fieldset>
 		<?php }?>
 		<fieldset>

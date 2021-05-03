@@ -169,7 +169,7 @@
 				$where[] = 'status < ?';
 				$args[] = TASK_STATUS_COMPLETE;
 			}
-
+			
 			if (!empty($where)) $sql .= ' WHERE '.implode(' AND ', $where);
 
 			if (!isset($options['order'])) $options['order'] = 'due_date';
