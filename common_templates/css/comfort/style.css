@@ -467,6 +467,7 @@ table #preview-source{
 	#main_menu .button{
 	    padding: 6px 0;
 	}
+	tr th:nth-child(1),
 	.search button{
 	    display: none;
 	}
