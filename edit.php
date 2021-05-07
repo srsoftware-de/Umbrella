@@ -69,6 +69,21 @@ if ($allowed){ ?>
 	</fieldset>
 
 	<?php } ?>
+	
+	<fieldset>
+		<legend><?= t('new password (leave empty to not change you password)')?></legend>
+		<input type="password" name="new_pass" autocomplete="new-password" /><br/>
+		<?= t('Repeat password:')?><br/>
+		<input type="password" name="new_pass_repeat" autocomplete="new-password" />
+	</fieldset>
+	<fieldset>
+		<legend><?= t('theme'); ?></legend>
+		<select name="theme">
+		<?php foreach ($themes as $thm) { ?>
+			<option value="<?= $thm ?>" <?= $u->theme == $thm?'selected="true"':''?>><?= $thm ?></option>
+		<?php } ?>
+		</select>
+	</fieldset>
 
 	<fieldset>
 		<legend><?= t('Notificatin settings')?></legend>
@@ -133,20 +148,7 @@ if ($allowed){ ?>
 		</table>
 	</fieldset>
 
-	<fieldset>
-		<legend><?= t('new password (leave empty to not change you password)')?></legend>
-		<input type="password" name="new_pass" autocomplete="new-password" /><br/>
-		<?= t('Repeat password:')?><br/>
-		<input type="password" name="new_pass_repeat" autocomplete="new-password" />
-	</fieldset>
-	<fieldset>
-		<legend><?= t('theme'); ?></legend>
-		<select name="theme">
-		<?php foreach ($themes as $thm) { ?>
-			<option value="<?= $thm ?>" <?= $u->theme == $thm?'selected="true"':''?>><?= $thm ?></option>
-		<?php } ?>
-		</select>
-	</fieldset>
+
 	<button type="submit"><?= t('Save') ?></button>
 </form>
 

@@ -76,6 +76,10 @@
 		}
 		return $results;
 	}
+	
+	function preview(){
+	    return markdown(param('source',''));
+	}
 
 	class LoginService extends UmbrellaObjectWithId{
 		function assign($foreign_id){
