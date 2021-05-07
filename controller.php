@@ -4,6 +4,7 @@
 	const PROJECT_PERMISSION_PARTICIPANT = 2;
 	const MODULE = 'Project';
 	$title = t('Umbrella Project Management');
+	$base_url = getUrl('project');
 
 	$PROJECT_PERMISSIONS = array(PROJECT_PERMISSION_OWNER=>'owner',PROJECT_PERMISSION_PARTICIPANT=>'participant');
 

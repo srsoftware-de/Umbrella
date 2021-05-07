@@ -1,0 +1,15 @@
+@media (max-width: 900px){
+	table.project-index tr > *:nth-child(3){
+		display: none;
+	}
+}
+@media (max-width: 800px){
+	table.project-index tr > *:nth-child(2){
+		display: none;
+	}
+}
+@media (max-width: 600px){
+	table.project-index tr > *:nth-child(4){
+		display: none;
+	}
+}
