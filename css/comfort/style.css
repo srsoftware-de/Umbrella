@@ -9,3 +9,32 @@
 .easylist fieldset a:hover p{
     max-height: 500px;
 }
+
+@media (max-width: 1000px){
+	.task .list tr > :nth-child(3) {
+	    display: none;
+	}
+}
+
+@media (max-width: 900px){
+	.task .list tr > :nth-child(4) {
+	    display: none;
+	}
+}
+
+@media (max-width: 850px){
+	.task .list tr > :nth-child(5) {
+	    display: none;
+	}
+}
+
+@media (max-width: 700px){
+	.task .list tr > :nth-child(2) {
+	    display: none;
+	}
+}
+
+
+
+
+

@@ -24,6 +24,7 @@ include '../common_templates/messages.php'; ?>
 		<?php } ?>
 	</table>
 </div>
+<h2><?= t("Tasks")?></h2>
 <table class="tasks list">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
