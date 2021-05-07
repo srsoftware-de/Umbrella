@@ -73,7 +73,7 @@ function keyEvent(e){
 	}
 	if (e.target.id == 'preview-source') {
 		clearTimeout(preview_timer);
-		preview_timer = setTimeout(preview,500,e.target);
+		preview_timer = setTimeout(preview,750,e.target);
 	}
 	
 	console.log(e);
@@ -97,8 +97,10 @@ function preview(txt){
 		data: { source : txt.value },
 		success: function(content,status,xhr){
 			target.innerHTML=content;
-			$(target).removeClass('loading');
+		    $(target).removeClass('loading');
+		    setTimeout(() => {
 			$(txt).css('height',Math.max(target.clientHeight,200));
+		    },200);
 		},
 		error: function(a,b,c){
 			console.log("preview request failed!");

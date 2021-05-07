@@ -9,7 +9,10 @@
 		<link rel="stylesheet" type="text/css" href="<?= $base ?>common_templates/css/<?= isset($theme)?$theme:'comfort' ?>/colors.css<?= $hash ?>" />
 		<link rel="stylesheet" type="text/css" href="<?= $base ?>common_templates/css/<?= isset($theme)?$theme:'comfort' ?>/svg_colors.css<?= $hash ?>" />
 		<link rel="stylesheet" type="text/css" href="<?= $base ?>common_templates/css/svg_common.css<?= $hash ?>" />
-		<?php if (!empty($base_url)) { ?><link rel="stylesheet" type="text/css" href="<?= $base_url ?>css/style.css<?= $hash ?>" /><?php }?>
+		<?php if (isset($base_url)) { ?>
+		<link rel="stylesheet" type="text/css" href="<?= $base_url ?>css/style.css<?= $hash ?>" />		
+		<link rel="stylesheet" type="text/css" href="<?= $base_url ?>css/<?= isset($theme)?$theme:'comfort' ?>/style.css<?= $hash ?>" />
+		<?php }?>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<script src="<?= $base ?>common_templates/js/jquery-3.2.1.min.js"></script>
 		<script src="<?= $base ?>common_templates/js/umbrella.js<?= $hash ?>"></script>

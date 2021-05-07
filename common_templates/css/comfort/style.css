@@ -62,12 +62,6 @@ code{
 	overflow: hidden;
 }
 
-#main_menu a:hover{
-	display: inline-block;
-	min-width: 134px;
-	margin: 0 5px 0 5px;
-}
-
 .hidden{
 	display: none;
 }
@@ -88,10 +82,11 @@ fieldset{
 
 .button{
 	padding:2px;
-	margin:5px;
+	margin: 1px 0;
 	border-radius: 5px;
 	border: 1px solid black;
 	white-space: pre;
+	display: inline-block;
 }
 
 .symbol{
@@ -363,6 +358,9 @@ td input[type=checkbox]{
 table.vertical span.right{
 	position: fixed;
 	top: 25px;
+	left: 60px;
+	right: 5px;
+	text-align: right;
 }
 
 img[src*="pos=right"] {
@@ -454,16 +452,26 @@ table #preview-source{
 }
 @media (max-width: 700px){
 	body{
-		margin-left: 30px;
+	    margin-left: 50px;
+	    margin-top: 60px;
 	}
 	#main_menu{
- 		max-width: 30px;
+ 		max-width: 50px;
  		z-index: 10;
 		overflow: hidden;
 		background: inherit;
 	}
 	#main_menu:hover{
 		max-width: unset;
+	}
+	#main_menu .button{
+	    padding: 6px 0;
+	}
+	.search button{
+	    display: none;
+	}
+	.search:hover button{
+	    display: inline;
 	}
 }
 @media print{
