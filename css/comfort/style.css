@@ -2,11 +2,15 @@
 	table.project-index tr > *:nth-child(3){
 		display: none;
 	}
+	.view td.tasks li span.symbol{
+		display: none;
+	}
 }
 @media (max-width: 800px){
 	table.project-index tr > *:nth-child(2){
 		display: none;
 	}
+
 }
 @media (max-width: 600px){
 	table.project-index tr > *:nth-child(4){
