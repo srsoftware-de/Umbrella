@@ -17,6 +17,7 @@
 }
 
 @media (max-width: 900px){
+	.view .tasks li span.hover_h,
 	.task .list tr > :nth-child(4) {
 	    display: none;
 	}
@@ -25,6 +26,9 @@
 @media (max-width: 850px){
 	.task .list tr > :nth-child(5) {
 	    display: none;
+	}
+	.edit select[name="parent_task_id"]{
+		max-width: calc(100vw - 120px);
 	}
 }
 

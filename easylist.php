@@ -8,12 +8,15 @@ include '../common_templates/main_menu.php';
 include 'menu.php';
 include '../common_templates/messages.php'; ?>
 
-<form>
-	<label>
-	<?= t('Tag') ?>:&nbsp;<input name="tag" value="<?= param('id') ?>">
-	</label>
-	<button type="submit"><?= t("Update") ?></button>
-</form>
+<fieldset>
+    <legend>
+    	<?= t('Tag') ?>
+	</legend>
+    <form>    	
+    	<input name="tag" value="<?= param('id') ?>">
+    	<button type="submit"><?= t("Update") ?></button>
+    </form>
+</fieldset>
 
 <fieldset>
 <legend><?= t('open')?></legend>
