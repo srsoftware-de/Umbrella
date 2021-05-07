@@ -237,7 +237,7 @@ img[src$="width=25%"]{
 #announce{
 	position: absolute;
 	right: 3px;
-	bottom: 0;
+	bottom: -40px;
 }
 
 span.hover_h {

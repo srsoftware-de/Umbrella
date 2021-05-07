@@ -3,7 +3,7 @@ body{
 }
 
 a{
-	color: #0f3a09;
+	color: #0c0061;
 }
 
 code{
@@ -14,9 +14,8 @@ code{
 .pending a{
 	color: #ffe062;
 }
-.completed>a,
-.started>a{
-	color: #0c0061;
+.open>a{
+	color: #0f3a09;
 }
 
 .completed>a:after{
