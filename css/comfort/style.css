@@ -1,0 +1,10 @@
+.wiki a.button{
+	max-width: calc(100vw - 220px);
+	overflow: hidden;
+}
+
+@media (max-width: 700px){
+	.wiki a.button{
+		max-width: calc(100vw - 110px);
+	}
+}

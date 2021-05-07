@@ -2,6 +2,7 @@
 
 	const MODULE = 'Wiki';
 	$title = t('Umbrella Wiki');
+	$base_url = getUrl('wiki');
 
 	function get_or_create_db(){
 		$table_filename = 'wiki.db';
