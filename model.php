@@ -4,6 +4,7 @@
 	const MODULE = 'Task';
 	const DB_VERSION = 1;
 	$title = t('Umbrella Task Management');
+	$base_url = getUrl('task');
 
 	function get_or_create_db(){
 		$table_filename = 'tasks.db';

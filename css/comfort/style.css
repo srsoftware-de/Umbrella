@@ -1,0 +1,11 @@
+.easylist fieldset a p {
+    white-space: initial;
+    max-height: 0;
+    overflow: hidden;
+    margin: 8px 0;
+    transition: max-height 1s ease-in 1s;
+}
+
+.easylist fieldset a:hover p{
+    max-height: 500px;
+}
