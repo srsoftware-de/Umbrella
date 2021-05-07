@@ -26,13 +26,13 @@ include '../common_templates/messages.php';
 	</tr>
 	<tr>
 		<td><a href="<?= $note->url() ?>"><?= $note->uri ?></a></td>
+		<td id="preview"><?= markdown($note->note) ?></td>
 		<td class="code">
 			<form method="POST">
 				<textarea id="preview-source" name="code"><?= $note->note ?></textarea>				
 				<button type="submit"><?= t('Save') ?></button>
 			</form>
 		</td>
-		<td id="preview"><?= markdown($note->note) ?></td>
 	</tr>
 </table>
 <?php include '../common_templates/closure.php';

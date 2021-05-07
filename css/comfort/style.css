@@ -1,0 +1,25 @@
+
+@media (max-width:900px){
+	.view .note tr:nth-child(1) {
+	    display: none;
+	}
+	
+	.notes .notes td,
+	.view .note td {
+	    display: block !important;
+	    max-width: calc(100vw - 220px);
+	    overflow: hidden;
+	}
+	
+	.note td.code {
+		width: unset;
+	}
+}
+
+
+@media (max-width:700px){
+	.notes .notes td,
+	.view .note td {
+	    max-width: calc(100vw - 110px);
+	}
+}

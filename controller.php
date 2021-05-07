@@ -4,6 +4,7 @@
 /** @var $title used in importing classes */
 const MODULE = 'Notes';
 $title = t('Umbrella Notes Management');
+$base_url = getUrl('notes');
 
 function get_or_create_db(){
 	if (!file_exists('.db') && !mkdir('.db')) throw new Exception('Failed to create notes/.db directory!');
