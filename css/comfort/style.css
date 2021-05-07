@@ -17,3 +17,8 @@
 		display: none;
 	}
 }
+@media (max-width: 450px){
+	table.project-index tr > *:nth-child(5){
+		display: none;
+	}
+}
