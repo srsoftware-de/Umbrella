@@ -26,6 +26,7 @@
 
 	$TIME_PERMISSIONS = [TIME_PERMISSION_OWNER=>'owener',TIME_PERMISSION_PARTICIPANT=>'participant'];
 	$title = t('Umbrella Timetracking');
+	$base_url = getUrl('time');
 
 	function get_or_create_db(){
 		$table_filename = 'times.db';
