@@ -6,6 +6,7 @@
 	const RECURSIVE = true;
 	const STORAGE = '/.storage';
 	const MODULE = 'Files';
+	$base_url = getUrl('files');
 
 	$title = 'Umbrella File Management';
 	static $projects = null;
