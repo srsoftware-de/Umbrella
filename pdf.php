@@ -201,7 +201,7 @@ class PDF extends FPDF{
 			'content' => $this->Output('S'),
 		];
 
-		$recievers = [ $sender, $reciever]; // send mail to both reciever and sender
+		$recievers = [ $sender, $reciever ]; // send mail to both reciever and sender
 
 		return send_mail($sender,$recievers,$subject,$text,$attachment);
 	}
