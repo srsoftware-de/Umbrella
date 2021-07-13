@@ -108,7 +108,8 @@ include '../common_templates/messages.php'; ?>
 						<input type="text" name="name" value="<?= param('name') ?>" autofocus="autofocus">
 					</td>
 					<td>
-						<textarea name="description"><?= trim(param('description'))?></textarea>
+						<textarea id="preview-source" name="description"><?= trim(param('description'))?></textarea>
+						<div id="preview"></div>
 					</td>
 					<td>
 						<button type="submit"><?= t('add')?></button>
@@ -182,11 +183,5 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 </fieldset>
 
-<?php if (isset($services['notes'])) { ?>
-	<fieldset>
-		<legend><?= t('Notes')?></legend>
-		<?= request('notes','html',['uri'=>'poll:'.$poll->id,'context'=>t('Poll "◊"',$poll->name),'users'=>array_keys($poll->selections())],false,NO_CONVERSION) ?>
-	</fieldset>
-<?php }
 
 include '../common_templates/closure.php';

@@ -47,7 +47,8 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description')?></legend>
-			<textarea name="description"><?= $option->description ?></textarea>
+			<textarea id="preview-source" name="description"><?= $option->description ?></textarea>
+			<div id="preview"></div>
 		</fieldset>
 		<button type="submit"><?= t('Submit')?></button>
 	</form>
