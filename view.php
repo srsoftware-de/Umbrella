@@ -56,7 +56,7 @@ if (!empty($user)) include '../common_templates/main_menu.php'; ?>
 		<?= t('Poll "◊"',$poll->name) ?>
 		<?php if (!empty($user)) { ?>
 		<span class="symbol">
-			<a href="<?= getUrl('poll','add') ?>"></a>
+			<a href="<?= getUrl('poll','add') ?>" title="<?= t("Add new poll")?>"></a>
 		</span>
 		<?php } ?>
 	</legend>
