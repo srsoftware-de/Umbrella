@@ -52,7 +52,9 @@ if ($user_id = param('id')){
 		error('Currently, only admin can edit other users!');
 		redirect('../index');
 	}
-} else error('No user ID passed to user/edit!');
+} else {
+  redirect($user->id.'/edit');
+}
 $themes = get_themes();
 
 include '../common_templates/head.php';
