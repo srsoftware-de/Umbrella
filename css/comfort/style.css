@@ -1,0 +1,11 @@
+@media (max-width: 700px){
+	fieldset td:nth-child(1) a .symbol {
+	    display: none;
+	}
+}
+
+
+
+
+
+
