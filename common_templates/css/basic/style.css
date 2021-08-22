@@ -6,3 +6,14 @@
 	font-family: awesome;
 	text-decoration: none;
 }
+
+.completed > a::before {
+    content: " ✓";
+}
+
+.canceled a,
+.children .inactive,
+.requirements .inactive,
+.tasks .inactive{
+	text-decoration: line-through;
+}

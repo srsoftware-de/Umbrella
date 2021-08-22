@@ -109,7 +109,6 @@ fieldset.options label,
 	display: block;
 }
 
-.tasks .completed a,
 .tasks .canceled a,
 .children .inactive,
 .requirements .inactive,
@@ -504,6 +503,10 @@ table #preview-source{
 
 #preview.loading{
 	opacity: 0.2;
+}
+
+.completed > a::before {
+    content: " ✓";
 }
 
 @media (max-width:1199px) {

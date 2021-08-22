@@ -1,10 +1,9 @@
 <?php include_once 'bootstrap.php'; include 'common_templates/head.php'; ?>
 
 <h2>Willkommen bei Umbrella!</h2>
-
 <fieldset style="max-width: 382px; display: inline-block; text-align: justify">
 	<legend>Was ist Umbrella?</legend>
-	<p>Umbrella ist eine Open-Source-Software, die es erlaubt online auf einem Server deinen Kram zu managen.</p>
+	<p>Umbrella ist eine Open-Source-Software, die es erlaubt online auf einem Server deinen Kram zu managen. <a class="button" href="project">Login</a></p>
 	<p>Die Software umfast verschiedene Module, die unter anderem folgende Funktionskreise umfassen:</p>
 	<ul style="margin-block-end:0">
 		<li>Projekt- und Aufgabenverwaltung</li>
