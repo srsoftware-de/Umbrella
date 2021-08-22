@@ -51,7 +51,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
-			<textarea id="preview-source" name="description"><?= $project->description ?></textarea>
+			<textarea id="preview-source" name="description"><?= htmlspecialchars($project->description) ?></textarea>
 			<div id="preview"></div>
 			
 		</fieldset>
