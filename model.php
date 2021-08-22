@@ -479,7 +479,7 @@
 				// notify if newly assigned
 				if ($notify && empty($rows) && ($user->email != $new_user->email)) {
 					$subject = t('◊ assigned you to a task',$user->login);
-					$text = t('You have been assigned to the task "◊": ',$this->name).getUrl('task',$this->id.'/view');
+					$text = t('You have been added to the task "◊": ',$this->name).getUrl('task',$this->id.'/view');
 					$meta = [
 							'project_id'=>$this->project_id,
 							'task_id'=>$this->id,
