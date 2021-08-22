@@ -12,13 +12,13 @@ users who wish instant delivery. for all other users this message
 is sheduled for delivery at the next matching time
 
 for delivery of aggregated messages, this file should be enabled via cron:
-0  8 * * * wget https://<domain>/user/notify?hour=8
-0 10 * * * wget https://<domain>/user/notify?hour=10
-0 12 * * * wget https://<domain>/user/notify?hour=12
-0 14 * * * wget https://<domain>/user/notify?hour=14
-0 16 * * * wget https://<domain>/user/notify?hour=16
-0 18 * * * wget https://<domain>/user/notify?hour=18
-0 20 * * * wget https://<domain>/user/notify?hour=20
+0  8 * * * wget https://<domain>/user/notify?hour=8 > /dev/null
+0 10 * * * wget https://<domain>/user/notify?hour=10 > /dev/null
+0 12 * * * wget https://<domain>/user/notify?hour=12 > /dev/null
+0 14 * * * wget https://<domain>/user/notify?hour=14 > /dev/null
+0 16 * * * wget https://<domain>/user/notify?hour=16 > /dev/null
+0 18 * * * wget https://<domain>/user/notify?hour=18 > /dev/null
+0 20 * * * wget https://<domain>/user/notify?hour=20 > /dev/null
 
 
 Here is how to call this from php code:
