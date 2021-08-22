@@ -29,7 +29,7 @@ include '../common_templates/messages.php';
 		<td id="preview"><?= markdown($note->note) ?></td>
 		<td class="code">
 			<form method="POST">
-				<textarea id="preview-source" name="code"><?= $note->note ?></textarea>				
+				<textarea id="preview-source" name="code"><?= htmlspecialchars($note->note) ?></textarea>				
 				<button type="submit"><?= t('Save') ?></button>
 			</form>
 		</td>
