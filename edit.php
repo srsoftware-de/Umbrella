@@ -57,7 +57,7 @@ include '../common_templates/messages.php'; ?>
 		</fieldset>
 		<fieldset>
 			<legend><?= t('Description - <a target="_blank" href="◊">↗Markdown</a> and <a target="_blank" href="◊">↗PlantUML</a> supported',t('MARKDOWN_HELP'),t('PLANTUML_HELP'))?></legend>
-			<textarea name="content" id="preview-source"><?= $content ?></textarea>
+			<textarea name="content" id="preview-source"><?= htmlspecialchars($content) ?></textarea>
 			<div id="preview"><?= markdown($content) ?></div>			
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
