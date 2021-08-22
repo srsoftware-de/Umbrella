@@ -33,7 +33,7 @@ if ($user_id = param('id')){
 						case 'project':
 							foreach ($notification_settings as $pid => $p_sett) {
 								$settings['notifications']['project'][$pid] = eval_notification_options($p_sett);
-			}
+                            }
 							break;
 					}
 				}
@@ -41,7 +41,7 @@ if ($user_id = param('id')){
 			}
 
 			$_POST['message_delivery'] = eval_notification_options(param('delivery'));
-
+			
 			if (!empty($_POST['new_pass']) && $_POST['new_pass'] != $_POST['new_pass_repeat']){
 				error('Passwords do not match!');
 			} else $u->patch($_POST)->save();
@@ -122,7 +122,7 @@ if ($allowed){ ?>
 			</tr>
 			<?php foreach ($projects as $project) {
 				if ($project['status'] >= PROJECT_STATUS_COMPLETE) continue;
-				$notification_settings = isset($user->settings['notifications']['project'][$project['id']]) ? isset($user->settings['notifications']['project'][$project['id']]) : 0;
+				$notification_settings = isset($user->settings['notifications']['project'][$project['id']]) ? $user->settings['notifications']['project'][$project['id']] : Message::SEND_NOT;
 				?>
 			<tr>
 				<td><?= $project['name'] ?></td>
