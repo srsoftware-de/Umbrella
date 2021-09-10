@@ -95,5 +95,5 @@ $translations = array(
 		'◊ added a note.'=>'◊ hat eine Notiz hinzugefügt',
 		'◊ added you to a project'=>'◊ fügte Sie einem Projekt hinzu',
 		'◊ hours'=>'◊ Stunden',
-		'◊ updated project "◊"'=>'◊ hat Project „◊“ aktualisiert',
+		'◊ updated project "◊"'=>'◊ hat Projekt „◊“ aktualisiert',
 );
