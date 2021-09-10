@@ -40,6 +40,13 @@ function keyEvent(e){
 			e.preventDefault();
 			$('.search *').show();
 			$('.search form>input').focus();
+		} else
+		if (e.key === 's') { // save current element on Ctrl+S
+			var saveBtn = $('form[method=POST] button[type="submit"]')[0];
+			if (saveBtn) {
+				e.preventDefault();
+				saveBtn.click();
+			}			
 		}
 		return;
 	}
