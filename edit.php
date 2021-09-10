@@ -177,7 +177,6 @@ include '../common_templates/messages.php'; ?>
 				<option value="+3 months"><?= t('+three months')?></option>
 				<option value="+6 months"><?= t('+six months')?></option>
 				<option value="+1 year"><?= t('+one year')?></option>
-
 			</select>
 			<?php } ?>
 			</fieldset>
@@ -188,7 +187,9 @@ include '../common_templates/messages.php'; ?>
 			<select name="due_extension">
 				<option value=""><?= t('No extension') ?></option>
 				<option value="+1 week"><?= t('+one week')?></option>
+				<option value="+2 weeks"><?= t('+two weeks')?></option>
 				<option value="+1 month"><?= t('+one month')?></option>
+				<option value="+2 month"><?= t('+two months')?></option>
 				<option value="+3 months"><?= t('+three months')?></option>
 				<option value="+6 months"><?= t('+six months')?></option>
 				<option value="+1 year"><?= t('+one year')?></option>
