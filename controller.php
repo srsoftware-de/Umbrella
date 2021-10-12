@@ -249,7 +249,7 @@
 					$subject = t('◊ updated project "◊"',[$user->login,$this->name]).' [p:'.$this->id.']';
 					$body = t("The new description of ◊ is now:\n◊",[$this->name,$this->description]);
 					$meta = ['project_id'=>$this->id];
-					request('user','notify',['subject'=>$subject,'body'=>$body,'recipients'=>array_keys($this->users),'meta'=>$meta],true,NO_CONVERSION);
+					request('user','notify',['subject'=>$subject,'body'=>$body,'recipients'=>array_keys($this->users),'meta'=>$meta],false,NO_CONVERSION);
 					info('Users have been notified');
 				}
 			} else {
