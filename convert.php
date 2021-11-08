@@ -18,9 +18,14 @@ if (isset($services['bookmark'])){
     $hash = sha1($location);
     $bookmark = request('bookmark',$hash.'/json');
 }
-//debug($bookmark,1);
 
-$new_project = request('project','add',['name'=>$task->name,'description'=>$task->description,'company'=>$task->project('company_id'),'from'=>'task']);
+$new_project = request('project','add',['name'=>$task->name,'description'=>$task->description,'company'=>$task->project('company_id'),'from'=>'task'],false);
+$pid = $new_project['id'];
+foreach ($task->users() as $uid =>$usr) request('project','add_user',['id'=>$pid,'new_user_id'=>$uid],false);
+
+foreach ($task->children(false,true) as $tid => $child) {
+    $child->patch(['parent_task_id'=>null])->save();
+}
 $task->update_project($new_project['id']);
 
 if (isset($services['notes'])) request('notes','task:'.$task_id.'/update_uri?new=project:'.$new_project['id']);

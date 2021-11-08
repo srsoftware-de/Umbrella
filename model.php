@@ -528,7 +528,7 @@
 
 		public function children($recurse = true, $load_closed = false, $db = null){
 			if (empty($this->children))	{
-				if ($db == null ) $db = get_or_create_db();
+				if ($db == null) $db = get_or_create_db();
 				$query = $db->prepare('SELECT id,* FROM tasks WHERE parent_task_id = :id ORDER BY name COLLATE NOCASE ASC');
 				if (!$query->execute([':id'=>$this->id])) throw new Exception('Was not able to query children of '.$this->name);
 				$rows = $query->fetchAll(INDEX_FETCH);
@@ -557,7 +557,7 @@
 		}
 
 		public function update_project($new_pid){
-			foreach ($this->children() as $tid => $child) $child->update_project($new_pid);
+			foreach ($this->children(false,true) as $tid => $child) $child->update_project($new_pid);
 			$this->patch(['project_id'=>$new_pid])->save();
 		}
 
