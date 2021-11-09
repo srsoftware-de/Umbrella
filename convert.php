@@ -12,6 +12,7 @@ if (empty($task)){
 	error('You don`t have access to that task!');
 	redirect(getUrl('task'));
 }
+$_GET['silent'] = 'on'; 
 
 if (isset($services['bookmark'])){
     $location = str_replace('convert', 'view',location('*'));
