@@ -215,7 +215,7 @@
 		}
 
 		static function deliver($hour = null){
-			$messages = Message::load(['state'=>Message::WAITING,'order'=>'user_id ASC']);
+			$messages = Message::load(['state'=>Message::WAITING,'order'=>'user_id ASC, id ASC']);
 			$processed_messages = []; // array[message]
 			$collection = []; // array[receiver][project]
 			$users = User::load();
