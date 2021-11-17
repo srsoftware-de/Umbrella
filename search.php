@@ -29,13 +29,12 @@ include '../common_templates/messages.php'; ?>
 	</fieldset>
 	<?php } // if result
 	} // loop
-} /* fulltext */ else /* tag search */ {
+} /* fulltext */ else /* tag search */ { ?>
+<a class="button" href="?fulltext=true&key=<?= $key ?>"><?= t("Do a fulltext search for \"◊\"",$key)?></a>
+<?php 
 	$result = request('bookmark','search',['key'=>$key],false,NO_CONVERSION);
 	if ($result){ ?>
-	<fieldset>
-		<legend><?= t('Bookmarks')?></legend>
 		<?= $result ?>
-	</fieldset>
 	<?php } // if result
 }
 
