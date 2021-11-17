@@ -22,7 +22,7 @@ include '../common_templates/messages.php';
 <h2><?= t('This will remove the following note:')?></h2>
 <fieldset class="del_note">
 	<legend><?= $user->login ?></legend>
-	<?= $parsedown?$parsedown->parse($note->note):str_replace("\n", "<br/>", $note->note) ?>
+	<?= markdown($note->note) ?>
 </fieldset>
 <?= t('Are you sure?')?><br/>
 <a href="?confirm=yes<?= empty($target)?'':('&redirect='.$target)?>" class="button"><?= t('Yes')?></a>
