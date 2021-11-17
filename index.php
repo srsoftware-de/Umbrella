@@ -53,7 +53,7 @@ if ($show_complete){ ?>
 		<?php }?>
 		</td>
 		<td><a href="<?= $id ?>/view"><?= $time->subject ?></a></td>
-		<td><?= $parsedown->parse($time->description) ?></td>
+		<td><?= markdown($time->description) ?></td>
 		<td><a href="<?= $id ?>/view"><?= $time->start_time?date('Y-m-d H:i',$time->start_time):''; ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= $time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
 		<td><a href="<?= $id ?>/view"><?= $time->end_time?round($duration/3600,2):'' ?></a></td>

@@ -42,7 +42,7 @@ include '../common_templates/messages.php';
 		</td>
 	</tr>
 	<tr>
-		<th><?= t('Description')?></th><td><?= $parsedown->parse($time->description); ?></td>
+		<th><?= t('Description')?></th><td><?= markdown($time->description); ?></td>
 	</tr>
 	<tr>
 		<th>
