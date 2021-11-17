@@ -32,7 +32,7 @@ foreach ($notes as $nid => $note){ ?>
 		<input type="hidden" name="recipients" value="<?= implode(',', $user_ids) ?>" />
 		<input type="hidden" name="token" value="<?= $_SESSION['token'] ?>" />
 		<fieldset class="add note">
-			<legend><?= t('add note - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>','https://www.markdownguide.org/cheat-sheet')?></legend>
+			<legend><?= t('add note – <a target="_blank" href="◊">↗Markdown</a> and <a target="_blank" href="◊">↗PlantUML</a> supported',[t('MARKDOWN_HELP'),t('PLANTUML_HELP')]) ?></legend>
 			<textarea id="preview-source" name="note"></textarea>
 			<div id="preview"></div>
 			<button type="submit"><?= t('add note') ?></button>
