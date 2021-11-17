@@ -50,7 +50,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="name" value="<?= htmlspecialchars($project->name); ?>"/>
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description – <a target="_blank" href="◊">↗Markdown</a> and <a target="_blank" href="◊">↗PlantUML</a> supported',[t('MARKDOWN_HELP'),t('PLANTUML_HELP')]) ?></legend>
 			<textarea id="preview-source" name="description"><?= htmlspecialchars($project->description) ?></textarea>
 			<div id="preview"></div>
 			
