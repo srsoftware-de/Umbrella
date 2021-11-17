@@ -35,7 +35,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="name" value="<?= $process->name ?>" />
 		</label>
 		<label>
-			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description – <a target="_blank" href="◊">↗Markdown</a> and <a target="_blank" href="◊">↗PlantUML</a> supported',[t('MARKDOWN_HELP'),t('PLANTUML_HELP')]) ?></legend>
 			<textarea name="description"><?= $process->description ?></textarea>
 		</label>
 		<button type="submit">

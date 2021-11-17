@@ -53,7 +53,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="definition" value="<?= htmlentities($flow->definition) ?>" />
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description – <a target="_blank" href="◊">↗Markdown</a> and <a target="_blank" href="◊">↗PlantUML</a> supported',[t('MARKDOWN_HELP'),t('PLANTUML_HELP')]) ?></legend>
 			<textarea name="description"><?= $flow->description ?></textarea>
 		</fieldset>
 		<button type="submit">
