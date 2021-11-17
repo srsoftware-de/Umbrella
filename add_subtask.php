@@ -75,7 +75,7 @@ include '../common_templates/messages.php'; ?>
 			<input type="text" name="name" value="<?= param('name') ?>" autofocus="true"/>
 		</fieldset>
 		<fieldset>
-			<legend><?= t('Description - <a target="_blank" href="◊">Markdown supported ↗cheat sheet</a>',t('MARKDOWN_HELP'))?></legend>
+			<legend><?= t('Description – <a target="_blank" href="◊">↗Markdown</a> and <a target="_blank" href="◊">↗PlantUML</a> supported',[t('MARKDOWN_HELP'),t('PLANTUML_HELP')]) ?></legend>
 			<textarea id="preview-source" name="description"><?= param('description'); ?></textarea>
 			<div id="preview" />
 		</fieldset>
