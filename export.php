@@ -15,19 +15,12 @@ if ($project_id = param('id')){
 		$title = t('Umprella: Project ◊',$project->name);
 		$show_closed_tasks = param('closed') == 'show';
 
-		$parsedown = file_exists('../lib/parsedown/Parsedown.php');
-		if ($parsedown){
-			include '../lib/parsedown/Parsedown.php';
-			$project->description = Parsedown::instance()->parse($project->description);
-		} else {
-			$project->description = str_replace("\n", "<br/>", $project->description);
-		}
 		header('Content-Disposition: attachment; filename="'.$project->name.'.html"');
 	} else error('You are not member of this project!');
 } else error('No project id passed to view!');
 
 function display_tasks($task_list,$parent_task_id){
-	global $show_closed_tasks,$project_id,$parsedown,$services;
+	global $show_closed_tasks,$project_id,$services;
 	$first = true;
 	foreach ($task_list as $tid => $task){
 		if (!$show_closed_tasks && ($task['status']>=60)) continue;
@@ -41,16 +34,12 @@ function display_tasks($task_list,$parent_task_id){
 			(<?= $task['est_time']?>&nbsp;h)
 			<?php } ?></h1>
 			<?php if (!empty($task['description'])) { ?>
-			<fieldset>
-			<?php if ($parsedown){
-				echo Parsedown::instance()->parse($task['description']);
-			} else {
-				echo str_replace("\n", "<br/>", $task['description']);
-			} ?>
-			</fieldset>
-			<?php
-			if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task['id'],'form'=>false],false,NO_CONVERSION);
-			} // if parsedown
+    			<fieldset>
+    			<?= markdown($task['description']); ?>
+    			</fieldset>
+    			<?php
+    			if (isset($services['notes'])) echo request('notes','html',['uri'=>'task:'.$task['id'],'form'=>false],false,NO_CONVERSION);
+			}
 			display_tasks($task_list,$tid)?>
 		</li>
 		<?php
@@ -80,7 +69,7 @@ if ($project){ ?>
 	</tr>
 	<?php } ?>
 	<tr>
-		<th><?= t('Description')?></th><td><?= $project->description; ?></td>
+		<th><?= t('Description')?></th><td><?= markdown($project->description) ?></td>
 	</tr>
 	<?php if ($est_time) { ?>
 	<tr>

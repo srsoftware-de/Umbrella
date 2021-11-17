@@ -36,11 +36,6 @@ if (param('note_added')) $project->send_note_notification();
 
 if ($project->company_id > 0 && isset($services['company'])) $project->company = request('company','json',['ids'=>$project->company_id]);
 
-if (file_exists('../lib/parsedown/Parsedown.php')){
-	include '../lib/parsedown/Parsedown.php';
-	$project->description = Parsedown::instance()->parse($project->description);
-} else $project->description = str_replace("\n", "<br/>", $project->description);
-
 function display_tasks($task_list,$parent_task_id,$parent_show_closed = false){
 	global $show_closed_tasks,$project_id;
 	$first = true;
@@ -139,7 +134,7 @@ if ($project){
 		</td>
 	</tr>
 	<tr>
-		<th><?= t('Description')?></th><td><?= $project->description; ?></td>
+		<th><?= t('Description')?></th><td><?= markdown($project->description) ?></td>
 	</tr>
 	<?php if ($est_time) { ?>
 	<tr>
