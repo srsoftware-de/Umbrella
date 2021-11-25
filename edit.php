@@ -55,13 +55,17 @@ if ($name = post('name')){
 			$task->patch(['parent_task_id' => $parent]);
 		} else $task->patch(['parent_task_id' => null]);
 
-		if ($new_project_id = post('project_id')) {
-			if (!array_key_exists($new_project_id, $projects)) throw new Exception('Task must reference existing project!');
-			if ($new_project_id != $task->project_id) $task->patch(['project_id' => $new_project_id,'parent_task_id' => null]);
+		$new_project_id = post('project_id');
+		if ($new_project_id) {
+			if (!array_key_exists($new_project_id, $projects)) throw new Exception('Task must reference existing project!');			
+			if ($new_project_id !== $task->project_id) {
+			    $task->patch(['parent_task_id' => null]);			    
+			} else $new_project_id = null;
 		}
 		$task->patch(['show_closed'=>(post('show_closed','off')=='on')?1:0]);
 		$task->patch(['no_index'=>(post('no_index','off')=='on')?1:0]);
 		$task->save()->update_requirements(post('required_tasks'));
+		if ($new_project_id) $task->update_project($new_project_id);
 		redirect(param('redirect',getUrl('task',$task->id.'/view')));
 	} catch (Exception $e){
 		error($e->getMessage());
