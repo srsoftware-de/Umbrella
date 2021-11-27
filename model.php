@@ -20,7 +20,8 @@
             
             $tables = [
                 'projects'=>Project::table(),
-                'projects_users'=>Project::users_table()                
+                'projects_users'=>Project::users_table(),
+                'settings'=>Settings::table()
             ];
             
             foreach ($tables as $table => $fields){
@@ -180,7 +181,8 @@
                 'company_id' => 'INT',
                 'name' => [ 'VARCHAR'=>255, 'NOT NULL' ],
                 'description' => 'TEXT',
-                'status' => [ 'INT', 'DEFAULT'=>PROJECT_STATUS_OPEN ]
+                'status' => [ 'INT', 'DEFAULT'=>PROJECT_STATUS_OPEN ],
+                'show_closed' => [ 'BOOLEAN', 'DEFAULT'=>0 ]
             ];
         }
         

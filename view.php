@@ -29,7 +29,7 @@ if ($remove_user_id = param('remove_user')){
 	} else error('You are not allowed to remove users from this project');
 }
 
-$show_closed_tasks = param('closed') == 'show';
+$show_closed_tasks = $project->show_closed > 0 || param('closed') == 'show';
 $tasks = request('task','json',['order'=>'name','project_ids'=>$project_id,'load_closed'=>$show_closed_tasks]);
 
 if (param('note_added')) $project->send_note_notification();

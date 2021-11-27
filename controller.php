@@ -34,7 +34,7 @@
 	            info("Extended 'projects' table.");
 	        } else error("0x001: Was not able to add column 'show_closed' to projects table");
 	    }
-	    
+	
 	    if (no_error()){
 	        $sql = 'CREATE TABLE settings ( ';
 	        foreach (Settings::table() as $field => $props) $sql .= field_description($field,$props);

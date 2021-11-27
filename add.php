@@ -3,6 +3,7 @@
 require_login('project');
 
 if ($name = post('name')){
+    $_POST['show_closed'] = $_POST['show_closed'] == 'on' ? 1 : 0;
 	$project = new Project();
 	$project->patch($_POST)->save()->addUser(['id'=>$user->id,'email'=>$user->email],PROJECT_PERMISSION_OWNER);
 	if (param('from') == 'task') die(json_encode($project)); // used for task-to-project conversion
@@ -44,6 +45,14 @@ include '../common_templates/messages.php'; ?>
 			<input name="tags" type="text" value="<?= param('tags')?>" />
 		</fieldset>
 		<?php }?>
+		<fieldset>
+			<legend><?= t('Options')?></legend>
+			<label>
+				<input type="checkbox" name="show_closed" />
+				<?= t('Always display closed tasks')?>
+			</label>
+		</fieldset>
+		
 		<button type="submit"><?= t('Create new project')?></button>
 	</fieldset>
 </form>

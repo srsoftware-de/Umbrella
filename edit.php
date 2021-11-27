@@ -16,6 +16,7 @@ if (empty($project)){
 $silent = param('silent',false);
 
 if (post('name')){
+    $_POST['show_closed'] = $_POST['show_closed'] == 'on' ? 1 : 0;
 	$project->patch($_POST)->save($silent);
 	redirect(param('redirect',getUrl('project',$project_id.'/view')));
 }
@@ -59,6 +60,9 @@ include '../common_templates/messages.php'; ?>
 			<legend><?= t('Options')?></legend>
 			<label class="silent_box">
 				<input type="checkbox" name="silent" /> <?= t("Don't notify users") ?>
+			</label>
+			<label>
+				<input type="checkbox" name="show_closed" <?= $project->show_closed > 0 ? 'checked="checked"' : '' ?>/> <?= t('Always display closed tasks')?>
 			</label>
 		</fieldset>
 		<?php if (isset($services['bookmark'])){ ?>
