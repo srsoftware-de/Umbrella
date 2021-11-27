@@ -13,7 +13,7 @@ if (no_error()) {
 	if (!in_array('settings', $rows)) update0();
 	if (empty(Settings::db_version())) updateDB(DB_VERSION); // new installations create a database with the newest sheme, so there is no need to update.
 	$last_db_version = Settings::db_version();
-	while ($last_db_version < DB_VERSION){ // oder installations need to update
+	while ($last_db_version < DB_VERSION){ // older installations need to update
 		$last_db_version++;
 		error('No update defined for db version '.$last_db_version);
 		break;
