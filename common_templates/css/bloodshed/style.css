@@ -575,6 +575,9 @@ table #preview-source{
 	.tasks tr>*:nth-child(3){
 		display: none;
 	}
+	.easylist fieldset a.button {
+		width: 60%;
+	}
 }
 @media (max-width: 500px){
 	table.items tr>*:nth-child(6),
