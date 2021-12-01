@@ -30,7 +30,7 @@ include '../common_templates/messages.php'; ?>
 	<?php } // if result
 	} // loop
 } /* fulltext */ else /* tag search */ { ?>
-<a class="button" href="?fulltext=true&key=<?= $key ?>"><?= t("Do a fulltext search for \"◊\"",$key)?></a>
+<a class="button" href="?fulltext=true&key=<?= $key ?>"><?= t('Do a fulltext search for "◊"',$key)?></a>
 <?php 
 	$result = request('bookmark','search',['key'=>$key],false,NO_CONVERSION);
 	if ($result){ ?>
