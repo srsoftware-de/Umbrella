@@ -9,16 +9,18 @@ $context = param('context','');
 $user_ids = param('users',[]);
 $form = param('form',true);
 if ($uri == null) throw new Exception('Called notes/json without uri');
-$notes = Note::load(['uri'=>$uri,'limit'=>0,'order'=>'id']);
+$notes = Note::load(['uri'=>$uri,'limit'=>0,'order'=>'time']);
 $users = request('user','json');
 
 foreach ($notes as $nid => $note){ ?>
 	<fieldset class="note" id="bkmk<?= $note->id ?>">
 		<legend><?= $users[$note->user_id]['login'] . ((isset($note->timestamp) && $note->timestamp>0) ? ' - '.date(t('Y-m-d H:i:s'),$note->timestamp) : '') ?></legend>
 		<?php if ($note->user_id == $user->id) {?>
-		<span class="right">
-			<a class="symbol" href="<?= getUrl('notes',$nid.'/view') ?>" title="<?= t('edit note')?>"></a>
-			<a class="symbol" href="<?= getUrl('notes',$nid.'/delete') ?>" title="<?= t('delete note')?>"></a>
+		<span class="right symbol">
+			<a href="<?= getUrl('notes',$nid.'/view?mode=view') ?>" title="<?= t('show note')?>"></a>
+			<a href="<?= getUrl('notes',$nid.'/touch') ?>" title="<?= t('touch note')?>"></a>
+			<a href="<?= getUrl('notes',$nid.'/view') ?>" title="<?= t('edit note')?>"></a>
+			<a href="<?= getUrl('notes',$nid.'/delete') ?>" title="<?= t('delete note')?>"></a>
 		</span>
 		<?php }?>
 		<?= markdown($note->note) ?>

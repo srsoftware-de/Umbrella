@@ -120,6 +120,7 @@ class Note extends UmbrellaObjectWithId{
 			case 'di': $sql.= ' ORDER BY id DESC'; break;
 			case 'id': $sql.= ' ORDER BY id'; break;
 			case 'uri': $sql.= ' ORDER BY uri'; break;
+			case 'time': $sql.= ' ORDER BY timestamp ASC, id DESC'; break;
 		}
 
 		$limit = isset($options['limit']) ? $options['limit'] : '20';
