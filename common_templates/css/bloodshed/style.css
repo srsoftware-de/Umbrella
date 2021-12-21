@@ -6,12 +6,11 @@
 	max-width:100%;
 	min-width:auto;
 }
-
-body{
-	font-family: sans-serif;
-}
 a{
 	text-decoration: none;
+}
+body{
+	font-family: sans-serif;
 }
 code {
 	display: inline-block;
@@ -120,6 +119,7 @@ fieldset.options label,
 	display: inline-table;
 }
 
+blockquote a,
 p a,
 .description a{
 	text-decoration: underline;

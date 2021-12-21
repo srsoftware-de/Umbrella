@@ -2,12 +2,20 @@
 	font-family: "awesome";
 	src: url("../fontawesome-webfont.woff");
 }
-
+a{
+	text-decoration:none;
+}
 body{
 	margin-left: 160px;
 	margin-top: 25px;
 	font-family: sans-serif;
 	position: relative;
+}
+code{
+	display: inline-block;
+	padding: 5px;
+	border: 1px solid;
+	border-radius: 5px;
 }
 
 body > a.symbol {
@@ -25,11 +33,6 @@ body.user.login{
 	margin: 0 auto;
 	text-align: center;
 }
-
-a{
-	text-decoration:none;
-}
-
 img#logo{
 	position: fixed;
 	top: 10px;
@@ -41,12 +44,7 @@ blockquote{
 	font-style: italic;
 }
 
-code{
-	display: inline-block;
-	padding: 5px;
-	border: 1px solid;
-	border-radius: 5px;
-}
+
 
 #main_menu{
 	position: fixed;
