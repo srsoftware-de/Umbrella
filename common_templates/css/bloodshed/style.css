@@ -510,9 +510,7 @@ table #preview-source{
 }
 
 @media (max-width:1199px) {
-	table.documents tr>*:nth-child(5),
-	body.time tr>*:nth-child(3),
-	.tasks.list tr>*:nth-child(2){
+	*[hide="12"]{
 		display: none;
 	}
 	table.document input{
@@ -521,15 +519,9 @@ table #preview-source{
 }
 
 @media (max-width: 900px){
-	table.items tr>*:nth-child(2),
-	table.documents tr>*:nth-child(6),
-	table.document tr>*:nth-child(1),
-		
-	body.time tr>*:nth-child(6),
-	.tasks tr>*:nth-child(5){
+	*[hide="9"]{
 		display: none;
 	}
-	
 	table.document input{
 		max-width: 60px;
 	}
@@ -540,19 +532,13 @@ table #preview-source{
 }
 
 @media (max-width: 800px){
-	table.items tr>*:nth-child(7),
-	body.time tr>*:nth-child(8),
-	.tasks tr>*:nth-child(4){
+	*[hide="8"]{
 		display: none;
 	}
 }
 
 @media (max-width: 700px){
-	table.items tr>*:nth-child(1),
-	body.time tr>*:nth-child(1),
-	.project-index tr>*:nth-child(4),
-	table.document tr>*:nth-child(2),
-	.tasks tr>*:nth-child(6){
+	*[hide="7"]{
 		display: none;
 	}
 	fieldset.bookmark > fieldset{
@@ -566,30 +552,21 @@ table #preview-source{
 }
 
 @media (max-width: 600px){
-	table.items tr>*:nth-child(8),
-	table.stock tr>*:nth-child(4),
-	table.documents tr>*:nth-child(2),
-	body.time tr>*:nth-child(7),
-	table.vertical.tasks tr>*:nth-child(1),
-	.project-view tr>*:nth-child(1),
-	.tasks tr>*:nth-child(3){
+	*[hide="6"]{
 		display: none;
 	}
+	
 	.easylist fieldset a.button {
 		width: 60%;
 	}
 }
 @media (max-width: 500px){
-	table.items tr>*:nth-child(6),
-	
-	table.documents tr>*:nth-child(3),
-	body.time tr>*:nth-child(5),	
-	.project-index tr>*:nth-child(2){
+	*[hide="5"]{
 		display: none;
 	}
 }
 @media (max-width: 400px){
-	.project-index tr>*:nth-child(5){
+	*[hide="4"]{
 		display: none;
 	}
 }
