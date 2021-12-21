@@ -26,14 +26,14 @@ if ($show_complete){ ?>
 
 <table>
 	<tr>
-		<th><?= t('Projects')?></th>
-		<th><a href="?order=subject"><?= t('Subject')?></a></th>
-		<th><a href="?order=description"><?= t('Description')?></a></th>
-		<th><a href="?order=start_time"><?= t('Start')?></a></th>
-		<th><a href="?order=end_time"><?= t('End')?></a></th>
-		<th><?= t('Hours')?></th>
-		<th><a href="?order=state"><?= t('State')?></a></th>
-		<th><?= t('Actions')?></th>
+		<th hide="7"><?= t('Projects')?></th>
+		<th hide="0"><a href="?order=subject"><?= t('Subject')?></a></th>
+		<th hide="12"><a href="?order=description"><?= t('Description')?></a></th>
+		<th hide="9"><a href="?order=start_time"><?= t('Start')?></a></th>
+		<th hide="5"><a href="?order=end_time"><?= t('End')?></a></th>
+		<th hide="8"><?= t('Hours')?></th>
+		<th hide="6"><a href="?order=state"><?= t('State')?></a></th>
+		<th hide="0"><?= t('Actions')?></th>
 	</tr>
 
 <?php $sum = 0; foreach ($times as $id => $time){
@@ -45,20 +45,20 @@ if ($show_complete){ ?>
 	if (in_array($time->state(),['open','pending'])) $sum+=$duration;
 	?>
 	<tr class="project<?= implode(' project',array_keys($time_projects))?>">
-		<td>
+		<td hide="7">
 		<?php foreach ($time_projects as $pid => $name){?>
 			<span class="hover_h">
 				<a href="<?= getUrl('project',$pid.'/view') ?>"><?= $name ?></a>&nbsp;<a href="<?= getUrl('time','?project='.$pid)?>" class="symbol" ></a>
 			</span>
 		<?php }?>
 		</td>
-		<td><a href="<?= $id ?>/view"><?= $time->subject ?></a></td>
-		<td><?= markdown($time->description) ?></td>
-		<td><a href="<?= $id ?>/view"><?= $time->start_time?date('Y-m-d H:i',$time->start_time):''; ?></a></td>
-		<td><a href="<?= $id ?>/view"><?= $time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
-		<td><a href="<?= $id ?>/view"><?= $time->end_time?round($duration/3600,2):'' ?></a></td>
-		<td><a href="<?= $id ?>/edit?return_to=<?= location() ?>"><?= t($time->state()) ?></a></td>
-		<td>
+		<td hide="0"><a href="<?= $id ?>/view"><?= $time->subject ?></a></td>
+		<td hide="12"><?= markdown($time->description) ?></td>
+		<td hide="9"><a href="<?= $id ?>/view"><?= $time->start_time?date('Y-m-d H:i',$time->start_time):''; ?></a></td>
+		<td hide="5"><a href="<?= $id ?>/view"><?= $time->end_time?date('Y-m-d H:i',$time->end_time):'<a href="'.$id.'/stop">Stop</a>'; ?></a></td>
+		<td hide="8"><a href="<?= $id ?>/view"><?= $time->end_time?round($duration/3600,2):'' ?></a></td>
+		<td hide="6"><a href="<?= $id ?>/edit?return_to=<?= location() ?>"><?= t($time->state()) ?></a></td>
+		<td hide="0">
 			<?php if ($time->end_time) { ?>
 			<a class="symbol" title="<?= t('edit') ?>" href="<?= $id ?>/edit?return_to=<?= location() ?>"></a>
 			<?php } ?>
