@@ -25,8 +25,8 @@ include '../common_templates/messages.php'; ?>
 		<?php if ($companies) { ?>
 		<th><a href="?order=company"><?= t('Company') ?></a></th>
 		<?php } ?>
-		<th><a href="?order=status"><?= t('Status')?></a></th>
-		<th><?= t('Users')?></th>
+		<th hide=6><a href="?order=status"><?= t('Status')?></a></th>
+		<th hide=5><?= t('Users')?></th>
 		<th><?= t('Actions')?></th>
 	</tr>
 <?php foreach ($projects as $id => $project){
@@ -42,9 +42,9 @@ include '../common_templates/messages.php'; ?>
 			<?php } ?>
 		</td>
 		<?php }?>
-		<td><?= t(project_state($project->status)) ?></td>
-		<td>
-		<div  class="users">
+		<td hide=6><?= t(project_state($project->status)) ?></td>
+		<td hide=5>
+		<div class="users">
 		<?php foreach ($project->users as $uid => $usr) {
 			if ($uid == $user->id) { ?>
 			<?= $usr['data']['login'] ?><br/>
