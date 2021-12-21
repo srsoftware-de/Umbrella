@@ -28,10 +28,10 @@ include '../common_templates/messages.php'; ?>
 <table class="tasks list">
 	<tr>
 		<th><a href="?order=name"><?= t('Name')?></a></th>
-		<th><a href="?order=project_id"><?= t('Project')?></a> / <a href="?order=parent_task_id"><?= t('Parent task')?></a></th>
-		<th><a href="?order=status"><?= t('Status')?></a></th>
-		<th><a href="?order=start_date"><?= t('Start')?></a></th>
-		<th><a href="?order=due_date"><?= t('Due')?></a></th>
+		<th hide=6><a href="?order=project_id"><?= t('Project')?></a> / <a href="?order=parent_task_id"><?= t('Parent task')?></a></th>
+		<th hide="7"><a href="?order=status"><?= t('Status')?></a></th>
+		<th hide="12"><a href="?order=start_date"><?= t('Start')?></a></th>
+		<th hide="9"><a href="?order=due_date"><?= t('Due')?></a></th>
 		<th><?= t('Actions') ?></th>
 	</tr>
 
@@ -50,7 +50,7 @@ include '../common_templates/messages.php'; ?>
 	?>
 	<tr class="project<?= $task->project_id ?>">
 		<td class="<?= task_state($task->status)?>"><a href="<?= $id ?>/view"><?= $task->name ?></a></td>
-		<td>
+		<td hide="6">
 			<span class="hover_h">
 			<a href="../project/<?= $task->project_id ?>/view"><?= $project['name'] ?></a><a href="#" class="symbol" onclick="return toggle('.project<?= $task->project_id ?>');">&nbsp;</a><a href="#" class="symbol" onclick="toggle('tr:not(.project<?= $task->project_id ?>)')">&nbsp;</a>
 			</span>
@@ -58,9 +58,9 @@ include '../common_templates/messages.php'; ?>
 			: <a href="../task/<?= $task->parent_task_id ?>/view"><?= $tasks[$task->parent_task_id]->name ?></a>
 			<?php } ?>
 		</td>
-		<td><?= t(task_state($task->status)) ?></td>
-		<td><?= $task->start_date ?></td>
-		<td><?= $task->due_date ?></td>
+		<td hide="7"><?= t(task_state($task->status)) ?></td>
+		<td hide="12"><?= $task->start_date ?></td>
+		<td hide="9"><?= $task->due_date ?></td>
 		<td>
 			<a title="<?= t('edit')?>"     href="<?= $id ?>/edit?redirect=../index"     class="symbol"></a>
 			<a title="<?= t('complete')?>" href="<?= $id ?>/complete?redirect=../index" class="<?= $task->status == TASK_STATUS_COMPLETE ? 'hidden':'symbol'?>"></a>

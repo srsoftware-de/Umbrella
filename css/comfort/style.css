@@ -7,7 +7,7 @@
 }
 
 .easylist fieldset a:hover p{
-    max-height: 500px;
+    max-height: 500px;    
 }
 
 @media (max-width: 1000px){

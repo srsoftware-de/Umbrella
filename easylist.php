@@ -26,7 +26,11 @@ include '../common_templates/messages.php'; ?>
 <?= $task->name ?>
 <?= $task->description ? '<p>'.strip_tags(markdown($task->description),'<br>').'</p>' : ''?>
 </a>
-<a class="symbol" href="<?= $base_url.'/'.$task->id .'/view' ?>"></a>
+<span class="symbol">
+<a href="<?= $base_url.'/'.$task->id .'/view' ?>"></a>
+<a href="<?= $base_url.'/'.$task->id .'/edit' ?>"></a>
+</span>
+</div>
 </div>
 <?php 
 $previous = 'task-'.$task->id;
@@ -41,11 +45,12 @@ $previous = 'task-'.$task->id;
 <?= $task->name ?>
 <?= $task->description ? '<p>'.strip_tags(markdown($task->description),'<br>').'</p>' : ''?>
 </a>
-<a class="symbol" href="<?= $base_url.'/'.$task->id .'/view' ?>"></a>
+<span class="symbol">
+<a href="<?= $base_url.'/'.$task->id .'/view' ?>"></a>
+<a href="<?= $base_url.'/'.$task->id .'/edit' ?>"></a>
+</span>
 </div>
-<?php 
-$previous = 'task-'.$task->id;
-}?>
+<?php $previous = 'task-'.$task->id; }?>
 </fieldset>
 
 
