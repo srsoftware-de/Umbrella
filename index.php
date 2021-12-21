@@ -22,21 +22,21 @@ include '../common_templates/messages.php'; ?>
 	<a href="add?company=<?= $cid?>"><?= t('add document') ?></a>
 	<table class="documents">
 		<tr>
-			<th><a href="?order=number"><?= t('Number') ?></a></th>
-			<th><a href="?order=date"><?= t('Date') ?></a></th>
+			<th hide=5><a href="?order=number"><?= t('Number') ?></a></th>
+			<th hide=9><a href="?order=date"><?= t('Date') ?></a></th>
 			<th><a href="?order=customer"><?= t('Customer') ?></a></th>
-			<th><?= t('Sum')?></th>
-			<th><a href="?order=type_id"><?= t('Document type') ?></a></th>
+			<th hide=7><?= t('Sum')?></th>
+			<th hide=12><a href="?order=type_id"><?= t('Document type') ?></a></th>
 			<th><a href="?order=state"><?= t('State') ?></a></th>
 			<th><?= t('Actions')?></th>
 		</tr>
 		<?php foreach ($documents as $id => $document){ if ($document->company_id != $cid) continue; ?>
 		<tr>
-			<td><a href="<?= $id ?>/view"><?= $document->number ?></a></td>
-			<td><a href="<?= $id ?>/view"><?= $document->date() ?></a></td>
+			<td hide=5><a href="<?= $id ?>/view"><?= $document->number ?></a></td>
+			<td hide=9><a href="<?= $id ?>/view"><?= $document->date() ?></a></td>
 			<td><a href="<?= $id ?>/view"><?= $document->customer_short()?></a></td>
-			<td><a href="<?= $id ?>/view"><?= $document->sum().' '.$document->currency ?></a></td>
-			<td><a href="<?= $id ?>/view"><?= t($doc_types[$document->type_id]->name) ?></a></td>
+			<td hide=7><a href="<?= $id ?>/view"><?= $document->sum().' '.$document->currency ?></a></td>
+			<td hide=12><a href="<?= $id ?>/view"><?= t($doc_types[$document->type_id]->name) ?></a></td>
 			<td><a href="<?= $id ?>/view"><?= t($document->state()) ?></a></td>
 			<td><?php if (in_array($document->state, [Document::STATE_NEW,Document::STATE_SENT,Document::STATE_DELAYED])) { ?>
 				<form method="POST" action="<?= $document->id ?>/step">
