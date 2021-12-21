@@ -37,6 +37,7 @@ $translations = array(
 		'show completed times'=>'abgeschlossene Zeiten anzeigen',
 		'start' => 'Zeiterfassunng starten',
 		'Start'=>'Beginn',
+        'started'=>'gestartet',
 		'timetrack started'=>'Zeiterfassung gestartet',
 		'Start new time track'=>'neue Zeiterfassung starten',
 		'start tracking'=>'Zeiterfassung starten',
