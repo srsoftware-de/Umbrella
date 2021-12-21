@@ -53,14 +53,14 @@ if ($companies){ ?>
 			<th><a href="?order=id"><?= t('ID')?></a></th>
 			<th><a href="?order=code"><?= t('Code')?></a></th>
 			<th><a href="?order=name"><?= t('Name')?></a></th>
-			<th><a href="?order=location"><?= t('Location')?></a></th>
+			<th hide=5><a href="?order=location"><?= t('Location')?></a></th>
 		</tr>
 		<?php while (!empty($items)){ $item=array_pop($items); $url = $base_url.$item->id.DS.'view' ?>
 		<tr>
 			<td><a href="<?= $url ?>"><?= substr($item->id,strlen($prefix)+1) ?></a></td>
 			<td><a href="<?= $url ?>"><?= $item->code ?></a></td>
 			<td><a href="<?= $url ?>"><?= $item->name ?></a></td>
-			<td><a href="<?= getUrl('stock',$item->id.'/alter_location') ?>"><?= $item->location()->full() ?></a></td>
+			<td hide=5><a href="<?= getUrl('stock',$item->id.'/alter_location') ?>"><?= $item->location()->full() ?></a></td>
 		</tr>
 		<?php } // foreach item?>
 	</table>
