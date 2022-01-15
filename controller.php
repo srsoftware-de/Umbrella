@@ -304,7 +304,7 @@ class Note extends UmbrellaObjectWithId{
 		if (empty($recipients)) return;
 		$recipients = explode(',', $recipients);
 		$context = param('context');
-		$body = $this->url() . " :\n\n" . $this->note;
+		$body = url($this->uri) . " :\n\n" . $this->note;
 		$subject = t(empty($context)?'◊ added a note':'◊ added a note to ◊',[$user->login,$context]);
 		$parts = explode(':', $this->uri,2);
 		$module = array_shift($parts);
@@ -346,25 +346,5 @@ class Note extends UmbrellaObjectWithId{
 			$this->id = $db->lastInsertId();
 		}
 		return $this;
-	}
-
-	function url(){
-		$parts = explode(':', $this->uri,2);
-		$module = array_shift($parts);
-		$id = array_shift($parts);
-		//debug(['module'=>$module,'id'=>$id],1);
-		switch ($module){
-			case 'files':
-				return getUrl($module,'?path='.$id.'&'.$param);
-				break;
-			case 'model':
-			case 'time':
-				if (strpos($id,'project:')===0) return getUrl($module,'?'.str_replace(':', '=', $id));
-				break;
-			case 'poll':
-				return getUrl($module,'view?id='.$id.'&'.$param);
-				break;
-		}
-		return getUrl($module,$id.'/view');
 	}
 }

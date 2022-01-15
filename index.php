@@ -25,7 +25,7 @@ include '../common_templates/messages.php';
 	<?php foreach ($notes as $id => $note) { ?>
 		<tr>
 			<td>
-				<a href="<?= $note->url() ?>"><?= $note->uri ?></a>
+				<a href="<?= url($note->uri) ?>"><?= $note->uri ?></a>
 				<a class="symbol" href="<?= getUrl('notes',$id.'/view') ?>"></a>
 			</td>
 			<td class="note"><?= markdown($note->note) ?></td>
