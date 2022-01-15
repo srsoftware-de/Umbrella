@@ -524,6 +524,26 @@ function transformUml($text){
     return $text;
 }
 
+function url($uri){
+	$parts = explode(':', $uri,2);
+	$module = array_shift($parts);
+	$id = array_shift($parts);
+	//debug(['module'=>$module,'id'=>$id],1);
+	switch ($module){
+		case 'files':
+			return getUrl($module,'?path='.$id.'&'.$param);
+			break;
+		case 'model':
+		case 'time':
+			if (strpos($id,'project:')===0) return getUrl($module,'?'.str_replace(':', '=', $id));
+			break;
+		case 'poll':
+			return getUrl($module,'view?id='.$id.'&'.$param);
+			break;
+	}
+	return getUrl($module,$id.'/view');
+}
+
 /* uses the user service to validate the session token and get user data */
 function validateToken($service_name = null){
 	global $user;
