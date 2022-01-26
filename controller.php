@@ -130,7 +130,7 @@ class Note extends UmbrellaObjectWithId{
 			$args[] = $limit;
 		}
 		$query = $db->prepare($sql);
-		//debug(query_insert($sql, $args));
+		//debug(query_insert($sql, $args),1);
 		if (!$query->execute($args)) throw new Exception('Was not able to load notes');
 		$rows = $query->fetchAll(INDEX_FETCH);
 		$notes = [];
@@ -144,7 +144,7 @@ class Note extends UmbrellaObjectWithId{
 		}
 
 		if ($single) return null; // no note found, which implies the loop is skipped
-
+		
 		if (isset($options['key'])){
 			// this does a user-independent search. now we have to filter out those notes, to which the user has no access
 			$docs = [];
@@ -168,7 +168,7 @@ class Note extends UmbrellaObjectWithId{
 			foreach ($notes as $note){
 				$uri_parts = explode(':', $note->uri);
 				$realm = array_shift($uri_parts);
-				$id = implode(':', $uri_parts);;
+				$id = implode(':', $uri_parts);
 				switch($realm){
 					case 'document':
 						$docs[$id] = true;
@@ -257,7 +257,7 @@ class Note extends UmbrellaObjectWithId{
 			}
 
 			if (!empty($task_ids)){
-				$tasks = request('task','json',['ids'=>array_keys($task_ids)]);
+			    $tasks = request('task','json',['ids'=>array_keys($task_ids)]);
 				foreach ($tasks as $tid => $dummy) $accessible_uris[] = 'task:'.$tid;
 			}
 
@@ -270,7 +270,7 @@ class Note extends UmbrellaObjectWithId{
 				if (!in_array($note->uri, $accessible_uris))	unset($notes[$id]);
 			}
 		}
-
+		
 		return $notes;
 	}
 

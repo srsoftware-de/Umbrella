@@ -12,7 +12,7 @@ if ($key = param('key')){
 			</tr>
 		<?php foreach ($notes as $note) { ?>
 			<tr>
-				<td><a href="<?= $note->url() ?>"><?= emphasize($note->uri,$key) ?></a></td>
+				<td><a href="<?= url($note->uri) ?>"><?= emphasize($note->uri,$key) ?></a></td>
 				<td class="note"><?= markdown(emphasize($note->note,$key)) ?></td>
 			</tr>
 		<?php } ?>

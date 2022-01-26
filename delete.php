@@ -6,7 +6,7 @@ if ($id = param('id')){
 	$note = Note::load(['ids'=>$id]);
 	if ($note === null){
 		error('There is no note with id "?" or you are not allowed to access it!');
-	} else if (param('confirm') == 'yes' && Note::delete($id)) redirect($note->url());
+	} else if (param('confirm') == 'yes' && Note::delete($id)) redirect(url($note->uri));
 } else {
 	error('No note id passed along with delete call!');
 }

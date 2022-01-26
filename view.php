@@ -33,7 +33,7 @@ include '../common_templates/messages.php';
 		<?php if ($view) {    ?><th><?= t('rendered output') ?></th><?php } ?>
 	</tr>
 	<tr>
-		<td><a href="<?= $url($note->uri) ?>"><?= $note->uri ?></a></td>
+		<td><a href="<?= url($note->uri) ?>"><?= $note->uri ?></a></td>
 		<?php if ($editor) { ?>
 		<td class="code">
 			<form method="POST">
