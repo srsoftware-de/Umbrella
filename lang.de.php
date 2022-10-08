@@ -114,6 +114,7 @@ $translations = array(
 		'Task does not exist or you are not allowed to access it.'=>'Aufgabe existiert nicht, oder Sie haben keine Zugriffsberechtigung',
 		'Task has been deleted.'=>'Aufgabe wurde gelöscht',
 		'Task must reference existing project!'=>'Aufgabe muss an existierendes Projekt gebunden sein!',
+		'Task name'=>'Aufgaben-Name',
 		'Tasks'=>'Aufgaben',
 		'The start date (◊) of this task has already passed.'=>'Das Start-Datum (◊) dieser Aufgabe ist schon vergangen.',
 		"The task \"◊\" now has the following description:\n\n◊\n\n"=>"Die Aufgabe \"◊\" lautet nun:\n\n◊\n\n",

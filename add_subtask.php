@@ -71,7 +71,7 @@ include '../common_templates/messages.php'; ?>
 			<a href="<?= getUrl('files').'?path=project/'.$task->project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
 		<legend><?= t('Add subtask to "◊"','<a href="'.getUrl('task',$task->id.'/view').'">'.$task->name.'</a>') ?></legend>
-		<fieldset><legend><?= t('Name')?></legend>
+		<fieldset><legend><?= t('Task name')?></legend>
 			<input type="text" name="name" value="<?= param('name') ?>" autofocus="true"/>
 		</fieldset>
 		<fieldset>

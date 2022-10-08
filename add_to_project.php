@@ -51,7 +51,7 @@ include '../common_templates/messages.php'; ?>
 			&nbsp;&nbsp;&nbsp;&nbsp;
 			<a href="<?= getUrl('files').'?path=project/'.$project_id ?>" class="symbol" title="show project files" target="_blank"></a>
 		</fieldset>
-		<fieldset><legend><?= t('Name')?></legend>
+		<fieldset><legend><?= t('Task name')?></legend>
 			<input type="text" name="name" value="<?= $name ?>" autofocus="true"/>
 		</fieldset>
 		<fieldset>
