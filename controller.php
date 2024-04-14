@@ -70,7 +70,7 @@
 			];
 		}
 
-		function getNextId($prefix){
+		static function getNextId($prefix){
 			$sql = 'SELECT id,code FROM items WHERE id LIKE :prefix';
 			$db = get_or_create_db();
 			$query = $db->prepare($sql);
