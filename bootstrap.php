@@ -526,14 +526,14 @@ function transformUml($text){
         $endpos = strpos($text, '@endgantt',$startpos);
         if ($endpos === false) break;
         
-        $uml = substr($text, $startpos, $endpos-$startpos+7)."\n";
+        $uml = substr($text, $startpos, $endpos-$startpos+8)."\n";
         $tmpfname = "/tmp/".md5($uml);
         if (!file_exists($tmpfname.'.svg')){
             file_put_contents($tmpfname, $uml);
             exec('java -jar /opt/plantuml.jar -charset utf-8 -tsvg '.$tmpfname);
         }
         $image = '<img src="data:image/svg+xml;base64,'.base64_encode(file_get_contents($tmpfname.'.svg')).'"/>';
-        $text = substr($text, 0,$startpos)."\n".$image.substr($text, $endpos+8);
+        $text = substr($text, 0,$startpos)."\n".$image.substr($text, $endpos+9);
         $startpos = strpos($text, '@startgantt',$startpos + strlen($image));
     }
     return $text;
