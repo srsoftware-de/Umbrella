@@ -1,0 +1,12 @@
+@media print {
+    form,
+    .wiki_page span.symbol,
+    .wiki_page .tags,
+    .wiki_page .users,
+    .wiki_page > * > * > td:nth-child(1),
+    .wiki_page > * > * > th:nth-child(1),
+    #announce,
+    #main_menu{
+	display: none;
+    }
+}

@@ -59,7 +59,7 @@ include '../common_templates/messages.php'; ?>
 			<h1><?= $page->id ?></h1>
 		</td>
 	</tr>
-	<tr>
+	<tr class="users">
 		<th><?= t('Users')?></th>
 		<td>
 		<?php $guest = false; foreach ($page->users() as $uid => $user) {
@@ -85,7 +85,7 @@ include '../common_templates/messages.php'; ?>
 		<td><?= markdown($page->content)?></td>
 	</tr>
 	<?php if ($bookmark && !empty($bookmark['tags'])) { ?>
-	<tr>
+	<tr class="tags">
 		<th><?= t('Tags')?></th>
 		<td>
 		<?php $base_url = getUrl('bookmark');
