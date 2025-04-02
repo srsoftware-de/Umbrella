@@ -30,7 +30,10 @@ if ($remove_user_id = param('remove_user')){
 }
 
 $show_closed_tasks = $project->show_closed > 0 || param('closed') == 'show';
-$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id,'load_closed'=>$show_closed_tasks]);
+$tasks = [];
+try {
+	$tasks = request('task','json',['order'=>'name','project_ids'=>$project_id,'load_closed'=>$show_closed_tasks]);
+} catch (Exception $ex){}
 
 if (param('note_added')) $project->send_note_notification();
 
@@ -109,6 +112,12 @@ if ($project){
 				<a title="<?= t('export project') ?>" href="export"></a>
 				<a title="<?= t('export as JSON') ?>" href="json_export"></a>
 				<a title="<?= t('add user')?>" href="add_user"></a>
+				<?php
+					try {
+						$transform = getUrl('task','from_project?id='.$project_id);
+					?><a title="<?= t('Transform to task')?>" href="<?= $transform ?>">?</a><?php
+					} catch (Exception $ex){} ?>
+
 				<a title="<?= t('Transform to task')?>" href="<?= getUrl('task','from_project?id='.$project_id)?>"></a>
 
 			</span>
@@ -152,11 +161,14 @@ if ($project){
 			<a href="gantt"><?= t('Gantt chart')?></a>
 		</th>
 		<td class="tasks">
-			<?php if ($tasks) $tasks = display_tasks($tasks, null);
-			if (!$tasks){ ?>
-			<a class="symbol" href="<?= getUrl('task','add_to_project/'.$project->id) ?>"></a>
-			<a href="<?= getUrl('task','add_to_project/'.$project->id) ?>"><?= t('add task') ?></a>
-			<?php } ?>
+		<?php if ($tasks) $tasks = display_tasks($tasks, null);
+		if (!$tasks){
+			try {
+				$add_url = getUrl('task','add_to_project/'.$project->id); ?>
+				<a class="symbol" href="<?= $add_url ?>">?</a>
+				<a href="<?= $add_url ?>"><?= t('add task') ?></a>
+			<?php } catch (Exception $ex) {}
+		} ?>
 		</td>
 	</tr>
 	<?php if ($project->users){ ?>
