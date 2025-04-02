@@ -209,7 +209,8 @@ function location($drop = []){
 	}
 	$port = $_SERVER['SERVER_PORT'];
 	$get_string = empty($args)?'':'?'.http_build_query($args);
-	$location = (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : $_SERVER['REQUEST_SCHEME']).'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).$_SERVER['REQUEST_URI'].$get_string;
+	$uri = strtok($_SERVER['REQUEST_URI'],'?');
+	$location = (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : $_SERVER['REQUEST_SCHEME']).'://'.$_SERVER['SERVER_NAME'].($port == 80 || $port == 443?'':':'.$port).$uri.$get_string;
 	return str_replace(" ", "%20", $location);
 }
 
