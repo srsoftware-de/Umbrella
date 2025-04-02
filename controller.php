@@ -118,7 +118,7 @@
 			}
 		}
 
-		function load($options = []){
+		static function load($options = []){
 			global $user;
 
 			$single = false;
