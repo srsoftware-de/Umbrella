@@ -149,7 +149,7 @@
             }
             $count = count($projects);
             if ($count > 0) {
-                $qMarks = str_repeat('?,', count($projects)-1).'?';
+                $qMarks = str_repeat('?,', $count-1).'?';
                 if (isset($options['users']) && $options['users']==true){
                     $sql = 'SELECT * FROM projects_users WHERE project_id IN ('.$qMarks.')';
                     $query = $db->prepare($sql);

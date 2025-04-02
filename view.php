@@ -117,9 +117,6 @@ if ($project){
 						$transform = getUrl('task','from_project?id='.$project_id);
 					?><a title="<?= t('Transform to task')?>" href="<?= $transform ?>">?</a><?php
 					} catch (Exception $ex){} ?>
-
-				<a title="<?= t('Transform to task')?>" href="<?= getUrl('task','from_project?id='.$project_id)?>"></a>
-
 			</span>
 			<h1><?= $project->name ?></h1><?= ' ('.t(project_state($project->status)).')' ?>
 		</td>
