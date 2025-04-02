@@ -146,29 +146,33 @@ if ($project){
 	<tr>
 		<th><?= t('Estimated time')?></th><td><?= t('◊ hours',$est_time) ?></td>
 	</tr>
-	<?php } ?>
+
+	<?php }
+
+	try {
+	$add_url = getUrl('task','add_to_project/'.$project->id); ?>
+
+	?>
 	<tr>
 		<th>
 			<?= t('Tasks')?>
 			<?php if (!$show_closed_tasks) { ?>
 			<a class="symbol" href="?closed=show" title="<?= t('show closed tasks')?>"></a>
 			<?php } ?>
-			<br/>
-			<br/>
+			<br/><br/>
 			<a href="gantt"><?= t('Gantt chart')?></a>
 		</th>
 		<td class="tasks">
-		<?php if ($tasks) $tasks = display_tasks($tasks, null);
+		<?php
+		if ($tasks) $tasks = display_tasks($tasks, null);
 		if (!$tasks){
-			try {
-				$add_url = getUrl('task','add_to_project/'.$project->id); ?>
-				<a class="symbol" href="<?= $add_url ?>">?</a>
-				<a href="<?= $add_url ?>"><?= t('add task') ?></a>
-			<?php } catch (Exception $ex) {}
+			<a class="symbol" href="<?= $add_url ?>">?</a>
+			<a href="<?= $add_url ?>"><?= t('add task') ?></a>
 		} ?>
 		</td>
 	</tr>
-	<?php if ($project->users){ ?>
+	<?php } catch (Exception $ex) {}
+	if ($project->users){ ?>
 	<tr>
 		<th><?= t('Users')?>
 		<?php if (isset($services['rtc'])) { ?>
