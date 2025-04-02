@@ -165,10 +165,10 @@ if ($project){
 		<td class="tasks">
 		<?php
 		if ($tasks) $tasks = display_tasks($tasks, null);
-		if (!$tasks){
+		if (!$tasks){ ?>
 			<a class="symbol" href="<?= $add_url ?>">?</a>
 			<a href="<?= $add_url ?>"><?= t('add task') ?></a>
-		} ?>
+		<?php } ?>
 		</td>
 	</tr>
 	<?php } catch (Exception $ex) {}
