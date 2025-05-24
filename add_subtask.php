@@ -23,7 +23,7 @@ $tags = [];
 if (isset($services['bookmark'])){
 	$hash = sha1(getUrl('task',$task_id.'/view'));
 	$bookmark = request('bookmark',$hash.'/json');
-	$tags = param('tags',implode(' ',$bookmark['tags']));
+	if (is_array($bookamrk)) $tags = param('tags',implode(' ',$bookmark['tags']));
 }
 
 
